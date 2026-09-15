@@ -1,4 +1,4 @@
-// draw.ts — Shared Canvas draw module for W1–W5
+// draw.ts — Shared Canvas draw module for W1–W6
 //
 // FAIRNESS PIN:
 // Exactly ONE draw implementation exists in the entire codebase for each workload.
@@ -28,6 +28,9 @@ export function drawWorkload(
       break;
     case 'W5':
       drawW5OrderBook(ctx, width, height, data);
+      break;
+    case 'W6':
+      drawW6FeedLadder(ctx, width, height, data);
       break;
   }
 }
@@ -132,5 +135,68 @@ function drawW5OrderBook(
     const size = data[lvl * 10 + 4];
     const barW = (size / 10.0) * (midX - 10);
     ctx.fillRect(midX + 2, lvl * rowH, barW, rowH - 1);
+  }
+}
+
+// W6 layout (l2feed.ts): header 8 floats, then 64 levels × 6
+// (bidPx, bidSz, bidN, askPx, askSz, askN), then 64 tape entries × 3
+// (px, sz, side). The FAIRNESS PIN applies to this routine exactly as to
+// W1–W5: one implementation, shared by every mode. The fan-out feed views
+// (RFC-0004 panel) reuse drawW6FeedLadder for their ladder canvas — the
+// same workload, the same draw code — and draw their tape/stats views with
+// view-specific routines local to the panel component.
+const W6_LADDER_SHOWN = 48;
+
+/// Exported for the RFC-0004 fan-out feed views panel (App.tsx): the
+/// ladder canvas reuses THIS routine — same workload, same draw code
+/// (FAIRNESS PIN discipline extended across surfaces).
+export function drawW6FeedLadder(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  data: Float32Array
+): void {
+  const LADDER_BASE = 8; // header floats
+  const TAPE_BASE = 8 + 64 * 6;
+  const midX = width / 2;
+  const ladderH = height * 0.85;
+  const rowH = ladderH / W6_LADDER_SHOWN;
+  // Demo scale for bar normalization: sizes vary widely under the delta
+  // stream; clamp at the same fixed scale for bids and asks (fairness).
+  const sizeScale = 40.0;
+
+  // Bids (green, left)
+  ctx.fillStyle = '#22c55e';
+  for (let lvl = 0; lvl < W6_LADDER_SHOWN; lvl++) {
+    const o = LADDER_BASE + lvl * 6;
+    const size = data[o + 1];
+    const barW = Math.min(size / sizeScale, 1) * (midX - 10);
+    ctx.fillRect(midX - barW, lvl * rowH, barW, rowH - 1);
+  }
+
+  // Asks (red, right)
+  ctx.fillStyle = '#ef4444';
+  for (let lvl = 0; lvl < W6_LADDER_SHOWN; lvl++) {
+    const o = LADDER_BASE + lvl * 6;
+    const size = data[o + 4];
+    const barW = Math.min(size / sizeScale, 1) * (midX - 10);
+    ctx.fillRect(midX + 2, lvl * rowH, barW, rowH - 1);
+  }
+
+  // Trade tape strip (bottom 15%): last trades as colored marks — green
+  // = buy aggressor (lifted the ask), red = sell aggressor (hit the bid).
+  // Mark width encodes trade size (1–8 lots → 2–8 px).
+  const tapeTop = ladderH + 2;
+  const tapeH = height - tapeTop;
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(0, tapeTop, width, 1);
+  for (let j = 0; j < 64; j++) {
+    const o = TAPE_BASE + j * 3;
+    const side = data[o + 2];
+    if (side === 0) continue; // unfilled tape slot
+    const sz = data[o + 1];
+    const x = (width * (j + 1)) / 65;
+    ctx.fillStyle = side > 0 ? '#4ade80' : '#f87171';
+    ctx.fillRect(x, tapeTop + 2 + (tapeH - 4) * 0.5, 2 + Math.min(sz, 6), Math.max(tapeH - 4, 2));
   }
 }

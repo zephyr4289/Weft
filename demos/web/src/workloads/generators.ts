@@ -14,7 +14,7 @@ function createRng(seed: number) {
 }
 
 export interface WorkloadMetadata {
-  id: 'W1' | 'W2' | 'W3' | 'W4' | 'W5';
+  id: 'W1' | 'W2' | 'W3' | 'W4' | 'W5' | 'W6';
   title: string;
   description: string;
   floatCount: number;
@@ -50,6 +50,14 @@ export const WORKLOAD_INFO: Record<string, WorkloadMetadata> = {
     title: 'W5: L2 Order Book Ladder (10,000 floats @ 60Hz)',
     description: '1000 price levels × 10 fields bid/ask ladder',
     floatCount: 10000,
+  },
+  W6: {
+    id: 'W6',
+    title: 'W6: L2 Order Book Feed — SIMULATED (584 floats @ 50:1 feed:display)',
+    description:
+      'Synthetic L2 microstructure: 50 delta messages (add/modify/cancel/trade) folded per display frame ' +
+      'into a 64-level ladder + 64-trade tape. Demo-scale model, no exchange connectivity (see l2feed.ts).',
+    floatCount: 584,
   },
 };
 
@@ -142,5 +150,11 @@ export function generateWorkloadFrame(wid: string, frameIdx: number, out: Float3
     case 'W5':
       generateW5OrderBook(frameIdx, out);
       break;
+    case 'W6':
+      // W6 is STATEFUL (a feed, not a pure frame function): use
+      // createModeRunner('…', 'W6', …), which builds the feed runners in
+      // modes/feedRunner.ts. This guard keeps the stateless contract of
+      // this module honest instead of silently emitting a static frame.
+      throw new Error('W6 is a stateful feed workload — use createModeRunner (modes/feedRunner.ts)');
   }
 }

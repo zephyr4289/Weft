@@ -115,7 +115,7 @@ export const App: React.FC = () => {
               fontWeight: activeTab === 'showcase' ? 'bold' : 'normal',
             }}
           >
-            Workload Matrix (W1–W5)
+            Workload Matrix (W1–W6)
           </button>
           <button
             onClick={() => setActiveTab('inspector')}
@@ -157,7 +157,7 @@ export const App: React.FC = () => {
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '20px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>
-                Workload (W1–W5)
+                Workload (W1–W6)
               </label>
               <select
                 value={selectedWid}

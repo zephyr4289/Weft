@@ -1,12 +1,13 @@
-=== RFC 0003: GPU-Resident Mode (Triad-2) Benchmark ===
-Environment Tag: linux-sandbox+dawn / python-sim
+=== RFC 0003: GPU-Resident Mode (Triad-2) Analytical Simulation ===
+Environment Tag: python-sim / SIMULATION-ONLY (Hardware-Deferred)
+Disclaimer: Model calculates index swap metadata overhead vs CPU memory copy staging.
 Buffer size: 1024 floats (4096 bytes)
 Iterations: 10,000 frames
 
 1. CPU Staging Upload Path:
-   Avg: 84.290 us | p50: 81.614 us | p99: 127.553 us
+   Avg: 85.609 us | p50: 82.448 us | p99: 126.354 us
 
 2. GPU-Resident Triad-2 Exchange Path:
-   Avg: 0.466 us | p50: 0.469 us | p99: 0.521 us
+   Avg: 0.457 us | p50: 0.468 us | p99: 0.521 us
 
-Latency Reduction: 180.7x faster handoff via GPU-resident Triad-2.
+Latency Reduction: 187.4x faster handoff via GPU-resident Triad-2.

@@ -9,13 +9,13 @@ All RFC memos have been drafted per `rfcs/TEMPLATE.md` with problem statements, 
 
 ## 2. RFC Findings & Benchmark Summary
 
-| RFC Number & Title | Focus Area | Headline Finding & Tag | Recommendation |
+| RFC Number & Title | Focus Area | Headline Finding & Tag | Staff Decision / Status |
 | :--- | :--- | :--- | :--- |
-| **RFC 0003: Triad-2 GPU-Resident** | WebGPU / Metal / Vulkan VRAM exchange | **0.47 µs handoff (180x speedup)** over CPU staging memory copy (`linux-sandbox+dawn`). | **Accept for Wave 3** (GPU-heavy workloads). |
-| **RFC 0004: Multi-Consumer Fan-Out** | 1-Writer, N-Reader seqlock ring | **1.27M publishes/sec** across 4 concurrent readers with 0 allocations (`node/linux-sandbox`). | **Accept as Driver Pattern**. |
-| **RFC 0005: VerifiedWeft Authenticated** | HMAC-SHA256 frame integrity | **2.10 µs encode / 2.09 µs decode** at 64B payload; missed < 1.0 µs target in pure software (`x86_64-sandbox`). | **Defer / Opt-In Only**. |
-| **RFC 0006: Android ReattachPolicy** | Process death & state recovery | Rebirth state machine cleanly separates clean re-allocation from shared memory re-hydration. | **Accept for Android**. |
-| **RFC 0007: Compose MP on iOS** | Skiko draw-phase deferred reads | CMP iOS successfully bypasses recomposition during draw phase; 120 Hz ProMotion favors native Metal. | **Accept (Dual-tier policy)**. |
+| **RFC 0003: Triad-2 GPU-Resident** | WebGPU / Metal / Vulkan VRAM exchange | **0.46 µs handoff (187x speedup)** over CPU staging in Python simulation (`python-sim / SIMULATION-ONLY`). Hardware GPU execution deferred. | **NOT ACCEPTED** (Pending hardware-backed spike; design exploration accepted). |
+| **RFC 0004: Multi-Consumer Fan-Out** | 1-Writer, N-Reader seqlock ring | **1.27M publishes/sec** across 4 concurrent readers with 0 steady-state allocations (`node / linux-sandbox`). | **ACCEPTED as Driver-Layer Pattern**. |
+| **RFC 0005: VerifiedWeft Authenticated** | HMAC-SHA256 frame integrity | **2.10 µs encode / 2.09 µs decode** at 64B payload; missed < 1.0 µs target in pure software (`x86_64-sandbox`). | **ACCEPTED as Defer / Opt-In**. |
+| **RFC 0006: Android ReattachPolicy** | Process death & state recovery | Rebirth state machine cleanly separates clean re-allocation from shared memory re-hydration. | **ACCEPTED as Design**. |
+| **RFC 0007: Compose MP on iOS** | Skiko draw-phase deferred reads | CMP iOS successfully bypasses recomposition during draw phase; 120 Hz ProMotion favors native Metal. | **ACCEPTED as Dual-Tier Policy**. |
 
 ---
 

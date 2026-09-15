@@ -61,8 +61,9 @@ def bench_gpu_resident_triad(frames=10000, float_count=1024):
     return avg_us, p50_us, p99_us
 
 def main():
-    print("=== RFC 0003: GPU-Resident Mode (Triad-2) Benchmark ===")
-    print("Environment Tag: linux-sandbox+dawn / python-sim")
+    print("=== RFC 0003: GPU-Resident Mode (Triad-2) Analytical Simulation ===")
+    print("Environment Tag: python-sim / SIMULATION-ONLY (Hardware-Deferred)")
+    print("Disclaimer: Model calculates index swap metadata overhead vs CPU memory copy staging.")
     print("Buffer size: 1024 floats (4096 bytes)")
     print("Iterations: 10,000 frames\n")
 

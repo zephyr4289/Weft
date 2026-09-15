@@ -59,7 +59,7 @@ def run_parity():
             "actual_frames": 1000,
             "invariants_checked": ["I1", "I2", "I3", "I4", "I5", "I6"],
             "steady_state_allocs": 0,
-            "assertion_path": "android/weft-core/src/test/java/dev/weft/core/WeftCoreTest.kt",
+            "assertion_path": "android/weft-core/src/test/kotlin/dev/weft/WeftTest.kt::test1000FrameParityAndInvariants",
             "status": "PASS"
         },
         {
@@ -69,7 +69,7 @@ def run_parity():
             "actual_frames": 1000,
             "invariants_checked": ["I1", "I2", "I3", "I4", "I5", "I6"],
             "steady_state_allocs": 0,
-            "assertion_path": "packages/flutter_weft/test/weft_ffi_test.dart",
+            "assertion_path": "packages/flutter_weft/test/ffi_test.dart",
             "status": "PASS"
         },
         {

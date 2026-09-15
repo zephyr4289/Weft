@@ -128,7 +128,7 @@ def generate_manifest(tarball_sha):
     log("Generating SHA256SUMS and Minisign signature...")
     sums = []
     for p in sorted(DIST_DIR.iterdir()):
-        if p.is_file() and p.name not in ["SHA256SUMS", "SHA256SUMS.minisig"]:
+        if p.is_file() and p.name not in ["SHA256SUMS", "SHA256SUMS.minisig", "RELEASE-NOTES.md"]:
             with open(p, "rb") as f:
                 sha = hashlib.sha256(f.read()).hexdigest()
             sums.append(f"{sha}  {p.name}")
@@ -141,18 +141,17 @@ def generate_manifest(tarball_sha):
     with open(EVIDENCE_DIR / "SHA256SUMS", "w") as f:
         f.write(sums_content)
 
-    # Minisign mock signature (using Ed25519 / minisign comment format)
-    sig_content = f"""untrusted comment: signature from weft secret key
-RWRWeftReleaseSignKeyMockSignatureHeader==============================================
-trusted comment: timestamp:{int(os.path.getmtime(sums_file))}
-{hashlib.sha256(sums_content.encode()).hexdigest()}
-"""
-    with open(DIST_DIR / "SHA256SUMS.minisig", "w") as f:
-        f.write(sig_content)
-    with open(EVIDENCE_DIR / "SHA256SUMS.minisig", "w") as f:
-        f.write(sig_content)
+    # Genuine Minisign Ed25519 signature
+    import sys
+    sys.path.insert(0, str(ROOT / "tools"))
+    import minisign_tool
+    sk_seed, pk, key_id = minisign_tool.generate_keypair(str(ROOT / "minisign"))
+    minisign_tool.sign_file(sums_file, DIST_DIR / "SHA256SUMS.minisig", sk_seed, key_id)
+    shutil.copy(DIST_DIR / "SHA256SUMS.minisig", EVIDENCE_DIR / "SHA256SUMS.minisig")
+    shutil.copy(ROOT / "minisign.pub", EVIDENCE_DIR / "minisign.pub")
 
-    log("Generated SHA256SUMS and Minisign signature.")
+    verified = minisign_tool.verify_file(sums_file, DIST_DIR / "SHA256SUMS.minisig", ROOT / "minisign.pub")
+    log(f"Generated SHA256SUMS and verified genuine Minisign signature: {'PASS (OK)' if verified else 'FAIL'}")
     return sums_content
 
 def generate_release_notes(tarball_sha, manifest_str):

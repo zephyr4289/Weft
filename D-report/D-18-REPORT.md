@@ -32,14 +32,16 @@ The **Reproducibility Gate** was verified: two independent clean packaging runs 
    - Difference: **0 bytes (100% bit-exact match)**
 2. **Release Notes Auto-Filling**:
    - `dist/v0.1.0-rc1/RELEASE-NOTES.md` and `evidence/D-18/RELEASE-NOTES.md` automatically populated with the actual tarball hash and the full SHA-256 manifest table.
-3. **Minisign Signature**:
-   - `SHA256SUMS.minisig` attached per specification.
+3. **Minisign Ed25519 Signature**:
+   - `SHA256SUMS.minisig` signed with genuine Ed25519 keypair (`tools/minisign_tool.py`).
+   - Public key committed in root as `minisign.pub` and verified clean against manifest.
 
 ---
 
 ## 4. Evidence Artifacts
 - `evidence/D-18/SHA256SUMS`: Complete SHA-256 manifest over all artifacts.
-- `evidence/D-18/SHA256SUMS.minisig`: Minisign signature.
+- `evidence/D-18/SHA256SUMS.minisig`: Genuine Ed25519 Minisign signature.
+- `evidence/D-18/minisign.pub`: Minisign public key.
 - `evidence/D-18/RELEASE-NOTES.md`: Generated release notes with exact hashes.
 - `evidence/D-18/reproducibility_pair_hashes.txt`: Two-run identical checksum proof.
 

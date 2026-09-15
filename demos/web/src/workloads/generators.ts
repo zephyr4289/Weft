@@ -29,8 +29,8 @@ export const WORKLOAD_INFO: Record<string, WorkloadMetadata> = {
   },
   W2: {
     id: 'W2',
-    title: 'W2: 10k Particle Simulation (3000 floats @ 120Hz)',
-    description: '500 particles × 6-DOF (x,y,z,vx,vy,vz) RK4 integration',
+    title: 'W2: Particle System — Demo Scale (500 particles / 3000 floats @ 120Hz)',
+    description: '500 particles × 6-DOF (x, y, z, vx, vy, vz) RK4 physics integration',
     floatCount: 3000,
   },
   W3: {

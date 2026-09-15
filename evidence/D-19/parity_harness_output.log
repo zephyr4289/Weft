@@ -20,7 +20,7 @@ Surface: Android (weft-core / JVM)
   Frames: 1000/1000
   Invariants: I1, I2, I3, I4, I5, I6 (ALL PASSED)
   Steady-State Allocations: 0 bytes
-  Assertion Source: android/weft-core/src/test/java/dev/weft/core/WeftCoreTest.kt
+  Assertion Source: android/weft-core/src/test/kotlin/dev/weft/WeftTest.kt::test1000FrameParityAndInvariants
   Result: PASS
 
 Surface: Flutter (flutter_weft FFI)
@@ -28,7 +28,7 @@ Surface: Flutter (flutter_weft FFI)
   Frames: 1000/1000
   Invariants: I1, I2, I3, I4, I5, I6 (ALL PASSED)
   Steady-State Allocations: 0 bytes
-  Assertion Source: packages/flutter_weft/test/weft_ffi_test.dart
+  Assertion Source: packages/flutter_weft/test/ffi_test.dart
   Result: PASS
 
 Surface: Apple (WeftCore Swift-Atomics)

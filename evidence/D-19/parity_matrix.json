@@ -1,6 +1,6 @@
 {
   "workload": "W2 (Particle System \u2014 1,000 particles \u00d7 4 floats)",
-  "timestamp": "2026-09-15 17:24:44Z",
+  "timestamp": "2026-09-15 18:55:24Z",
   "kernel_frozen_verified": true,
   "surfaces": [
     {
@@ -51,7 +51,7 @@
         "I6"
       ],
       "steady_state_allocs": 0,
-      "assertion_path": "android/weft-core/src/test/java/dev/weft/core/WeftCoreTest.kt",
+      "assertion_path": "android/weft-core/src/test/kotlin/dev/weft/WeftTest.kt::test1000FrameParityAndInvariants",
       "status": "PASS"
     },
     {
@@ -68,7 +68,7 @@
         "I6"
       ],
       "steady_state_allocs": 0,
-      "assertion_path": "packages/flutter_weft/test/weft_ffi_test.dart",
+      "assertion_path": "packages/flutter_weft/test/ffi_test.dart",
       "status": "PASS"
     },
     {

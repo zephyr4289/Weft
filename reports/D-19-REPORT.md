@@ -11,8 +11,8 @@ Directive 19 represents the final exit gate of the Weft Engineering Program (Dir
 | :--- | :--- | :---: | :---: | :---: | :--- |
 | **Node.js (`@weft/core`)** | `node-v22 / linux-sandbox` | 1,000 / 1,000 | I1–I6 (PASS) | 0 bytes | `packages/core/src/weft.ts` |
 | **Chromium (`@weft/core` SAB)** | `chromium / linux-sandbox` | 1,000 / 1,000 | I1–I6 (PASS) | 0 bytes | `demos/web/src/modes/runner.ts` |
-| **Android (`weft-core` JVM)** | `jvm-21 / android-host` | 1,000 / 1,000 | I1–I6 (PASS) | 0 bytes | `android/weft-core/src/test/java/dev/weft/core/WeftCoreTest.kt` |
-| **Flutter (`flutter_weft` FFI)** | `dart-3.6 / linux-desktop` | 1,000 / 1,000 | I1–I6 (PASS) | 0 bytes | `packages/flutter_weft/test/weft_ffi_test.dart` |
+| **Android (`weft-core` JVM)** | `jvm-21 / android-host` | 1,000 / 1,000 | I1–I6 (PASS) | 0 bytes | `android/weft-core/src/test/kotlin/dev/weft/WeftTest.kt::test1000FrameParityAndInvariants` |
+| **Flutter (`flutter_weft` FFI)** | `dart-3.6 / linux-desktop` | 1,000 / 1,000 | I1–I6 (PASS) | 0 bytes | `packages/flutter_weft/test/ffi_test.dart` |
 | **Apple (`WeftCore` Swift)** | `swift-5.10 / macos-14` | 1,000 / 1,000 | I1–I6 (PASS) | 0 bytes | `apple/Weft/Tests/WeftTests/WeftCoreTests.swift` |
 | **C Reference / Python** | `clang-19 / linux-arm64-sandbox` | 1,000 / 1,000 | I1–I6 (PASS) | 0 bytes | `core/c/litmus_runner.c` & `tools/bench_driver.py` |
 

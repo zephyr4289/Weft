@@ -1,4 +1,4 @@
-untrusted comment: signature from weft secret key
-RWRWeftReleaseSignKeyMockSignatureHeader==============================================
-trusted comment: timestamp:1789493009
-8f157aa66ff14dec9881e60d731c327f45026c42d42c5372e619fe1d1f0a01b3
+untrusted comment: signature from weft release secret key
+RWSB+o6gSOTUOi0sLgVzgX6E01PdwxHFuYUp25BnHTSnxOZHxoFP4yZYYeJwNzXsDw0NYpEmhUdlaE45TCNXLnZxIQvt76RelA4=
+trusted comment: timestamp:1789498630	file:SHA256SUMS
+gIV+9l3+OK9B46/0YGHA/S+izQMwazObK6w1KMORt0tArOGOaj+4Aa99zCEbvJu9EkII2UYkoXTy9KmH1Rl0Bg==

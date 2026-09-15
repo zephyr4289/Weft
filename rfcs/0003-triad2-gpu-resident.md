@@ -12,8 +12,12 @@ Supersedes / Superseded-by: None
 ## Summary
 Proposes Triad-2, a GPU-resident zero-copy frame exchange architecture for high-throughput compute-to-render pipelines (e.g., WebGPU compute shaders, Metal compute, Vulkan compute). Instead of CPU-mediated staging buffer copies, three device-local `GPUBuffer` allocations rotate via index/descriptor exchange, keeping all frame data entirely in VRAM.
 
-## Motivation
-In graphics-intensive workloads (spectrogram waterfall, 10,000+ particle systems), CPU staging memory uploads introduce 80–130 µs latency per frame. By maintaining 3 device-local GPU buffers and exchanging indices/pointers via atomic swap, handoff latency is reduced to sub-microsecond levels (~0.47 µs, 180x speedup).
+## Motivation & Analytical Model (Simulation-Only)
+In graphics-intensive workloads (spectrogram waterfall, particle systems), CPU staging memory uploads introduce ~84 µs latency per frame in software staging copies. In an analytical Python simulation model (`spikes/gpu-resident/gpu_pingpong_bench.py`), maintaining 3 device-local buffers and exchanging indices via atomic swap reduces metadata handoff overhead to ~0.47 µs (~180x theoretical speedup).
+
+> [!IMPORTANT]
+> **Epistemic Disclosure (SIMULATION-ONLY)**:
+> The 0.466 µs / 180.7x speedup figure is derived from an analytical Python simulation model of index pointer swaps versus memory copy staging. **No physical GPU or WebGPU backend was exercised in the sandbox**. Actual hardware execution on Vulkan/Metal/Dawn is explicitly **HARDWARE-DEFERRED** per the Owner Binding Pivot.
 
 ## Guide-level explanation
 Developers using WebGPU, Metal, or Vulkan can bind `WeftGpuWriter` and `WeftGpuReader`. The compute pipeline writes to `GPUBuffer` slot `w_work`, while the render pipeline draws from `r_work`. Exchanging buffers takes zero memory bandwidth.
@@ -38,6 +42,7 @@ Requires GPU memory allocation for 3 full frame buffers up front; requires compu
 
 ## Hardware Deferral List
 - Physical device thermal persistence on Mali/Adreno/Apple Silicon GPU is deferred.
+- WebGPU / Metal hardware driver backend measurements are deferred (simulation-only sandbox).
 
 ## Staff Decision
-[EMPTY]
+[NOT ACCEPTED pending hardware-backed spike / design exploration accepted]

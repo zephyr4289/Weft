@@ -11,10 +11,10 @@ The implementation strictly honors the **Fairness Pin** design invariant (a sing
 
 ### Workload Suite (`demos/web/src/workloads/generators.ts`)
 1. **W1 (Audio Oscilloscope)**: 1,024 float32 samples/frame simulating multi-harmonic sine/saw waveforms.
-2. **W2 (Particle System)**: 1,000 particles × 4 floats `(x, y, vx, vy)` simulating gravitation, damping, and collision wrapping.
-3. **W3 (Gyroscope / Spectrogram)**: 64 frequency channels × 32 historical steps (2,048 floats) running sliding-window waterfall spectrogram updates.
-4. **W4 (Multi-Channel EEG)**: 16 channels × 128 temporal samples (2,048 floats) with simulated alpha/beta/gamma rhythm synthesis.
-5. **W5 (L2 Financial Order Book)**: 50 bids + 50 asks (price, depth, count, imbalance = 400 floats) with stochastic Poisson order matching.
+2. **W2 (Particle System — Demo Scale)**: 500 particles × 6-DOF `(x, y, z, vx, vy, vz)` RK4 physics integration (3,000 floats).
+3. **W3 (Gyroscope / Spectrogram)**: 256 × 64 2D heat matrix stream (16,384 floats).
+4. **W4 (Multi-Channel EEG Telemetry)**: 50 delta floats subset stream.
+5. **W5 (L2 Financial Order Book)**: 1,000 price levels × 10 bid/ask fields (10,000 floats).
 
 ### Mode Configurations (`demos/web/src/modes/runner.ts`)
 - **Mode A (Naive State)**: State dispatch per producer event; re-renders canvas on every frame tick.

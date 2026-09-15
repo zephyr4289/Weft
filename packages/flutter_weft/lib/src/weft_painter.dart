@@ -3,7 +3,7 @@
 // WHY EXISTS: Defers reading the Weft channel strictly to Flutter's Paint phase
 // (bypassing Build and Layout) per WHITEPAPER §8.4 and DIRECTIVE-14 T14.3.
 
-import 'dart:ffi';
+import 'dart:ffi' hide Size;
 import 'package:flutter/widgets.dart';
 import 'weft_ffi.dart';
 
@@ -14,7 +14,6 @@ class WeftPainter extends CustomPainter {
   final WeftFFI weft;
   final WeftPaintCallback onPaint;
   final Pointer<Uint8> _readBuffer;
-  int _lastSeq = 0;
   int _droppedFrames = 0;
 
   WeftPainter({
@@ -29,7 +28,7 @@ class WeftPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // 1. Claim freshest buffer from C kernel (Zero Dart allocations)
-    final slot = weft.claim();
+    weft.claim();
     final bytesRead = weft.readSlice(_readBuffer, 16, weft.payloadMax);
 
     if (bytesRead > 0) {

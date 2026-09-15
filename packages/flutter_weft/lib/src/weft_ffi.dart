@@ -4,7 +4,6 @@
 // Dart allocations during paint/exchange loops per WHITEPAPER §8.4 and DIRECTIVE-14 T14.1.
 
 import 'dart:ffi';
-import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'bindings.dart';
 

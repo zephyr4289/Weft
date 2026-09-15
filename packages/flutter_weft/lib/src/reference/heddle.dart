@@ -7,6 +7,7 @@
 //
 // STATUS: SOURCE-ONLY, PENDING REAL-DEVICE VERIFICATION.
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'weft.dart';

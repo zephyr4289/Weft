@@ -39,12 +39,15 @@ jobs:
 
       - name: Run Unit Tests
         run: |
+          set +e
           cd android
-          ./gradlew :weft-core:testDebugUnitTest :weft-compose:testDebugUnitTest --stacktrace || (
-            echo "=== TEST EXECUTION FAILURE DETAILS ==="
-            find . -name "*.xml" -path "*/test-results/*" -exec echo "--- FILE: {} ---" \; -exec cat {} \;
-            exit 1
-          )
+          ./gradlew test --continue --stacktrace --info
+          EXIT_CODE=$?
+          echo "=== DUMPING TEST RESULTS (EXIT CODE: $EXIT_CODE) ==="
+          find . -name "*.xml" -path "*/test-results/*" -exec echo "--- FILE: {} ---" \; -exec cat {} \;
+          if [ $EXIT_CODE -ne 0 ]; then
+            exit $EXIT_CODE
+          fi
 
       - name: Assemble Release (AAR + R8 minified APK across 3 ABIs)
         run: |
@@ -57,6 +60,7 @@ jobs:
           ./gradlew publishToMavenLocal --stacktrace
 
       - name: Archive Build Artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: android-aar-and-apk
@@ -65,3 +69,5 @@ jobs:
             android/weft-compose/build/outputs/aar/
             android/sample-app/build/outputs/apk/
             android/sample-app/build/outputs/mapping/
+            android/*/build/reports/tests/
+            android/*/build/test-results/

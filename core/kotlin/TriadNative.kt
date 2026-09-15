@@ -13,6 +13,8 @@
 
 package dev.weft
 
+import java.nio.ByteBuffer
+
 internal object TriadNative {
     init {
         try {

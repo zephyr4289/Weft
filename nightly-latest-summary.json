@@ -1,0 +1,36 @@
+{
+  "run_number": 2,
+  "commit_sha": "4e88d876973cee1c6cd704f664fa547fdf456dda",
+  "run_type": "nightly",
+  "utc": "2026-09-15T13:55:23Z",
+  "overall_status": "FAILED",
+  "shards_total": 4,
+  "shards_passed": 0,
+  "shards_failed": 4,
+  "shards": {
+    "litmus-stability-c": {
+      "status": "UNKNOWN",
+      "log_file": "shard-litmus-stability-c.log",
+      "tail": "  running c L6-ownership...\n    -> exit=0 elapsed=4.0s pass=True\n  running c L7-revocation...\n    -> exit=0 elapsed=0.0s pass=True\n  running c L8-envelope...\n    -> exit=0 elapsed=0.0s pass=True\nWrote /home/runner/work/Weft/Weft/litmus/REPORT.md\nWrote /home/runner/work/Weft/Weft/litmus/results.json\n\n=== Iteration 5/5 (c) ===\n# Loaded catalog: weft-litmus v2\n  running c L1-tear...\n    -> exit=0 elapsed=7.6s pass=True\n  running c L2-writer-steps...\n    -> exit=0 elapsed=5.0s pass=True\n  running c L3-reader-steps...\n    -> exit=0 elapsed=0.0s pass=True\n  running c L4-freshness...\n    -> exit=0 elapsed=2.1s pass=True\n  running c L5-progress...\n    -> exit=0 elapsed=5.0s pass=True\n  running c L6-ownership...\n    -> exit=0 elapsed=4.0s pass=True\n  running c L7-revocation...\n    -> exit=0 elapsed=0.0s pass=True\n  running c L8-envelope...\n    -> exit=0 elapsed=0.0s pass=True\nWrote /home/runner/work/Weft/Weft/litmus/REPORT.md\nWrote /home/runner/work/Weft/Weft/litmus/results.json\n./ci/scripts/run_litmus_stability.sh: line 61: unexpected EOF while looking for matching `''",
+      "results": {}
+    },
+    "litmus-stability-rust": {
+      "status": "UNKNOWN",
+      "log_file": "shard-litmus-stability-rust.log",
+      "tail": "  running rust L6-ownership...\n    -> exit=0 elapsed=4.0s pass=True\n  running rust L7-revocation...\n    -> exit=0 elapsed=0.0s pass=True\n  running rust L8-envelope...\n    -> exit=0 elapsed=0.0s pass=True\nWrote /home/runner/work/Weft/Weft/litmus/REPORT.md\nWrote /home/runner/work/Weft/Weft/litmus/results.json\n\n=== Iteration 5/5 (rust) ===\n# Loaded catalog: weft-litmus v2\n  running rust L1-tear...\n    -> exit=0 elapsed=7.6s pass=True\n  running rust L2-writer-steps...\n    -> exit=0 elapsed=5.0s pass=True\n  running rust L3-reader-steps...\n    -> exit=0 elapsed=0.0s pass=True\n  running rust L4-freshness...\n    -> exit=0 elapsed=2.1s pass=True\n  running rust L5-progress...\n    -> exit=0 elapsed=5.0s pass=True\n  running rust L6-ownership...\n    -> exit=0 elapsed=4.0s pass=True\n  running rust L7-revocation...\n    -> exit=0 elapsed=0.0s pass=True\n  running rust L8-envelope...\n    -> exit=0 elapsed=0.0s pass=True\nWrote /home/runner/work/Weft/Weft/litmus/REPORT.md\nWrote /home/runner/work/Weft/Weft/litmus/results.json\n./ci/scripts/run_litmus_stability.sh: line 61: unexpected EOF while looking for matching `''",
+      "results": {}
+    },
+    "litmus-stability-ts": {
+      "status": "UNKNOWN",
+      "log_file": "shard-litmus-stability-ts.log",
+      "tail": "    -> exit=0 elapsed=13.1s pass=True\n  running ts L7-revocation...\n    -> exit=0 elapsed=0.2s pass=True\n  running ts L8-envelope...\n    -> exit=0 elapsed=0.1s pass=True\nWrote /home/runner/work/Weft/Weft/litmus/REPORT.md\nWrote /home/runner/work/Weft/Weft/litmus/results.json\n\n=== Iteration 5/5 (ts) ===\n# Loaded catalog: weft-litmus v2\n  running ts L1-tear...\n    [EXPOSURE-RETRY] ts/L1-tear claims=140 < min_claims=200; retrying once\n    -> exit=1 elapsed=0.8s pass=False\n  running ts L2-writer-steps...\n    -> exit=0 elapsed=0.4s pass=True\n  running ts L3-reader-steps...\n    -> exit=0 elapsed=0.2s pass=True\n  running ts L4-freshness...\n    -> exit=0 elapsed=0.2s pass=True\n  running ts L5-progress...\n    -> exit=0 elapsed=4.1s pass=True\n  running ts L6-ownership...\n    -> exit=0 elapsed=13.0s pass=True\n  running ts L7-revocation...\n    -> exit=0 elapsed=0.2s pass=True\n  running ts L8-envelope...\n    -> exit=0 elapsed=0.1s pass=True\nWrote /home/runner/work/Weft/Weft/litmus/REPORT.md\nWrote /home/runner/work/Weft/Weft/litmus/results.json\n./ci/scripts/run_litmus_stability.sh: line 61: unexpected EOF while looking for matching `''",
+      "results": {}
+    },
+    "tsan-deep": {
+      "status": "UNKNOWN",
+      "log_file": "shard-tsan-deep.log",
+      "tail": "{\"test\":\"L7-revocation\",\"lang\":\"c\",\"pass\":true,\"metrics\":{\"reclaim_ok\":true,\"post_revoke_revoked\":100,\"poison_intact\":true,\"first_revoked_at\":1172}}\nL8 roundtrip=1 unknown=1 negotiation=1 coexist=1 pass=1\n{\"test\":\"L8-envelope\",\"lang\":\"c\",\"pass\":true,\"metrics\":{\"roundtrip\":true,\"unknown_fields\":true,\"negotiation\":true,\"coexist\":true}}\nL1 hold=5ms claims=492 torn=0 drain_ok=1 claims_per_s=196.5\nL1 hold=10ms claims=250 torn=0 drain_ok=1 claims_per_s=99.4\nL1 hold=50ms claims=51 torn=0 drain_ok=1 claims_per_s=20.0\n{\"test\":\"L1-tear\",\"lang\":\"c\",\"pass\":true,\"metrics\":{\"holds_ms\":[5,10,50],\"claims\":793,\"claims_per_s\":105.3,\"torn\":0,\"drain_ok\":true}}\nL2 hold=0ms published=2000 max_wsteps=1 ok=1\nL2 hold=10ms published=2000 max_wsteps=1 ok=1\nL2 hold=25ms published=2000 max_wsteps=1 ok=1\nL2 hold=50ms published=2000 max_wsteps=1 ok=1\nL2 hold=100ms published=2000 max_wsteps=1 ok=1\n{\"test\":\"L2-writer-steps\",\"lang\":\"c\",\"pass\":true,\"metrics\":{\"holds_ms\":[0,10,25,50,100],\"publishes\":10000,\"max_wsteps\":1,\"bound\":2}}\nL3 claims=2000 max_rsteps=1 bound=2 pass=1\n{\"test\":\"L3-reader-steps\",\"lang\":\"c\",\"pass\":true,\"metrics\":{\"claims\":2000,\"max_rsteps\":1,\"bound\":2}}\nL4 freshness_violations=0 future_violations=0 stale_returns=1 drain_exact=1 (last=2000) pass=1\n{\"test\":\"L4-freshness\",\"lang\":\"c\",\"pass\":true,\"metrics\":{\"frames\":2000,\"freshness_violations\":0,\"future_violations\":0,\"drain_exact\":true,\"stale_returns\":1}}\nL5 hold=0ms rate=2000.0 Hz\nL5 hold=10ms rate=2000.0 Hz\nL5 hold=50ms rate=2000.0 Hz\nL5 hold=100ms rate=2000.0 Hz\nL5 suspended-reader rate=2000.0 Hz\nL5 ratio=1.000 tolerance=1.50 pass=1\n{\"test\":\"L5-progress\",\"lang\":\"c\",\"pass\":true,\"metrics\":{\"rates_hz\":[2000.0,2000.0,2000.0,2000.0,2000.0],\"ratio\":1.000,\"tolerance\":1.50,\"configs\":5}}\nL6 trials=200 violations=0 seed=0x00C0FFEE pass=1\n{\"test\":\"L6-ownership\",\"lang\":\"c\",\"pass\":true,\"metrics\":{\"trials\":200,\"frames_per_trial\":64,\"violations\":0,\"seed\":\"0x00C0FFEE\"}}\nL7 reclaim_ok=1 post_revoke_revoked=100 poison_intact=1 pass=1\n{\"test\":\"L7-revocation\",\"lang\":\"c\",\"pass\":true,\"metrics\":{\"reclaim_ok\":true,\"post_revoke_revoked\":100,\"poison_intact\":true,\"first_revoked_at\":1151}}\nL8 roundtrip=1 unknown=1 negotiation=1 coexist=1 pass=1\n{\"test\":\"L8-envelope\",\"lang\":\"c\",\"pass\":true,\"metrics\":{\"roundtrip\":true,\"unknown_fields\":true,\"negotiation\":true,\"coexist\":true}}",
+      "results": {}
+    }
+  }
+}

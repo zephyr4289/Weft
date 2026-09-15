@@ -35,18 +35,21 @@ jobs:
 
       - name: Install dependencies & build monorepo
         run: |
-          pnpm install 2>&1 | tee -a /tmp/demo_test_output.log
+          set -e -o pipefail
+          pnpm install --no-frozen-lockfile 2>&1 | tee -a /tmp/demo_test_output.log
           pnpm --filter '@weft/*' build 2>&1 | tee -a /tmp/demo_test_output.log
 
       - name: Run Demo Matrix Tests
         id: demo_tests
         run: |
+          set -e -o pipefail
           cd demos/web
-          pnpm test 2>&1 | tee /tmp/demo_test_output.log
+          pnpm test 2>&1 | tee -a /tmp/demo_test_output.log
 
       - name: Build Static Demo Assets
         id: demo_build
         run: |
+          set -e -o pipefail
           cd demos/web
           pnpm build 2>&1 | tee -a /tmp/demo_test_output.log
 

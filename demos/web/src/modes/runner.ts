@@ -141,11 +141,9 @@ export class ModeDRunner implements ModeRunner {
   private rWork = 2;
   private dropCount = 0;
   private readonly wid: string;
-  private readonly floatCount: number;
 
   constructor(wid: string, floatCount: number) {
     this.wid = wid;
-    this.floatCount = floatCount;
     this.bufs = [
       new Float32Array(floatCount),
       new Float32Array(floatCount),

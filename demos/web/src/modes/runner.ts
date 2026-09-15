@@ -105,9 +105,12 @@ export class ModeCRunner implements ModeRunner {
   }
 
   produceFrame(frameIdx: number): void {
-    const w = Atomics.load(this.weft.ctrl, Weft.SLOT_W_WORK);
-    const off = this.weft.bufOffset(w) + 16;
-    const f32View = new Float32Array(this.weft.sab, off, this.floatCount);
+    // 2026-09: writes go through the PUBLIC typed write cursor
+    // (Weft#wBeginFloat32 — port parity with weft_w_begin), replacing the
+    // previous reach into kernel internals (weft.ctrl / Weft.SLOT_W_WORK /
+    // weft.bufOffset + manual Float32Array construction). The encapsulation
+    // breach was the symptom of the missing writer API; the API now exists.
+    const f32View = this.weft.wBeginFloat32();
     generateWorkloadFrame(this.wid, frameIdx, f32View);
     const res = this.weft.publish(frameIdx, this.floatCount * 4);
     if (res !== PubResult.Ok) {

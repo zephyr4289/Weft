@@ -36,7 +36,7 @@ import {
   W6_FLOAT_COUNT,
   W6_FEED_TO_DISPLAY,
   W6_MSG_FIELDS,
-} from '../workloads/l2feed';
+} from '../workloads/l2feed.ts';
 
 /// Bytes of one W6 frame payload (kernel payload_len field).
 const W6_FRAME_BYTES = W6_FLOAT_COUNT * 4;

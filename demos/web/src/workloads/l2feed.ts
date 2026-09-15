@@ -135,8 +135,16 @@ export function w6Checksum(p: Float32Array): number {
 // ---------------------------------------------------------------------------
 
 export class SyntheticL2Feed {
-  /// LCG state (uint32).
-  private s: number;
+  /// LCG state (uint32). MUST carry an initializer: under ES2022
+  /// define-semantics (tsc useDefineForClassFields / node type stripping)
+  /// an initializer-less field is DEFINED as undefined, pinning TAGGED
+  /// representation — and every write of a uint32 above the SMI range
+  /// (half of all LCG steps) would box a HeapNumber: ~1 allocation per
+  /// two RNG calls on the feed's hot path. `= 0` starts the field as SMI
+  /// so V8 migrates it to a raw double field on first wide value — zero
+  /// boxing in steady state. Measured before/after in the GC harness
+  /// (evidence/feed-gc-bench.log): this one line was ~1.8 KB/tick.
+  private s = 0;
   /// Current mid price in integer cents (grid: multiples of 1 cent).
   midC = 10000;
   /// Top-of-book offsets in cents, redrawn each tick (read by the runner

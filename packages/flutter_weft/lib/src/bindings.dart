@@ -5,7 +5,6 @@
 
 import 'dart:ffi';
 import 'dart:io';
-import 'package:ffi/ffi.dart';
 
 // Opaque struct representing C `weft_t`
 final class WeftStruct extends Opaque {}

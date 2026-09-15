@@ -9,7 +9,6 @@
 
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'weft.dart';
 
 class WeftPainter extends CustomPainter {

@@ -69,6 +69,48 @@ if (w.wWritePayload(src) === 0) w.publish(seq++, src.length);
 | `debugView(): WeftDebugView` | Advisory snapshot of kernel state: slot owners, envelope samples, telemetry counters, `midPublishSample` flag. Cold path — never call per frame. Parity: `weft_debug_view`. |
 | `tPublish()` / `tClaim()` / `tDrop()` / `epoch()` | Telemetry counters (bigint). Advisory, never a correctness reference. |
 
+## Fan-out driver layer (RFC 0004) — 1 writer, N readers
+
+The kernel Triad is 1:1 by design. When one stream must feed several
+consumers at different rates (primary canvas, minimap, flight recorder,
+network visualizer), `WeftFanoutBroadcaster` implements the accepted
+RFC-0004 driver-layer pattern — userland-only, zero kernel surface:
+
+```ts
+import { WeftFanoutBroadcaster } from '@weft/core';
+
+const b = new WeftFanoutBroadcaster(1024);  // 1024 floats/slot, 4-slot ring
+
+// --- writer thread (or Worker) ---
+const slot = b.begin();                     // cached Float32 view (zero-alloc)
+slot[0] = frameId; slot[1] = amplitude;     // fill up to payloadFloats
+b.publish();                                // wait-free O(1); frame seq is internal
+
+// --- N readers (any thread holding b.sab) ---
+const r1 = b.createReader();                // or new WeftFanoutReader(b.sab, 1024)
+const r2 = b.createReader();                // each with its own pre-allocated buffer
+const claim = r1.claim();                   // { fresh, seq, dropped } — one record,
+if (claim.fresh) draw(r1.view());           // mutated in place (zero alloc per claim)
+```
+
+| Method | Contract |
+|---|---|
+| `begin(): Float32Array` | Live write cursor for the next frame; invalidates the slot's stamp BEFORE the fill (the tear bracket). Cached per slot — zero allocation per call. |
+| `publish(): number` | Wait-free O(1). Stamps the slot, flips `latestSeq`. Returns the frame seq (internal, monotonic), or 0 if no `begin()` preceded. |
+| `createReader(): WeftFanoutReader` | A consumer bound to this ring. N per ring; fully independent. |
+| `claim(): FanoutClaim` | Freshest consistent frame copied into the reader's own buffer. Never blocks, never spins unboundedly; a mid-overwrite tick skips gracefully (`fresh: false`, counted in `stats()`). `dropped` = frames completed without this reader observing them. |
+| `view(): Float32Array` | The reader's pre-allocated copy buffer (stable identity). Meaningful after a fresh `claim()`. |
+| `stats()` / `debugStats()` | Advisory accounting (AXIOM T — cold path, allocates). |
+
+**Boundary of the claim (Law 4):** fanout frames are not triad envelopes —
+the slot stamp is the frame id. Each reader pays one Float32 copy per fresh
+claim (the price of N-reader support at zero kernel surface). Slow readers
+observe dropped frames (`t_drop > 0`), exactly as RFC 0004 states. Throughput
+is environment-tagged in `spikes/fanout-heddles/fanout_driver_layer.log`
+(1.09M publishes/sec across 4 concurrent readers, `node/linux-sandbox`);
+the conformance battery lives in `test/fanout.test.ts` (28 tests, including
+a cross-thread protocol litmus with an independent worker-side writer).
+
 ## Laws you inherit by using this
 
 1. **The reader is always right; the writer is never blocked** — no API here
@@ -84,9 +126,11 @@ if (w.wWritePayload(src) === 0) w.publish(seq++, src.length);
 
 ## Boundaries (stated, not implied)
 
-- Single writer, single reader per Weft. Multi-consumer fan-out is an
-  RFC-0004 driver-layer pattern, not kernel surface.
+- Single writer, single reader per Weft kernel. Multi-consumer fan-out is
+  the RFC-0004 driver layer (`WeftFanoutBroadcaster`, above) — userland
+  surface in this package, never kernel surface.
 - `SharedArrayBuffer` requires cross-origin isolation (COOP/COEP headers) on
   the web. In Node, it works everywhere.
-- This package is the kernel only. Lifecycle (the Steward), framework
-  bindings (Heddles), and recording live elsewhere in the monorepo.
+- This package is the kernel plus the RFC-0004 fan-out driver layer.
+  Lifecycle (the Steward), framework bindings (Heddles), and recording live
+  elsewhere in the monorepo.

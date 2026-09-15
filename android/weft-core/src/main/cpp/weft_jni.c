@@ -12,6 +12,12 @@
 #include <string.h>
 #include "weft.h"
 
+// FFI struct budget guard (referenced by packages/flutter_weft/lib/src/
+// bindings.dart): the Dart side reserves 512 bytes for weft_t storage.
+// If a kernel change grows the struct past this reservation, fail the
+// build here rather than corrupting memory silently on the Dart side.
+_Static_assert(sizeof(weft_t) <= 512, "weft_t exceeds the Dart FFI 512-byte WeftStruct reservation");
+
 // I6 teardown helper: revoke the writer, wait a bounded time for the epoch
 // ACK (the writer checks `revoked` at the top of every publish and ACKs via
 // epoch.fetch_add), then destroy. Per weft.h: destroying while a writer may

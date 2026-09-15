@@ -1,6 +1,6 @@
 {
   "name": "@weft/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Weft high-frequency zero-copy Triad Protocol state synchronization kernel",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -28,7 +28,11 @@
   },
   "scripts": {
     "build": "tsup",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
   },
   "license": "Apache-2.0",
   "repository": {

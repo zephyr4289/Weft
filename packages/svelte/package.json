@@ -25,14 +25,16 @@
     "svelte": ">=4"
   },
   "devDependencies": {
-    "svelte": "^4.2.19"
+    "svelte": "^4.2.19",
+    "vitest": "^2.1.8"
   },
   "engines": {
     "node": ">=18"
   },
   "scripts": {
     "build": "tsup",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "license": "Apache-2.0",
   "repository": {

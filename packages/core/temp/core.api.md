@@ -65,6 +65,8 @@ export class Weft {
     // (undocumented)
     ctrlU64: BigInt64Array;
     // (undocumented)
+    debugView(): WeftDebugView;
+    // (undocumented)
     dv: DataView;
     // (undocumented)
     epoch(): number;
@@ -80,6 +82,8 @@ export class Weft {
     reclaim(preRevokeEpoch: number, timeoutMs: number): boolean;
     // (undocumented)
     revoke(): void;
+    // (undocumented)
+    rHeaderSize(): number;
     // (undocumented)
     rMagic(): number;
     // (undocumented)
@@ -120,6 +124,12 @@ export class Weft {
     tPublish(): bigint;
     // (undocumented)
     verifyHeld(expectedSeq: number, payloadLen: number): boolean;
+    // (undocumented)
+    wBegin(): Uint8Array;
+    // (undocumented)
+    wBeginFloat32(): Float32Array;
+    // (undocumented)
+    wWritePayload(src: Uint8Array): number;
 }
 
 // @public (undocumented)
@@ -135,6 +145,46 @@ export const WEFT_MAGIC = 1413891415;
 
 // @public (undocumented)
 export const WEFT_VERSION_1 = 1;
+
+// @public (undocumented)
+export interface WeftDebugBuf {
+    // (undocumented)
+    headerSize: number;
+    // (undocumented)
+    owner: number;
+    // (undocumented)
+    payloadLen: number;
+    // (undocumented)
+    seq: number;
+    // (undocumented)
+    slotIdx: number;
+    // (undocumented)
+    version: number;
+}
+
+// @public (undocumented)
+export interface WeftDebugView {
+    // (undocumented)
+    bufs: WeftDebugBuf[];
+    // (undocumented)
+    epoch: number;
+    // (undocumented)
+    latest: number;
+    // (undocumented)
+    midPublishSample: boolean;
+    // (undocumented)
+    revoked: boolean;
+    // (undocumented)
+    rWork: number;
+    // (undocumented)
+    tClaim: bigint;
+    // (undocumented)
+    tDrop: bigint;
+    // (undocumented)
+    tPublish: bigint;
+    // (undocumented)
+    wWork: number;
+}
 
 // @public (undocumented)
 export function xorshift32(state: {

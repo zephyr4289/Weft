@@ -6,8 +6,8 @@
 
 import { Weft } from '@weft/core';
 
-// @public (undocumented)
-export function useWeftDraw(weft: Weft, draw: (buf: Uint8Array) => void, useFrameCallback?: (cb: () => void) => void): (() => void) | undefined;
+// @public
+export function useWeftDraw(weft: Weft, draw: (buf: Uint8Array) => void, registerFrameCallback?: (cb: () => void) => (() => void) | void): () => void;
 
 // (No @packageDocumentation comment for this package)
 

@@ -3,6 +3,11 @@
 // WHY EXISTS: Wraps the existing TS kernel as a Svelte action.
 // Per WHITEPAPER §8.2: SAB requires COOP/COEP.
 // STATUS: SOURCE-ONLY, PENDING REAL-DEVICE VERIFICATION.
+//
+// 2026-09 hardening: added the `update` lifecycle handler. Svelte calls
+// update() when the action's params change (e.g. hot-swapping the Weft or
+// the draw closure); the previous version captured the initial params
+// forever, silently drawing from a stale Weft after a param change.
 
 import type { Action } from 'svelte/action';
 import { Weft } from '@weft/core';
@@ -16,19 +21,28 @@ export const weftCanvas: Action<HTMLCanvasElement, WeftActionParams> = (canvas, 
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
+  // Mutable latest params — updated via the `update` handler below.
+  let current = params;
   let raf = 0;
+
   const tick = () => {
-    params.weft.claim();
-    const buf = params.weft.rReadSlice(16, params.weft.payloadMax);
-    params.draw(ctx, buf);
+    // Draw phase discipline: claim + read the live buffer inside the frame
+    // callback only — never during Svelte reactivity effects.
+    current.weft.claim();
+    const buf = current.weft.rReadSlice(16, current.weft.payloadMax);
+    current.draw(ctx, buf);
     raf = requestAnimationFrame(tick);
   };
   raf = requestAnimationFrame(tick);
 
   return {
-    destroy: () => {
+    update(newParams: WeftActionParams) {
+      current = newParams;
+    },
+    destroy() {
       if (raf) {
         cancelAnimationFrame(raf);
+        raf = 0;
       }
     },
   };

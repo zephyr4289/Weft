@@ -8,9 +8,17 @@ import { Ref } from 'vue';
 import { Weft } from '@weft/core';
 
 // @public (undocumented)
-export function useWeft(canvasRef: Ref<HTMLCanvasElement | null>, weft: Weft, draw: (ctx: CanvasRenderingContext2D, buf: Uint8Array) => void): {
+export function useWeft(canvasRef: Ref<HTMLCanvasElement | null>, weft: Weft, draw: (ctx: CanvasRenderingContext2D, buf: Uint8Array) => void, options?: UseWeftOptions): {
     frameCount: Ref<number, number>;
+    setDraw(next: (ctx: CanvasRenderingContext2D, buf: Uint8Array) => void): void;
+    getRawFrameCount(): number;
+    dispose(): void;
 };
+
+// @public (undocumented)
+export interface UseWeftOptions {
+    hudIntervalMs?: number;
+}
 
 // (No @packageDocumentation comment for this package)
 

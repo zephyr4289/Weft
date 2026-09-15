@@ -12,7 +12,10 @@ export interface RecordedFrame {
 }
 
 export const Playback: React.FC = () => {
-  const [frames, setFrames] = useState<RecordedFrame[]>([
+  // Static fixture frames (no setter needed — the list never changes);
+  // previously destructured as [frames, setFrames] with setFrames unused,
+  // which failed `tsc` under noUnusedLocals and broke `pnpm build` in CI.
+  const [frames] = useState<RecordedFrame[]>([
     { index: 0, seq: 1, version: 1, headerSize: 16, payloadLen: 64, crc32: '0x33C38BD5', isStale: false, isForeign: false },
     { index: 1, seq: 2, version: 1, headerSize: 16, payloadLen: 64, crc32: '0x8A12DFE1', isStale: false, isForeign: false },
     { index: 2, seq: 2, version: 1, headerSize: 16, payloadLen: 64, crc32: '0x8A12DFE1', isStale: true, isForeign: false },

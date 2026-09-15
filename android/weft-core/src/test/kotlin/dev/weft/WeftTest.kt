@@ -31,7 +31,7 @@ class WeftTest {
     @Test
     fun testRevocationAndReclaim() {
         val weft = Weft(128)
-        val e0 = weft.epoch()
+        val e0 = weft.epochVal()
 
         weft.revoke()
         assertTrue(weft.isRevoked())

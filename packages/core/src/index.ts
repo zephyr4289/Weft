@@ -554,3 +554,11 @@ Weft.prototype.envelopeEncodeV1 = function(dstOff: number, seq: number, payloadL
 Weft.prototype.envelopeEncode = function(dstOff: number, version: number, headerSize: number, seq: number, payloadLen: number): void {
   envelopeEncode(this.dv, dstOff, version, headerSize, seq, payloadLen);
 };
+
+// ---------------------------------------------------------------------------
+// Fan-out driver layer (RFC 0004) — 1 writer, N readers, userland-only.
+// Accepted as a driver-layer pattern (round-6-adjudication §4); zero kernel
+// surface. See src/fanout.ts for the protocol and its boundary of the claim.
+// ---------------------------------------------------------------------------
+
+export * from './fanout';

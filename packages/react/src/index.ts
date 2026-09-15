@@ -14,7 +14,7 @@
 // legitimately requires a new loop.
 
 import React, { useEffect, useRef } from 'react';
-import { Weft } from '@weft/core';
+import { Weft, WeftFanoutBroadcaster, type FanoutClaim } from '@weft/core';
 
 export interface WeftCanvasProps extends React.CanvasHTMLAttributes<HTMLCanvasElement> {
   weft: Weft;
@@ -48,6 +48,56 @@ export function WeftCanvas({ weft, draw, ...canvasProps }: WeftCanvasProps) {
 
     return () => cancelAnimationFrame(raf);
   }, [weft]); // draw intentionally excluded — see the latest-ref note above.
+
+  return React.createElement('canvas', { ref: canvasRef, ...canvasProps });
+}
+
+// ---------------------------------------------------------------------------
+// Fan-out Heddle (RFC 0004) — one canvas = one consumer of a broadcaster.
+//
+// WHY EXISTS: RFC 0004 (accepted as a driver-layer pattern, round-6 §4)
+// covers the 1-writer/N-reader case the 1:1 kernel Triad deliberately does
+// not. One WeftFanoutCanvas mounts one WeftFanoutReader and draws from its
+// own pre-allocated buffer; mount N of them against the same broadcaster for
+// multi-canvas / multi-window synchronized rendering.
+//
+// Same Draw-phase discipline and latest-ref hardening as WeftCanvas above:
+// the draw closure is read through a ref and is NOT an effect dependency;
+// `broadcaster` identity is the only legitimate loop restart.
+// ---------------------------------------------------------------------------
+
+export interface WeftFanoutCanvasProps
+  extends React.CanvasHTMLAttributes<HTMLCanvasElement> {
+  broadcaster: WeftFanoutBroadcaster;
+  draw: (ctx: CanvasRenderingContext2D, floats: Float32Array, claim: FanoutClaim) => void;
+}
+
+export function WeftFanoutCanvas({ broadcaster, draw, ...canvasProps }: WeftFanoutCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Latest-ref: always call the freshest draw closure without re-subscribing.
+  const drawRef = useRef(draw);
+  drawRef.current = draw;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // One heddle = one consumer slot: this binding owns its reader.
+    // claim()/view() never allocate on the hot path (Law 2), so the loop is
+    // allocation-free end to end.
+    const reader = broadcaster.createReader();
+    let raf = 0;
+    const tick = () => {
+      const claim = reader.claim();
+      drawRef.current(ctx, reader.view(), claim);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    return () => cancelAnimationFrame(raf);
+  }, [broadcaster]); // draw intentionally excluded — latest-ref pattern.
 
   return React.createElement('canvas', { ref: canvasRef, ...canvasProps });
 }

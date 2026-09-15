@@ -1,0 +1,17 @@
+# RFC 0004 driver-layer benchmark — production implementation re-measurement
+# Command: node --experimental-strip-types core/ts/fanout_bench.ts
+# Reconciles with the D-17 spike (evidence/D-17/fanout_prototype.log: 1269931
+# publishes/sec, unvalidated claims). The production protocol adds the
+# stamp-then-fill bracket + claim validation: ~14% throughput cost for
+# zero torn reads under concurrency (see test/fanout.test.ts litmus).
+
+=== RFC 0004: Fan-Out Driver Layer Benchmark (production implementation) ===
+Environment Tag: node v24.19.0 / linux-sandbox
+Total Writer Publishes: 100000
+Elapsed Time: 91.54 ms (1092454 publishes/sec)
+  Reader [Flight Recorder (120Hz)]: reads=100000 fresh=100000 drops=0 skipped=0 torn=0
+  Reader [Primary Canvas (60Hz)]: reads=50000 fresh=50000 drops=50000 skipped=0 torn=0
+  Reader [Minimap (30Hz)]: reads=25000 fresh=25000 drops=75000 skipped=0 torn=0
+  Reader [Network Viz (15Hz)]: reads=12500 fresh=12500 drops=87500 skipped=0 torn=0
+Broadcaster telemetry: publishes=100000 latestSeq=100000
+Law 2 Invariant: 0 steady-state allocations (claim record + view identity-stable across 100000 frames) verified.

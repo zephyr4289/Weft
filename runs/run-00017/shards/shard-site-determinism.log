@@ -1,0 +1,8 @@
+==================================================
+SHARD: site-determinism
+DESCRIPTION: make site double-render, byte-identical sha256 check
+STATUS: FAILED ❌
+COMMIT: 977db38137661e5d9f5f789482e7170147bf186d
+RUN: 17
+==================================================
+

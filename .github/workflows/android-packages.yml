@@ -23,35 +23,34 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK and NDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install NDK and CMake
+      - name: Accept Android Licenses & Install NDK / CMake
         run: |
-          sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1" "platforms;android-35" "build-tools;35.0.0"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Make gradlew executable
+      - name: Generate and Setup Gradle Wrapper
         run: |
-          chmod +x android/gradlew || true
-          cd android && gradle wrapper
+          cd android
+          gradle wrapper --gradle-version 8.11.1
+          chmod +x gradlew
 
       - name: Run Unit Tests
         run: |
           cd android
-          ./gradlew test
+          ./gradlew test --stacktrace
 
       - name: Assemble Release (AAR + R8 minified APK across 3 ABIs)
         run: |
           cd android
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --stacktrace
 
       - name: Publish to Maven Local
         run: |
           cd android
-          ./gradlew publishToMavenLocal
+          ./gradlew publishToMavenLocal --stacktrace
 
       - name: Archive Build Artifacts
         uses: actions/upload-artifact@v4

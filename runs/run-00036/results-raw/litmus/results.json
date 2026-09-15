@@ -1,0 +1,149 @@
+{
+  "catalog": "weft-litmus",
+  "version": 2,
+  "run_utc": "2026-09-15T17:20:02.936494+00:00",
+  "honesty_label": "x86_64-sandbox (runtime-verified)",
+  "langs": [
+    "ts"
+  ],
+  "tests": [
+    "L1-tear",
+    "L2-writer-steps",
+    "L3-reader-steps",
+    "L4-freshness",
+    "L5-progress",
+    "L6-ownership",
+    "L7-revocation",
+    "L8-envelope"
+  ],
+  "matrix": {
+    "ts/L1-tear": {
+      "test": "L1-tear",
+      "lang": "ts",
+      "pass": false,
+      "metrics": {
+        "holds_ms": [
+          5,
+          10,
+          50
+        ],
+        "claims": 190,
+        "claims_per_s": 574.3,
+        "torn": 0,
+        "drain_ok": true
+      },
+      "retry_attempted": true,
+      "retry_label": "EXPOSURE-SHORTFALL",
+      "retry_verdict": {
+        "test": "L1-tear",
+        "lang": "ts",
+        "pass": false,
+        "metrics": {
+          "holds_ms": [
+            5,
+            10,
+            50
+          ],
+          "claims": 154,
+          "claims_per_s": 561.0,
+          "torn": 0,
+          "drain_ok": true
+        }
+      },
+      "retry_stderr": "L1 hold=5ms claims=57 torn=0 drain_ok=true claims_per_s=694.9\nL1 hold=10ms claims=48 torn=0 drain_ok=true claims_per_s=665.7\nL1 hold=50ms claims=49 torn=0 drain_ok=true claims_per_s=322.3",
+      "retry_claims": 154
+    },
+    "ts/L2-writer-steps": {
+      "test": "L2-writer-steps",
+      "lang": "ts",
+      "pass": true,
+      "metrics": {
+        "holds_ms": [
+          0,
+          10,
+          25,
+          50,
+          100
+        ],
+        "publishes": 10000,
+        "max_wsteps": 1,
+        "bound": 2
+      }
+    },
+    "ts/L3-reader-steps": {
+      "test": "L3-reader-steps",
+      "lang": "ts",
+      "pass": true,
+      "metrics": {
+        "claims": 2000,
+        "max_rsteps": 1,
+        "bound": 2
+      }
+    },
+    "ts/L4-freshness": {
+      "test": "L4-freshness",
+      "lang": "ts",
+      "pass": true,
+      "metrics": {
+        "frames": 2000,
+        "freshness_violations": 0,
+        "future_violations": 0,
+        "drain_exact": true,
+        "stale_returns": 160773
+      }
+    },
+    "ts/L5-progress": {
+      "test": "L5-progress",
+      "lang": "ts",
+      "pass": true,
+      "metrics": {
+        "rates_hz": [
+          2000.0,
+          2000.0,
+          2000.0,
+          2000.0,
+          2000.0
+        ],
+        "ratio": 1.0,
+        "tolerance": 1.5,
+        "configs": 5
+      }
+    },
+    "ts/L6-ownership": {
+      "test": "L6-ownership",
+      "lang": "ts",
+      "pass": true,
+      "metrics": {
+        "trials": 200,
+        "frames_per_trial": 64,
+        "violations": 0,
+        "seed": "0x00c0ffee"
+      }
+    },
+    "ts/L7-revocation": {
+      "test": "L7-revocation",
+      "lang": "ts",
+      "pass": true,
+      "metrics": {
+        "reclaim_ok": true,
+        "post_revoke_revoked": 100,
+        "poison_intact": true,
+        "first_revoked_at": 0
+      }
+    },
+    "ts/L8-envelope": {
+      "test": "L8-envelope",
+      "lang": "ts",
+      "pass": true,
+      "metrics": {
+        "roundtrip": true,
+        "unknown_fields": true,
+        "negotiation": true,
+        "coexist": true
+      }
+    }
+  },
+  "stderr_excerpts": {
+    "ts/L1-tear": "L1 hold=5ms claims=96 torn=0 drain_ok=true claims_per_s=771.2\nL1 hold=10ms claims=50 torn=0 drain_ok=true claims_per_s=651.8\nL1 hold=50ms claims=44 torn=0 drain_ok=true claims_per_s=299.8\n[EXPOSURE-SHORTFALL: retry also failed]"
+  }
+}

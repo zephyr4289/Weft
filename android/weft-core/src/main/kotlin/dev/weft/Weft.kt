@@ -221,17 +221,17 @@ fun negotiate(writerVersion: Short, readerVersions: ShortArray): Short {
 // --- Shared payload pattern (04-LITMUS §0.1) ---
 
 fun mix32(x: Int): Int {
-    var x = x
-    x = x xor (x ushr 16)
-    x *= 0x7FEB352D
-    x = x xor (x ushr 15)
-    x *= 0x846CA68B
-    x = x xor (x ushr 16)
-    return x
+    var v = x
+    v = v xor (v ushr 16)
+    v = (v.toLong() * 0x7FEB352DL).toInt()
+    v = v xor (v ushr 15)
+    v = (v.toLong() * 0x846CA68BL).toInt()
+    v = v xor (v ushr 16)
+    return v
 }
 
 fun pat(seq: Int, i: Int): Byte {
-    val x = seq * 2654435761 + i * 2246822519
+    val x = (seq.toLong() * 2654435761L + i.toLong() * 2246822519L).toInt()
     return (mix32(x) and 0xFF).toByte()
 }
 

@@ -46,19 +46,34 @@ public class WeftHeddle(
 }
 
 /**
- * Remember a [WeftHeddle] bound to a [Steward].
+ * Remember a [WeftHeddle] bound to a ViewModel-scoped [Steward].
  *
  * Survives recomposition cycles; disposed when the calling composable leaves the composition.
  *
  * @param capacity Buffer capacity in elements.
  * @param policy Lifecycle reattachment policy.
- * @param steward Optional Steward; defaults to a ViewModel-scoped Steward.
  */
 @Composable
 public fun rememberWeftHeddle(
     capacity: Int = 1024,
-    policy: ReattachPolicy = ReattachPolicy.PRESERVE_HELD,
-    steward: Steward = viewModel()
+    policy: ReattachPolicy = ReattachPolicy.PRESERVE_HELD
+): WeftHeddle {
+    val steward: Steward = viewModel()
+    return rememberWeftHeddle(capacity, policy, steward)
+}
+
+/**
+ * Remember a [WeftHeddle] bound to a provided [Steward].
+ *
+ * @param capacity Buffer capacity in elements.
+ * @param policy Lifecycle reattachment policy.
+ * @param steward The Steward instance managing the channel.
+ */
+@Composable
+public fun rememberWeftHeddle(
+    capacity: Int,
+    policy: ReattachPolicy,
+    steward: Steward
 ): WeftHeddle {
     val heddle = remember(steward, capacity) {
         val weft = steward.weft<ByteArray>(capacity)

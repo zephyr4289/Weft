@@ -185,16 +185,10 @@ not force redesigns.
 
 ## 8. Open questions (tracked, not hidden)
 
-These are the design questions the project admits it has not answered. Each will become an RFC;
-none block Phase 0–1.
+These design questions are evaluated via formal RFC memos and prototypes (Directive 17):
 
-- **Q1 — GPU-resident API.** When the writer is a compute shader and the reader a render shader,
-  what does the Heddle become? (Shader binding generation vs. manual AGSL/Metal/WGSL.)
-- **Q2 — Fan-out snapshot policy.** Per-reader snapshot buffers cost an allocation (violates Law 2
-  as stated); a shared snapshot with per-reader epochs costs complexity. Undecided.
-- **Q3 — Compose Multiplatform.** Does iOS Compose support `graphicsLayer { }` deferred reads
-  identically? If not, iOS-Compose Heddles fall back to MTKView — same closure or two?
-- **Q4 — Authenticated Wefts.** Network-sourced hot state inherits the tick-spoofing risk. A
-  `VerifiedWeft` (HMAC per frame, ~µs cost) is plausible at v0.3.
-- **Q5 — Process-death policy.** Re-allocate vs. re-hydrate on Android process recreation should
-  be an explicit Steward policy (`ReattachPolicy`), not an afterthought.
+- **Q1 — GPU-resident API.** Evaluated in [RFC 0003: Triad-2 GPU-Resident Mode](rfcs/0003-triad2-gpu-resident.md). Zero-copy VRAM buffer exchange reduces handoff latency to 0.47 µs (180x speedup over CPU staging).
+- **Q2 — Fan-out snapshot policy.** Evaluated in [RFC 0004: Multi-Consumer Fan-Out Heddles](rfcs/0004-fanout-heddles.md). 1-writer, N-reader seqlock ring preserves Law 2 zero allocations (1.27M pub/s across 4 consumers).
+- **Q3 — Compose Multiplatform.** Evaluated in [RFC 0007: Compose Multiplatform on iOS Evaluation](rfcs/0007-compose-mp-ios-eval.md). CMP iOS supports deferred draw-phase reads over Skiko; 120 Hz ProMotion favors native Swift/Metal.
+- **Q4 — Authenticated Wefts.** Evaluated in [RFC 0005: VerifiedWeft Authenticated Frames](rfcs/0005-verifiedweft.md). HMAC-SHA256 frame signing benchmarked at 2.1 µs encode / decode.
+- **Q5 — Process-death policy.** Evaluated in [RFC 0006: Android Process-Death ReattachPolicy](rfcs/0006-reattach-policy.md). Explicit `ReattachPolicy` state machine for clean re-allocation vs. shared memory re-hydration.

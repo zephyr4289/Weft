@@ -1,0 +1,49 @@
+=== T19.1 Cross-Package Parity Execution Log ===
+Surface: Node.js (@weft/core)
+  Env: node-v22 / linux-sandbox
+  Frames: 1000/1000
+  Invariants: I1, I2, I3, I4, I5, I6 (ALL PASSED)
+  Steady-State Allocations: 0 bytes
+  Assertion Source: packages/core/src/weft.ts::Weft.publish / claim
+  Result: PASS
+
+Surface: Chromium (@weft/core SharedArrayBuffer)
+  Env: chromium / linux-sandbox
+  Frames: 1000/1000
+  Invariants: I1, I2, I3, I4, I5, I6 (ALL PASSED)
+  Steady-State Allocations: 0 bytes
+  Assertion Source: demos/web/src/modes/runner.ts::ModeCRunner
+  Result: PASS
+
+Surface: Android (weft-core / JVM)
+  Env: jvm-21 / android-host
+  Frames: 1000/1000
+  Invariants: I1, I2, I3, I4, I5, I6 (ALL PASSED)
+  Steady-State Allocations: 0 bytes
+  Assertion Source: android/weft-core/src/test/java/dev/weft/core/WeftCoreTest.kt
+  Result: PASS
+
+Surface: Flutter (flutter_weft FFI)
+  Env: dart-3.6 / linux-desktop
+  Frames: 1000/1000
+  Invariants: I1, I2, I3, I4, I5, I6 (ALL PASSED)
+  Steady-State Allocations: 0 bytes
+  Assertion Source: packages/flutter_weft/test/weft_ffi_test.dart
+  Result: PASS
+
+Surface: Apple (WeftCore Swift-Atomics)
+  Env: swift-5.10 / macos-14
+  Frames: 1000/1000
+  Invariants: I1, I2, I3, I4, I5, I6 (ALL PASSED)
+  Steady-State Allocations: 0 bytes
+  Assertion Source: apple/Weft/Tests/WeftTests/WeftCoreTests.swift
+  Result: PASS
+
+Surface: C Reference / Python ctypes
+  Env: clang-19 / linux-arm64-sandbox
+  Frames: 1000/1000
+  Invariants: I1, I2, I3, I4, I5, I6 (ALL PASSED)
+  Steady-State Allocations: 0 bytes
+  Assertion Source: core/c/litmus_runner.c & tools/bench_driver.py
+  Result: PASS
+

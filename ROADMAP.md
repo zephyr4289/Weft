@@ -1,12 +1,26 @@
 # Roadmap
 
-Sequential, benchmark-gated, and honest about what is conditional. The founding draft proposed
-three platforms in eight weeks; this roadmap replaces that with the corrected plan. Phases do not
-overlap, and each phase's success criterion is mechanical — a phase ends when its criterion is
-met, not when its calendar slot does.
+Sequential, benchmark-gated, and honest about what is conditional.
 
-**Current status: Phase 0 — not started.** The next physical action on this project is the Triad
-Protocol spike.
+**Current status: Coordinated Release v0.1.0 (Series 1x Complete).**
+
+> [!NOTE]
+> **Owner Binding Pivot**: Physical cross-device hardware testing has been permanently abandoned across all phases. Verification is strictly build + unit/Robolectric/simulator + x86_64/arm64-sandbox CI runners. All published metrics carry explicit environment tags (`termux-arm64`, `linux-ci`, `macos-14`, `chromium/linux-sandbox`).
+
+---
+
+## Series 1x Engineering Execution Ledger (Directives D-10 — D-19)
+
+- **D-10 (Wave 0 — Canonical Integrity & Forensics)**: CLOSED (`421494e`, [`reports/D-10-REPORT.md`](reports/D-10-REPORT.md))
+- **D-11 (Wave 1 — npm Packages Ecosystem)**: CLOSED (`ab9425f`, `3364d06`, [`reports/D-11-REPORT.md`](reports/D-11-REPORT.md))
+- **D-12 (Wave 1 — Android / Kotlin Packaging)**: CLOSED (`2abe842`, [`reports/D-12-REPORT.md`](reports/D-12-REPORT.md))
+- **D-13 (Wave 1 — Apple / Swift Package Manager)**: CLOSED (`f5e65a4`, [`reports/D-13-REPORT.md`](reports/D-13-REPORT.md))
+- **D-14 (Wave 1–2 — Flutter / Dart FFI Package)**: CLOSED (`4f061c0`, [`reports/D-14-REPORT.md`](reports/D-14-REPORT.md))
+- **D-15 (Wave 2 — Interactive Showcase Demos W1–W5)**: CLOSED (`614bbb5`, [`reports/D-15-REPORT.md`](reports/D-15-REPORT.md))
+- **D-16 (Wave 2 — Telemetry Inspector & .weftrec Playback)**: CLOSED (`fa5ff75`, [`reports/D-16-REPORT.md`](reports/D-16-REPORT.md))
+- **D-17 (Background — Protocol RFC Spikes Q1–Q5)**: CLOSED (`f338bba`, [`reports/D-17-REPORT.md`](reports/D-17-REPORT.md))
+- **D-18 (Wave 3 — Release Engineering & Manifest Matrix)**: CLOSED (`2284f1d`, [`reports/D-18-REPORT.md`](reports/D-18-REPORT.md))
+- **D-19 (Wave 4 — End-to-End Integration Gate & Coordinated v0.1.0)**: CLOSED ([`reports/D-19-REPORT.md`](reports/D-19-REPORT.md))
 
 ---
 

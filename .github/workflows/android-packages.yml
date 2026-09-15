@@ -40,7 +40,11 @@ jobs:
       - name: Run Unit Tests
         run: |
           cd android
-          ./gradlew test --stacktrace
+          ./gradlew test --stacktrace --info || (
+            echo "=== TEST EXECUTION FAILURE DETAILS ==="
+            find . -name "*.xml" -path "*/test-results/*" -exec echo "--- FILE: {} ---" \; -exec cat {} \;
+            exit 1
+          )
 
       - name: Assemble Release (AAR + R8 minified APK across 3 ABIs)
         run: |

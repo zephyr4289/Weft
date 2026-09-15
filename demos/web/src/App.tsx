@@ -4,6 +4,7 @@ import { drawWorkload } from './workloads/draw';
 import { createModeRunner, ModeType, ModeRunner } from './modes/runner';
 import { Inspector } from './components/Inspector';
 import { Playback } from './components/Playback';
+import { FeedFanoutViews } from './components/FeedFanoutViews';
 
 type TabType = 'showcase' | 'inspector' | 'playback';
 
@@ -275,6 +276,10 @@ export const App: React.FC = () => {
               {heapMb > 0 && <div>JS Heap: {heapMb} MB</div>}
             </div>
           </div>
+
+          {/* RFC-0004 fan-out feed views (W6 only): one broadcaster driving
+              three independent consumers — the Series-2 follow-up. */}
+          {selectedWid === 'W6' && <FeedFanoutViews running={isRunning} />}
         </>
       )}
 

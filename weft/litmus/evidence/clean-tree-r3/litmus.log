@@ -1,0 +1,126 @@
+# make litmus
+# Start: 2026-09-12T05:08:11Z
+# Working dir: /home/z/my-project/scripts/_clean_tree_r3/weft
+# Tarball: /home/z/my-project/download/weft-sandbox-v0.1.tar.gz
+
+cd core/c && make
+make[1]: Entering directory '/home/z/my-project/scripts/_clean_tree_r3/weft/core/c'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/z/my-project/scripts/_clean_tree_r3/weft/core/c'
+cd core/rust && cargo build --release
+TS kernel loads OK
+python3 tools/litmus_driver.py --langs c,rust,ts
+
+--- STDERR ---
+warning: unused import: `PubResult`
+ --> src/bin/bench.rs:8:22
+  |
+8 | use weft_core::{pat, PubResult, Weft};
+  |                      ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unnecessary `unsafe` block
+  --> src/bin/bench.rs:78:9
+   |
+78 |         unsafe { fill_payload(&w, seq, payload_max as u32); }
+   |         ^^^^^^ unnecessary `unsafe` block
+   |
+   = note: `#[warn(unused_unsafe)]` (part of `#[warn(unused)]`) on by default
+
+warning: unnecessary `unsafe` block
+   --> src/bin/bench.rs:203:13
+    |
+203 |             unsafe { fill_payload(&w2, seq, payload_max as u32); }
+    |             ^^^^^^ unnecessary `unsafe` block
+
+warning: unnecessary `unsafe` block
+   --> src/bin/bench.rs:267:13
+    |
+267 |             unsafe { fill_payload(&w2, seq, payload_max as u32); }
+    |             ^^^^^^ unnecessary `unsafe` block
+
+warning: function `now_ns` is never used
+  --> src/bin/bench.rs:10:4
+   |
+10 | fn now_ns() -> u64 {
+   |    ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `now_ns_abs` is never used
+  --> src/bin/bench.rs:14:4
+   |
+14 | fn now_ns_abs() -> u64 {
+   |    ^^^^^^^^^^
+
+warning: `weft-core` (bin "bench") generated 6 warnings (run `cargo fix --bin "bench" -p weft-core` to apply 1 suggestion)
+warning: unused imports: `Duration` and `Instant`
+ --> src/bin/probe.rs:3:17
+  |
+3 | use std::time::{Duration, Instant};
+  |                 ^^^^^^^^  ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `PubResult`
+ --> src/bin/probe.rs:4:22
+  |
+4 | use weft_core::{pat, PubResult, Weft, WeftDebugView};
+  |                      ^^^^^^^^^
+
+warning: `weft-core` (bin "probe") generated 2 warnings (run `cargo fix --bin "probe" -p weft-core` to apply 2 suggestions)
+    Finished `release` profile [optimized] target(s) in 0.01s
+# Loaded catalog: weft-litmus v2
+  running c L1-tear...
+    -> exit=0 elapsed=7.6s pass=True
+  running c L2-writer-steps...
+    -> exit=0 elapsed=5.6s pass=True
+  running c L3-reader-steps...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L4-freshness...
+    -> exit=0 elapsed=2.2s pass=True
+  running c L5-progress...
+    -> exit=0 elapsed=5.1s pass=True
+  running c L6-ownership...
+    -> exit=0 elapsed=4.1s pass=True
+  running c L7-revocation...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L8-envelope...
+    -> exit=0 elapsed=0.0s pass=True
+  running rust L1-tear...
+    -> exit=0 elapsed=7.6s pass=True
+  running rust L2-writer-steps...
+    -> exit=0 elapsed=5.0s pass=True
+  running rust L3-reader-steps...
+    -> exit=0 elapsed=0.0s pass=True
+  running rust L4-freshness...
+    -> exit=0 elapsed=2.1s pass=True
+  running rust L5-progress...
+    -> exit=0 elapsed=5.0s pass=True
+  running rust L6-ownership...
+    -> exit=0 elapsed=4.4s pass=True
+  running rust L7-revocation...
+    -> exit=0 elapsed=0.0s pass=True
+  running rust L8-envelope...
+    -> exit=0 elapsed=0.0s pass=True
+  running ts L1-tear...
+    [EXPOSURE-RETRY] ts/L1-tear claims=177 < min_claims=200; retrying once
+    -> exit=1 elapsed=0.9s pass=False
+  running ts L2-writer-steps...
+    -> exit=0 elapsed=0.5s pass=True
+  running ts L3-reader-steps...
+    -> exit=0 elapsed=0.2s pass=True
+  running ts L4-freshness...
+    -> exit=0 elapsed=0.2s pass=True
+  running ts L5-progress...
+    -> exit=0 elapsed=4.2s pass=True
+  running ts L6-ownership...
+    -> exit=0 elapsed=16.6s pass=True
+  running ts L7-revocation...
+    -> exit=0 elapsed=0.2s pass=True
+  running ts L8-envelope...
+    -> exit=0 elapsed=0.1s pass=True
+Wrote /home/z/my-project/scripts/_clean_tree_r3/weft/litmus/REPORT.md
+Wrote /home/z/my-project/scripts/_clean_tree_r3/weft/litmus/results.json
+make: *** [Makefile:40: litmus] Error 1

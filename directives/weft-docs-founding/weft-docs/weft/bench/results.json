@@ -1,0 +1,247 @@
+{
+  "benches": [
+    "B1-pub-throughput",
+    "B2-contended",
+    "B3-scaling-fingerprint",
+    "B4-display-adversarial",
+    "B5-memory-contract"
+  ],
+  "catalog": "weft-bench",
+  "env": {
+    "cat /proc/cpuinfo | grep 'model name' | head -1": "model name\t: Intel(R) Xeon(R) Processor",
+    "catalog_version": "weft-bench v1",
+    "env_label": "x86_64-sandbox",
+    "gcc --version | head -1": "gcc (Debian 14.2.0-19) 14.2.0",
+    "harness_version": "bench_driver.py v1",
+    "node --version": "v24.19.0",
+    "nproc": "2",
+    "python3 --version": "Python 3.12.14",
+    "rustc --version": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "uname -a": "Linux c-6aa3f50e-14d96228-69a6a74a4c2d 5.10.134-013.8.3.kangaroo.al8.x86_64 #1 SMP Fri May 29 08:22:43 UTC 2026 x86_64 GNU/Linux",
+    "utc_timestamp": "2026-09-11T14:04:55Z"
+  },
+  "env_label": "x86_64-sandbox",
+  "langs": [
+    "c",
+    "rust",
+    "ts"
+  ],
+  "matrix": {
+    "c/B1-pub-throughput": {
+      "bench": "B1-pub-throughput",
+      "lang": "c",
+      "metrics": {
+        "clock_overhead_ns": 23,
+        "max": 4830,
+        "ops_per_s": 2916757,
+        "p50": 45,
+        "p90": 46,
+        "p99": 53,
+        "p999": 96
+      },
+      "notes": "informational; payload_max=256",
+      "pass": true
+    },
+    "c/B2-contended": {
+      "bench": "B2-contended",
+      "lang": "c",
+      "metrics": {
+        "claims_per_s": 11579138,
+        "clock_overhead_ns": 23,
+        "publishes_per_s": 1002408,
+        "sampled_claim_p50": 38,
+        "sampled_claim_p99": 465,
+        "sampled_publish_p50": 277,
+        "sampled_publish_p99": 765
+      },
+      "notes": "informational",
+      "pass": true
+    },
+    "c/B3-scaling-fingerprint": {
+      "bench": "B3-scaling-fingerprint",
+      "lang": "c",
+      "metrics": {
+        "clock_overhead_ns": 23,
+        "per_size_p50": [
+          40,
+          40,
+          39,
+          39,
+          47
+        ],
+        "ratio_64K_vs_64B": 1.175
+      },
+      "notes": "structural gate: ratio < 2.0 (got 1.175)",
+      "pass": true
+    },
+    "c/B4-display-adversarial": {
+      "bench": "B4-display-adversarial",
+      "lang": "c",
+      "metrics": {
+        "claim_p99": 44,
+        "clock_overhead_ns": 23,
+        "delivered_frames_per_s": 13498647.8,
+        "publish_p99": 49,
+        "publish_p999": 49
+      },
+      "notes": "informational; writer_hz=60 hold_ms=0",
+      "pass": true
+    },
+    "c/B5-memory-contract": {
+      "bench": "B5-memory-contract",
+      "lang": "c",
+      "metrics": {
+        "alloc_bytes_delta": 0,
+        "alloc_count_delta": 0,
+        "rss_growth_pages": 0
+      },
+      "notes": "C: kernel does not allocate in publish/claim; RSS is proxy",
+      "pass": true
+    },
+    "rust/B1-pub-throughput": {
+      "bench": "B1-pub-throughput",
+      "lang": "rust",
+      "metrics": {
+        "clock_overhead_ns": 24,
+        "max": 7352,
+        "ops_per_s": 2327011,
+        "p50": 208,
+        "p90": 218,
+        "p99": 485,
+        "p999": 1800
+      },
+      "notes": "informational; payload_max=256",
+      "pass": true
+    },
+    "rust/B2-contended": {
+      "bench": "B2-contended",
+      "lang": "rust",
+      "metrics": {
+        "claims_per_s": 8118699,
+        "clock_overhead_ns": 24,
+        "publishes_per_s": 323937,
+        "sampled_claim_p50": 40,
+        "sampled_claim_p99": 733,
+        "sampled_publish_p50": 1343,
+        "sampled_publish_p99": 7274
+      },
+      "notes": "informational",
+      "pass": true
+    },
+    "rust/B3-scaling-fingerprint": {
+      "bench": "B3-scaling-fingerprint",
+      "lang": "rust",
+      "metrics": {
+        "clock_overhead_ns": 24,
+        "per_size_p50": [
+          38,
+          38,
+          38,
+          38,
+          46
+        ],
+        "ratio_64K_vs_64B": 1.211
+      },
+      "notes": "structural gate: ratio < 2.0 (got 1.211)",
+      "pass": true
+    },
+    "rust/B4-display-adversarial": {
+      "bench": "B4-display-adversarial",
+      "lang": "rust",
+      "metrics": {
+        "claim_p99": 46,
+        "clock_overhead_ns": 23,
+        "delivered_frames_per_s": 14010015.4,
+        "publish_p99": 2229,
+        "publish_p999": 2229
+      },
+      "notes": "informational; writer_hz=240 hold_ms=0",
+      "pass": true
+    },
+    "rust/B5-memory-contract": {
+      "bench": "B5-memory-contract",
+      "lang": "rust",
+      "metrics": {
+        "alloc_bytes_delta": 0,
+        "alloc_count_delta": 0,
+        "rss_growth_pages": 0
+      },
+      "notes": "Rust: kernel does not allocate in publish/claim; RSS is proxy",
+      "pass": true
+    },
+    "ts/B1-pub-throughput": {
+      "bench": "B1-pub-throughput",
+      "lang": "ts",
+      "metrics": {
+        "clock_overhead_ns": 154,
+        "max": 118170,
+        "ops_per_s": 1611026,
+        "p50": 138,
+        "p90": 186,
+        "p99": 241,
+        "p999": 2005
+      },
+      "notes": "informational; payload_max=256",
+      "pass": true
+    },
+    "ts/B2-contended": {
+      "bench": "B2-contended",
+      "lang": "ts",
+      "metrics": {
+        "claims_per_s": 1559006,
+        "clock_overhead_ns": 154,
+        "publishes_per_s": 1559006,
+        "sampled_claim_p50": 95,
+        "sampled_claim_p99": 220,
+        "sampled_publish_p50": 147,
+        "sampled_publish_p99": 300
+      },
+      "notes": "informational; single-threaded alternating (TS limitation)",
+      "pass": true
+    },
+    "ts/B3-scaling-fingerprint": {
+      "bench": "B3-scaling-fingerprint",
+      "lang": "ts",
+      "metrics": {
+        "clock_overhead_ns": 154,
+        "per_size_p50": [
+          161,
+          114,
+          114,
+          90,
+          101
+        ],
+        "ratio_64K_vs_64B": 0.627
+      },
+      "notes": "structural gate: ratio < 2.0 (got 0.627)",
+      "pass": true
+    },
+    "ts/B4-display-adversarial": {
+      "bench": "B4-display-adversarial",
+      "lang": "ts",
+      "metrics": {
+        "claim_p99": 3438,
+        "clock_overhead_ns": 135,
+        "delivered_frames_per_s": 60.0,
+        "publish_p99": 0,
+        "publish_p999": 0
+      },
+      "notes": "informational; single-threaded (TS limitation); writer_hz=60 hold_ms=0",
+      "pass": true
+    },
+    "ts/B5-memory-contract": {
+      "bench": "B5-memory-contract",
+      "lang": "ts",
+      "metrics": {
+        "alloc_bytes_delta": -936344,
+        "alloc_count_delta": 0,
+        "rss_growth_pages": 0
+      },
+      "notes": "GC-noisy, advisory \u2014 TS has no allocator hooks; heapUsed delta is proxy",
+      "pass": true
+    }
+  },
+  "run_utc": "2026-09-11T14:05:58.166399+00:00",
+  "stderr_excerpts": {},
+  "version": 1
+}

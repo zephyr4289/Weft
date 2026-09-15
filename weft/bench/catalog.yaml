@@ -1,0 +1,93 @@
+# Weft Phase 1 Benchmark Catalog — canonical specification
+# Per WO-P1 §2. Every benchmark runs on all three kernels.
+# Same contract family as litmus: catalog-defined params, runner emits one
+# JSON line, driver assembles. Params are catalog-owned; executor may not tune.
+
+catalog: weft-bench
+version: 1
+
+defaults:
+  payload_max: 256
+  seed: 0x00C0FFEE
+
+benchmarks:
+  - id: B1-pub-throughput
+    question: "How fast can one writer publish?"
+    setup: "Unpaced writer, reader idle. payload_max ∈ {256, 4096}. Warmup per §4.4, measure 3 s."
+    metrics:
+      - block ops_per_s
+      - sampled p50
+      - sampled p90
+      - sampled p99
+      - sampled p999
+      - sampled max
+      - clock_overhead_ns
+    gate: informational
+    params:
+      payload_max: [256, 4096]
+      measure_s: 3.0
+      warmup_s: 1.0
+      warmup_ops: 100000
+      sample_stride: 256
+
+  - id: B2-contended
+    question: "What does full contention cost?"
+    setup: "Writer AND reader both unpaced, hammering latest. Measure 3 s."
+    metrics:
+      - publishes_per_s
+      - claims_per_s
+      - sampled_publish_p50
+      - sampled_publish_p99
+      - sampled_claim_p50
+      - sampled_claim_p99
+      - clock_overhead_ns
+    gate: informational
+    params:
+      payload_max: 256
+      measure_s: 3.0
+      warmup_s: 1.0
+      warmup_ops: 100000
+      sample_stride: 256
+
+  - id: B3-scaling-fingerprint
+    question: "Is claim zero-copy? Prove it."
+    setup: "Claim sampled p50 across payload_max ∈ {64, 256, 1024, 4096, 65536}; writer idle-paced 1 kHz; ≥ 5000 samples per size."
+    metrics:
+      - per_size_p50
+      - ratio_64K_vs_64B
+    gate: structural
+    gate_predicate: "ratio_64K_vs_64B < 2.0"
+    params:
+      payload_max: [64, 256, 1024, 4096, 65536]
+      writer_hz: 1000
+      samples_per_size: 5000
+      sample_stride: 256
+
+  - id: B4-display-adversarial
+    question: "The number that goes in the README."
+    setup: "Writer paced ∈ {60, 240, 960} Hz × reader holds ∈ {0, 5, 10, 50} ms — 12 sub-configs. Measure ≥ 10 s per config."
+    metrics:
+      - delivered_frames_per_s
+      - publish_p99
+      - publish_p999
+      - claim_p99
+    gate: informational
+    params:
+      writer_hz: [60, 240, 960]
+      holds_ms: [0, 5, 10, 50]
+      measure_s: 10.0
+      warmup_s: 1.0
+      sample_stride: 256
+
+  - id: B5-memory-contract
+    question: "Law 2's teeth: zero allocation at steady state."
+    setup: "Post-init, 10^6 frames. Allocation counting per §5."
+    metrics:
+      - alloc_bytes_delta
+      - alloc_count_delta
+      - rss_growth_pages
+    gate: structural
+    gate_predicate: "C/Rust: alloc_bytes_delta == 0 AND alloc_count_delta == 0 AND rss_growth_pages <= 2; TS: advisory"
+    params:
+      payload_max: 256
+      frames: 1000000

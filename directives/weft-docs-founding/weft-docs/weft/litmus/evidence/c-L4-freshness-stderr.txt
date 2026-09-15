@@ -1,0 +1,4 @@
+lang=c test=L4-freshness exit=1
+verdict: {"test": "L4-freshness", "lang": "c", "pass": false, "metrics": {"frames": 2000, "freshness_violations": 6, "future_violations": 0, "drain_exact": true}}
+stderr:
+L4 freshness_violations=6 future_violations=0 drain_exact=1 (final seq=2000) pass=0

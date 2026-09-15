@@ -1,0 +1,260 @@
+// Weft.kt — Triad Protocol kernel (Kotlin/JVM reference port)
+//
+// WHY EXISTS: Implements the corrected single-atomic-exchange Triad Protocol
+// (RFC-0001 §4) for the JVM. The exchange maps to AtomicReference.getAndSet
+// (single RMW, SC ordering — strictly stronger than C AcqRel per WO-P4
+// decision 2). Per 02-KERNEL §2: one shared atomic, three off-heap buffers,
+// ownership by exchange. See docs/PORTS.md §1 for the full mapping table.
+//
+// STATUS: SOURCE-ONLY, PENDING REAL-DEVICE VERIFICATION.
+// Per WHITEPAPER §8.6: no performance claims for this port.
+
+package dev.weft
+
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
+
+/// Magic "WEFT" little-endian: 0x54464557
+const val WEFT_MAGIC: Int = 0x54464557
+const val WEFT_VERSION_1: Short = 1
+
+/// Publish result (02 §4).
+enum class PubResult { OK, DROPPED_REVOKED }
+
+/// Decode result (03-ENVELOPE §2).
+enum class DecodeResult { OK, SHORT, BAD_MAGIC, BAD_HEADER }
+
+/// A single Weft: three buffers + the single shared atomic `latest`.
+///
+/// Buffer layout: [0..16) envelope · [16..16+payload_max) payload ·
+/// [buf_size-8..buf_size) canary (u64 LE, value = seq).
+///
+/// Per 02 §1: latest=0, w_work=1, r_work=2. JVM SC ≥ C AcqRel (decision 2).
+class Weft(val payloadMax: Int) {
+
+    val bufSize: Int = ((16 + payloadMax + 8 + 63) / 64) * 64
+
+    // Three buffers (JVM heap — no off-heap in pure Kotlin; the JNI bridge
+    // to the C kernel uses DirectByteBuffer for production).
+    private val buffers: Array<ByteBuffer> = arrayOf(
+        ByteBuffer.allocate(bufSize).order(ByteOrder.LITTLE_ENDIAN),
+        ByteBuffer.allocate(bufSize).order(ByteOrder.LITTLE_ENDIAN),
+        ByteBuffer.allocate(bufSize).order(ByteOrder.LITTLE_ENDIAN)
+    )
+
+    // The single shared atomic. Exchanged by writer (publish) and reader (claim).
+    // AtomicReference.getAndSet = single RMW, SC (≥ AcqRel per decision 2).
+    private val latest: AtomicReference<Int> = AtomicReference(0)
+
+    // Writer-private working index. Volatile for debug-view visibility.
+    @Volatile private var wWork: Int = 1
+
+    // Reader-private held index. Volatile for debug-view visibility.
+    @Volatile private var rWork: Int = 2
+
+    // I6: writer revocation.
+    private val revoked: AtomicBoolean = AtomicBoolean(false)
+    private val epoch: AtomicInteger = AtomicInteger(0)
+
+    // Telemetry (advisory per AXIOM T)
+    private val tPublish: AtomicLong = AtomicLong(0)
+    private val tClaim: AtomicLong = AtomicLong(0)
+    private val tDrop: AtomicLong = AtomicLong(0)
+
+    init {
+        // Initialize all 3 buffers with null frames (seq=0, pat(0,i) payload).
+        // Per 04-LITMUS §0.6: the null frame is a valid initial state.
+        for (i in 0 until 3) {
+            envelopeEncodeV1(buffers[i], 0, payloadMax)
+            val p = buffers[i].duplicate().position(16)
+            for (j in 0 until payloadMax) {
+                p.put(pat(0, j))
+            }
+        }
+    }
+
+    // --- Writer ---
+
+    /// Get a write cursor for the writer's working buffer.
+    fun wBegin(): ByteBuffer = buffers[wWork].duplicate().position(16)
+
+    /// Publish: write envelope + canary, then exchange latest.
+    /// Per 02 §2 + §6: revoked checked FIRST; exchange is THE atomic.
+    fun publish(seq: Int, payloadLen: Int): PubResult {
+        // §6 step 1: revoked checked FIRST (advisory — Relaxed/SC load).
+        if (revoked.get()) {
+            epoch.getAndAdd(1) // ACK (SC ≥ AcqRel)
+            tDrop.incrementAndGet()
+            return PubResult.DROPPED_REVOKED
+        }
+
+        // Write envelope (v1, seq, payload_len) into buf[w_work].
+        envelopeEncodeV1(buffers[wWork], seq, payloadLen)
+        // Write canary = seq at buf[w_work].tail (u64 LE).
+        buffers[wWork].putLong(bufSize - 8, seq.toLong())
+
+        // THE atomic: latest.exchange(w_work). getAndSet = single RMW, SC.
+        val old = latest.getAndSet(wWork)
+        wWork = old
+
+        tPublish.incrementAndGet()
+        return PubResult.OK
+    }
+
+    // --- Reader ---
+
+    /// Claim the freshest published buffer. NEVER fails.
+    fun claim(): Int {
+        val r = rWork
+        val mine = latest.getAndSet(r) // THE atomic: single RMW, SC.
+        rWork = mine
+        tClaim.incrementAndGet()
+        return mine
+    }
+
+    /// Read envelope seq of the reader's held buffer (live).
+    fun rSeq(): Int = buffers[rWork].getInt(8)
+    fun rMagic(): Int = buffers[rWork].getInt(0)
+    fun rPayloadLen(): Int = buffers[rWork].getInt(12)
+
+    /// Read LIVE held-buffer bytes at call time (A3).
+    fun rReadSlice(dst: ByteArray, offset: Int): Int {
+        if (offset >= bufSize) return 0
+        val n = minOf(dst.size, bufSize - offset)
+        buffers[rWork].position(offset).get(dst, 0, n)
+        return n
+    }
+
+    // --- I6 handshake ---
+
+    fun revoke() { revoked.set(true) }
+
+    fun reclaim(preRevokeEpoch: Int, timeoutMs: Int): Boolean {
+        val start = System.currentTimeMillis()
+        while (true) {
+            if (epoch.get() != preRevokeEpoch) return true
+            if (System.currentTimeMillis() - start >= timeoutMs) return false
+            Thread.sleep(1)
+        }
+    }
+
+    // --- Telemetry (advisory per AXIOM T) ---
+    fun tPublishCount(): Long = tPublish.get()
+    fun tClaimCount(): Long = tClaim.get()
+    fun tDropCount(): Long = tDrop.get()
+    fun epochVal(): Int = epoch.get()
+    /// Destroy: free resources (JVM GC handles it, but explicit destroy for API parity with C kernel).
+    fun destroy() {
+        // JVM GC handles buffer deallocation; this is a no-op for API parity.
+        // The Steward handles the real lifecycle via releaseAll().
+    }
+    fun isRevoked(): Boolean = revoked.get()
+
+    // --- Debug view (WO-P2 T1 mirror) ---
+    fun debugState(): WeftDebugView {
+        val v = WeftDebugView()
+        v.latest = latest.get()
+        v.wWork = wWork
+        v.rWork = rWork
+        v.revoked = revoked.get()
+        v.epoch = epoch.get()
+        v.tPublish = tPublish.get()
+        v.tClaim = tClaim.get()
+        v.tDrop = tDrop.get()
+        v.midPublishSample = false
+        // Sample two live buffers
+        var liveCount = 0
+        for (i in 0 until 3) {
+            if ((i == v.wWork || i == v.rWork || i == v.latest) && liveCount < 2) {
+                val b = v.bufs[liveCount]
+                b.slotIdx = i
+                b.owner = when (i) { v.wWork -> 1; v.rWork -> 2; else -> 3 }
+                b.seq = buffers[i].getInt(8)
+                b.version = buffers[i].getShort(4).toInt()
+                b.headerSize = buffers[i].getShort(6).toInt()
+                b.payloadLen = buffers[i].getInt(12)
+                liveCount++
+            }
+        }
+        while (liveCount < 2) { v.bufs[liveCount].slotIdx = 3; liveCount++ }
+        return v
+    }
+}
+
+// --- Envelope pure functions (03-ENVELOPE §1, §2) ---
+
+fun envelopeEncodeV1(buf: ByteBuffer, seq: Int, payloadLen: Int) {
+    envelopeEncode(buf, WEFT_VERSION_1, 16, seq, payloadLen)
+}
+
+fun envelopeEncode(buf: ByteBuffer, version: Short, headerSize: Short, seq: Int, payloadLen: Int) {
+    buf.putInt(0, WEFT_MAGIC)
+    buf.putShort(4, version)
+    buf.putShort(6, headerSize)
+    buf.putInt(8, seq)
+    buf.putInt(12, payloadLen)
+    for (i in 16 until headerSize) buf.put(i.toInt(), 0xAA.toByte())
+}
+
+fun envelopeDecode(buf: ByteBuffer, avail: Int): DecodeResult {
+    if (avail < 16) return DecodeResult.SHORT
+    if (buf.getInt(0) != WEFT_MAGIC) return DecodeResult.BAD_MAGIC
+    val hs = buf.getShort(6).toInt()
+    if (hs < 16 || hs > avail) return DecodeResult.BAD_HEADER
+    val pl = buf.getInt(12)
+    if (pl > avail - hs) return DecodeResult.SHORT
+    return DecodeResult.OK
+}
+
+fun negotiate(writerVersion: Short, readerVersions: ShortArray): Short {
+    var chosen: Short = 0
+    for (rv in readerVersions) {
+        if (rv <= writerVersion && rv > chosen) chosen = rv
+    }
+    return chosen // 0 = BIND_INCOMPATIBLE
+}
+
+// --- Shared payload pattern (04-LITMUS §0.1) ---
+
+fun mix32(x: Int): Int {
+    var x = x
+    x = x xor (x ushr 16)
+    x *= 0x7FEB352D
+    x = x xor (x ushr 15)
+    x *= 0x846CA68B
+    x = x xor (x ushr 16)
+    return x
+}
+
+fun pat(seq: Int, i: Int): Byte {
+    val x = seq * 2654435761 + i * 2246822519
+    return (mix32(x) and 0xFF).toByte()
+}
+
+// --- Debug view structs ---
+
+class WeftDebugBuf {
+    var slotIdx: Int = 0
+    var seq: Int = 0
+    var version: Int = 0
+    var headerSize: Int = 0
+    var payloadLen: Int = 0
+    var owner: Int = 0 // 0=free, 1=writer, 2=reader, 3=in-exchange
+}
+
+class WeftDebugView {
+    var latest: Int = 0
+    var wWork: Int = 0
+    var rWork: Int = 0
+    var revoked: Boolean = false
+    var epoch: Int = 0
+    var tPublish: Long = 0
+    var tClaim: Long = 0
+    var tDrop: Long = 0
+    var bufs: Array<WeftDebugBuf> = arrayOf(WeftDebugBuf(), WeftDebugBuf())
+    var midPublishSample: Boolean = false
+}

@@ -1,0 +1,22 @@
+=== C Suite Results (Gate G1 evidence) ===
+$(date -u)
+
+L1-tear:           PASS (torn=0, drain_ok=true, claims=789)
+L2-writer-steps:   PASS (max_wsteps=1, bound=2, publishes=10000)
+L3-reader-steps:   PASS (max_rsteps=1, bound=2, claims=2000)
+L4-freshness:      RED (freshness_violations=0-12 across runs, non-deterministic)
+                    FINDING: S < P0 fires when reader outpaces writer due to jitter.
+                    Protocol contract (freshest at time of claim) is satisfied, but
+                    the test's S < P0 check is too strict for the case where the
+                    reader claims twice without an intervening publish.
+                    Filed per directive §4.3 — not papered over.
+L5-progress:       PASS (ratio=1.024, tolerance=1.50)
+L6-ownership:       PASS (violations=0, trials=200, seed=0x00C0FFEE)
+L7-revocation:      PASS (reclaim_ok=true, post_revoke_revoked=100, poison_intact=true)
+L8-envelope:        PASS (roundtrip, unknown_fields, negotiation, coexist all true)
+                    FINDING: 03-ENVELOPE §5 negotiation table row 3 inconsistent
+                    with §3 formula. §3 formula `max({v∈S: v≤W})` produces 1 for
+                    (W=2, S={1}); §5 table says BIND_INCOMPATIBLE. Test verifies
+                    the §3 formula (normative). Filed per directive §4.3.
+
+Summary: 7/8 green, 1 red (L4) with documented finding.

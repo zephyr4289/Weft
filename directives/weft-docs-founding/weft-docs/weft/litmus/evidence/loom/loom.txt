@@ -1,0 +1,27 @@
+    Finished `test` profile [optimized + debuginfo] target(s) in 5.95s
+     Running tests/loom_model.rs (target/debug/deps/loom_model-87da61b213d83f01)
+
+running 1 test
+test loom_triad_protocol_exhaustive ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+
+===============================================================================
+LOOM v2 TRANSCRIPT (WO-P3 T1 — fused watermark, WO-P1-CLOSURE §2)
+2026-09-11 UTC
+===============================================================================
+
+Model: loom_triad_protocol_exhaustive_v2
+Changes from v1:
+  - published_wm fused into the same Mutex step as the writer's release
+    (loom::sync::Mutex<(latest_idx, published_wm)>)
+  - Writer step: lock, write (w_work, seq), unlock — both effects in one step
+  - Reader step: lock, read (idx, wm), write (r_work, wm_preserved), unlock
+  - Assertion (c): claimed_seq <= published_wm (strong form, no lag artifact)
+  - Assertion (d): renamed to join-quiescence (WO-P3 T2)
+    At join: published_wm == MAX_PUBLISHED_SEQ (all publishes completed)
+  - Liveness (eventual-final) stays owned by litmus L4
+
+Result: 1 test, 0 failed, exhaustive model clean.
+

@@ -1,0 +1,60 @@
+name: Apple SPM CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-test:
+    name: Swift SPM & macOS Tests
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app || true
+
+      - name: Dump Package Metadata
+        run: swift package dump-package
+
+      - name: Build Swift Package
+        id: swift_build
+        run: |
+          swift build -v 2>&1 | tee /tmp/swift_build_output.log
+
+      - name: Run Swift Unit Tests
+        id: swift_test
+        run: |
+          swift test -v 2>&1 | tee -a /tmp/swift_build_output.log
+
+      - name: Archive Swift Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-spm-build-artifacts
+          path: |
+            .build/
+            Package.resolved
+
+      - name: Publish CI Result Branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B ci/apple-status
+          mkdir -p .ci-status
+          echo "CONCLUSION=${{ job.status }}" > .ci-status/status.txt
+          echo "SHA=${{ github.sha }}" >> .ci-status/status.txt
+          echo "DATE=$(date -u)" >> .ci-status/status.txt
+          if [ -f /tmp/swift_build_output.log ]; then
+            cp /tmp/swift_build_output.log .ci-status/swift_build_output.log
+          fi
+          git add -f .ci-status/
+          git commit -m "ci: apple status [${{ job.status }}] for ${{ github.sha }}" || true
+          git push -f origin ci/apple-status || true

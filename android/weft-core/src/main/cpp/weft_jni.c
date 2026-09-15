@@ -12,6 +12,19 @@
 #include <string.h>
 #include "weft.h"
 
+// I6 teardown helper: revoke the writer, wait a bounded time for the epoch
+// ACK (the writer checks `revoked` at the top of every publish and ACKs via
+// epoch.fetch_add), then destroy. Per weft.h: destroying while a writer may
+// still run without this handshake is a CALLER ERROR — the bridge defends
+// the contract so Kotlin callers cannot get it wrong.
+static void weft_release_with_i6(weft_t *w) {
+    if (!w) return;
+    uint32_t pre = weft_epoch(w);          // pre-revoke epoch
+    weft_revoke(w);                        // step 1: revoked.store(true, Release)
+    (void)weft_reclaim(w, pre, 50);        // steps 2-3: bounded ACK wait (best effort)
+    weft_destroy(w);
+}
+
 typedef struct {
     weft_t** items;
     size_t count;
@@ -32,7 +45,7 @@ Java_dev_weft_TriadNative_stewardDestroy(JNIEnv *env, jobject thiz, jlong handle
     if (!s) return;
     for (size_t i = 0; i < s->count; i++) {
         if (s->items[i]) {
-            weft_destroy(s->items[i]);
+            weft_release_with_i6(s->items[i]);
             free(s->items[i]);
         }
     }
@@ -66,6 +79,12 @@ Java_dev_weft_TriadNative_stewardWeft(JNIEnv *env, jobject thiz, jlong stewardHa
         }
         if (s->count < s->capacity) {
             s->items[s->count++] = w;
+        } else {
+            // Could not register (OOM) — never hand out an untracked Weft:
+            // stewardDestroy would leak it. Fail the allocation instead.
+            weft_release_with_i6(w);
+            free(w);
+            return 0;
         }
     }
 
@@ -77,7 +96,7 @@ Java_dev_weft_TriadNative_weftRelease(JNIEnv *env, jobject thiz, jlong weftHandl
     (void)env; (void)thiz;
     weft_t *w = (weft_t*)(uintptr_t)weftHandle;
     if (!w) return;
-    weft_destroy(w);
+    weft_release_with_i6(w);
     free(w);
 }
 
@@ -91,20 +110,41 @@ Java_dev_weft_TriadNative_weftWriterBuffer(JNIEnv *env, jobject thiz, jlong weft
     return (*env)->NewDirectByteBuffer(env, buf, (jlong)w->payload_max);
 }
 
+// Publish with an EXPLICIT payload length and sequence number.
+//
+// Two modes:
+//   data != NULL  : `data` must be a direct ByteBuffer; its contents ARE the
+//                   frame — exactly payloadLen bytes are copied into the
+//                   kernel's writer buffer (weft_w_write_payload), then
+//                   published. (The previous bridge ignored the buffer
+//                   contents entirely and published the kernel buffer
+//                   as-is — passing a fresh buffer silently published
+//                   stale bytes. That trap is removed.)
+//   data == NULL  : cursor mode — the caller filled the buffer obtained
+//                   from weftWriterBuffer(); payloadLen names how much of
+//                   it is valid.
+//
+// seq < 0 selects auto-numbering (t_publish + 1, matching the old behavior).
+// Returns 0 (WEFT_PUB_OK) or 1 (WEFT_PUB_DROPPED_REVOKED), -1 on error.
 JNIEXPORT jint JNICALL
-Java_dev_weft_TriadNative_weftPublish(JNIEnv *env, jobject thiz, jlong weftHandle, jobject data) {
+Java_dev_weft_TriadNative_weftPublish(JNIEnv *env, jobject thiz, jlong weftHandle,
+                                      jobject data, jint payloadLen, jint seq) {
     (void)thiz;
     weft_t *w = (weft_t*)(uintptr_t)weftHandle;
     if (!w) return -1;
-    jlong capacity = 0;
-    if (data) {
-        capacity = (*env)->GetDirectBufferCapacity(env, data);
-    }
-    uint32_t payload_len = (uint32_t)(capacity > 0 ? capacity : w->payload_max);
-    if (payload_len > w->payload_max) payload_len = (uint32_t)w->payload_max;
 
-    uint32_t seq = (uint32_t)(weft_t_publish(w) + 1);
-    weft_pub_result_t res = weft_publish(w, seq, payload_len);
+    uint32_t len = (payloadLen >= 0) ? (uint32_t)payloadLen : w->payload_max;
+    if (len > w->payload_max) return -1; // caller error, do not silently clamp
+
+    if (data) {
+        void *src = (*env)->GetDirectBufferAddress(env, data);
+        jlong cap = (*env)->GetDirectBufferCapacity(env, data);
+        if (!src || cap <= 0 || (jlong)len > cap) return -1;
+        if (weft_w_write_payload(w, (const uint8_t*)src, len) != 0) return -1;
+    }
+
+    uint32_t s = (seq >= 0) ? (uint32_t)seq : (uint32_t)(weft_t_publish(w) + 1);
+    weft_pub_result_t res = weft_publish(w, s, len);
     return (jint)res;
 }
 

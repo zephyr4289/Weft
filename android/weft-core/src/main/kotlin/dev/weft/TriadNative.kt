@@ -9,6 +9,16 @@
 // buffer ownership documented against the caller contract (after ACK,
 // the buffer is not yours).
 //
+// PUBLISH CONTRACT (mirrors weft_jni.c): pass (data, payloadLen, seq).
+//   data != null — the buffer's CONTENTS are the frame; exactly payloadLen
+//                  bytes are copied into the kernel's writer buffer.
+//   data == null — cursor mode: you filled the buffer from weftWriterBuffer().
+//   seq < 0      — auto-numbering (t_publish + 1).
+//
+// All teardown paths (weftRelease / stewardDestroy) run the I6 handshake
+// (revoke → bounded epoch-ACK wait → destroy) inside the bridge, so Kotlin
+// callers cannot skip it.
+//
 // STATUS: SOURCE-ONLY, PENDING REAL-DEVICE VERIFICATION.
 
 package dev.weft
@@ -36,7 +46,7 @@ internal object TriadNative {
 
     // --- Weft operations ---
     external fun weftWriterBuffer(weftHandle: Long): ByteBuffer?
-    external fun weftPublish(weftHandle: Long, data: ByteBuffer): Int
+    external fun weftPublish(weftHandle: Long, data: ByteBuffer?, payloadLen: Int, seq: Int): Int
     external fun weftRead(weftHandle: Long, out: ByteBuffer): Boolean
 
     // --- I6 ---
@@ -47,12 +57,12 @@ internal object TriadNative {
     external fun weftPublishCount(weftHandle: Long): Long
     external fun weftReadCount(weftHandle: Long): Long
 
-    // --- Panic shield wrapper ---
+    // --- Panic shield wrappers ---
     // Every JNI entry is wrapped: Throwable caught → error code returned.
     // No exception crosses the FFI boundary.
-    fun safePublish(weftHandle: Long, data: ByteBuffer): Int {
+    fun safePublish(weftHandle: Long, data: ByteBuffer?, payloadLen: Int, seq: Int): Int {
         return try {
-            weftPublish(weftHandle, data)
+            weftPublish(weftHandle, data, payloadLen, seq)
         } catch (t: Throwable) {
             System.err.println("Weft: JNI publish panic: ${t.message}")
             -1 // error code

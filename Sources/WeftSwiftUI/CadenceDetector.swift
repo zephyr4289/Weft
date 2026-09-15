@@ -31,6 +31,29 @@ public struct CadenceDetector: Sendable {
         self.maxRefreshRate = maxRefreshRate
     }
 
+    /// Probe the host display's maximum refresh rate so `.auto` resolves from
+    /// REAL hardware cadence. The previous revision constructed
+    /// `CadenceDetector()` with the 60 Hz default inside `body`, which made
+    /// `.auto` resolve to Canvas on every device — ProMotion was unreachable.
+    ///
+    /// - iOS/tvOS: `UIScreen.main.maximumFramesPerSecond` (ProMotion reports 120).
+    /// - macOS: `NSScreen.main?.maximumFramesPerSecond`.
+    /// - Elsewhere: 60 (honest default; claimed, not probed).
+    public static func screenMaxRefreshRate() -> Double {
+        #if canImport(UIKit)
+        return Double(UIScreen.main.maximumFramesPerSecond)
+        #elseif canImport(AppKit)
+        return Double(NSScreen.main?.maximumFramesPerSecond ?? 60)
+        #else
+        return 60.0
+        #endif
+    }
+
+    /// Convenience: a detector resolved from the real display.
+    public static func forCurrentDisplay() -> CadenceDetector {
+        CadenceDetector(maxRefreshRate: screenMaxRefreshRate())
+    }
+
     /// Resolve the concrete renderer given the configured mode.
     public func resolve(mode: RendererMode) -> ConcreteRenderer {
         switch mode {

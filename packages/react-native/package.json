@@ -34,12 +34,16 @@
   },
   "scripts": {
     "build": "tsup",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/zephyr4289/Weft.git",
     "directory": "packages/react-native"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
   }
 }

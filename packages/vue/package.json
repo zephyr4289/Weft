@@ -25,6 +25,9 @@
     "vue": ">=3.4"
   },
   "devDependencies": {
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^25.0.1",
+    "vitest": "^2.1.8",
     "vue": "^3.5.13"
   },
   "engines": {
@@ -32,7 +35,8 @@
   },
   "scripts": {
     "build": "tsup",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "license": "Apache-2.0",
   "repository": {

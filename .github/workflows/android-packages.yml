@@ -58,20 +58,39 @@ jobs:
           cd android
           ./gradlew publishToMavenLocal --stacktrace
 
-      - name: Post Diagnostic Summary to Commit Comments on Failure
+      - name: Post Diagnostic Summary to Step Summary and Commit Comments on Failure
         if: failure()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -f /tmp/gradle_test_output.log ]; then
-            # Extract last 80 lines and any ERROR/FAILURE lines
-            SUMMARY=$(tail -n 80 /tmp/gradle_test_output.log)
-            gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments \
-              -f body="### ❌ Android CI Failure Diagnostics
-\`\`\`text
-$SUMMARY
-\`\`\`" || true
+            echo "### Gradle Output Summary" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            tail -n 120 /tmp/gradle_test_output.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
           fi
+          python3 -c "
+          import os, urllib.request, json
+          token = os.environ.get('GH_TOKEN')
+          repo = '${{ github.repository }}'
+          sha = '${{ github.sha }}'
+          log_content = 'No log found'
+          if os.path.exists('/tmp/gradle_test_output.log'):
+              with open('/tmp/gradle_test_output.log', 'r') as f:
+                  lines = f.readlines()
+                  log_content = ''.join(lines[-120:])
+          payload = {'body': '### ❌ Android CI Failure Diagnostics\n\`\`\`text\n' + log_content + '\n\`\`\`'}
+          req = urllib.request.Request(
+              f'https://api.github.com/repos/{repo}/commits/{sha}/comments',
+              data=json.dumps(payload).encode('utf-8'),
+              headers={'Authorization': f'Bearer {token}', 'User-Agent': 'Weft-CI', 'Accept': 'application/vnd.github.v3+json'}
+          )
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  print('Posted comment successfully')
+          except Exception as e:
+              print('Failed to post comment:', e)
+          "
 
       - name: Archive Build Artifacts
         if: always()

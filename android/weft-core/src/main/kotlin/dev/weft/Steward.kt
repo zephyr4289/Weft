@@ -22,7 +22,7 @@ class Steward : ViewModel() {
     private var released: Boolean = false
 
     /// Allocate a Weft for elements of type [T] with the given capacity.
-    fun <T> weft(capacity: Int, align: Int = 16): Weft {
+    inline fun <reified T> weft(capacity: Int, align: Int = 16): Weft {
         check(!released) { "Steward is released" }
         val elemSize = when (T::class) {
             FloatArray::class -> 4

@@ -1,36 +1,21 @@
 // useWeft.ts — Vue 3 Heddle binding (TypeScript)
 //
-// WHY EXISTS: Wraps the existing TS kernel as a Vue 3 composable.
+// WHY EXISTS: Compatibility shim. The CANONICAL Vue Heddle lives in
+// @weft/vue (packages/vue) — hardened by the contrib round: the per-frame
+// reactive write (frameCount.value++ at display rate — the exact
+// anti-pattern Weft exists to prevent) is now throttled to a 1 Hz HUD,
+// the 2d context is acquired once, and the draw-phase read uses the
+// zero-allocation rLive() view per Law 2.
 // Per WHITEPAPER §8.2: SAB requires COOP/COEP.
-// STATUS: SOURCE-ONLY, PENDING REAL-DEVICE VERIFICATION.
+//
+// This file exists so the structural validator (tools/port_validator.py)
+// and any historical import path keep working. Do not add features here —
+// implement them in packages/vue and re-export.
+//
+// STATUS: SHIM — canonical implementation: @weft/vue.
 
-import { onMounted, onUnmounted, ref } from 'vue';
-import { Weft } from '../../core/ts/weft';
+import { useWeft, UseWeftOptions } from '@weft/vue';
+import type { Weft } from '@weft/core';
 
-export function useWeft(canvasRef: Ref<HTMLCanvasElement | null>, weft: Weft, draw: (ctx: CanvasRenderingContext2D, buf: Uint8Array) => void) {
-  const frameCount = ref(0);
-  let raf = 0;
-
-  onMounted(() => {
-    const canvas = canvasRef.value;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const tick = () => {
-      weft.claim();
-      const buf = weft.rReadSlice(16, weft.payloadMax);
-      draw(ctx, buf);
-      frameCount.value++;
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-  });
-
-  onUnmounted(() => cancelAnimationFrame(raf));
-
-  return { frameCount };
-}
-
-// Fix: Vue 3's Ref type
-import type { Ref } from 'vue';
+export { useWeft };
+export type { UseWeftOptions, Weft };

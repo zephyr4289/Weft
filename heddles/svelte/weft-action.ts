@@ -1,24 +1,20 @@
 // weft-action.ts — Svelte Heddle binding (TypeScript)
 //
-// WHY EXISTS: Wraps the existing TS kernel as a Svelte action.
+// WHY EXISTS: Compatibility shim. The CANONICAL Svelte Heddle lives in
+// @weft/svelte (packages/svelte) — hardened by the contrib round: params
+// are no longer captured forever at first run (the stale-Weft bug), an
+// update() handler re-binds on parameter change, and the draw-phase read
+// uses the zero-allocation rLive() view per Law 2.
 // Per WHITEPAPER §8.2: SAB requires COOP/COEP.
-// STATUS: SOURCE-ONLY, PENDING REAL-DEVICE VERIFICATION.
+//
+// This file exists so the structural validator (tools/port_validator.py)
+// and any historical import path keep working. Do not add features here —
+// implement them in packages/svelte and re-export.
+//
+// STATUS: SHIM — canonical implementation: @weft/svelte.
 
-import type { Action } from 'svelte/action';
-import { Weft } from '../../core/ts/weft';
+import { weftCanvas, WeftActionParams } from '@weft/svelte';
+import type { Weft } from '@weft/core';
 
-export const weftCanvas: Action<HTMLCanvasElement, { weft: Weft; draw: (ctx: CanvasRenderingContext2D, buf: Uint8Array) => void }> = (canvas, params) => {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-
-  let raf = 0;
-  const tick = () => {
-    params.weft.claim();
-    const buf = params.weft.rReadSlice(16, params.weft.payloadMax);
-    params.draw(ctx, buf);
-    raf = requestAnimationFrame(tick);
-  };
-  raf = requestAnimationFrame(tick);
-
-  return { destroy: () => cancelAnimationFrame(raf) };
-};
+export { weftCanvas };
+export type { WeftActionParams, Weft };

@@ -38,7 +38,7 @@ export function useWeftDraw(
     // Draw phase discipline: claim + read the live buffer inside the frame
     // callback only.
     weft.claim();
-    const buf = weft.rReadSlice(16, weft.payloadMax);
+    const buf = weft.rLive();
     draw(buf);
   };
 

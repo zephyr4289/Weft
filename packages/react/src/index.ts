@@ -40,7 +40,7 @@ export function WeftCanvas({ weft, draw, ...canvasProps }: WeftCanvasProps) {
       // Draw phase discipline: claim + read live buffer inside the frame
       // callback only — never during React render/commit.
       weft.claim();
-      const buf = weft.rReadSlice(16, weft.payloadMax);
+      const buf = weft.rLive();
       drawRef.current(ctx, buf);
       raf = requestAnimationFrame(tick);
     };

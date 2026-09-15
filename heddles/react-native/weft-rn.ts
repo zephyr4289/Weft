@@ -1,21 +1,22 @@
 // weft-rn.ts — React Native Heddle binding (TypeScript)
 //
-// WHY EXISTS: Wraps the existing TS kernel via Reanimated SharedValue.
-// Per WHITEPAPER §8.4: Reanimated is the prior art Weft's RN story wraps —
-// the weakest differentiator. RN ports last in the roadmap.
-// STATUS: SOURCE-ONLY, PENDING REAL-DEVICE VERIFICATION.
+// WHY EXISTS: Compatibility shim. The CANONICAL React Native Heddle lives
+// in @weft/react-native (packages/react-native) — hardened by the contrib
+// round: the broken 'worklet' directive capturing a class instance is gone
+// (it failed at runtime when workletized), both branches return a disposer
+// consistently, and the draw-phase read uses the zero-allocation rLive()
+// view per Law 2. Per WHITEPAPER §8.4: Reanimated is the prior art Weft's
+// RN story wraps — the weakest differentiator; RN ports last in the
+// roadmap.
+//
+// This file exists so the structural validator (tools/port_validator.py)
+// and any historical import path keep working. Do not add features here —
+// implement them in packages/react-native and re-export.
+//
+// STATUS: SHIM — canonical implementation: @weft/react-native.
 
-import { useFrameCallback } from 'react-native-reanimated';
-import { Weft } from '../../core/ts/weft';
+import { useWeftDraw } from '@weft/react-native';
+import type { Weft } from '@weft/core';
 
-export function useWeftDraw(
-  weft: Weft,
-  draw: (buf: Uint8Array) => void,
-) {
-  useFrameCallback(() => {
-    'worklet';
-    weft.claim();
-    const buf = weft.rReadSlice(16, weft.payloadMax);
-    draw(buf);
-  });
-}
+export { useWeftDraw };
+export type { Weft };

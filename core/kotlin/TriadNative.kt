@@ -52,7 +52,7 @@ internal object TriadNative {
         return try {
             weftPublish(weftHandle, data)
         } catch (t: Throwable) {
-            android.util.Log.e("Weft", "JNI publish panic: ${t.message}")
+            System.err.println("Weft: JNI publish panic: ${t.message}")
             -1 // error code
         }
     }
@@ -61,7 +61,7 @@ internal object TriadNative {
         return try {
             weftRead(weftHandle, out)
         } catch (t: Throwable) {
-            android.util.Log.e("Weft", "JNI read panic: ${t.message}")
+            System.err.println("Weft: JNI read panic: ${t.message}")
             false
         }
     }

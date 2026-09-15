@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { WORKLOAD_INFO, WorkloadMetadata } from './workloads/generators.ts';
-import { drawWorkload } from './workloads/draw.ts';
-import { createModeRunner, ModeType, ModeRunner } from './modes/runner.ts';
+import { WORKLOAD_INFO, WorkloadMetadata } from './workloads/generators';
+import { drawWorkload } from './workloads/draw';
+import { createModeRunner, ModeType, ModeRunner } from './modes/runner';
 
 export const App: React.FC = () => {
   const [selectedWid, setSelectedWid] = useState<string>('W1');

@@ -28,10 +28,15 @@ jobs:
           node-version: 22
           cache: 'pnpm'
 
+      - name: Initialize Log
+        run: |
+          touch /tmp/demo_test_output.log
+          echo "=== Starting Demo Showcase CI ===" >> /tmp/demo_test_output.log
+
       - name: Install dependencies & build monorepo
         run: |
-          pnpm install
-          pnpm build
+          pnpm install 2>&1 | tee -a /tmp/demo_test_output.log
+          pnpm --filter '@weft/*' build 2>&1 | tee -a /tmp/demo_test_output.log
 
       - name: Run Demo Matrix Tests
         id: demo_tests

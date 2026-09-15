@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { WORKLOAD_INFO } from '../src/workloads/generators.ts';
-import { createModeRunner, ModeType } from '../src/modes/runner.ts';
+import { WORKLOAD_INFO } from '../src/workloads/generators';
+import { createModeRunner, ModeType } from '../src/modes/runner';
 
 describe('Showcase Demos 5×4 Matrix & Hot-Switching', () => {
   const workloads = ['W1', 'W2', 'W3', 'W4', 'W5'];

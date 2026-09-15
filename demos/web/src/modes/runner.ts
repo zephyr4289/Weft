@@ -7,7 +7,7 @@
 // D = hand-rolled triple-buffer with envelope + I6
 
 import { Weft, PubResult } from '@weft/core';
-import { generateWorkloadFrame } from '../workloads/generators.ts';
+import { generateWorkloadFrame } from '../workloads/generators';
 
 export type ModeType = 'A' | 'B' | 'C' | 'D';
 
@@ -97,28 +97,27 @@ export class ModeCRunner implements ModeRunner {
   private weft: Weft;
   private readonly wid: string;
   private readonly floatCount: number;
-  private localTarget: Float32Array;
 
   constructor(wid: string, floatCount: number) {
     this.wid = wid;
     this.floatCount = floatCount;
     this.weft = new Weft(floatCount * 4);
-    this.localTarget = new Float32Array(floatCount);
   }
 
   produceFrame(frameIdx: number): void {
-    const wBuf = this.weft.wBegin();
-    const f32View = new Float32Array(wBuf.buffer, wBuf.byteOffset, this.floatCount);
+    const w = Atomics.load(this.weft.ctrl, Weft.SLOT_W_WORK);
+    const off = this.weft.bufOffset(w) + 16;
+    const f32View = new Float32Array(this.weft.sab, off, this.floatCount);
     generateWorkloadFrame(this.wid, frameIdx, f32View);
     const res = this.weft.publish(frameIdx, this.floatCount * 4);
-    if (res !== PubResult.OK) {
+    if (res !== PubResult.Ok) {
       // dropped
     }
   }
 
   consumeFrame(target: Float32Array): boolean {
     this.weft.claim();
-    const rPtr = this.weft.rLiveSlice(16, this.floatCount * 4);
+    const rPtr = this.weft.rReadSlice(16, this.floatCount * 4);
     if (rPtr.length === 0) return false;
     const f32View = new Float32Array(rPtr.buffer, rPtr.byteOffset, this.floatCount);
     target.set(f32View);
@@ -126,11 +125,11 @@ export class ModeCRunner implements ModeRunner {
   }
 
   getDropCount(): number {
-    return Number(this.weft.tDropCount());
+    return Number(this.weft.tDrop());
   }
 
   dispose(): void {
-    this.weft.destroy();
+    // GC cleans up SAB
   }
 }
 

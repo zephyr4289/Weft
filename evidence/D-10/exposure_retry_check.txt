@@ -1,0 +1,13 @@
+93:    R2 (WO-P5-VERIFICATION P5-W2): Implements EXPOSURE-RETRY per WO-P1-CLOSURE T3.
+97:    retry the cell ONCE. Label the verdict `EXPOSURE-RETRY`. Never auto-green:
+144:    # R2: EXPOSURE-RETRY per WO-P1-CLOSURE T3 / WO-P5-VERIFICATION P5-W2.
+169:            print(f"    [EXPOSURE-RETRY] {lang}/{test} claims={claims} < min_claims={min_claims}; retrying once", file=sys.stderr)
+173:                verdict["retry_label"] = "EXPOSURE-RETRY-TIMEOUT"
+175:                return verdict, stderr + "\n[EXPOSURE-RETRY timeout]", exit_code
+189:            verdict["retry_label"] = "EXPOSURE-RETRY"
+193:                # Retry passed — use the retry's verdict but mark with EXPOSURE-RETRY label
+194:                verdict2["retry_label"] = "EXPOSURE-RETRY"
+198:                return verdict2, stderr + "\n[EXPOSURE-RETRY passed]", 0
+321:    lines.append("### Finding 2: L1-tear exposure-floor shortfall (TS) — EXPOSURE-RETRY implemented (R2)")
+325:    lines.append("**Analysis (R2 corrected per WO-P5-VERIFICATION P5-W2):** The original Phase 0 narrative cited a stale `claims < 600` predicate that does not exist in the shipped runner (the floor is the v1.1 catalog value of 200). The actual failure mode is a lawful exposure-floor shortfall under load — exactly the fragility WO-P1-CLOSURE predicted. The ratified EXPOSURE-RETRY rule (retry once on `claims < min_claims`, label `EXPOSURE-RETRY`, never auto-green) is now implemented in `tools/litmus_driver.py`. If the retry also fails, the cell is RED with `EXPOSURE-SHORTFALL` label.")
+363:    lines.append("  - L1 TS exposure-floor shortfall: EXPOSURE-RETRY implemented (R2); persistent shortfall after retry = EXPOSURE-SHORTFALL RED")

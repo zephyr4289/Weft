@@ -1,0 +1,2 @@
+warning: The `fitz` API is deprecated and will be removed in future. Use `import pymupdf` instead.
+reports/Weft-Phase5-Release-Report-v1.0.1.pdf: 0 flags at 611.5pt across 7 pages

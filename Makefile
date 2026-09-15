@@ -114,6 +114,15 @@ validate:
 	@exit $$?
 
 # ---------------------------------------------------------------------------
+# make dist — build release tarball reproducibly
+# ---------------------------------------------------------------------------
+
+dist:
+	@git archive --format=tar --prefix=weft-sandbox-v0.1/ HEAD | gzip -n > weft-sandbox-v0.1.tar.gz
+	@sha=$$(sha256sum weft-sandbox-v0.1.tar.gz | cut -d' ' -f1); \
+	echo "Built weft-sandbox-v0.1.tar.gz (sha256: $$sha)"
+
+# ---------------------------------------------------------------------------
 # Clean
 # ---------------------------------------------------------------------------
 
@@ -122,3 +131,4 @@ clean:
 	rm -rf core/rust/target
 	rm -f litmus/REPORT.md litmus/results.json
 	rm -rf bench/site
+	rm -f weft-sandbox-v0.1.tar.gz

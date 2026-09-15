@@ -1,0 +1,32 @@
+{
+  "shard": "ports-validate",
+  "status": "PASSED",
+  "targets_pass": 4,
+  "targets_total": 4,
+  "targets": [
+    {
+      "target": "kotlin",
+      "pass": true,
+      "checks_total": 16,
+      "checks_pass": 16
+    },
+    {
+      "target": "swift",
+      "pass": true,
+      "checks_total": 15,
+      "checks_pass": 15
+    },
+    {
+      "target": "dart",
+      "pass": true,
+      "checks_total": 18,
+      "checks_pass": 18
+    },
+    {
+      "target": "ts",
+      "pass": true,
+      "checks_total": 8,
+      "checks_pass": 8
+    }
+  ]
+}

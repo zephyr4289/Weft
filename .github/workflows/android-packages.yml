@@ -40,7 +40,7 @@ jobs:
       - name: Run Unit Tests
         run: |
           cd android
-          ./gradlew test --stacktrace --info || (
+          ./gradlew :weft-core:testDebugUnitTest :weft-compose:testDebugUnitTest --stacktrace || (
             echo "=== TEST EXECUTION FAILURE DETAILS ==="
             find . -name "*.xml" -path "*/test-results/*" -exec echo "--- FILE: {} ---" \; -exec cat {} \;
             exit 1

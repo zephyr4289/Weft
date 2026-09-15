@@ -1,0 +1,23 @@
+# D-15 Evidence Summary: Interactive Showcase Demos (W1–W5 × Modes A–D)
+
+## 1. Environment & CI Execution Tag
+- **Environment**: `ubuntu-latest` (GitHub Actions x86_64, Node v22.x, pnpm 9.15.0)
+- **Commit SHA**: `ebda6af1b4060ce683f978ea70f3b03c3f8ddb25`
+- **Date**: Tue Sep 15 17:15:33 UTC 2026
+
+## 2. Test Execution Summary
+- **Test Suite**: `demos/web/test/matrix.test.ts`
+- **Total Tests**: 21 passed (100% pass rate)
+  - 20-cell Steady State Matrix (W1..W5 × Mode A..D): 20/20 PASS
+  - 100 Consecutive Random Hot-Switch Stress Test: 1/1 PASS
+- **Build Verification**: `tsc && vite build` -> Production bundle built (158.05 kB JS bundle, 0.47 kB HTML).
+
+## 3. Fairness Pin Audit (Code-Level Guarantee)
+- **Shared Renderer**: `demos/web/src/workloads/draw.ts::drawWorkload` is the single source of truth for canvas rendering across all modes.
+- **Mode Independence**: Modes A (Naive React state), B (RAF batching), C (Weft zero-copy ring), and D (Hand-rolled triple buffer) all pass their read output buffer directly into `drawWorkload(canvas, wid, readBuffer)`. Zero mode-specific canvas drawing optimizations exist.
+
+## 4. Cross-Origin Isolation Headers (COOP / COEP)
+- **Vite Configuration**: `demos/web/vite.config.ts` sets:
+  - `Cross-Origin-Opener-Policy: same-origin`
+  - `Cross-Origin-Embedder-Policy: require-corp`
+- **Browser Compatibility**: Ensures `SharedArrayBuffer` is fully enabled in Mode C for real browser execution.

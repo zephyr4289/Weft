@@ -25,6 +25,39 @@ export type PubResult = (typeof PubResult)[keyof typeof PubResult];
 export const DecodeResult = { Ok: 0, Short: 1, BadMagic: 2, BadHeader: 3 } as const;
 export type DecodeResult = (typeof DecodeResult)[keyof typeof DecodeResult];
 
+/// Per-buffer debug sample (port parity: weft_debug_buf_t, core/c/weft.h).
+/// `owner`: 0=free, 1=writer, 2=reader, 3=in-exchange(latest).
+export interface WeftDebugBuf {
+  slotIdx: number;
+  seq: number;
+  version: number;
+  headerSize: number;
+  payloadLen: number;
+  owner: number;
+}
+
+/// Advisory kernel state sample (port parity: weft_debug_view_t, core/c/weft.h).
+/// Per AXIOM T (05-CONTRACTS): telemetry values are advisory, never a
+/// correctness reference. wWork/rWork are thread-private; reading them from
+/// another thread is advisory-only sampling. This is a set of
+/// individually-consistent samples, NOT a consistent snapshot. Cold path —
+/// allocates its result object; never call from the hot loop (Law 2).
+/// Deviation from C, stated: C reports two live samples and never
+/// dereferences the third (I6 freed-buffer hazard); TS has no free() — the
+/// SAB is GC-managed — so all three slots are sampled.
+export interface WeftDebugView {
+  latest: number;
+  wWork: number;
+  rWork: number;
+  revoked: boolean;
+  epoch: number;
+  tPublish: bigint;
+  tClaim: bigint;
+  tDrop: bigint;
+  bufs: WeftDebugBuf[];
+  midPublishSample: boolean;
+}
+
 /// Compute buf_size = align64(16 + payload_max + 8, 64).
 function computeBufSize(payloadMax: number): number {
   const raw = 16 + payloadMax + 8;
@@ -93,6 +126,15 @@ export class Weft {
   t_wsteps: bigint = 0n;
   t_rsteps: bigint = 0n;
 
+  /// Writer-cursor views, one per buffer slot, allocated ONCE at construction
+  /// (Law 2: zero allocation per call — wBegin just indexes this array).
+  /// Port parity with weft_w_begin's stable raw pointer (core/c/weft.h).
+  private wViews: Uint8Array[];
+  /// Typed writer-cursor views (Float32 over the payload region), one per
+  /// slot, allocated ONCE. Byte offset is 4-byte aligned by construction
+  /// (buf0Offset=64, bufSize is 64-aligned, +16 payload start).
+  private wF32Views: Float32Array[];
+
   /// Allocate a Weft with the given payload_max.
   constructor(payloadMax: number) {
     this.payloadMax = payloadMax;
@@ -128,6 +170,17 @@ export class Weft {
       }
       // Canary at buf_size-8 = 0 (matches seq=0). SAB is already zeroed.
     }
+
+    // Writer-cursor views: created once, here, so that wBegin()/wBeginFloat32()
+    // never allocate (Law 2 — zero is a contract on the writer path too).
+    // The litmus fillPayload() path is untouched and remains normative.
+    this.wViews = [];
+    this.wF32Views = [];
+    for (let i = 0; i < 3; i++) {
+      const payloadOff = this.buf0Offset + i * this.bufSize + 16;
+      this.wViews.push(new Uint8Array(this.sab, payloadOff, payloadMax));
+      this.wF32Views.push(new Float32Array(this.sab, payloadOff, Math.floor(payloadMax / 4)));
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -148,6 +201,44 @@ export class Weft {
     for (let i = 0; i < payloadLen; i++) {
       this.dv.setUint8(off + i, pat(seq, i));
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Writer cursor (port parity: weft_w_begin / weft_w_write_payload,
+  // core/c/weft.h §Writer). The TS port originally omitted these; a real
+  // writer had no public way to place user payload into the working buffer
+  // and was forced to reach into kernel internals (ctrl/bufOffset) — a
+  // Law 3 encapsulation breach demonstrated by demos/web ModeCRunner.
+  // ---------------------------------------------------------------------------
+
+  /// Live write cursor: a Uint8Array VIEW over the writer's working payload
+  /// region buf[w_work][16..16+payload_max). Writes here are visible to the
+  /// reader after the next publish(). NOT a snapshot — the live buffer
+  /// (A3, same rule as the reader side). Zero allocation per call: the view
+  /// is cached per buffer slot at construction. The view stays valid until
+  /// the next publish() rotates w_work.
+  wBegin(): Uint8Array {
+    const w = Atomics.load(this.ctrl, Weft.SLOT_W_WORK);
+    return this.wViews[w];
+  }
+
+  /// Typed write cursor: Float32Array view over the same payload region.
+  /// Element count = floor(payload_max / 4). Same liveness and zero-alloc
+  /// contract as wBegin(). Ergonomic typed access without per-frame view
+  /// allocation (Law 2) — the TS analog of casting weft_w_begin's raw pointer.
+  wBeginFloat32(): Float32Array {
+    const w = Atomics.load(this.ctrl, Weft.SLOT_W_WORK);
+    return this.wF32Views[w];
+  }
+
+  /// Write `src.length` bytes of payload into the writer's working buffer at
+  /// offset 16. Returns 0 on success, -1 if src.length > payload_max (nothing
+  /// written). Mirrors weft_w_write_payload's contract exactly. This is a
+  /// convenience bulk copy; the cursor (wBegin) exists for zero-copy fills.
+  wWritePayload(src: Uint8Array): number {
+    if (src.length > this.payloadMax) return -1;
+    this.wBegin().set(src);
+    return 0;
   }
 
   /// Publish the writer's working buffer with the given seq and payload_len.
@@ -227,6 +318,13 @@ export class Weft {
   rPayloadLen(): number {
     const r = Atomics.load(this.ctrl, Weft.SLOT_R_WORK);
     return this.dv.getUint32(this.bufOffset(r) + 12, true);
+  }
+
+  /// Read envelope header_size of the reader's held buffer (live).
+  /// Port parity: weft_r_header_size (core/c/weft.h §Reader).
+  rHeaderSize(): number {
+    const r = Atomics.load(this.ctrl, Weft.SLOT_R_WORK);
+    return this.dv.getUint16(this.bufOffset(r) + 6, true);
   }
 
   /// Read `len` bytes from the held buffer at `offset`. Returns a Uint8Array
@@ -311,6 +409,56 @@ export class Weft {
   tClaim(): bigint { return Atomics.load(this.ctrlU64, Weft.SLOT64_T_CLAIM); }
   tDrop(): bigint { return Atomics.load(this.ctrlU64, Weft.SLOT64_T_DROP); }
   epoch(): number { return Atomics.load(this.ctrl, Weft.SLOT_EPOCH); }
+
+  // ---------------------------------------------------------------------------
+  // Debug view (port parity: weft_debug_view, core/c/weft.h — the sanctioned
+  // read-only, wait-free inspection accessor). Advisory per AXIOM T; cold
+  // path (allocates its result). Never a correctness reference.
+  // ---------------------------------------------------------------------------
+
+  /// Read-only advisory snapshot of kernel state. In TS the (latest, w_work,
+  /// r_work) triple is always a permutation of (0,1,2) — every slot has an
+  /// owner — and the SAB is GC-managed (no freed-buffer dereference hazard,
+  /// unlike C's post-reclaim state), so all three slots are sampled.
+  /// midPublishSample=true when a header looks sampled mid-write (seq != 0
+  /// with a wrong magic) — same detection rule as the C kernel.
+  debugView(): WeftDebugView {
+    const latest = Atomics.load(this.ctrl, Weft.SLOT_LATEST);      // advisory (Relaxed in C)
+    const wWork = Atomics.load(this.ctrl, Weft.SLOT_W_WORK);      // thread-private; advisory
+    const rWork = Atomics.load(this.ctrl, Weft.SLOT_R_WORK);      // thread-private; advisory
+    const revoked = Atomics.load(this.ctrl, Weft.SLOT_REVOKED) !== 0;
+    const epoch = Atomics.load(this.ctrl, Weft.SLOT_EPOCH);       // Acquire in C
+
+    const bufs: WeftDebugBuf[] = [];
+    let midPublishSample = false;
+    for (let i = 0; i < 3; i++) {
+      const off = this.bufOffset(i);
+      const seq = this.dv.getUint32(off + 8, true);
+      const magic = this.dv.getUint32(off, true);
+      if (seq !== 0 && magic !== WEFT_MAGIC) midPublishSample = true;
+      bufs.push({
+        slotIdx: i,
+        seq,
+        version: this.dv.getUint16(off + 4, true),
+        headerSize: this.dv.getUint16(off + 6, true),
+        payloadLen: this.dv.getUint32(off + 12, true),
+        owner: i === wWork ? 1 : (i === rWork ? 2 : 3),
+      });
+    }
+
+    return {
+      latest,
+      wWork,
+      rWork,
+      revoked,
+      epoch,
+      tPublish: this.tPublish(),
+      tClaim: this.tClaim(),
+      tDrop: this.tDrop(),
+      bufs,
+      midPublishSample,
+    };
+  }
 }
 
 // ---------------------------------------------------------------------------

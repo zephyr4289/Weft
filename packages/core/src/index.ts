@@ -134,6 +134,13 @@ export class Weft {
   /// slot, allocated ONCE. Byte offset is 4-byte aligned by construction
   /// (buf0Offset=64, bufSize is 64-aligned, +16 payload start).
   private wF32Views: Float32Array[];
+  /// Reader-side payload views, one per buffer slot, allocated ONCE at
+  /// construction — the mirror of wViews for the draw-phase read path
+  /// (Law 2 applies to the reader too). rLive()/rLiveFloat32() index these
+  /// arrays; rReadSlice(16, payloadMax) resolves to the same cached view.
+  private rViews: Uint8Array[];
+  /// Typed reader views (Float32 over the payload region), one per slot.
+  private rF32Views: Float32Array[];
 
   /// Allocate a Weft with the given payload_max.
   constructor(payloadMax: number) {
@@ -176,10 +183,16 @@ export class Weft {
     // The litmus fillPayload() path is untouched and remains normative.
     this.wViews = [];
     this.wF32Views = [];
+    this.rViews = [];
+    this.rF32Views = [];
     for (let i = 0; i < 3; i++) {
       const payloadOff = this.buf0Offset + i * this.bufSize + 16;
       this.wViews.push(new Uint8Array(this.sab, payloadOff, payloadMax));
       this.wF32Views.push(new Float32Array(this.sab, payloadOff, Math.floor(payloadMax / 4)));
+      // Reader views cover the same payload region (the region after claim()
+      // is exclusively the reader's until its next claim — RFC-0001 §4.3).
+      this.rViews.push(new Uint8Array(this.sab, payloadOff, payloadMax));
+      this.rF32Views.push(new Float32Array(this.sab, payloadOff, Math.floor(payloadMax / 4)));
     }
   }
 
@@ -330,12 +343,40 @@ export class Weft {
   /// Read `len` bytes from the held buffer at `offset`. Returns a Uint8Array
   /// VIEW (not a copy) — A3: the reader must observe the LIVE buffer.
   /// The view is valid until the next claim().
+  ///
+  /// Allocation contract (Law 2): the hot form rReadSlice(16, payloadMax) —
+  /// the one every Heddle calls per frame — returns a view CACHED at
+  /// construction: zero allocation, zero view churn. Other (offset, len)
+  /// combinations return a fresh subarray window (a small view object, never
+  /// a payload copy); treat those as cold-path accessors.
   rReadSlice(offset: number, len: number): Uint8Array {
     const r = Atomics.load(this.ctrl, Weft.SLOT_R_WORK);
+    if (offset === 16 && len >= this.payloadMax) {
+      return this.rViews[r];
+    }
     const bufOff = this.bufOffset(r);
     if (offset >= this.bufSize) return new Uint8Array(0);
     const n = Math.min(len, this.bufSize - offset);
     return new Uint8Array(this.sab, bufOff + offset, n);
+  }
+
+  /// Live payload view of the READER-HELD buffer (r_work). Zero-copy, in
+  /// place, zero allocation (cached per slot at construction). This is the
+  /// API draw-phase bindings MUST use after claim() — the TS analog of
+  /// C weft_r_live_ptr / Swift rLivePtr / Kotlin rLiveBuf. The view is
+  /// exclusively the reader's until its next claim() (RFC-0001 §4.3).
+  /// Port-parity note: like the Kotlin slice, absolute index 0 = payload
+  /// start (the envelope is NOT included; use rSeq()/rMagic() for it).
+  rLive(): Uint8Array {
+    const r = Atomics.load(this.ctrl, Weft.SLOT_R_WORK);
+    return this.rViews[r];
+  }
+
+  /// Typed live payload view (Float32Array) of the reader-held buffer.
+  /// Element count = floor(payload_max / 4). Same contract as rLive().
+  rLiveFloat32(): Float32Array {
+    const r = Atomics.load(this.ctrl, Weft.SLOT_R_WORK);
+    return this.rF32Views[r];
   }
 
   /// Verify the held buffer in-place (A3 — read live, not a snapshot).
@@ -370,12 +411,15 @@ export class Weft {
       const e = Atomics.load(this.ctrl, Weft.SLOT_EPOCH);
       if (e !== preRevokeEpoch) return true;
       if (Date.now() - start >= timeoutMs) return false;
-      // Brief sleep to avoid burning CPU. The writer ACKs within one publish.
-      // Use a sync wait + timeout 0 (returns immediately) — actually we can't
-      // sleep in main thread without Atomics.wait, which throws on main thread.
-      // Use a busy-loop with a tiny Atomics.wait timeout? No — wait throws on main.
-      // Fall back to a busy-loop with a yield via setTimeout... but we're sync.
-      // Just busy-loop; the timeout is bounded by 2000ms.
+      // Yield the core where the platform allows: Atomics.wait parks the
+      // thread (workers) — it THROWS on the main thread, where we fall back
+      // to a bounded busy-loop. 1 ms parks approximate the C kernel's
+      // 100 µs nanosleep pacing closely enough for a teardown path.
+      try {
+        Atomics.wait(this.ctrl, Weft.SLOT_EPOCH, e, 1);
+      } catch {
+        // Main thread: no park available; bounded busy-loop.
+      }
     }
   }
 
@@ -459,6 +503,24 @@ export class Weft {
       midPublishSample,
     };
   }
+
+  // ---------------------------------------------------------------------------
+  // Envelope instance methods (03-ENVELOPE) — thin wrappers over the pure
+  // functions below, so callers (and the constructor) never need DataView
+  // plumbing. Formerly grafted on via prototype patching + module
+  // augmentation; now ordinary methods (one source of truth, and the
+  // packages/core mirror of this file is verbatim-identical again).
+  // ---------------------------------------------------------------------------
+
+  /// Encode an envelope at absolute SAB offset `dstOff` (constructor + tools).
+  envelopeEncodeV1(dstOff: number, seq: number, payloadLen: number): void {
+    envelopeEncodeV1(this.dv, dstOff, seq, payloadLen);
+  }
+
+  /// Encode a custom-version envelope at absolute SAB offset `dstOff`.
+  envelopeEncode(dstOff: number, version: number, headerSize: number, seq: number, payloadLen: number): void {
+    envelopeEncode(this.dv, dstOff, version, headerSize, seq, payloadLen);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -539,18 +601,3 @@ export function xorshift32(state: { v: number }): number {
   state.v = x;
   return x;
 }
-
-// Attach envelope methods to Weft via closures over `this.dv`.
-// (TS doesn't allow free functions on classes; we add them as methods.)
-export interface Weft {
-  envelopeEncodeV1(dstOff: number, seq: number, payloadLen: number): void;
-  envelopeEncode(dstOff: number, version: number, headerSize: number, seq: number, payloadLen: number): void;
-}
-
-// Method implementations (closures over `this.dv`).
-Weft.prototype.envelopeEncodeV1 = function(dstOff: number, seq: number, payloadLen: number): void {
-  envelopeEncodeV1(this.dv, dstOff, seq, payloadLen);
-};
-Weft.prototype.envelopeEncode = function(dstOff: number, version: number, headerSize: number, seq: number, payloadLen: number): void {
-  envelopeEncode(this.dv, dstOff, version, headerSize, seq, payloadLen);
-};

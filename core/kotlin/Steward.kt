@@ -23,7 +23,6 @@ class Steward : ViewModel() {
 
     /// Allocate a Weft for elements of type [T] with the given capacity.
     inline fun <reified T> weft(capacity: Int, align: Int = 16): Weft {
-        check(!released) { "Steward is released" }
         val elemSize = when (T::class) {
             FloatArray::class -> 4
             IntArray::class -> 4
@@ -33,7 +32,12 @@ class Steward : ViewModel() {
             LongArray::class -> 8
             else -> throw IllegalArgumentException("Weft<T> supports primitive arrays")
         }
-        val w = Weft(capacity * elemSize)
+        return weftSized(capacity * elemSize)
+    }
+
+    fun weftSized(totalPayloadBytes: Int): Weft {
+        check(!released) { "Steward is released" }
+        val w = Weft(totalPayloadBytes)
         val id = nextId++
         wefts[id] = w
         return w

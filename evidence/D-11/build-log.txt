@@ -1,0 +1,116 @@
+packages/core build$ tsup
+packages/core build: CLI Building entry: src/index.ts, src/worker.ts
+packages/core build: CLI Using tsconfig: tsconfig.json
+packages/core build: CLI tsup v8.5.1
+packages/core build: CLI Using tsup config: /data/data/com.termux/files/home/Weft/packages/core/tsup.config.ts
+packages/core build: CLI Target: es2022
+packages/core build: CLI Cleaning output folder
+packages/core build: ESM Build start
+packages/core build: CJS Build start
+packages/core build: ESM dist/index.mjs      11.11 KB
+packages/core build: ESM dist/worker.mjs     1.39 KB
+packages/core build: ESM dist/index.mjs.map  28.46 KB
+packages/core build: ESM dist/worker.mjs.map 5.09 KB
+packages/core build: ESM ⚡️ Build success in 817ms
+packages/core build: CJS dist/index.js      11.36 KB
+packages/core build: CJS dist/worker.js     1.45 KB
+packages/core build: CJS dist/index.js.map  28.46 KB
+packages/core build: CJS dist/worker.js.map 5.09 KB
+packages/core build: CJS ⚡️ Build success in 820ms
+packages/core build: DTS Build start
+packages/core build: DTS ⚡️ Build success in 7378ms
+packages/core build: DTS dist/worker.d.mts 2.27 KB
+packages/core build: DTS dist/index.d.mts  2.58 KB
+packages/core build: DTS dist/worker.d.ts  2.27 KB
+packages/core build: DTS dist/index.d.ts   2.58 KB
+packages/core build: Done
+packages/vue build$ tsup
+packages/react-native build$ tsup
+packages/react build$ tsup
+packages/svelte build$ tsup
+packages/svelte build: CLI Building entry: src/index.ts
+packages/svelte build: CLI Using tsconfig: tsconfig.json
+packages/svelte build: CLI tsup v8.5.1
+packages/svelte build: CLI Using tsup config: /data/data/com.termux/files/home/Weft/packages/svelte/tsup.config.ts
+packages/svelte build: CLI Target: es2022
+packages/svelte build: CLI Cleaning output folder
+packages/svelte build: ESM Build start
+packages/svelte build: CJS Build start
+packages/svelte build: ESM dist/index.mjs     518.00 B
+packages/svelte build: ESM dist/index.mjs.map 1.39 KB
+packages/svelte build: ESM ⚡️ Build success in 185ms
+packages/svelte build: CJS dist/index.js     1.49 KB
+packages/svelte build: CJS dist/index.js.map 1.44 KB
+packages/svelte build: CJS ⚡️ Build success in 229ms
+packages/vue build: CLI Building entry: src/index.ts
+packages/vue build: CLI Using tsconfig: tsconfig.json
+packages/vue build: CLI tsup v8.5.1
+packages/vue build: CLI Using tsup config: /data/data/com.termux/files/home/Weft/packages/vue/tsup.config.ts
+packages/vue build: CLI Target: es2022
+packages/vue build: CLI Cleaning output folder
+packages/vue build: ESM Build start
+packages/vue build: CJS Build start
+packages/vue build: CJS dist/index.js     1.70 KB
+packages/vue build: CJS dist/index.js.map 1.63 KB
+packages/vue build: CJS ⚡️ Build success in 239ms
+packages/vue build: ESM dist/index.mjs     704.00 B
+packages/vue build: ESM dist/index.mjs.map 1.60 KB
+packages/vue build: ESM ⚡️ Build success in 249ms
+packages/react build: CLI Building entry: src/index.ts
+packages/react build: CLI Using tsconfig: tsconfig.json
+packages/react build: CLI tsup v8.5.1
+packages/react build: CLI Using tsup config: /data/data/com.termux/files/home/Weft/packages/react/tsup.config.ts
+packages/react build: CLI Target: es2022
+packages/react build: CLI Cleaning output folder
+packages/react build: ESM Build start
+packages/react build: CJS Build start
+packages/react build: ESM dist/index.mjs     728.00 B
+packages/react build: ESM dist/index.mjs.map 1.84 KB
+packages/react build: ESM ⚡️ Build success in 208ms
+packages/react build: CJS dist/index.js     2.33 KB
+packages/react build: CJS dist/index.js.map 1.90 KB
+packages/react build: CJS ⚡️ Build success in 264ms
+packages/react-native build: CLI Building entry: src/index.ts
+packages/react-native build: CLI Using tsconfig: tsconfig.json
+packages/react-native build: CLI tsup v8.5.1
+packages/react-native build: CLI Using tsup config: /data/data/com.termux/files/home/Weft/packages/react-native/tsup.config.ts
+packages/react-native build: CLI Target: es2022
+packages/react-native build: CLI Cleaning output folder
+packages/react-native build: ESM Build start
+packages/react-native build: CJS Build start
+packages/react-native build: ESM dist/index.mjs     635.00 B
+packages/react-native build: ESM dist/index.mjs.map 1.62 KB
+packages/react-native build: ESM ⚡️ Build success in 520ms
+packages/react-native build: CJS dist/index.js     1.61 KB
+packages/react-native build: CJS dist/index.js.map 1.66 KB
+packages/react-native build: CJS ⚡️ Build success in 520ms
+packages/svelte build: DTS Build start
+packages/vue build: DTS Build start
+packages/react build: DTS Build start
+packages/react-native build: DTS Build start
+packages/react-native build: DTS ⚡️ Build success in 6867ms
+packages/react-native build: DTS dist/index.d.mts 207.00 B
+packages/react-native build: DTS dist/index.d.ts  207.00 B
+packages/react-native build: Done
+packages/svelte build: DTS ⚡️ Build success in 10495ms
+packages/svelte build: DTS dist/index.d.mts 309.00 B
+packages/svelte build: DTS dist/index.d.ts  309.00 B
+packages/react build: DTS ⚡️ Build success in 9738ms
+packages/react build: DTS dist/index.d.mts 17.79 KB
+packages/react build: DTS dist/index.d.ts  17.79 KB
+packages/react build: Done
+fixtures/vite-react build$ vite build
+packages/svelte build: Done
+packages/vue build: DTS ⚡️ Build success in 11070ms
+packages/vue build: DTS dist/index.d.mts 270.00 B
+packages/vue build: DTS dist/index.d.ts  270.00 B
+packages/vue build: Done
+fixtures/vite-react build: vite v6.4.3 building for production...
+fixtures/vite-react build: transforming...
+fixtures/vite-react build: ✓ 28 modules transformed.
+fixtures/vite-react build: rendering chunks...
+fixtures/vite-react build: computing gzip size...
+fixtures/vite-react build: dist/index.html                  0.33 kB │ gzip:  0.24 kB
+fixtures/vite-react build: dist/assets/index-C0GDtuhS.js  149.10 kB │ gzip: 48.08 kB
+fixtures/vite-react build: ✓ built in 2.88s
+fixtures/vite-react build: Done

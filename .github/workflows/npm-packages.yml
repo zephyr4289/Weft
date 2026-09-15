@@ -1,0 +1,60 @@
+name: npm Packages CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Node ${{ matrix.node-version }} Matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.2
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build all packages
+        run: pnpm -r build
+
+      - name: Check API drift
+        run: |
+          npx api-extractor run --local --config packages/core/api-extractor.json
+          npx api-extractor run --local --config packages/react/api-extractor.json
+          npx api-extractor run --local --config packages/vue/api-extractor.json
+          npx api-extractor run --local --config packages/svelte/api-extractor.json
+          npx api-extractor run --local --config packages/react-native/api-extractor.json
+          git diff --exit-code packages/*/etc/*.api.md
+
+      - name: Test Packaged Litmus
+        run: |
+          node fixtures/node-litmus/litmus-packaged.ts L8-envelope
+          node fixtures/node-litmus/litmus-packaged.ts L7-revocation
+          node fixtures/node-litmus/litmus-packaged.ts L6-ownership
+
+      - name: Build Vite React fixture
+        run: pnpm --filter fixture-vite-react build
+
+      - name: Dry-run publish
+        run: pnpm -r --filter "./packages/*" publish --dry-run --no-git-checks

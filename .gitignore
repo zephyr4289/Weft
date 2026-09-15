@@ -27,3 +27,9 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# Node & Package builds
+node_modules/
+packages/*/dist/
+fixtures/*/dist/
+

@@ -1,0 +1,10 @@
+📦 @weft/core@0.1.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @weft/core@0.1.0 (dry run)
+📦 @weft/react@0.1.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @weft/react@0.1.0 (dry run)
+📦 @weft/react-native@0.1.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @weft/react-native@0.1.0 (dry run)
+📦 @weft/svelte@0.1.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @weft/svelte@0.1.0 (dry run)
+📦 @weft/vue@0.1.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @weft/vue@0.1.0 (dry run)

@@ -1,0 +1,6 @@
+L8 roundtrip=true unknown=true negotiation=true coexist=true pass=true
+{"test":"L8-envelope","lang":"ts","pass":true,"metrics":{"roundtrip":true,"unknown_fields":true,"negotiation":true,"coexist":true}}
+L7 reclaim_ok=true post_revoke_revoked=100 poison_intact=true pass=true
+{"test":"L7-revocation","lang":"ts","pass":true,"metrics":{"reclaim_ok":true,"post_revoke_revoked":100,"poison_intact":true,"first_revoked_at":0}}
+L6 trials=200 violations=0 seed=0x00c0ffee pass=true
+{"test":"L6-ownership","lang":"ts","pass":true,"metrics":{"trials":200,"frames_per_trial":64,"violations":0,"seed":"0x00c0ffee"}}

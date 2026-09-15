@@ -1,0 +1,18 @@
+{
+  "name": "weft-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r --filter \"./packages/*\" build",
+    "typecheck": "pnpm -r --filter \"./packages/*\" typecheck"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.47.11",
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

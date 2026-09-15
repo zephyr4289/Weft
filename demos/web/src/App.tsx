@@ -2,8 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { WORKLOAD_INFO, WorkloadMetadata } from './workloads/generators';
 import { drawWorkload } from './workloads/draw';
 import { createModeRunner, ModeType, ModeRunner } from './modes/runner';
+import { Inspector } from './components/Inspector';
+import { Playback } from './components/Playback';
+
+type TabType = 'showcase' | 'inspector' | 'playback';
 
 export const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<TabType>('showcase');
   const [selectedWid, setSelectedWid] = useState<string>('W1');
   const [selectedMode, setSelectedMode] = useState<ModeType>('C');
   const [isRunning, setIsRunning] = useState<boolean>(true);
@@ -95,135 +100,183 @@ export const App: React.FC = () => {
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '24px' }}>
       <header style={{ marginBottom: '24px', borderBottom: '1px solid #334155', paddingBottom: '16px' }}>
         <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', color: '#38bdf8' }}>
-          Weft Protocol Showcase — W1–W5 Live Benchmark
+          Weft Protocol Suite — Showcase & DevTools
         </h1>
-        <p style={{ margin: 0, color: '#94a3b8', fontSize: '14px' }}>
-          Interactive cross-mode comparison with fairness-pinned shared draw pipeline.
-        </p>
-      </header>
-
-      {/* Control Bar */}
-      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '20px' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>
-            Workload (W1–W5)
-          </label>
-          <select
-            value={selectedWid}
-            onChange={(e) => setSelectedWid(e.target.value)}
-            style={{
-              background: '#1e293b',
-              color: '#f8fafc',
-              border: '1px solid #475569',
-              padding: '8px 12px',
-              borderRadius: '6px',
-            }}
-          >
-            {Object.keys(WORKLOAD_INFO).map((k) => (
-              <option key={k} value={k}>
-                {WORKLOAD_INFO[k].title}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>
-            Buffer Protocol Mode (A/B/C/D)
-          </label>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            {(['A', 'B', 'C', 'D'] as ModeType[]).map((m) => (
-              <button
-                key={m}
-                onClick={() => setSelectedMode(m)}
-                style={{
-                  background: selectedMode === m ? '#0284c7' : '#1e293b',
-                  color: '#f8fafc',
-                  border: '1px solid #475569',
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontWeight: selectedMode === m ? 'bold' : 'normal',
-                }}
-              >
-                Mode {m}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
           <button
-            onClick={() => setIsRunning(!isRunning)}
+            onClick={() => setActiveTab('showcase')}
             style={{
-              background: isRunning ? '#ef4444' : '#22c55e',
-              color: '#f8fafc',
-              border: 'none',
-              padding: '8px 20px',
+              padding: '8px 16px',
               borderRadius: '6px',
+              border: 'none',
+              background: activeTab === 'showcase' ? '#0284c7' : '#1e293b',
+              color: '#fff',
               cursor: 'pointer',
-              fontWeight: 'bold',
+              fontWeight: activeTab === 'showcase' ? 'bold' : 'normal',
             }}
           >
-            {isRunning ? 'Pause' : 'Resume'}
+            Workload Matrix (W1–W5)
+          </button>
+          <button
+            onClick={() => setActiveTab('inspector')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: 'none',
+              background: activeTab === 'inspector' ? '#0284c7' : '#1e293b',
+              color: '#fff',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'inspector' ? 'bold' : 'normal',
+            }}
+          >
+            Telemetry Inspector
+          </button>
+          <button
+            onClick={() => setActiveTab('playback')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: 'none',
+              background: activeTab === 'playback' ? '#0284c7' : '#1e293b',
+              color: '#fff',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'playback' ? 'bold' : 'normal',
+            }}
+          >
+            .weftrec Playback
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Mode Description Banner */}
-      <div
-        style={{
-          background: '#1e293b',
-          borderLeft: '4px solid #38bdf8',
-          padding: '12px 16px',
-          marginBottom: '20px',
-          borderRadius: '0 6px 6px 0',
-          fontSize: '13px',
-        }}
-      >
-        <strong>
-          Active: Workload {selectedWid} · Mode {selectedMode}{' '}
-          {selectedMode === 'A' && '(Reactive Naive — per-frame allocation)'}
-          {selectedMode === 'B' && '(Pooled Best-Practice — main-thread pool)'}
-          {selectedMode === 'C' && '(Weft Kernel — zero-copy atomic exchange)'}
-          {selectedMode === 'D' && '(Hand-Rolled Triple-Buffer with I6)'}
-        </strong>
-        <div style={{ color: '#94a3b8', marginTop: '4px' }}>{currentWorkload.description}</div>
-      </div>
+      {activeTab === 'inspector' && <Inspector />}
+      {activeTab === 'playback' && <Playback />}
 
-      {/* Canvas Viewport */}
-      <div
-        style={{
-          background: '#020617',
-          border: '1px solid #334155',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          position: 'relative',
-          marginBottom: '20px',
-        }}
-      >
-        <canvas ref={canvasRef} width={950} height={360} style={{ display: 'block', width: '100%', height: '360px' }} />
+      {activeTab === 'showcase' && (
+        <>
+          {/* Control Bar */}
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '20px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>
+                Workload (W1–W5)
+              </label>
+              <select
+                value={selectedWid}
+                onChange={(e) => setSelectedWid(e.target.value)}
+                style={{
+                  background: '#1e293b',
+                  color: '#f8fafc',
+                  border: '1px solid #475569',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                }}
+              >
+                {Object.keys(WORKLOAD_INFO).map((k) => (
+                  <option key={k} value={k}>
+                    {WORKLOAD_INFO[k].title}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {/* Burned-in telemetry overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '12px',
-            right: '12px',
-            background: 'rgba(15, 23, 42, 0.85)',
-            border: '1px solid #475569',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            fontSize: '12px',
-            fontFamily: 'monospace',
-          }}
-        >
-          <div>FPS: <span style={{ color: fps >= 55 ? '#4ade80' : '#f87171' }}>{fps}</span></div>
-          <div>p50: {p50} ms | p99: {p99} ms</div>
-          <div>Drops (t_drop): {tDrop}</div>
-          {heapMb > 0 && <div>JS Heap: {heapMb} MB</div>}
-        </div>
-      </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>
+                Buffer Protocol Mode (A/B/C/D)
+              </label>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {(['A', 'B', 'C', 'D'] as ModeType[]).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setSelectedMode(m)}
+                    style={{
+                      background: selectedMode === m ? '#0284c7' : '#1e293b',
+                      color: '#f8fafc',
+                      border: '1px solid #475569',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: selectedMode === m ? 'bold' : 'normal',
+                    }}
+                  >
+                    Mode {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <button
+                onClick={() => setIsRunning(!isRunning)}
+                style={{
+                  background: isRunning ? '#ef4444' : '#22c55e',
+                  color: '#f8fafc',
+                  border: 'none',
+                  padding: '8px 20px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                {isRunning ? 'Pause' : 'Resume'}
+              </button>
+            </div>
+          </div>
+
+          {/* Mode Description Banner */}
+          <div
+            style={{
+              background: '#1e293b',
+              borderLeft: '4px solid #38bdf8',
+              padding: '12px 16px',
+              marginBottom: '20px',
+              borderRadius: '0 6px 6px 0',
+              fontSize: '13px',
+            }}
+          >
+            <strong>
+              Active: Workload {selectedWid} · Mode {selectedMode}{' '}
+              {selectedMode === 'A' && '(Reactive Naive — per-frame allocation)'}
+              {selectedMode === 'B' && '(Pooled Best-Practice — main-thread pool)'}
+              {selectedMode === 'C' && '(Weft Kernel — zero-copy atomic exchange)'}
+              {selectedMode === 'D' && '(Hand-Rolled Triple-Buffer with I6)'}
+            </strong>
+            <div style={{ color: '#94a3b8', marginTop: '4px' }}>{currentWorkload.description}</div>
+          </div>
+
+          {/* Canvas Viewport */}
+          <div
+            style={{
+              background: '#020617',
+              border: '1px solid #334155',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              position: 'relative',
+              marginBottom: '20px',
+            }}
+          >
+            <canvas ref={canvasRef} width={950} height={360} style={{ display: 'block', width: '100%', height: '360px' }} />
+
+            {/* Burned-in telemetry overlay */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                background: 'rgba(15, 23, 42, 0.85)',
+                border: '1px solid #475569',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontFamily: 'monospace',
+              }}
+            >
+              <div>FPS: <span style={{ color: fps >= 55 ? '#4ade80' : '#f87171' }}>{fps}</span></div>
+              <div>p50: {p50} ms | p99: {p99} ms</div>
+              <div>Drops (t_drop): {tDrop}</div>
+              {heapMb > 0 && <div>JS Heap: {heapMb} MB</div>}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Honesty Disclosure Footer */}
       <footer
@@ -234,6 +287,7 @@ export const App: React.FC = () => {
           fontSize: '12px',
           color: '#94a3b8',
           borderTop: '1px solid #334155',
+          marginTop: '20px',
         }}
       >
         <div style={{ fontWeight: 'bold', color: '#f8fafc', marginBottom: '4px' }}>

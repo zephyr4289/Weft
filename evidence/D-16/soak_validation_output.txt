@@ -1,0 +1,23 @@
+=== WEFTREC VALIDATION: /data/data/com.termux/files/home/Weft/litmus/evidence/soak-b2/soak_c_30s.weftrec ===
+Header: magic=WREC fmt_ver=1 env_ver=1 hdr_size=32 hdr_crc=0x33C38BD5 (VALID)
+Declared header frame_count: 3595
+=== SUMMARY ===
+Total records processed: 3595
+Foreign/unknown records (L8 skipped): 0
+Fresh records: 1
+Stale records: 3594
+Total payload bytes: 230080
+Stream checksum (CRC32): 0x33F32FBA
+Result: PASS (All 3595 frames verified bit-exact and structurally sound)
+
+=== WEFTREC VALIDATION: /data/data/com.termux/files/home/Weft/litmus/evidence/soak-b2/soak_rust_30s.weftrec ===
+Header: magic=WREC fmt_ver=1 env_ver=1 hdr_size=32 hdr_crc=0xD85EC34F (VALID)
+Declared header frame_count: 3569
+=== SUMMARY ===
+Total records processed: 3569
+Foreign/unknown records (L8 skipped): 0
+Fresh records: 1
+Stale records: 3568
+Total payload bytes: 228416
+Stream checksum (CRC32): 0x1FC96986
+Result: PASS (All 3569 frames verified bit-exact and structurally sound)

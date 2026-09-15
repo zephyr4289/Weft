@@ -1,0 +1,14 @@
+=== WEFTREC VALIDATION: /data/data/com.termux/files/home/Weft/evidence/D-16/l8_foreign_injected.weftrec ===
+Header: magic=WREC fmt_ver=1 env_ver=1 hdr_size=32 hdr_crc=0xFCE98E30 (VALID)
+Declared header frame_count: 3
+[Frame    0] seq=1      ver=1 hdr_sz=16 payload_len=18    crc=0x49C56CA8 [FRESH]
+[Frame    1] FOREIGN/UNKNOWN magic=0xDEADBEEF rec_len=63 (L8 skipped)
+[Frame    2] seq=3      ver=1 hdr_sz=16 payload_len=30    crc=0x0107DCE8 [FRESH]
+=== SUMMARY ===
+Total records processed: 3
+Foreign/unknown records (L8 skipped): 1
+Fresh records: 2
+Stale records: 0
+Total payload bytes: 48
+Stream checksum (CRC32): 0x569107B9
+Result: PASS (All 3 frames verified bit-exact and structurally sound)

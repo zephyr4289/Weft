@@ -1,0 +1,15 @@
+capture_sha256=ab3b5ebeb421c9359335ca9d757ed36fb692182971d24b89f8c7fe8f0dfd520d
+replay_sha256=ab3b5ebeb421c9359335ca9d757ed36fb692182971d24b89f8c7fe8f0dfd520d
+match=true
+file_bytes=182432
+=== WEFTREC VALIDATION: /data/data/com.termux/files/home/Weft/evidence/D-16/roundtrip_10s.weftrec ===
+Header: magic=WREC fmt_ver=1 env_ver=1 hdr_size=32 hdr_crc=0xF427C798 (VALID)
+Declared header frame_count: 1200
+=== SUMMARY ===
+Total records processed: 1200
+Foreign/unknown records (L8 skipped): 0
+Fresh records: 1
+Stale records: 1199
+Total payload bytes: 153600
+Stream checksum (CRC32): 0x5612D436
+Result: PASS (All 1200 frames verified bit-exact and structurally sound)

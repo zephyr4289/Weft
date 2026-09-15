@@ -43,10 +43,23 @@ class Steward : ViewModel() {
         return w
     }
 
-    /// Release all Wefts. Idempotent.
+    /// Release a single Weft ahead of scope exit. Per the I6 contract (RFC-0001
+    /// §6), the writer is revoked BEFORE the buffer becomes unreachable — the
+    /// next publish on a revoked Weft is a no-op that ACKs via the epoch
+    /// handshake (DROPPED_REVOKED), so a late producer can never write into a
+    /// buffer nobody owns. On the JVM, dropping the last reference is the
+    /// deallocation; revoke-first is what makes that safe. Idempotent.
+    fun release(w: Weft) {
+        w.revoke()
+        wefts.values.remove(w)
+    }
+
+    /// Release all Wefts. Idempotent. Each is revoked before its reference is
+    /// dropped (I6 ordering — see [release]).
     fun releaseAll() {
         if (released) return
         released = true
+        for (w in wefts.values) w.revoke()
         wefts.clear() // JVM GC handles the buffers
     }
 

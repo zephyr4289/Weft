@@ -8,10 +8,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.weft.Steward
+import dev.weft.compose.ReattachPolicy
 import dev.weft.compose.rememberWeftHeddle
 import dev.weft.compose.weftDraw
+import kotlinx.coroutines.isActive
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,16 +34,37 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WeftSampleScreen() {
-    val heddle = rememberWeftHeddle(capacity = 512)
+    // ViewModel-scoped Steward: the channel survives configuration change
+    // (WHITEPAPER §7.3). REVOKE_AND_RENEW gives the demo a clean teardown.
+    val steward: Steward = viewModel()
+    val heddle = rememberWeftHeddle(capacity = 512, policy = ReattachPolicy.REVOKE_AND_RENEW, steward = steward)
+
+    // Producer side: a data-driven writer paced to Choreographer ticks.
+    // In production this loop lives on a native engine or worker thread; the
+    // Triad Protocol makes the draw thread's claim() wait-free regardless of
+    // this producer's cadence (RFC-0001 I2/I5).
+    LaunchedEffect(heddle) {
+        var seq = 0
+        while (isActive) {
+            val buf = heddle.weft.wBegin()
+            buf.put(0, ((seq * 3) and 0xFF).toByte())   // payload byte 0: radius driver
+            buf.put(1, ((seq * 7) and 0xFF).toByte())   // payload byte 1: hue driver
+            heddle.weft.publish(seq = ++seq, payloadLen = 2)
+            withFrameNanos { it } // vsync-paced producer
+        }
+    }
 
     Canvas(
         modifier = Modifier
             .fillMaxSize()
             .weftDraw(heddle) { buf ->
-                val firstByte = buf.get(0).toInt() and 0xFF
+                // buf is the READER-HELD payload (rLiveBuf slice): absolute
+                // index 0 = payload byte 0. Zero recomposition per frame.
+                val radiusByte = buf.get(0).toInt() and 0xFF
+                val hueByte = buf.get(1).toInt() and 0xFF
                 drawCircle(
-                    color = Color(0xFF6200EE),
-                    radius = (firstByte + 50).toFloat()
+                    color = Color(hueByte / 255f, 0.4f, 0.9f),
+                    radius = (radiusByte * 1.5f + 50f)
                 )
             }
     ) {

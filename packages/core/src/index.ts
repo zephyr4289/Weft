@@ -344,16 +344,17 @@ export class Weft {
   /// VIEW (not a copy) — A3: the reader must observe the LIVE buffer.
   /// The view is valid until the next claim().
   ///
-  /// Allocation contract (Law 2): the hot form rReadSlice(16, payloadMax) —
-  /// the one every Heddle calls per frame — returns a view CACHED at
-  /// construction: zero allocation, zero view churn. Other (offset, len)
-  /// combinations return a fresh subarray window (a small view object, never
-  /// a payload copy); treat those as cold-path accessors.
+  /// CONTRACT (C parity, normative — weft_r_read_slice): the window is
+  /// bounded by buf_size - offset and MAY include envelope/canary bytes
+  /// (offset is an absolute buffer offset, 0 = envelope start). Allocates a
+  /// fresh view object per call (never a payload copy).
+  ///
+  /// HOT PATH (Law 2): draw-phase bindings must call rLive() / rLiveFloat32()
+  /// instead — those return the payload views cached at construction:
+  /// zero allocation per frame. rReadSlice stays C-parity for tools and
+  /// verify-in-place code (L1) that needs the envelope in the window.
   rReadSlice(offset: number, len: number): Uint8Array {
     const r = Atomics.load(this.ctrl, Weft.SLOT_R_WORK);
-    if (offset === 16 && len >= this.payloadMax) {
-      return this.rViews[r];
-    }
     const bufOff = this.bufOffset(r);
     if (offset >= this.bufSize) return new Uint8Array(0);
     const n = Math.min(len, this.bufSize - offset);

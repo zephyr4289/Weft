@@ -1,0 +1,22 @@
+==================================================
+SHARD: canonical-audit
+DESCRIPTION: bench/results.json sha256 = 16b5c663 invariant
+STATUS: PASSED ✅
+COMMIT: 4f061c0a6c88ba3f695a4687b541a924a6d7da7b
+RUN: 32
+==================================================
+
+=== Canonical bundle audit ===
+Expected prefix: 16b5c663
+Actual sha256:   16b5c663433a37540c77f9dd6e4b83abe3eed929cc4c142813ad0b684f5498f8
+Actual prefix:   16b5c663
+✅ No embedded stamp line (R1 Path C intact)
+✅ Canonical hash matches 16b5c663
+{
+  "shard": "canonical-audit",
+  "status": "PASSED",
+  "expected_prefix": "16b5c663",
+  "actual_sha256": "16b5c663433a37540c77f9dd6e4b83abe3eed929cc4c142813ad0b684f5498f8",
+  "actual_prefix": "16b5c663",
+  "reason": "ok"
+}

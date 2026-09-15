@@ -6,12 +6,12 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../core/c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../core/c
 )
 
 add_library(weft_core SHARED
     weft_jni.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../core/c/weft.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../core/c/weft.c
 )
 
 target_link_libraries(weft_core

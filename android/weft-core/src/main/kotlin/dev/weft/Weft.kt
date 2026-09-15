@@ -70,7 +70,7 @@ class Weft(val payloadMax: Int) {
         // Per 04-LITMUS §0.6: the null frame is a valid initial state.
         for (i in 0 until 3) {
             envelopeEncodeV1(buffers[i], 0, payloadMax)
-            val p = buffers[i].duplicate().position(16)
+            val p = buffers[i].duplicate().apply { position(16) }
             for (j in 0 until payloadMax) {
                 p.put(pat(0, j))
             }
@@ -80,7 +80,7 @@ class Weft(val payloadMax: Int) {
     // --- Writer ---
 
     /// Get a write cursor for the writer's working buffer.
-    fun wBegin(): ByteBuffer = buffers[wWork].duplicate().position(16)
+    fun wBegin(): ByteBuffer = buffers[wWork].duplicate().apply { position(16) }
 
     /// Publish: write envelope + canary, then exchange latest.
     /// Per 02 §2 + §6: revoked checked FIRST; exchange is THE atomic.
@@ -125,7 +125,7 @@ class Weft(val payloadMax: Int) {
     fun rReadSlice(dst: ByteArray, offset: Int): Int {
         if (offset >= bufSize) return 0
         val n = minOf(dst.size, bufSize - offset)
-        buffers[rWork].position(offset).get(dst, 0, n)
+        buffers[rWork].duplicate().apply { position(offset) }.get(dst, 0, n)
         return n
     }
 

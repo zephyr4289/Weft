@@ -17,6 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Initialize Log
+        run: |
+          touch /tmp/flutter_build_output.log
+          echo "=== Starting Flutter CI ===" >> /tmp/flutter_build_output.log
+
       - name: Set up Flutter SDK
         uses: subosito/flutter-action@v2
         with:
@@ -25,20 +30,21 @@ jobs:
 
       - name: Compile Native C Kernel (libweft.so)
         run: |
-          gcc -shared -fPIC -O3 -Icore/c core/c/weft.c -o packages/flutter_weft/libweft.so
+          mkdir -p packages/flutter_weft/build
+          gcc -shared -fPIC -O3 -Icore/c core/c/weft.c -o packages/flutter_weft/libweft.so 2>&1 | tee -a /tmp/flutter_build_output.log
           cp packages/flutter_weft/libweft.so /tmp/libweft.so
-          gcc -shared -fPIC -O3 -Icore/c core/c/weft.c -o /usr/local/lib/libweft.so
+          sudo cp packages/flutter_weft/libweft.so /usr/local/lib/libweft.so
           sudo ldconfig || true
 
       - name: Install Dependencies
         run: |
           cd packages/flutter_weft
-          flutter pub get
+          flutter pub get 2>&1 | tee -a /tmp/flutter_build_output.log
 
       - name: Dart Analyze
         run: |
           cd packages/flutter_weft
-          dart analyze --fatal-infos 2>&1 | tee /tmp/flutter_build_output.log
+          dart analyze --fatal-infos 2>&1 | tee -a /tmp/flutter_build_output.log
 
       - name: Run Tests
         run: |

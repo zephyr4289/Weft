@@ -11,6 +11,6 @@
 // SINGLE-ISOLATE REFERENCE: no cross-thread ordering claims transfer from
 // the C/Rust proof. This is the honesty load-bearing wall of the Dart port.
 
-export '../../../core/dart/weft.dart';
-export '../../../core/dart/steward.dart';
-export '../../../core/dart/heddle.dart';
+export 'reference/weft.dart';
+export 'reference/steward.dart';
+export 'reference/heddle.dart';

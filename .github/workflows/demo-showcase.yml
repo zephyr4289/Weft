@@ -1,0 +1,71 @@
+name: Demo Showcase CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  showcase-matrix:
+    name: 5x4 Matrix & Hot-Switch Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies & build monorepo
+        run: |
+          pnpm install
+          pnpm build
+
+      - name: Run Demo Matrix Tests
+        id: demo_tests
+        run: |
+          cd demos/web
+          pnpm test 2>&1 | tee /tmp/demo_test_output.log
+
+      - name: Build Static Demo Assets
+        id: demo_build
+        run: |
+          cd demos/web
+          pnpm build 2>&1 | tee -a /tmp/demo_test_output.log
+
+      - name: Archive Demo Dist Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-web-dist
+          path: |
+            demos/web/dist/
+
+      - name: Publish CI Result Branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B ci/demo-status
+          mkdir -p .ci-status
+          echo "CONCLUSION=${{ job.status }}" > .ci-status/status.txt
+          echo "SHA=${{ github.sha }}" >> .ci-status/status.txt
+          echo "DATE=$(date -u)" >> .ci-status/status.txt
+          if [ -f /tmp/demo_test_output.log ]; then
+            cp /tmp/demo_test_output.log .ci-status/demo_test_output.log
+          fi
+          git add -f .ci-status/
+          git commit -m "ci: demo status [${{ job.status }}] for ${{ github.sha }}" || true
+          git push -f origin ci/demo-status || true

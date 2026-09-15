@@ -1,6 +1,7 @@
 packages:
   - 'packages/*'
   - 'fixtures/*'
+  - 'demos/*'
 
 allowBuilds:
   esbuild: true

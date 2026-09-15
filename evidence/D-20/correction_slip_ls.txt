@@ -1,0 +1,5 @@
+$ ls -la reports/Weft-Phase4-Errata-R4-Correction-Slip.*
+-rwxr-xr-x. 1 root root  4859 Sep 15 13:40 reports/Weft-Phase4-Errata-R4-Correction-Slip.md
+-rwxr-xr-x. 1 root root 51955 Sep 15 13:40 reports/Weft-Phase4-Errata-R4-Correction-Slip.pdf
+
+Exit Code: 0

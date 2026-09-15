@@ -1,0 +1,6 @@
+$ grep -A 5 "Release signing gate" evidence/D-18/RELEASE-NOTES.md
+### Release signing gate
+For the real `v0.1.0` (not rc1): artifacts are built by the tag-triggered workflow; `SHA256SUMS` is generated **inside CI from the CI-built artifacts** and signed **inside CI** with the release secret key. The published files and the signed manifest must come from the same build. Locally-built hashes are never shipped as canonical (non-reproducible formats differ: xcframework/AAR/tools/rc1-tarball embed timestamps — rc1 showed 4/10 row drift between local and CI builds).
+
+
+Exit Code: 0

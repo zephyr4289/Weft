@@ -1,0 +1,4 @@
+$ sha256sum reports/Weft-Whitepaper-v1.0.3.pdf
+7f546cb17c404bab1fe5de08b17b881f2bb40c20822a52690ec758481e8283ce  reports/Weft-Whitepaper-v1.0.3.pdf
+
+Exit Code: 0

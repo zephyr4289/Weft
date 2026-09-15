@@ -21,16 +21,17 @@ Consequences, binding on every directive in this series:
 
 | ID | Title | Wave | Depends | Effort | Status |
 |---|---|---|---|---|---|
-| D-10 | Baseline: R1–R6 integrity batch + directory harmonization + CI skeleton | 0 | — | ~4 h | ISSUED |
-| D-11 | npm: @weft/core, @weft/react, @weft/vue, @weft/svelte, @weft/react-native | 1 | D-10 | ~8 h | ISSUED |
-| D-12 | Android: dev.weft AAR, JNI libweft.so (3 ABIs), Compose lib, R8 rules | 1 | D-10 | ~12 h | ISSUED |
-| D-13 | iOS: Swift Package Manager package, dual-path Heddle (60/120 Hz) | 1 | D-10 | ~8 h | ISSUED |
-| D-14 | Flutter: dart:ffi production bridge into libweft.so | 1–2 | D-12 (.so), D-10 | ~8 h | ISSUED |
-| D-15 | Showcase demos: W1–W5 with A/B/C/D mode toggles (web) | 2 | D-11 | ~10 h | ISSUED |
-| D-16 | DevTools: telemetry inspector + .weftrec playback | 2 | D-11 | ~10 h | ISSUED |
-| D-17 | Protocol RFC spikes Q1–Q5 (timeboxed; kernel FROZEN) | bg | D-10 | ≤ 8 d total | ISSUED |
-| D-18 | Release engineering: tag → artifacts → GitHub Releases | 3 | D-10…D-14 | ~6 h | ISSUED |
-| D-19 | End-to-end integration gate → coordinated v0.1.0 | 4 | all above | ~6 h | ISSUED |
+| D-10 | Baseline: R1–R6 integrity batch + directory harmonization + CI skeleton | 0 | — | ~4 h | CLOSED-on-G1 (round-7) |
+| D-11 | npm: @weft/core, @weft/react, @weft/vue, @weft/svelte, @weft/react-native | 1 | D-10 | ~8 h | CLOSED (round-7) |
+| D-12 | Android: dev.weft AAR, JNI libweft.so (3 ABIs), Compose lib, R8 rules | 1 | D-10 | ~12 h | CLOSED (round-7) |
+| D-13 | iOS: Swift Package Manager package, dual-path Heddle (60/120 Hz) | 1 | D-10 | ~8 h | CLOSED (round-7) |
+| D-14 | Flutter: dart:ffi production bridge into libweft.so | 1–2 | D-12 (.so), D-10 | ~8 h | CLOSED (round-7; G-3 wording in D-20) |
+| D-15 | Showcase demos: W1–W5 with A/B/C/D mode toggles (web) | 2 | D-11 | ~10 h | CLOSED (round-7) |
+| D-16 | DevTools: telemetry inspector + .weftrec playback | 2 | D-11 | ~10 h | CLOSED (round-6) |
+| D-17 | Protocol RFC spikes Q1–Q5 (timeboxed; kernel FROZEN) | bg | D-10 | ≤ 8 d total | CLOSED (round-7: 0003 design-accepted/HW-deferred) |
+| D-18 | Release engineering: tag → artifacts → GitHub Releases | 3 | D-10…D-14 | ~6 h | CLOSED (round-7; G-2/G-4/G-5 in D-20) |
+| D-19 | End-to-end integration gate → coordinated v0.1.0 | 4 | all above | ~6 h | CLOSED (round-7) |
+| D-20 | Final closure batch: v1.0.3 restore + label/hygiene fixes | 5 | round-7 | ≤ 1 h | ISSUED |
 
 ## 2. Sequencing rationale (what ahead, in order)
 

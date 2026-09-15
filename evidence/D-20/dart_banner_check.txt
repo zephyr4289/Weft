@@ -1,0 +1,4 @@
+$ grep -E "(Single-isolate reference|honesty load-bearing wall)" packages/flutter_weft/lib/src/weft_reference.dart
+// Single-isolate reference; no cross-thread ordering claims transfer from the C/Rust proof. The pure-Dart kernel is a protocol reference implementation valid for single-threaded usage (e.g., a Worker isolate that runs both writer and reader on its own event loop). Production Flutter usage goes through `dart:ffi` to the C kernel. This is the honesty load-bearing wall of the Dart port.
+
+Exit Code: 0

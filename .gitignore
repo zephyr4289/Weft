@@ -36,4 +36,5 @@ demos/*/dist/
 dist/
 tools/weft-playback/weft_play
 spikes/verified-weft/verified_weft_bench
+minisign/
 

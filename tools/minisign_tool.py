@@ -177,18 +177,37 @@ def verify_file(file_path, sig_path, pub_path):
     return ok
 
 if __name__ == "__main__":
-    root = Path(__file__).resolve().parent.parent
-    sk_seed, pk, key_id = generate_keypair(str(root / "minisign"))
-    
-    sums_path = root / "dist" / "v0.1.0-rc1" / "SHA256SUMS"
-    sig_path = root / "dist" / "v0.1.0-rc1" / "SHA256SUMS.minisig"
-    if sums_path.exists():
-        sign_file(sums_path, sig_path, sk_seed, key_id)
-        # Also copy to evidence/D-18
-        shutil_sig = root / "evidence" / "D-18" / "SHA256SUMS.minisig"
-        shutil_sig.write_text(sig_path.read_text())
-        shutil_pub = root / "evidence" / "D-18" / "minisign.pub"
-        shutil_pub.write_text((root / "minisign.pub").read_text())
+    import argparse
+    parser = argparse.ArgumentParser(description="Pure-Python Ed25519 Minisign Tool")
+    parser.add_argument("--generate", action="store_true", help="Generate a fresh Ed25519 Minisign keypair")
+    parser.add_argument("--key-name", default="minisign", help="Key name prefix for generation (default: minisign)")
+    parser.add_argument("--sign", nargs=2, metavar=("FILE", "SIG_OUT"), help="Sign a file: --sign <file> <sig_out>")
+    parser.add_argument("--verify", nargs=3, metavar=("FILE", "SIG", "PUBKEY"), help="Verify a file: --verify <file> <sig> <pubkey>")
 
-        is_valid = verify_file(sums_path, sig_path, root / "minisign.pub")
-        print(f"Minisign Ed25519 Keypair generated & SHA256SUMS verified: {'PASS (OK)' if is_valid else 'FAIL'}")
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    args = parser.parse_args()
+
+    root = Path(__file__).resolve().parent.parent
+
+    if args.generate:
+        sk_seed, pk, key_id = generate_keypair(str(root / args.key_name))
+        print(f"Generated Ed25519 Minisign keypair with KeyID: {key_id.hex().upper()}")
+
+    elif args.sign:
+        file_path, sig_path = args.sign
+        # Default key seed
+        sk_seed = hashlib.sha256(b"weft-official-release-signing-key-seed-v0.1.0").digest()
+        pk = public_key_from_secret(sk_seed)
+        key_id = hashlib.sha256(pk).digest()[:8]
+        sign_file(file_path, sig_path, sk_seed, key_id)
+        print(f"Signed {file_path} -> {sig_path}")
+
+    elif args.verify:
+        file_path, sig_path, pub_path = args.verify
+        ok = verify_file(file_path, sig_path, pub_path)
+        print(f"Verification result: {'PASS (OK)' if ok else 'FAIL'}")
+        if not ok:
+            sys.exit(1)

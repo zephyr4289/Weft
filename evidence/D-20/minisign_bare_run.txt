@@ -1,0 +1,15 @@
+$ python3 tools/minisign_tool.py
+usage: minisign_tool.py [-h] [--generate] [--key-name KEY_NAME]
+                        [--sign FILE SIG_OUT] [--verify FILE SIG PUBKEY]
+
+Pure-Python Ed25519 Minisign Tool
+
+options:
+  -h, --help            show this help message and exit
+  --generate            Generate a fresh Ed25519 Minisign keypair
+  --key-name KEY_NAME   Key name prefix for generation (default: minisign)
+  --sign FILE SIG_OUT   Sign a file: --sign <file> <sig_out>
+  --verify FILE SIG PUBKEY
+                        Verify a file: --verify <file> <sig> <pubkey>
+
+Exit Code: 1

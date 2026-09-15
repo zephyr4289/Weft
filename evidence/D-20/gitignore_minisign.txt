@@ -1,0 +1,4 @@
+$ git grep minisign/ .gitignore
+.gitignore:minisign/
+
+Exit Code: 0

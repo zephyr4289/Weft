@@ -1,0 +1,5 @@
+$ grep -n "Prior mock signature" reports/D-18-REPORT.md D-report/D-18-REPORT.md
+reports/D-18-REPORT.md:58:- Prior mock signature (`MockSignatureHeader`) superseded by genuine Ed25519 keypair in repair commit 958aa53; mock never used for any published artifact.
+D-report/D-18-REPORT.md:58:- Prior mock signature (`MockSignatureHeader`) superseded by genuine Ed25519 keypair in repair commit 958aa53; mock never used for any published artifact.
+
+Exit Code: 0

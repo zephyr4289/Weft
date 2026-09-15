@@ -53,3 +53,6 @@ The **Reproducibility Gate** was verified: two independent clean packaging runs 
 - [x] Tarball reproducibility gate verified bit-identical.
 - [x] Auto-filled release notes generated.
 - [x] Structural validator: `python3 tools/port_validator.py --target all` PASS.
+
+## 6. Deviations
+- Prior mock signature (`MockSignatureHeader`) superseded by genuine Ed25519 keypair in repair commit 958aa53; mock never used for any published artifact.

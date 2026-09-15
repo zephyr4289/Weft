@@ -1,0 +1,18 @@
+$ sha256sum -c SHA256SUMS
+reports/Weft-Phase1-Implementation-Report.pdf: OK
+reports/Weft-Phase2-Tools-Report.pdf: OK
+reports/Weft-Phase4-Errata-R4-Correction-Slip.pdf: OK
+reports/Weft-Phase4-Errata.pdf: OK
+reports/Weft-Phase4-Ports-Report.pdf: OK
+reports/Weft-Phase5-C2-Soak-Evidence.pdf: OK
+reports/Weft-Phase5-Release-Report-v1.0.1.pdf: OK
+reports/Weft-Phase5-Release-Report.pdf: OK
+reports/Weft-Sandbox-Roadmap.pdf: OK
+reports/Weft-Specification-v0.1.pdf: OK
+reports/Weft-Triad-Spike-Report.pdf: OK
+reports/Weft-Whitepaper-v1.0.1.pdf: OK
+reports/Weft-Whitepaper-v1.0.2.pdf: OK
+reports/Weft-Whitepaper-v1.0.3.pdf: OK
+reports/Weft-Whitepaper-v1.0.4.pdf: OK
+
+Exit Code: 0

@@ -3,7 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "build": "tsup litmus-packaged.ts --format esm --target node20"
+  },
   "dependencies": {
     "@weft/core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.6"
   }
 }

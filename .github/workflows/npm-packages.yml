@@ -49,9 +49,10 @@ jobs:
 
       - name: Test Packaged Litmus
         run: |
-          node fixtures/node-litmus/litmus-packaged.ts L8-envelope
-          node fixtures/node-litmus/litmus-packaged.ts L7-revocation
-          node fixtures/node-litmus/litmus-packaged.ts L6-ownership
+          pnpm --filter fixture-node-litmus build
+          node fixtures/node-litmus/dist/litmus-packaged.js L8-envelope
+          node fixtures/node-litmus/dist/litmus-packaged.js L7-revocation
+          node fixtures/node-litmus/dist/litmus-packaged.js L6-ownership
 
       - name: Build Vite React fixture
         run: pnpm --filter fixture-vite-react build

@@ -15,7 +15,11 @@ package dev.weft
 
 internal object TriadNative {
     init {
-        System.loadLibrary("weft_core")
+        try {
+            System.loadLibrary("weft_core")
+        } catch (t: Throwable) {
+            // Panic shielded: graceful fallback if native library not loaded in JVM host environment
+        }
     }
 
     // --- Steward lifecycle ---

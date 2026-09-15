@@ -4,8 +4,10 @@
 
 ```ts
 
+import { FanoutClaim } from '@weft/core';
 import { Ref } from 'vue';
 import { Weft } from '@weft/core';
+import { WeftFanoutBroadcaster } from '@weft/core';
 
 // @public (undocumented)
 export function useWeft(canvasRef: Ref<HTMLCanvasElement | null>, weft: Weft, draw: (ctx: CanvasRenderingContext2D, buf: Uint8Array) => void, options?: UseWeftOptions): {
@@ -14,6 +16,19 @@ export function useWeft(canvasRef: Ref<HTMLCanvasElement | null>, weft: Weft, dr
     getRawFrameCount(): number;
     dispose(): void;
 };
+
+// @public (undocumented)
+export function useWeftFanout(canvasRef: Ref<HTMLCanvasElement | null>, broadcaster: WeftFanoutBroadcaster, draw: (ctx: CanvasRenderingContext2D, floats: Float32Array, claim: FanoutClaim) => void, options?: UseWeftFanoutOptions): {
+    frameCount: Ref<number, number>;
+    setDraw(next: (ctx: CanvasRenderingContext2D, floats: Float32Array, claim: FanoutClaim) => void): void;
+    getRawFrameCount(): number;
+    dispose(): void;
+};
+
+// @public (undocumented)
+export interface UseWeftFanoutOptions {
+    hudIntervalMs?: number;
+}
 
 // @public (undocumented)
 export interface UseWeftOptions {

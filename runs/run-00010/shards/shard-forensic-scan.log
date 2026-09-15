@@ -1,0 +1,12 @@
+==================================================
+SHARD: forensic-scan
+DESCRIPTION: PAST-CROPBOX scan at 611.5pt, whole document
+STATUS: PASSED ✅
+COMMIT: f8a169198bdb3b42dfdb3555da73ab174c7745bb
+RUN: 10
+==================================================
+
+=== Forensic overflow scan (threshold: 611.5 pt, scope: whole document per PDF) ===
+  reports/Weft-Whitepaper-v1.0.4.pdf: warning: The `fitz` API is deprecated and will be removed in future. Use `import pymupdf` instead.
+0 flag(s)
+./ci/scripts/run_forensic_scan_shard.sh: line 38: warning: unbound variable

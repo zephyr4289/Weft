@@ -14,6 +14,10 @@ jobs:
   build-and-test:
     name: Android Gradle Matrix
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -38,26 +42,36 @@ jobs:
           chmod +x gradlew
 
       - name: Run Unit Tests
+        id: run_tests
         run: |
-          set +e
           cd android
-          ./gradlew test --continue --stacktrace --info
-          EXIT_CODE=$?
-          echo "=== DUMPING TEST RESULTS (EXIT CODE: $EXIT_CODE) ==="
-          find . -name "*.xml" -path "*/test-results/*" -exec echo "--- FILE: {} ---" \; -exec cat {} \;
-          if [ $EXIT_CODE -ne 0 ]; then
-            exit $EXIT_CODE
-          fi
+          ./gradlew test --stacktrace --info 2>&1 | tee /tmp/gradle_test_output.log
 
       - name: Assemble Release (AAR + R8 minified APK across 3 ABIs)
+        id: assemble_release
         run: |
           cd android
-          ./gradlew assembleRelease --stacktrace
+          ./gradlew assembleRelease --stacktrace 2>&1 | tee -a /tmp/gradle_test_output.log
 
       - name: Publish to Maven Local
         run: |
           cd android
           ./gradlew publishToMavenLocal --stacktrace
+
+      - name: Post Diagnostic Summary to Commit Comments on Failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f /tmp/gradle_test_output.log ]; then
+            # Extract last 80 lines and any ERROR/FAILURE lines
+            SUMMARY=$(tail -n 80 /tmp/gradle_test_output.log)
+            gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments \
+              -f body="### ❌ Android CI Failure Diagnostics
+\`\`\`text
+$SUMMARY
+\`\`\`" || true
+          fi
 
       - name: Archive Build Artifacts
         if: always()

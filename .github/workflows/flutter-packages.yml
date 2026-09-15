@@ -1,0 +1,76 @@
+name: Flutter Packages CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  flutter-test:
+    name: Flutter & Dart FFI Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Compile Native C Kernel (libweft.so)
+        run: |
+          gcc -shared -fPIC -O3 -Icore/c core/c/weft.c -o packages/flutter_weft/libweft.so
+          cp packages/flutter_weft/libweft.so /tmp/libweft.so
+          gcc -shared -fPIC -O3 -Icore/c core/c/weft.c -o /usr/local/lib/libweft.so
+          sudo ldconfig || true
+
+      - name: Install Dependencies
+        run: |
+          cd packages/flutter_weft
+          flutter pub get
+
+      - name: Dart Analyze
+        run: |
+          cd packages/flutter_weft
+          dart analyze --fatal-infos 2>&1 | tee /tmp/flutter_build_output.log
+
+      - name: Run Tests
+        run: |
+          cd packages/flutter_weft
+          flutter test -v 2>&1 | tee -a /tmp/flutter_build_output.log
+
+      - name: Publish Dry Run
+        run: |
+          cd packages/flutter_weft
+          dart pub publish --dry-run 2>&1 | tee -a /tmp/flutter_build_output.log
+
+      - name: Archive Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-weft-artifacts
+          path: |
+            packages/flutter_weft/libweft.so
+
+      - name: Publish CI Result Branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B ci/flutter-status
+          mkdir -p .ci-status
+          echo "CONCLUSION=${{ job.status }}" > .ci-status/status.txt
+          echo "SHA=${{ github.sha }}" >> .ci-status/status.txt
+          echo "DATE=$(date -u)" >> .ci-status/status.txt
+          if [ -f /tmp/flutter_build_output.log ]; then
+            cp /tmp/flutter_build_output.log .ci-status/flutter_build_output.log
+          fi
+          git add -f .ci-status/
+          git commit -m "ci: flutter status [${{ job.status }}] for ${{ github.sha }}" || true
+          git push -f origin ci/flutter-status || true

@@ -110,10 +110,9 @@ class Weft {
   // --- I6 handshake ---
 
   void revoke() { _revoked = true; }
-    void destroy() { _revoked = true; releaseAll(); } // destroy: API parity
 
-    /// destroy: API parity with C kernel.
-    void destroy() { _revoked = true; _epoch += 1; }
+  /// destroy: API parity with C kernel.
+  void destroy() { _revoked = true; _epoch += 1; }
   bool reclaim(int preRevokeEpoch, int timeoutMs) {
     final start = DateTime.now().millisecondsSinceEpoch;
     while (true) {

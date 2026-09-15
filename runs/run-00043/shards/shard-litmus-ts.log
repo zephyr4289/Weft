@@ -1,0 +1,15 @@
+==================================================
+SHARD: litmus-ts
+DESCRIPTION: L1-L8 litmus suite, TS kernel (with EXPOSURE-RETRY)
+STATUS: PASSED ✅
+COMMIT: 93e0c1842fda63b730649acb2f31b502a539b5ec
+RUN: 43
+==================================================
+
+# Loaded catalog: w# Loaded catalog: weft-litmus v2
+  run    [EXPOSURE-RETRY    [EXPOSURE-RETRY] ts/L1-tear claims=170 < min_claims=    -> exit=1 elaps    -> exit=1 elapsed=0.9s pass=False
+  running ts     -> exit=0 elaps    -> exit=0 elapsed=0.4s pass=True
+  running ts     -> exit=0 elaps    -> exit=0 elapsed=0.2s pass=True
+  running     -> exit=0 elaps    -> exit=0 elapsed=0.2s pass=True
+  running    -> exit=0 elaps    -> exit=0 elap  running ts L6-own  running     -> exit=0 elaps    -> exit=0 elaps  running ts L7-rev  running t    -> exit=0 elaps    -> exit=0 elapsed=0.2s pass=True
+  running    -> exit=0 elaps    -> exit=0 elapWrote /home/runner/Wrote /home/runner/work/Weft/WefWrote /home/runner/Wrote /home/runner/work/Weft/Weft/litmus/results.json

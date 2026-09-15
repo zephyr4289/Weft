@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Tuple
 from draw_routine import Backend
 
-WEFT_ROOT = Path("/home/z/my-project/upload/weft-docs/weft-docs/weft")
+WEFT_ROOT = Path(__file__).resolve().parent.parent.parent
 WEFT_C_SRC = WEFT_ROOT / "core" / "c" / "weft.c"
 WEFT_H_SRC = WEFT_ROOT / "core" / "c" / "weft.h"
 WEFT_SO = WEFT_ROOT / "core" / "c" / "libweft.so"

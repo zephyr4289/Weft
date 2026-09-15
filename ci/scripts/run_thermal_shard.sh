@@ -11,16 +11,8 @@ mkdir -p ci/run-artifacts
 make build-c-bench || (cd core/c && gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o libweft.so -fPIC -shared weft.c)
 
 # Run the thermal proxy
-python3 /home/z/my-project/scripts/thermal_proxy.py --duration "$DURATION" --backends A,B,C,D 2>&1 | \
+python3 ci/scripts/thermal_proxy_inline.py --duration "$DURATION" --backends A,B,C,D 2>&1 | \
   tee ci/run-artifacts/shard-thermal-proxy.log || true
-
-# If the thermal_proxy.py script isn't on PATH, fall back to running it from the repo
-if [ ! -f bench/results/wsuite-thermal-x86_64-sandbox.json ]; then
-  # The thermal_proxy.py is in scripts/ — but for CI, we copy it into the repo
-  # at ci/scripts/thermal_proxy.py during the setup phase. Use that copy.
-  python3 ci/scripts/thermal_proxy_inline.py --duration "$DURATION" --backends A,B,C,D 2>&1 | \
-    tee ci/run-artifacts/shard-thermal-proxy.log || true
-fi
 
 # Write structured results JSON
 python3 -c "

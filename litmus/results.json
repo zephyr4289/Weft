@@ -1,7 +1,7 @@
 {
   "catalog": "weft-litmus",
   "version": 2,
-  "run_utc": "2026-09-11T13:15:12.503706+00:00",
+  "run_utc": "2026-09-15T14:09:43.543711+00:00",
   "honesty_label": "x86_64-sandbox (runtime-verified)",
   "langs": [
     "c",
@@ -29,8 +29,8 @@
           10,
           50
         ],
-        "claims": 791,
-        "claims_per_s": 105.0,
+        "claims": 790,
+        "claims_per_s": 104.4,
         "torn": 0,
         "drain_ok": true
       }
@@ -71,7 +71,7 @@
         "freshness_violations": 0,
         "future_violations": 0,
         "drain_exact": true,
-        "stale_returns": 1
+        "stale_returns": 7
       }
     },
     "c/L5-progress": {
@@ -80,13 +80,13 @@
       "pass": true,
       "metrics": {
         "rates_hz": [
-          1997.0,
-          1950.0,
-          1823.0,
-          1994.0,
-          1979.0
+          1797.0,
+          1799.0,
+          1837.0,
+          1564.0,
+          1698.0
         ],
-        "ratio": 1.095,
+        "ratio": 1.175,
         "tolerance": 1.5,
         "configs": 5
       }
@@ -110,7 +110,7 @@
         "reclaim_ok": true,
         "post_revoke_revoked": 100,
         "poison_intact": true,
-        "first_revoked_at": 15898
+        "first_revoked_at": 2712
       }
     },
     "c/L8-envelope": {
@@ -134,8 +134,8 @@
           10,
           50
         ],
-        "claims": 794,
-        "claims_per_s": 105.4,
+        "claims": 779,
+        "claims_per_s": 103.4,
         "torn": 0,
         "drain_ok": true
       }
@@ -176,7 +176,7 @@
         "freshness_violations": 0,
         "future_violations": 0,
         "drain_exact": true,
-        "stale_returns": 8
+        "stale_returns": 9
       }
     },
     "rust/L5-progress": {
@@ -185,13 +185,13 @@
       "pass": true,
       "metrics": {
         "rates_hz": [
-          1992.0,
-          1995.0,
-          1946.0,
-          1947.0,
-          1989.0
+          1833.0,
+          1792.0,
+          1820.0,
+          1705.0,
+          1731.0
         ],
-        "ratio": 1.025,
+        "ratio": 1.075,
         "tolerance": 1.5,
         "configs": 5
       }
@@ -215,7 +215,7 @@
         "reclaim_ok": true,
         "post_revoke_revoked": 100,
         "poison_intact": true,
-        "first_revoked_at": 6120
+        "first_revoked_at": 1175
       }
     },
     "rust/L8-envelope": {
@@ -239,8 +239,8 @@
           10,
           50
         ],
-        "claims": 243,
-        "claims_per_s": 0.0,
+        "claims": 377,
+        "claims_per_s": 446.9,
         "torn": 0,
         "drain_ok": true
       }
@@ -281,7 +281,7 @@
         "freshness_violations": 0,
         "future_violations": 0,
         "drain_exact": true,
-        "stale_returns": 280620
+        "stale_returns": 91916
       }
     },
     "ts/L5-progress": {

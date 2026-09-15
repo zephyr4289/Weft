@@ -22,7 +22,7 @@ import tracemalloc
 from pathlib import Path
 
 # Add the workloads dir to path
-WEFT_ROOT = Path("/home/z/my-project/upload/weft-docs/weft-docs/weft")
+WEFT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(WEFT_ROOT / "bench" / "workloads"))
 
 # Use absolute imports (not relative) since we're not running as a package

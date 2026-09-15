@@ -18,7 +18,7 @@ import sys
 import time
 from pathlib import Path
 
-WEFT_ROOT = Path("/home/z/my-project/upload/weft-docs/weft-docs/weft")
+WEFT_ROOT = Path(__file__).resolve().parent.parent
 SITE_DIR = WEFT_ROOT / "bench" / "site"
 BENCH_RESULTS = WEFT_ROOT / "bench" / "results.json"
 WSUITE_RESULTS = WEFT_ROOT / "bench" / "results" / "wsuite-x86_64-sandbox.json"

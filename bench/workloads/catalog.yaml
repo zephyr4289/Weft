@@ -1,0 +1,107 @@
+# Weft W-Suite Catalog — Phase 5 / T1
+# Per WO-P5-RELEASE §1.T1 + decisions 2/3/4. Five workloads × four implementations.
+# Same contract family as B-suite: catalog-defined params, runner emits one
+# JSON line, driver assembles. Params are catalog-owned.
+
+catalog: weft-wsuite
+version: 1
+
+defaults:
+  seed: 0x00C0FFEE
+  env_label: x86_64-sandbox
+
+# Four implementations per decision 2:
+#   A = reactive naive (Python list, redraw every "frame")
+#   B = best practice (pooled array.array, deferred draw into pre-allocated render buffer)
+#   C = Weft (C kernel via ctypes; the protocol under test)
+#   D = hand-rolled triple-buffer (same envelope + I6 contract as Weft, but a
+#       separate implementation — its purpose is to show whether a competent
+#       hand-rolled triple-buffer still loses to a specified protocol on the
+#       metrics that matter. If it doesn't lose, that is a finding to publish.)
+implementations:
+  - id: A
+    name: "reactive-naive"
+    description: "Python list, full redraw every frame, no pooling"
+  - id: B
+    name: "best-practice"
+    description: "Pooled array.array, deferred draw into pre-allocated render buffer"
+  - id: C
+    name: "weft-ctypes"
+    description: "Weft C kernel via ctypes (the protocol under test)"
+  - id: D
+    name: "handrolled-triple"
+    description: "Hand-rolled triple-buffer with the same envelope + I6 contract as Weft"
+
+# Five workloads per decision 3 (verbatim bounds from roadmap §1b):
+workloads:
+  - id: W1
+    name: "audio-visualizer"
+    description: "1024-float PCM stream @ 60/120 Hz"
+    params:
+      frame_size: 1024        # floats per frame
+      frame_hz: [60, 120]     # publish rates
+      payload_dtype: float32
+      measure_s: 10.0
+      warmup_s: 1.0
+  - id: W2
+    name: "particle-field"
+    description: "500 particles × 6-DOF RK4 @ 120 Hz"
+    params:
+      particle_count: 500
+      dof: 6                   # position(3) + velocity(3)
+      frame_hz: 120
+      payload_dtype: float32
+      integrator: rk4
+      measure_s: 10.0
+      warmup_s: 1.0
+  - id: W3
+    name: "spectrogram-heatmap"
+    description: "256×64 float matrix @ 60 Hz"
+    params:
+      cols: 256
+      rows: 64
+      frame_hz: 60
+      payload_dtype: float32
+      measure_s: 10.0
+      warmup_s: 1.0
+  - id: W4
+    name: "data-grid"
+    description: "10k rows × 20 cols, fixed-cell subset updates"
+    params:
+      rows: 10000
+      cols: 20
+      updated_cells_per_frame: 50    # 0.5% subset
+      frame_hz: 60
+      payload_dtype: float32
+      measure_s: 10.0
+      warmup_s: 1.0
+  - id: W5
+    name: "order-book"
+    description: "1000 levels × 10 fields, 60 Hz L2 feed"
+    params:
+      levels: 1000
+      fields: 10                  # price, size, num_orders, etc.
+      frame_hz: 60
+      payload_dtype: float32
+      measure_s: 10.0
+      warmup_s: 1.0
+
+# Metrics per decision 4:
+metrics:
+  - id: fps_p50
+    description: "P50 FPS over measurement window"
+  - id: fps_p99
+    description: "P99 FPS — headline metric, same rule as B-suite"
+  - id: fps_p100
+    description: "P100 FPS (max)"
+  - id: alloc_bytes_per_frame
+    description: "Bytes allocated per frame (asserted 0 for C and D — RED on violation)"
+    gate: assert_zero_for: [C, D]
+  - id: gc_pause_count
+    description: "GC pause count over measurement window (via gc.get_stats())"
+  - id: gc_pause_ms_total
+    description: "Total GC pause time (ms) over measurement window"
+  - id: cpu_percent
+    description: "CPU% during measurement (via psutil)"
+  - id: cold_start_ms
+    description: "Cold-start overhead (ms) — time from process start to first frame"

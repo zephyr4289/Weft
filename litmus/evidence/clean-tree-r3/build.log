@@ -1,0 +1,82 @@
+# make build
+# Start: 2026-09-12T05:07:59Z
+# Working dir: /home/z/my-project/scripts/_clean_tree_r3/weft
+# Tarball: /home/z/my-project/download/weft-sandbox-v0.1.tar.gz
+
+cd core/c && make
+make[1]: Entering directory '/home/z/my-project/scripts/_clean_tree_r3/weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o spike weft.c litmus_runner.c
+make[1]: Leaving directory '/home/z/my-project/scripts/_clean_tree_r3/weft/core/c'
+cd core/rust && cargo build --release
+TS kernel loads OK
+
+--- STDERR ---
+weft.c:15:9: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      |         ^~~~~~~~~~~
+<command-line>: note: this is the location of the previous definition
+litmus_runner.c:12:9: warning: "_GNU_SOURCE" redefined
+   12 | #define _GNU_SOURCE  // for nanosleep, posix_memalign
+      |         ^~~~~~~~~~~
+<command-line>: note: this is the location of the previous definition
+    Updating crates.io index
+   Compiling weft-core v0.1.0 (/home/z/my-project/scripts/_clean_tree_r3/weft/core/rust)
+warning: unused import: `PubResult`
+ --> src/bin/bench.rs:8:22
+  |
+8 | use weft_core::{pat, PubResult, Weft};
+  |                      ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unnecessary `unsafe` block
+  --> src/bin/bench.rs:78:9
+   |
+78 |         unsafe { fill_payload(&w, seq, payload_max as u32); }
+   |         ^^^^^^ unnecessary `unsafe` block
+   |
+   = note: `#[warn(unused_unsafe)]` (part of `#[warn(unused)]`) on by default
+
+warning: unnecessary `unsafe` block
+   --> src/bin/bench.rs:203:13
+    |
+203 |             unsafe { fill_payload(&w2, seq, payload_max as u32); }
+    |             ^^^^^^ unnecessary `unsafe` block
+
+warning: unnecessary `unsafe` block
+   --> src/bin/bench.rs:267:13
+    |
+267 |             unsafe { fill_payload(&w2, seq, payload_max as u32); }
+    |             ^^^^^^ unnecessary `unsafe` block
+
+warning: function `now_ns` is never used
+  --> src/bin/bench.rs:10:4
+   |
+10 | fn now_ns() -> u64 {
+   |    ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `now_ns_abs` is never used
+  --> src/bin/bench.rs:14:4
+   |
+14 | fn now_ns_abs() -> u64 {
+   |    ^^^^^^^^^^
+
+warning: `weft-core` (bin "bench") generated 6 warnings (run `cargo fix --bin "bench" -p weft-core` to apply 1 suggestion)
+warning: unused imports: `Duration` and `Instant`
+ --> src/bin/probe.rs:3:17
+  |
+3 | use std::time::{Duration, Instant};
+  |                 ^^^^^^^^  ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `PubResult`
+ --> src/bin/probe.rs:4:22
+  |
+4 | use weft_core::{pat, PubResult, Weft, WeftDebugView};
+  |                      ^^^^^^^^^
+
+warning: `weft-core` (bin "probe") generated 2 warnings (run `cargo fix --bin "probe" -p weft-core` to apply 2 suggestions)
+    Finished `release` profile [optimized] target(s) in 11.72s

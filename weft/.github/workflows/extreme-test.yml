@@ -1,0 +1,473 @@
+name: Extreme Test Matrix & Performance Gate
+
+# Weft Extreme Testing Suite — adapted from the founding extreme-test strategy
+# for Weft's 3-language kernel + litmus + B-suite + W-suite + tools surface.
+#
+# Design goals (per user):
+#   1. Parallel shards — every test area runs concurrently to minimize wall-clock
+#   2. Performance gate — committed code never silently degrades performance
+#      (W-suite P99 compared against pinned baseline; >15% regression = FAIL)
+#   3. Report persistence — every run commits full logs to `ci-report` branch
+#      so they can be pulled and analyzed later
+#
+# Trigger: every push to main/develop, every PR to main, manual dispatch.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deep:
+        description: 'Run nightly-deep matrix (long thermal, 5x litmus, TSAN)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['true', 'false']
+
+permissions:
+  contents: write       # needed to push to ci-report branch
+  pull-requests: write  # needed to post PR comments on regression
+  security-events: write # CodeQL
+  actions: read
+
+concurrency:
+  group: extreme-test-${{ github.ref }}
+  cancel-in-progress: false  # let a run finish so the report always lands
+
+env:
+  PYTHON_VERSION: '3.12'
+  RUST_TOOLCHAIN: 'stable'
+  NODE_VERSION: '20'
+
+jobs:
+
+  # ===========================================================================
+  # 1. GATEKEEPER — compile all three kernels first; skip downstream if it fails
+  # ===========================================================================
+  build-and-compile:
+    name: Build (gatekeeper)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      build-status: ${{ steps.build.outcome }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core/rust
+
+      - name: Cache pip + tectonic
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/Tectonic
+          key: ${{ runner.os }}-py-tectonic-${{ hashFiles('**/Makefile') }}
+          restore-keys: |
+            ${{ runner.os }}-py-tectonic-
+
+      - name: Install Python deps (PyYAML, PyMuPDF, psutil)
+        run: pip install --quiet pyyaml pymupdf psutil
+
+      - name: Install tectonic + pandoc (for site + report scans)
+        run: |
+          curl -sSL https://drop-sh.fullyjustified.net | sh
+          sudo mv tectonic /usr/local/bin/
+          sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
+
+      - name: Build all three kernels
+        id: build
+        run: |
+          set -o pipefail
+          mkdir -p ci/run-artifacts
+          make build 2>&1 | tee ci/run-artifacts/build.log
+          echo "build-status=success" >> $GITHUB_OUTPUT
+
+      - name: Handle build failure — post comment + early-exit
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ERROR_LOG=$(grep -A 2 -B 2 -iE "error|panic|fatal" ci/run-artifacts/build.log | tail -n 50 || echo "Could not extract errors.")
+          BODY=$(printf "### ❌ Build failed (gatekeeper)\n\`\`\`text\n%s\n\`\`\`" "$ERROR_LOG")
+          gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/comments" \
+            -f body="$BODY" || true
+          exit 1
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-build
+          path: ci/run-artifacts/build.log
+          retention-days: 14
+
+  # ===========================================================================
+  # 2. CODEQL STATIC ANALYSIS — security + quality on the kernel languages
+  # ===========================================================================
+  codeql-analysis:
+    name: CodeQL (cpp, rust, python)
+    needs: build-and-compile
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust toolchain (CodeQL Rust tracer needs it)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: cpp, python
+          queries: security-and-quality
+
+      - name: Manual build for CodeQL tracing
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq gcc make
+          cd core/c && make
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+
+  # ===========================================================================
+  # 3. PARALLEL TEST MATRIX — every shard runs concurrently
+  # ===========================================================================
+  test-matrix:
+    name: ${{ matrix.shard }}
+    needs: build-and-compile
+    runs-on: ubuntu-latest
+    if: success() || failure()  # run even if CodeQL fails
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # --- Litmus shards (one per language) ---
+          - shard: "litmus-c"
+            description: "L1-L8 litmus suite, C kernel (8 tests, 2 build modes)"
+            script: "ci/scripts/run_litmus_shard.sh"
+            args: "c"
+            needs_rust: false
+
+          - shard: "litmus-rust"
+            description: "L1-L8 litmus suite, Rust kernel (8 tests, release)"
+            script: "ci/scripts/run_litmus_shard.sh"
+            args: "rust"
+            needs_rust: true
+
+          - shard: "litmus-ts"
+            description: "L1-L8 litmus suite, TS kernel (with EXPOSURE-RETRY)"
+            script: "ci/scripts/run_litmus_shard.sh"
+            args: "ts"
+            needs_rust: false
+
+          # --- B-suite benchmark shards (one per language) ---
+          - shard: "bench-b-c"
+            description: "B1-B5 benchmarks, C kernel"
+            script: "ci/scripts/run_bench_shard.sh"
+            args: "c"
+            needs_rust: false
+
+          - shard: "bench-b-rust"
+            description: "B1-B5 benchmarks, Rust kernel"
+            script: "ci/scripts/run_bench_shard.sh"
+            args: "rust"
+            needs_rust: true
+
+          - shard: "bench-b-ts"
+            description: "B1-B5 benchmarks, TS kernel"
+            script: "ci/scripts/run_bench_shard.sh"
+            args: "ts"
+            needs_rust: false
+
+          # --- W-suite (all 20 cells in one shard; needs Weft .so for backend C) ---
+          - shard: "wsuite"
+            description: "W1-W5 × A/B/C/D = 20 cells, P99 + alloc assertions"
+            script: "ci/scripts/run_wsuite_shard.sh"
+            args: ""
+            needs_rust: false
+
+          # --- Thermal proxy (4 backends × sustained) ---
+          - shard: "thermal-proxy"
+            description: "W2 × 4 backends × 120s sustained, decay curves"
+            script: "ci/scripts/run_thermal_shard.sh"
+            args: "120"
+            needs_rust: false
+
+          # --- Tools interop (record/replay 4 combos) ---
+          - shard: "tools-interop"
+            description: "C→C, C→Rust, Rust→Rust, Rust→C record/replay"
+            script: "ci/scripts/run_tools_interop_shard.sh"
+            args: ""
+            needs_rust: true
+
+          # --- Port structural validation (4/4 targets) ---
+          - shard: "ports-validate"
+            description: "Kotlin + Swift + Dart + TS heddles structural validator"
+            script: "ci/scripts/run_ports_validate_shard.sh"
+            args: ""
+            needs_rust: false
+
+          # --- Site determinism (regenerate + compare) ---
+          - shard: "site-determinism"
+            description: "make site double-render, byte-identical sha256 check"
+            script: "ci/scripts/run_site_determinism_shard.sh"
+            args: ""
+            needs_rust: false
+
+          # --- Forensic overflow scan (whitepaper + report PDFs at 611.5pt) ---
+          - shard: "forensic-scan"
+            description: "PAST-CROPBOX scan at 611.5pt, whole document"
+            script: "ci/scripts/run_forensic_scan_shard.sh"
+            args: ""
+            needs_rust: false
+
+          # --- Canonical bundle audit (R1 Path C invariant) ---
+          - shard: "canonical-audit"
+            description: "bench/results.json sha256 = 16b5c663 invariant"
+            script: "ci/scripts/run_canonical_audit_shard.sh"
+            args: ""
+            needs_rust: false
+
+          # --- Performance regression gate (the key shard) ---
+          - shard: "perf-regression"
+            description: "W-suite P99 vs pinned baseline; >15% drop = FAIL"
+            script: "ci/scripts/run_perf_regression_shard.sh"
+            args: ""
+            needs_rust: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Set up Rust toolchain
+        if: matrix.needs_rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        if: matrix.needs_rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core/rust
+
+      - name: Install Python deps
+        run: pip install --quiet pyyaml pymupdf psutil
+
+      - name: Install tectonic + pandoc (forensic-scan + site shards)
+        if: matrix.shard == 'forensic-scan' || matrix.shard == 'site-determinism'
+        run: |
+          curl -sSL https://drop-sh.fullyjustified.net | sh
+          sudo mv tectonic /usr/local/bin/
+          sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
+
+      - name: Run shard
+        id: shard_run
+        run: |
+          chmod +x ${{ matrix.script }}
+          ./${{ matrix.script }} ${{ matrix.args }} 2>&1 | tee ci/run-artifacts/shard-${{ matrix.shard }}.log
+          echo "shard-status=${{ matrix.shard }}" >> $GITHUB_OUTPUT
+
+      - name: Format shard log header
+        if: always()
+        run: |
+          mkdir -p ci/run-artifacts
+          touch ci/run-artifacts/shard-${{ matrix.shard }}.log
+          STATUS="FAILED ❌"
+          if [ "${{ steps.shard_run.outcome }}" == "success" ]; then
+            STATUS="PASSED ✅"
+          fi
+          {
+            echo "=================================================="
+            echo "SHARD: ${{ matrix.shard }}"
+            echo "DESCRIPTION: ${{ matrix.description }}"
+            echo "STATUS: $STATUS"
+            echo "COMMIT: ${{ github.sha }}"
+            echo "RUN: ${{ github.run_number }}"
+            echo "=================================================="
+            echo ""
+          } > /tmp/header.txt
+          cat /tmp/header.txt ci/run-artifacts/shard-${{ matrix.shard }}.log > /tmp/combined.log 2>/dev/null || cat /tmp/header.txt > /tmp/combined.log
+          mv /tmp/combined.log ci/run-artifacts/shard-${{ matrix.shard }}.log
+
+      - name: Upload shard log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-${{ matrix.shard }}
+          path: ci/run-artifacts/shard-${{ matrix.shard }}.log
+          retention-days: 14
+
+      - name: Upload shard results JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-${{ matrix.shard }}
+          path: |
+            ci/run-artifacts/shard-${{ matrix.shard }}-results.json
+            litmus/results.json
+            bench/results/wsuite-x86_64-sandbox.json
+            bench/results/wsuite-thermal-x86_64-sandbox.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # ===========================================================================
+  # 4. AGGREGATION — download all shard logs, commit to ci-report branch
+  # ===========================================================================
+  aggregate-and-publish:
+    name: Aggregate → ci-report branch
+    runs-on: ubuntu-latest
+    needs: [build-and-compile, codeql-analysis, test-matrix]
+    if: always()
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # need full history for branch ops
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download all shard logs
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: log-*
+          path: ci/downloaded-logs
+          merge-multiple: true
+
+      - name: Download all shard results JSON
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: results-*
+          path: ci/downloaded-results
+          merge-multiple: true
+
+      - name: Aggregate logs + compute overall status
+        id: aggregate
+        run: |
+          python3 ci/scripts/aggregate_reports.py \
+            --logs-dir ci/downloaded-logs \
+            --results-dir ci/downloaded-results \
+            --run-number ${{ github.run_number }} \
+            --commit-sha ${{ github.sha }} \
+            --out-dir ci/final-report
+
+          # Read the overall status from the JSON summary
+          OVERALL=$(python3 -c "import json; print(json.load(open('ci/final-report/summary.json'))['overall_status'])")
+          echo "overall-status=$OVERALL" >> $GITHUB_OUTPUT
+          echo "Overall status: $OVERALL"
+
+      - name: Push to ci-report branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Fetch or create ci-report branch
+          if git ls-remote --heads origin ci-report | grep -q ci-report; then
+            git fetch origin ci-report
+            git checkout ci-report
+            git pull --rebase origin ci-report || true
+          else
+            git checkout --orphan ci-report
+            git rm -rf . || true
+            echo "# Weft CI Reports" > README.md
+            echo "" >> README.md
+            echo "This branch holds the full audit trail of CI runs. See \`runs/\` for per-run logs." >> README.md
+            git add README.md
+            git commit -m "chore(ci): initialize ci-report branch" || true
+          fi
+
+          # Stage this run's artifacts
+          RUN_DIR="runs/run-$(printf '%05d' ${{ github.run_number }})"
+          mkdir -p "$RUN_DIR"
+
+          # Combined log
+          cp ci/final-report/combined.log "$RUN_DIR/combined.log"
+          cp ci/final-report/combined.log "latest.log"
+
+          # Per-shard logs
+          mkdir -p "$RUN_DIR/shards"
+          cp ci/downloaded-logs/shard-*.log "$RUN_DIR/shards/" 2>/dev/null || true
+
+          # Structured results
+          cp ci/final-report/summary.json "$RUN_DIR/summary.json"
+          cp ci/final-report/summary.json "latest-summary.json"
+
+          # Per-shard results JSON
+          mkdir -p "$RUN_DIR/results"
+          cp ci/downloaded-results/*.json "$RUN_DIR/results/" 2>/dev/null || true
+          cp -r ci/downloaded-results "$RUN_DIR/results-raw" 2>/dev/null || true
+
+          # Build log
+          cp ci/downloaded-logs/build.log "$RUN_DIR/build.log" 2>/dev/null || true
+
+          git add "$RUN_DIR" latest.log latest-summary.json
+          git commit -m "test(ci): run #${{ github.run_number }} [${{ steps.aggregate.outputs.overall-status }}] [skip ci]" || true
+          git push origin ci-report || true
+
+      - name: Post failure comment on triggering commit
+        if: steps.aggregate.outputs.overall-status == 'FAILED'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ERRORS=$(python3 -c "
+          import json
+          s = json.load(open('ci/final-report/summary.json'))
+          for shard, r in s.get('shards', {}).items():
+              if r.get('status') != 'PASSED':
+                  print(f'{shard}: {r.get(\"status\")} — {r.get(\"tail\",\"\")[:200]}')
+          ")
+          BODY=$(printf "### ❌ Extreme Test Suite Failure (Run #%s)\n\nDetailed traces committed to \`ci-report\` branch (\`runs/run-%05d/\`).\n\n\`\`\`text\n%s\n\`\`\`" "${{ github.run_number }}" "${{ github.run_number }}" "$ERRORS")
+          gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/comments" \
+            -f body="$BODY" || true
+
+      - name: Post perf-regression comment on PR
+        if: steps.aggregate.outputs.overall-status == 'FAILED' && github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f ci/final-report/perf-regression.md ]; then
+            gh pr comment ${{ github.event.pull_request.number }} \
+              --body-file ci/final-report/perf-regression.md || true
+          fi
+
+      - name: Fail the workflow if overall status is FAILED
+        if: steps.aggregate.outputs.overall-status == 'FAILED'
+        run: exit 1

@@ -1,15 +1,17 @@
-# Weft Complete Repository — Sandbox v0.1
+# Weft Complete Repository — Sandbox v0.1 + Extreme Testing CI
 
-> **Single-zip extract-and-use repository** · 2026-09-12 · `x86_64-sandbox`
-> All source, all reports, all directive packages, all build scripts, all audit logs.
+> **Single-zip extract-and-use repository** · 2026-09-15 · `x86_64-sandbox`
+> All source, all reports, all directive packages, all build scripts, all audit logs,
+> **plus the full extreme-testing CI suite**.
 
 ## What this is
 
 The complete Weft sandbox-buildable project, packaged as a single zip you can extract anywhere. After extraction, you have:
 
 - The full Weft source tree (3-language kernel, litmus suite, benchmark suite, W-suite, tools, ports, docs)
+- **The extreme-testing CI suite** (3 GitHub Actions workflows + 15 parallel test shards + perf-regression gate)
 - Every PDF report ever produced (whitepaper v1.0.0 through v1.0.4, all phase reports, all errata, all closure-batch evidence)
-- Every directive package from staff (Phase 0 through Phase 5, including the round-5 verification record `WO-P5-VERIFICATION.md`)
+- Every directive package from staff (Phase 0 through Phase 5, including the round-5 verification record)
 - Every build/validation script used to produce the deliverables
 - The multi-agent worklog (the full audit trail across all phases)
 - The release tarball itself (`weft-sandbox-v0.1.tar.gz`)
@@ -19,80 +21,31 @@ The complete Weft sandbox-buildable project, packaged as a single zip you can ex
 ```
 weft-complete-repo/
 ├── README.md                          ← this file
-├── weft-sandbox-v0.1.tar.gz           ← the release tarball (also unpacked at weft/)
-├── worklog.md                         ← multi-agent audit trail (all phases)
+├── weft-sandbox-v0.1.tar.gz           ← the release tarball
+├── worklog.md                         ← multi-agent audit trail
 │
-├── weft/                              ← the Weft source tree (extracted from tarball, with R1+R2 fixes)
-│   ├── README.md                      ← project README
-│   ├── INSTALL.md                     ← in-sandbox vs real-device toolchain split
-│   ├── RELEASE-NOTES.md               ← release notes (the one kernel delta)
-│   ├── SHA256SUMS                     ← sha256 of all reports/ PDFs
-│   ├── Makefile                       ← 5 targets: litmus, bench, site, validate, build
-│   ├── 05-CONTRACTS.md                ← Phase 0 contracts (preserved from directive)
-│   │
-│   ├── core/                          ← kernel implementations (FROZEN)
-│   │   ├── c/                         ← C kernel + litmus runner + bench runner
-│   │   ├── rust/                      ← Rust kernel + litmus + bench + probe + record
-│   │   ├── ts/                        ← TypeScript kernel + litmus + bench
-│   │   ├── kotlin/                    ← Kotlin/Android port (source-only, structurally validated)
-│   │   ├── swift/                     ← Swift/iOS port (source-only)
-│   │   └── dart/                      ← Dart/Flutter port (source-only)
-│   │
-│   ├── heddles/                       ← TypeScript Heddle bindings (react, svelte, vue, react-native)
-│   ├── litmus/                        ← L1–L8 litmus suite + REPORT.md + evidence/
-│   ├── bench/                         ← B-suite + W-suite + thermal + site + workloads/
-│   ├── tools/                         ← litmus_driver, bench_driver, port_validator, make_site,
-│   │                                      weft-probe, weft-record, FORMATS.md
-│   ├── docs/                          ← WHITEPAPER.md (v1.0.4 canonical), ERRATA, PORTS, etc.
-│   └── reports/                       ← all PDFs (also at top-level reports/)
+├── weft/                              ← the Weft source tree (with R1+R2 fixes)
+│   ├── .github/workflows/             ← **CI workflows (NEW)**
+│   │   ├── extreme-test.yml           ← 14 parallel shards, runs on every push/PR
+│   │   ├── nightly-deep.yml           ← nightly: 5× litmus, 10min thermal, TSAN, clean-tree
+│   │   └── update-perf-baseline.yml   ← safety valve for perf-regression gate
+│   ├── ci/                            ← **CI scripts + baselines (NEW)**
+│   │   ├── README.md                  ← full CI documentation
+│   │   ├── scripts/                   ← 15 shard runners + aggregator
+│   │   └── baselines/wsuite-p99-baseline.json  ← pinned P99 baseline
+│   ├── core/                          ← kernel (C, Rust, TS, Kotlin, Swift, Dart)
+│   ├── heddles/                       ← TS Heddle bindings
+│   ├── litmus/                        ← L1-L8 suite
+│   ├── bench/                         ← B-suite + W-suite + thermal + site
+│   ├── tools/                         ← drivers, validators, weft-probe, weft-record
+│   ├── docs/                          ← WHITEPAPER.md (v1.0.4 canonical), ERRATA, PORTS
+│   ├── reports/                       ← all PDFs (also at top-level reports/)
+│   ├── Makefile + INSTALL.md + RELEASE-NOTES.md + SHA256SUMS + .gitignore
+│   └── README.md
 │
-├── reports/                           ← all PDFs + markdown sources (top-level copy for convenience)
-│   ├── Weft-Whitepaper-v1.0.4.pdf     ← CANONICAL whitepaper (16pp, sha256 6f3a3211)
-│   ├── Weft-Whitepaper-v1.0.3.pdf     ← historical (rebuilt impostor; P5-W1 deviation)
-│   ├── Weft-Whitepaper-v1.0.2.pdf     ← historical (B1 first repair)
-│   ├── Weft-Whitepaper-v1.0.1.pdf     ← historical (A1–A3 amendments)
-│   ├── Weft-Phase5-Release-Report-v1.0.1.pdf  ← LATEST release report (R5 re-typeset)
-│   ├── Weft-Phase5-Release-Report.pdf ← original v1.0 (superseded by v1.0.1)
-│   ├── Weft-Phase5-C2-Soak-Evidence.pdf       ← B2 soak evidence (World A confirmed)
-│   ├── Weft-Phase4-Errata.pdf                 ← original Phase 4 errata
-│   ├── Weft-Phase4-Errata-R4-Correction-Slip.pdf  ← R4 slip (B3 misattribution fix)
-│   ├── Weft-Phase4-Ports-Report.pdf           ← Phase 4 ports report
-│   ├── Weft-Phase2-Tools-Report.pdf           ← Phase 2 tools report
-│   ├── Weft-Phase1-Implementation-Report.pdf  ← Phase 1 vertical slice
-│   ├── Weft-Triad-Spike-Report.pdf            ← Phase 0 spike report
-│   ├── Weft-Sandbox-Roadmap.pdf               ← sandbox-constrained roadmap
-│   └── Weft-Specification-v0.1.pdf            ← founding spec (superseded by WHITEPAPER.md)
-│
-├── directives/                        ← all staff directive packages (the audit trail)
-│   ├── weft-docs-founding/            ← founding architecture docs (ROADMAP, ARCHITECTURE, etc.)
-│   ├── weft-phase0-directive/         ← Phase 0 (kernel + litmus)
-│   ├── weft-phase0-directive-v1.1/    ← Phase 0 v1.1 (catalog min_claims floor added)
-│   ├── weft-phase0-directive-v1.2/    ← Phase 0 v1.2
-│   ├── weft-phase2-directive/         ← Phase 2 (tools)
-│   ├── weft-phase3-directive/         ← Phase 3 (whitepaper)
-│   ├── weft-phase4-directive/         ← Phase 4 (ports)
-│   └── weft-phase5-directive-r5/      ← Phase 5 (release) + all verification records:
-│                                          WO-P4-C1-VERIFICATION.md (round 3 FAIL)
-│                                          WO-P4-C1R-VERIFICATION.md (round 4 ACCEPT)
-│                                          WO-P5-VERIFICATION.md     (round 5 CONDITIONAL)
-│
+├── reports/                           ← all PDFs + markdown sources (top-level copy)
+├── directives/                        ← all staff directive packages (audit trail)
 └── scripts/                           ← all build/validation scripts
-    ├── build_whitepaper.py            ← typeset WHITEPAPER.md → PDF (XeTeX-native)
-    ├── scan_whitepaper.py             ← forensic overflow scan at 611.5pt threshold
-    ├── soak_b2.py                     ← B2 soak evidence collector
-    ├── package_c2_evidence.py         ← C2 delivery PDF builder
-    ├── build_p4_errata.py             ← Phase 4 errata PDF builder
-    ├── build_phase5_release_report.py ← original release report builder
-    ├── build_phase5_release_report_r5.py  ← R5 re-typeset (v1.0.1) builder
-    ├── clean_tree_validation.py       ← original clean-tree validator
-    ├── clean_tree_validation_r3.py    ← R3 full-logs clean-tree validator
-    ├── thermal_proxy.py               ← T3 thermal-proxy runner
-    ├── weft-spike/                    ← Phase 0 C spike source
-    ├── weft-android/                  ← Phase 1 Android vertical slice (Rust + Kotlin)
-    ├── weft_body.py, weft_merge.py    ← Phase 0 founding-spec PDF builders
-    ├── weft_phase1_report.py          ← Phase 1 report builder
-    ├── weft_sandbox_roadmap.py        ← sandbox roadmap PDF builder
-    └── weft_spike_report.py           ← spike report PDF builder
 ```
 
 ## Quick start
@@ -104,57 +57,98 @@ cd weft-complete-repo/weft
 
 # Verify the in-sandbox toolchain (per INSTALL.md):
 #   gcc 14+, rustc 1.7x+, node 24+, python3 3.12+
-# (Rust install: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh)
 
-# Run all five make targets:
+# Run all five make targets locally:
 make all       # litmus + bench + site + validate + build
-
-# Or individually:
-make litmus    # 24-cell litmus matrix (or EXPOSURE-SHORTFALL RED per R2)
-make bench     # B-cells (canonical 16b5c663) + W-cells (separate bundle)
-make site      # regenerate static HTML site (deterministic)
-make validate  # 4/4 port targets exit 0
-make build     # C + Rust + TS builds
 ```
 
-Expected outcomes (per R3 clean-tree re-validation):
+## Push to GitHub + enable CI
 
-- `make litmus`: 23/24 cells PASS; ts/L1-tear EXPOSURE-SHORTFALL RED (ratified honest outcome per R-B; the catalog-amendment evidence path is now open via the R2 telemetry fix)
-- `make bench`: PASS — `bench/results.json` sha256 = `16b5c663` exactly (R1 Path C verified)
-- `make site`: PASS — deterministic, sha256 `88f02947...` byte-identical on re-render
-- `make validate`: PASS — 4/4 targets green (61 structural checks)
-- `make build`: PASS — C, Rust, TS kernels compile clean
+```sh
+cd weft-complete-repo/weft
+git init
+git remote add origin https://github.com/zephyr4289/Weft.git
+git add .
+git commit -m "Initial commit: Weft sandbox v0.1 + extreme testing CI"
+git push -u origin main
+```
+
+On the first push, GitHub Actions will trigger the **Extreme Test Matrix** workflow (`.github/workflows/extreme-test.yml`). It runs 14 parallel shards:
+
+| Shard | What it gates |
+|---|---|
+| `build` (gatekeeper) | Compiles all 3 kernels first |
+| `codeql-analysis` | Static security + quality on C + Python |
+| `litmus-c/rust/ts` | 8-test litmus suite per language (with EXPOSURE-RETRY) |
+| `bench-b-c/rust/ts` | B1-B5 benchmarks per language (canonical bundle isolation) |
+| `wsuite` | 20 W-suite cells; alloc==0 assertion for C+D |
+| `thermal-proxy` | 4 backends × sustained FPS decay (advisory) |
+| `tools-interop` | 4 record/replay combos (C→C, C→Rust, Rust→Rust, Rust→C) |
+| `ports-validate` | 4/4 port structural validator |
+| `site-determinism` | `make site` double-render byte-identical |
+| `forensic-scan` | PAST-CROPBOX scan at 611.5pt on all PDFs |
+| `canonical-audit` | `bench/results.json` sha256 = `16b5c663` |
+| **`perf-regression`** | **W-suite P99 vs baseline; >15% drop = FAIL** |
+
+After all shards finish, the aggregation job commits the full report to the **`ci-report` branch** under `runs/run-<NNNNN>/`.
+
+## Pull CI reports for analysis
+
+```sh
+# Fetch the ci-report branch (created automatically on first CI run)
+git fetch origin ci-report:ci-report
+
+# Inspect in a separate worktree
+git worktree add ../weft-ci-reports ci-report
+cd ../weft-ci-reports
+
+# Latest run's combined log
+cat latest.log | less
+
+# Latest run's structured summary
+python3 -c "import json; print(json.dumps(json.load(open('latest-summary.json')), indent=2))"
+
+# Find all FAILED runs
+grep -l '"overall_status": "FAILED"' runs/*/summary.json
+```
+
+See `weft/ci/README.md` for the full CI documentation (every shard, every script, baseline update protocol).
+
+## The performance gate (key feature)
+
+The `perf-regression` shard is what makes this CI "extreme": **committed code can never silently degrade performance.**
+
+1. W-suite (5 workloads × 4 backends = 20 cells) measures P99 FPS for each cell
+2. Each cell's P99 is compared against the pinned baseline in `ci/baselines/wsuite-p99-baseline.json`
+3. >15% drop = FAIL → workflow blocks the merge → PR gets a regression-table comment
+4. To update the baseline intentionally (e.g., after a protocol change): add the **`perf-baseline-update`** label to the PR. When the PR merges, `update-perf-baseline.yml` runs the W-suite with longer measure windows and commits the new baseline to `main`.
+
+**Every perf change is intentional, attributed, and reviewed. No silent regressions.**
+
+## Nightly deep matrix
+
+`.github/workflows/nightly-deep.yml` runs at 00:00 UTC daily with the expensive tests:
+
+- `litmus-stability`: 5× iterations per language (catches flaky `EXPOSURE-SHORTFALL`s)
+- `thermal-long`: 10 min per backend × 4 backends
+- `tsan-deep`: C kernel with `-fsanitize=thread` × 5 iterations × 8 tests = 40 runs
+- `clean-tree-deep`: build tarball, unpack into empty dir, run all 5 make targets
+
+Nightly reports commit to `ci-report` branch under `runs/nightly-<YYYY-MM-DD>-<NNNNN>/`.
 
 ## Canonical artifacts
 
 | Artifact | Path | sha256 |
 |---|---|---|
-| Final tarball | `weft-sandbox-v0.1.tar.gz` | `62e8c5c2...` (full: `62e8c5c2953fc03a74c69064a7eb084024a56e5f1ce955060dea4c9dce75ba7b`) |
-| Canonical whitepaper | `reports/Weft-Whitepaper-v1.0.4.pdf` | `6f3a3211...` (full: `6f3a321142ce2ab126794d2ed55057e42c328eb394c45d5e6fae5056c3241484`) |
-| Canonical B-suite bundle | `weft/bench/results.json` | `16b5c663...` (full: `16b5c663433a37540c77f9dd6e4b83abe3eed929cc4c142813ad0b684f5498f8`) |
-| Latest release report | `reports/Weft-Phase5-Release-Report-v1.0.1.pdf` | `54eb4499...` (full: `54eb4499a7e3238339f2d3c1c80ade98e5828afc6c6b0ae9246efd42986c0534`) |
-
-## Phase status (after R1–R6 repair batch)
-
-- Phase 0 / 0.5 / 1 (kernel, litmus, bench): **CLOSED**
-- Phase 2 (Tools): **CLOSED** at C2 (World A confirmed)
-- Phase 3 (Whitepaper): **CLOSED** at C1r (v1.0.4 canonical)
-- Phase 4 (Ports): **CLOSED** at C3+R4 (errata slip delivered)
-- Phase 5 (Sandbox release): **architecture ACCEPTED**, closure CONDITIONAL on R4 unblock (staff-provided original v1.0.3) + senior round-6 verification
-
-## Open deviations (per latest release report)
-
-- **D-T7-3 (OPEN, BLOCKED)**: tarball's `v1.0.3.pdf` is a rebuilt impostor (`4db9b508...`), not the senior's adjudicated FAIL artifact (`7f546cb1...`, 93,076 bytes, 15pp). Senior said staff would place the original at `download/staff-provided/Weft-Whitepaper-v1.0.3.pdf` for the executor to copy — **file not in uploads as of R6 delivery**. Awaiting staff file placement.
-- All other deviations (D-T7-1, D-T7-2, D-T7-4, D-T0-1, D-T0-2) are CLOSED or FIXED — see `reports/Weft-Phase5-Release-Report-v1.0.1.pdf` §8 for the full ledger.
+| Final tarball | `weft-sandbox-v0.1.tar.gz` | `62e8c5c2...` |
+| Canonical whitepaper | `reports/Weft-Whitepaper-v1.0.4.pdf` | `6f3a3211...` |
+| Canonical B-suite bundle | `weft/bench/results.json` | `16b5c663...` |
+| Latest release report | `reports/Weft-Phase5-Release-Report-v1.0.1.pdf` | `54eb4499...` |
+| W-suite P99 baseline | `weft/ci/baselines/wsuite-p99-baseline.json` | (pinned from R3 clean-tree run) |
 
 ## Honesty
 
 - All measured numbers carry `[MEASURED x86_64-sandbox]`
 - Structural gates are normative; telemetry is advisory (AXIOM T)
-- Verification claims name scan scope + numeric threshold (per WO-P4-CLOSURE P4-W1 standing rule addendum)
-- Quantitative misses are declared (per WO-P5-RELEASE §2 rule 7)
-- Real-device verification is Phase 6+; this is the sandbox endpoint
-
-## License
-
-See `weft/LICENSE` (or the charter referenced in `weft/docs/WHITEPAPER.md` §11).
+- Verification claims name scan scope + numeric threshold
+- The CI cannot prove real-device performance — that's Phase 6+

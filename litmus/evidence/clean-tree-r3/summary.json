@@ -1,0 +1,59 @@
+{
+  "directive": "WO-P5-VERIFICATION \u00a74 R3",
+  "tarball": "/home/z/my-project/download/weft-sandbox-v0.1.tar.gz",
+  "tarball_sha256": "920f48e0e3224e59d3202d9bb256670fa2043ede42da28b90da1c2b7bd8530c5",
+  "work_dir": "/home/z/my-project/scripts/_clean_tree_r3",
+  "utc": "2026-09-12T05:14:10Z",
+  "results": [
+    {
+      "target": "build",
+      "exit_code": 0,
+      "elapsed_s": 12.4,
+      "log_file": "litmus/evidence/clean-tree-r3/build.log",
+      "log_size_bytes": 2971
+    },
+    {
+      "target": "litmus",
+      "exit_code": 2,
+      "elapsed_s": 72.0,
+      "log_file": "litmus/evidence/clean-tree-r3/litmus.log",
+      "log_size_bytes": 4330
+    },
+    {
+      "target": "bench",
+      "exit_code": 0,
+      "elapsed_s": 285.1,
+      "log_file": "litmus/evidence/clean-tree-r3/bench.log",
+      "log_size_bytes": 4740
+    },
+    {
+      "target": "site",
+      "exit_code": 0,
+      "elapsed_s": 0.8,
+      "log_file": "litmus/evidence/clean-tree-r3/site.log",
+      "log_size_bytes": 816
+    },
+    {
+      "target": "validate",
+      "exit_code": 0,
+      "elapsed_s": 0.3,
+      "log_file": "litmus/evidence/clean-tree-r3/validate.log",
+      "log_size_bytes": 6631
+    },
+    {
+      "target": "site-determinism",
+      "exit_code": 0,
+      "elapsed_s": 0,
+      "log_file": "inline"
+    },
+    {
+      "target": "canonical-hash-check",
+      "exit_code": 0,
+      "elapsed_s": 0,
+      "log_file": "inline",
+      "sha256": "16b5c663433a37540c77f9dd6e4b83abe3eed929cc4c142813ad0b684f5498f8"
+    }
+  ],
+  "overall_pass": false,
+  "provenance": "single \u2014 every target ran in the same clean tree, log per target"
+}

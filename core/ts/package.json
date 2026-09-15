@@ -1,0 +1,13 @@
+{
+  "name": "weft-core",
+  "version": "0.1.0",
+  "description": "Off-heap, zero-copy, draw-phase-read channel for declarative UI. Triad Protocol kernel + litmus runner.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "litmus": "./litmus.ts"
+  },
+  "scripts": {
+    "litmus": "node --no-warnings litmus.ts"
+  }
+}

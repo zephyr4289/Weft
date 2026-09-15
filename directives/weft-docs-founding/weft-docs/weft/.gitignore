@@ -1,0 +1,25 @@
+# Build artifacts (don't commit; CI regenerates)
+core/c/spike
+core/c/spike-tsan
+core/c/bench
+core/c/libweft.so
+core/rust/target/
+*.o
+*.so
+
+# CI scratch
+ci/run-artifacts/
+ci/downloaded-logs/
+ci/downloaded-results/
+ci/final-report/
+ci/_clean_tree_*/
+ci/_clean_tree_nightly/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db

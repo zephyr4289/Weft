@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>W-suite tables</title>
+<style>
+body { font: 14px/1.5 -apple-system, "Liberation Sans", sans-serif; max-width: 960px; margin: 2em auto; padding: 0 1em; color: #1f2937; }
+h1, h2, h3 { font-family: "Liberation Serif", serif; }
+h1 { font-size: 2em; border-bottom: 2px solid #0ea5e9; padding-bottom: .3em; }
+h2 { font-size: 1.4em; margin-top: 2em; }
+table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+th, td { border: 1px solid #cbd5e1; padding: .4em .6em; text-align: left; }
+th { background: #f1f5f9; font-weight: 600; }
+.normative { color: #047857; font-weight: 600; }
+.informational { color: #64748b; }
+.advisory { color: #c2410c; font-style: italic; }
+.measured { font-family: "Liberation Mono", monospace; font-size: .9em; background: #f0f9ff; padding: .1em .3em; border-radius: 3px; }
+.banner { background: #fef3c7; border-left: 4px solid #d97706; padding: .8em 1em; margin: 1em 0; }
+.banner code { background: rgba(0,0,0,.06); padding: .1em .3em; }
+</style>
+</head>
+<body>
+<p style="float:right;font-size:.85em;color:#64748b">Weft benchmark site · <span class="measured">[MEASURED x86_64-sandbox]</span></p>
+<h1>W-suite tables</h1>
+
+<p>Phase 5 W-suite: 5 workloads × 4 implementations. P99 FPS is the headline
+metric per <strong>WO-P5-RELEASE decision 4</strong>. The C and D backends
+carry a <span class="normative">0-alloc assertion</span> (RED on violation).
+D (hand-rolled triple-buffer) is the comparison baseline — its purpose is to
+show whether a competent hand-rolled implementation still loses to the
+specified Weft protocol on the metrics that matter.</p>
+
+<div class="banner">
+<strong>Finding (D vs C):</strong> across all 5 workloads, D is consistently
+slower than C on P99 FPS. The specified protocol beats the hand-rolled
+implementation on the metrics that matter — the protocol itself is the moat,
+not the implementation. (Per <em>WO-P5-RELEASE decision 2</em>: "If D doesn't
+lose, that is a finding to publish, not to bury." D loses; we publish.)
+</div>
+
+<h2>Environment</h2>
+<table>
+<tr><th>Field</th><th>Value</th></tr>
+<tr><td>env_label</td><td><span class="measured">[MEASURED x86_64-sandbox]</span></td></tr>
+<tr><td>python3</td><td>3.12.14</td></tr>
+<tr><td>psutil</td><td>True</td></tr>
+<tr><td>utc_timestamp</td><td>2026-09-12T05:14:08Z</td></tr>
+</table>
+
+<h2>Per-workload results</h2>
+
+<h3>W1 — W1</h3>
+<table>
+<tr><th>Backend</th><th>P99 FPS (headline)</th><th>P50 FPS</th><th>P100 FPS</th>
+<th>alloc/frame</th><th>GC pauses</th><th>CPU%</th><th>cold-start ms</th><th>Status</th></tr>
+<tr><td>A</td><td><strong>120.2</strong></td><td>118.3</td><td>125.1</td><td>0.0 B</td><td>1</td><td>99.8</td><td>0.98</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>B</td><td><strong>141.2</strong></td><td>139.3</td><td>141.8</td><td>0.0 B</td><td>1</td><td>100.0</td><td>0.79</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>C</td><td><strong>140.9</strong></td><td>138.2</td><td>141.4</td><td><span class="normative">0 (asserted ✓)</span></td><td>1</td><td>99.9</td><td>761.35</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>D</td><td><strong>87.3</strong></td><td>86.1</td><td>87.7</td><td><span class="normative">0 (asserted ✓)</span></td><td>1</td><td>100.0</td><td>1.17</td><td class="normative" style="color:#047857">PASS</td></tr>
+</table>
+
+
+<h3>W2 — W2</h3>
+<table>
+<tr><th>Backend</th><th>P99 FPS (headline)</th><th>P50 FPS</th><th>P100 FPS</th>
+<th>alloc/frame</th><th>GC pauses</th><th>CPU%</th><th>cold-start ms</th><th>Status</th></tr>
+<tr><td>A</td><td><strong>79.5</strong></td><td>77.1</td><td>81.2</td><td>0.0 B</td><td>1</td><td>100.1</td><td>0.91</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>B</td><td><strong>111.5</strong></td><td>109.5</td><td>112.0</td><td>0.0 B</td><td>1</td><td>100.0</td><td>0.46</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>C</td><td><strong>111.7</strong></td><td>110.1</td><td>111.8</td><td><span class="normative">0 (asserted ✓)</span></td><td>1</td><td>100.0</td><td>85.48</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>D</td><td><strong>45.1</strong></td><td>44.5</td><td>45.2</td><td><span class="normative">0 (asserted ✓)</span></td><td>0</td><td>100.2</td><td>1.52</td><td class="normative" style="color:#047857">PASS</td></tr>
+</table>
+
+
+<h3>W3 — W3</h3>
+<table>
+<tr><th>Backend</th><th>P99 FPS (headline)</th><th>P50 FPS</th><th>P100 FPS</th>
+<th>alloc/frame</th><th>GC pauses</th><th>CPU%</th><th>cold-start ms</th><th>Status</th></tr>
+<tr><td>A</td><td><strong>9.6</strong></td><td>9.1</td><td>9.6</td><td>0.0 B</td><td>1</td><td>100.1</td><td>13.18</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>B</td><td><strong>11.5</strong></td><td>11.4</td><td>11.5</td><td>0.0 B</td><td>0</td><td>100.4</td><td>10.98</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>C</td><td><strong>11.4</strong></td><td>11.4</td><td>11.5</td><td><span class="normative">0 (asserted ✓)</span></td><td>0</td><td>99.9</td><td>74.13</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>D</td><td><strong>6.2</strong></td><td>6.2</td><td>6.2</td><td><span class="normative">0 (asserted ✓)</span></td><td>0</td><td>100.7</td><td>15.98</td><td class="normative" style="color:#047857">PASS</td></tr>
+</table>
+
+
+<h3>W4 — W4</h3>
+<table>
+<tr><th>Backend</th><th>P99 FPS (headline)</th><th>P50 FPS</th><th>P100 FPS</th>
+<th>alloc/frame</th><th>GC pauses</th><th>CPU%</th><th>cold-start ms</th><th>Status</th></tr>
+<tr><td>A</td><td><strong>2848.7</strong></td><td>2741.8</td><td>2936.9</td><td>0.0 B</td><td>1</td><td>100.0</td><td>0.14</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>B</td><td><strong>3007.2</strong></td><td>2903.1</td><td>3064.3</td><td>0.0 B</td><td>1</td><td>100.0</td><td>0.13</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>C</td><td><strong>2854.9</strong></td><td>2760.9</td><td>2896.5</td><td><span class="normative">0 (asserted ✓)</span></td><td>1</td><td>100.0</td><td>76.69</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>D</td><td><strong>2826.8</strong></td><td>2730.1</td><td>2877.2</td><td><span class="normative">0 (asserted ✓)</span></td><td>1</td><td>100.0</td><td>0.19</td><td class="normative" style="color:#047857">PASS</td></tr>
+</table>
+
+
+<h3>W5 — W5</h3>
+<table>
+<tr><th>Backend</th><th>P99 FPS (headline)</th><th>P50 FPS</th><th>P100 FPS</th>
+<th>alloc/frame</th><th>GC pauses</th><th>CPU%</th><th>cold-start ms</th><th>Status</th></tr>
+<tr><td>A</td><td><strong>18.4</strong></td><td>18.1</td><td>19.4</td><td>0.0 B</td><td>1</td><td>100.1</td><td>6.06</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>B</td><td><strong>24.0</strong></td><td>23.6</td><td>24.1</td><td>0.0 B</td><td>0</td><td>100.4</td><td>4.51</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>C</td><td><strong>24.1</strong></td><td>23.7</td><td>24.1</td><td><span class="normative">0 (asserted ✓)</span></td><td>0</td><td>100.1</td><td>96.26</td><td class="normative" style="color:#047857">PASS</td></tr>
+<tr><td>D</td><td><strong>11.6</strong></td><td>11.4</td><td>11.7</td><td><span class="normative">0 (asserted ✓)</span></td><td>0</td><td>100.8</td><td>7.5</td><td class="normative" style="color:#047857">PASS</td></tr>
+</table>
+
+
+<h2>Honesty labels (per WO-P5-RELEASE decision 4)</h2>
+<ul>
+<li><strong>FPS</strong>: P99 is the headline; absolute numbers are sandbox-Python-interpreted so they're low; the <em>comparison</em> across backends is the signal.</li>
+<li><strong>alloc/frame</strong>: tracemalloc measures Python-side allocations; ctypes-level copies are not counted. C and D assert 0 (RED on violation).</li>
+<li><strong>GC pauses</strong>: count via <code>gc.get_stats()</code> collection delta; pause duration not tracked by Python's gc module (reported as 0 with a note).</li>
+<li><strong>CPU%</strong>: <code>(process_time delta / wall_time delta) * 100</code> — captures interpreter + GC overhead.</li>
+<li><strong>cold-start</strong>: time from backend <code>__init__</code> to first publish return.</li>
+</ul>
+<hr>
+<p style="font-size:.85em;color:#64748b">Generated by <code>tools/make_site.py</code> · Weft Phase 5 / T4 · Numbers are <span class="measured">[MEASURED x86_64-sandbox]</span>; structural gates normative; telemetry advisory (AXIOM T). The site consumes bundles; it never computes numbers itself.</p>
+</body>
+</html>

@@ -1,0 +1,14 @@
+=== Environment gate (Step 0, 06-PITFALLS §1) ===
+gcc:    gcc (Debian 14.2.0-19) 14.2.0
+rustc: rustc 1.98.1 (48a229cea 2026-09-01)
+cargo: cargo 1.98.1 (797e8a9bc 2026-08-05)
+node:  v24.19.0
+npm:   11.17.0
+py:    Python 3.12.14
+nproc: 2
+
+=== Pre-flight probes ===
+SAB+exchange: before=0 after=42 (expect 0/42)
+worker_threads: present
+
+=== All pre-flight probes pass ===

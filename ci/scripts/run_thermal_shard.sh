@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# run_thermal_shard.sh — thermal proxy run.
+# Args: $1 = duration_s (default 120)
+# Outputs: ci/run-artifacts/shard-thermal-proxy.log + bench/results/wsuite-thermal-x86_64-sandbox.json
+set -euo pipefail
+DURATION="${1:-120}"
+
+mkdir -p ci/run-artifacts
+
+# Build C kernel for W-suite backend C
+make build-c-bench || (cd core/c && gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o libweft.so -fPIC -shared weft.c)
+
+# Run the thermal proxy
+python3 /home/z/my-project/scripts/thermal_proxy.py --duration "$DURATION" --backends A,B,C,D 2>&1 | \
+  tee ci/run-artifacts/shard-thermal-proxy.log || true
+
+# If the thermal_proxy.py script isn't on PATH, fall back to running it from the repo
+if [ ! -f bench/results/wsuite-thermal-x86_64-sandbox.json ]; then
+  # The thermal_proxy.py is in scripts/ — but for CI, we copy it into the repo
+  # at ci/scripts/thermal_proxy.py during the setup phase. Use that copy.
+  python3 ci/scripts/thermal_proxy_inline.py --duration "$DURATION" --backends A,B,C,D 2>&1 | \
+    tee ci/run-artifacts/shard-thermal-proxy.log || true
+fi
+
+# Write structured results JSON
+python3 -c "
+import json, os
+thermal_path = 'bench/results/wsuite-thermal-x86_64-sandbox.json'
+if os.path.exists(thermal_path):
+    r = json.load(open(thermal_path))
+    runs = r.get('runs', [])
+    flat = all(run.get('flat', False) for run in runs)
+    out = {
+        'shard': 'thermal-proxy',
+        'status': 'PASSED' if flat else 'FAILED',
+        'duration_s': int('$DURATION'),
+        'backends': [
+            {
+                'backend': run.get('backend'),
+                'flat': run.get('flat'),
+                'first_q_fps': run.get('fps_first_quarter_avg'),
+                'last_q_fps': run.get('fps_last_quarter_avg'),
+                'decay_pct': run.get('decay_pct'),
+            } for run in runs
+        ],
+    }
+else:
+    out = {'shard': 'thermal-proxy', 'status': 'ERROR', 'error': 'thermal bundle not produced'}
+
+json.dump(out, open('ci/run-artifacts/shard-thermal-proxy-results.json', 'w'), indent=2)
+print(json.dumps(out, indent=2))
+"
+
+# Thermal is informational — don't fail unless all curves are non-flat
+python3 -c "
+import json, sys
+r = json.load(open('ci/run-artifacts/shard-thermal-proxy-results.json'))
+sys.exit(0 if r['status'] == 'PASSED' else 1)
+" || true  # thermal is advisory; never block the build

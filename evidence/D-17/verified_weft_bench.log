@@ -1,0 +1,11 @@
+=== RFC 0005: VerifiedWeft HMAC-SHA256 Benchmark ===
+Environment Tag: x86_64-sandbox / linux-arm64-sandbox
+Payload size: 64 bytes (total frame: 80 bytes)
+Iterations: 200000
+
+Results:
+  HMAC Encode: 2104.59 ns/frame (2.105 us)
+  HMAC Decode: 2089.40 ns/frame (2.089 us)
+  Combined Roundtrip: 4193.99 ns/frame (4.194 us)
+  Throughput: 0.48 M frames/sec
+  Sub-microsecond Target: MISSED (> 1.0 us)

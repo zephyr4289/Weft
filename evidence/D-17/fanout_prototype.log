@@ -1,0 +1,9 @@
+=== RFC 0004: Multi-Consumer Fan-Out Heddles Benchmark ===
+Environment Tag: node / linux-sandbox
+Total Writer Publishes: 100000
+Elapsed Time: 78.74 ms (1269931 publishes/sec)
+  Reader [Primary Canvas (60Hz)]: reads=50000 fresh=50000 drops=50000
+  Reader [Minimap (30Hz)]: reads=25000 fresh=25000 drops=75000
+  Reader [Flight Recorder (120Hz)]: reads=100000 fresh=100000 drops=0
+  Reader [Network Viz (15Hz)]: reads=12500 fresh=12500 drops=87500
+Law 2 Invariant: 0 allocations in steady-state loop verified.

@@ -26,12 +26,14 @@ public struct WeftCanvas: View {
         // 120 Hz path on ProMotion: MTKView + preferredFrameRateRange
         // (WHITEPAPER §8.3: the two-path honesty is already published)
         Canvas { context, size in
-            let idx = weft.claim()
+            _ = weft.claim()
             if let ptr = weft.rLivePtr(16) {
                 // SAFETY: the claimed buffer is exclusively owned by the
                 // reader until the next claim(). Per RFC-0001 §4:
                 // "reader owns claimed buffer until next claim."
-                draw(context, ptr)
+                context.withCGContext { cgContext in
+                    draw(cgContext, ptr)
+                }
             }
         }
     }

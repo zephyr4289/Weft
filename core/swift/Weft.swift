@@ -62,18 +62,18 @@ public final class Weft {
             bufferDealloc.append((ptr, bufSize))
 
             // Per 04-LITMUS §0.6: null frame with pat(0,i) payload.
-            envelopeEncodeV1(ptr, seq: 0, payloadLen: payloadMax)
+            envelopeEncodeV1(ptr, seq: 0, payloadLen: UInt32(payloadMax))
             for j in 0..<payloadMax {
-                ptr.advanced(by: 16 + j).storeBytes(of: pat(seq: 0, i: j), as: UInt8.self)
+                ptr.advanced(by: 16 + j).storeBytes(of: pat(seq: 0, i: UInt32(j)), as: UInt8.self)
             }
         }
     }
 
-        /// destroy: API parity with C kernel (ARC handles real deallocation).
+    /// destroy: API parity with C kernel (ARC handles real deallocation).
     public func destroy() { /* ARC deinit handles it */ }
 
     deinit {
-        for (ptr, size) in bufferDealloc {
+        for (ptr, _) in bufferDealloc {
             ptr.deallocate()
         }
     }

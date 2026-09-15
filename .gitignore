@@ -2,10 +2,14 @@
 core/c/spike
 core/c/spike-tsan
 core/c/bench
+core/c/bench-asan
 core/c/libweft.so
+tools/weft-probe/weft_probe
+tools/weft-record/weft_record
 core/rust/target/
 *.o
 *.so
+*.tar.gz
 
 # CI scratch
 ci/run-artifacts/

@@ -1,6 +1,0 @@
-lang=ts test=L1-tear exit=1
-verdict: {"test": "L1-tear", "lang": "ts", "pass": false, "metrics": {"holds_ms": [5, 10, 50], "claims": 225, "torn": 0, "drain_ok": true}}
-stderr:
-L1 hold=5ms claims=86 torn=0 drain_ok=true
-L1 hold=10ms claims=71 torn=0 drain_ok=true
-L1 hold=50ms claims=68 torn=0 drain_ok=true

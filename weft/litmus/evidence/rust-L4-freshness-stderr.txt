@@ -1,4 +1,0 @@
-lang=rust test=L4-freshness exit=1
-verdict: {"test": "L4-freshness", "lang": "rust", "pass": false, "metrics": {"frames": 2000, "freshness_violations": 5, "future_violations": 0, "drain_exact": true}}
-stderr:
-L4 freshness_violations=5 future_violations=0 drain_exact=true (final seq=2000) pass=false

@@ -1,0 +1,64 @@
+name: Android Packages CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Android Gradle Matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK and NDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK and CMake
+        run: |
+          sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: |
+          chmod +x android/gradlew || true
+          cd android && gradle wrapper
+
+      - name: Run Unit Tests
+        run: |
+          cd android
+          ./gradlew test
+
+      - name: Assemble Release (AAR + R8 minified APK across 3 ABIs)
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+      - name: Publish to Maven Local
+        run: |
+          cd android
+          ./gradlew publishToMavenLocal
+
+      - name: Archive Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aar-and-apk
+          path: |
+            android/weft-core/build/outputs/aar/
+            android/weft-compose/build/outputs/aar/
+            android/sample-app/build/outputs/apk/
+            android/sample-app/build/outputs/mapping/

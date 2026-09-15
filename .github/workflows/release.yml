@@ -1,0 +1,54 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build & Verify Release Matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build and Package Release Artifacts
+        run: |
+          python3 tools/build_release_artifacts.py
+
+      - name: Verify Checksums
+        run: |
+          cd dist/v0.1.0-rc1
+          sha256sum -c SHA256SUMS
+
+      - name: Archive Release Dist Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: weft-release-dist
+          path: dist/v0.1.0-rc1/
+
+      - name: Publish Release Status Branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B ci/release-status
+          mkdir -p .ci-status
+          echo "CONCLUSION=${{ job.status }}" > .ci-status/status.txt
+          echo "SHA=${{ github.sha }}" >> .ci-status/status.txt
+          echo "DATE=$(date -u)" >> .ci-status/status.txt
+          if [ -f dist/v0.1.0-rc1/SHA256SUMS ]; then
+            cp dist/v0.1.0-rc1/SHA256SUMS .ci-status/SHA256SUMS
+          fi
+          git add -f .ci-status/
+          git commit -m "ci: release status [${{ job.status }}] for ${{ github.sha }}" || true
+          git push -f origin ci/release-status || true

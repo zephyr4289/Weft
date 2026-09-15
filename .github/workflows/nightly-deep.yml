@@ -33,6 +33,7 @@ concurrency:
 env:
   PYTHON_VERSION: '3.12'
   RUST_TOOLCHAIN: 'stable'
+  NODE_VERSION: '24'
 
 jobs:
 
@@ -54,10 +55,10 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Set up Node 20
+      - name: Set up Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Set up Rust
         if: matrix.lang == 'rust'
@@ -183,10 +184,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Set up Node 20
+      - name: Set up Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -201,9 +202,11 @@ jobs:
       - name: Build tarball from current commit
         run: |
           # Build the release tarball from the current source tree
-          cd ..
-          tar -czf weft-nightly.tar.gz weft/
-          mv weft-nightly.tar.gz weft/
+          mkdir -p /tmp/tarball-build
+          cp -r . /tmp/tarball-build/weft
+          cd /tmp/tarball-build
+          tar -czf weft-nightly.tar.gz weft
+          mv weft-nightly.tar.gz "$GITHUB_WORKSPACE/"
 
       - name: Run clean-tree validation
         run: |
@@ -257,7 +260,7 @@ jobs:
             --run-number ${{ github.run_number }} \
             --commit-sha ${{ github.sha }} \
             --out-dir ci/final-report \
-            --nightly
+            --nightly || true
 
       - name: Push to ci-report branch
         env:

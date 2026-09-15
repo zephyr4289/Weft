@@ -36,7 +36,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Build C kernel for W-suite backend C
         run: cd core/c && gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o libweft.so -fPIC -shared weft.c

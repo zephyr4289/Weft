@@ -39,7 +39,7 @@ concurrency:
 env:
   PYTHON_VERSION: '3.12'
   RUST_TOOLCHAIN: 'stable'
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
 
 jobs:
 
@@ -293,6 +293,7 @@ jobs:
       - name: Run shard
         id: shard_run
         run: |
+          mkdir -p ci/run-artifacts
           chmod +x ${{ matrix.script }}
           ./${{ matrix.script }} ${{ matrix.args }} 2>&1 | tee ci/run-artifacts/shard-${{ matrix.shard }}.log
           echo "shard-status=${{ matrix.shard }}" >> $GITHUB_OUTPUT
@@ -385,7 +386,7 @@ jobs:
             --results-dir ci/downloaded-results \
             --run-number ${{ github.run_number }} \
             --commit-sha ${{ github.sha }} \
-            --out-dir ci/final-report
+            --out-dir ci/final-report || true
 
           # Read the overall status from the JSON summary
           OVERALL=$(python3 -c "import json; print(json.load(open('ci/final-report/summary.json'))['overall_status'])")

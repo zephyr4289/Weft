@@ -17,7 +17,13 @@ echo ""
 
 # Unpack
 tar -xzf "$TARBALL" -C "$WORK_DIR"
-WEFT_TREE="$WORK_DIR/weft"
+if [ -d "$WORK_DIR/weft" ]; then
+  WEFT_TREE="$WORK_DIR/weft"
+elif [ -d "$WORK_DIR/weft-sandbox-v0.1" ]; then
+  WEFT_TREE="$WORK_DIR/weft-sandbox-v0.1"
+else
+  WEFT_TREE="$WORK_DIR"
+fi
 
 # Source cargo env if present
 if [ -f "$HOME/.cargo/env" ]; then

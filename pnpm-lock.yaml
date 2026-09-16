@@ -95,6 +95,8 @@ importers:
 
   fixtures/xlang-fanout: {}
 
+  fixtures/xlang-verifiedweft: {}
+
   packages/core:
     devDependencies:
       vitest:

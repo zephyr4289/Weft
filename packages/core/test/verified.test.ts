@@ -14,6 +14,12 @@
 //   V5  wrong key / short record / bad magic / geometry overflow
 //   V6  constant-time equality semantics
 //   V7  signer reuse: N messages through one signer, every tag correct
+//   V8  pre-keyed verifier: accept/reject identical to verifiedWeftVerify
+//       across a 1000-frame stream; tamper red; state reusable
+//   V9  batch decode-verify: all-OK, first-bad-record stop, zero-copy views,
+//       bytesConsumed, truncated-tail policy
+//   V10 optional native WebCrypto accelerator agrees bit-exactly (runs only
+//       when globalThis.crypto.subtle exists; declared otherwise)
 //
 // Byte-compat contract: tags produced here are bit-identical to the C and
 // Rust ports (verified cross-language by fixtures/xlang-verifiedweft/run.sh).
@@ -24,9 +30,12 @@ import { describe, it, expect } from 'vitest';
 import {
   Sha256,
   VerifiedWeftSigner,
+  VerifiedWeftVerifier,
   ctEq,
   deriveKey,
   hmacSha256,
+  verifiedWeftBatchDecodeVerify,
+  verifiedWeftBatchVerifyNative,
   verifiedWeftRecordDecodeVerify,
   verifiedWeftRecordEncode,
   verifiedWeftVerify,
@@ -251,5 +260,161 @@ describe('Sha256 primitive', () => {
       h.finalize(out);
       expect(hex(out), `len=${n}`).toBe(ref);
     }
+  });
+});
+
+describe('V8: pre-keyed verifier (stream consumer)', () => {
+  it('accept/reject identical to one-shot verify across 1000 frames', () => {
+    const key = deriveKey(new TextEncoder().encode('v8-stream'));
+    const verifier = new VerifiedWeftVerifier(key);
+    const signer = new VerifiedWeftSigner(key);
+    const envelope = new Uint8Array(16);
+    const payload = new Uint8Array(64);
+    const tag = new Uint8Array(HMAC_TAG_LEN);
+
+    for (let i = 0; i < 1000; i++) {
+      weftEnvelopeEncodeV1(envelope, i, 64);
+      for (let j = 0; j < 64; j++) payload[j] = (i + j) & 0xff;
+      signer.update(envelope, 0, VW_ENVELOPE_LEN);
+      signer.update(payload);
+      signer.finalize(tag);
+
+      expect(verifier.verify(envelope, payload, tag)).toBe(VW_OK);
+      expect(verifiedWeftVerify(key, envelope, payload, tag)).toBe(VW_OK);
+
+      tag[0] ^= 0x01;
+      expect(verifier.verify(envelope, payload, tag)).toBe(VW_ERR_TAG);
+      tag[0] ^= 0x01;
+    }
+
+    // State still usable after the stream.
+    weftEnvelopeEncodeV1(envelope, 0, 64);
+    for (let j = 0; j < 64; j++) payload[j] = j;
+    signer.update(envelope, 0, VW_ENVELOPE_LEN);
+    signer.update(payload);
+    signer.finalize(tag);
+    expect(verifier.verify(envelope, payload, tag)).toBe(VW_OK);
+  });
+});
+
+describe('V9: batch decode-verify', () => {
+  const key = deriveKey(new TextEncoder().encode('v9-batch'));
+  const N = 500;
+  const PLEN = 48;
+  const recLen = VW_ENVELOPE_LEN + PLEN + HMAC_TAG_LEN;
+
+  function buildStream(): { stream: Uint8Array } {
+    const signer = new VerifiedWeftSigner(key);
+    const stream = new Uint8Array(N * recLen);
+    const envelope = new Uint8Array(16);
+    const payload = new Uint8Array(PLEN);
+    const tag = new Uint8Array(HMAC_TAG_LEN);
+    for (let i = 0; i < N; i++) {
+      weftEnvelopeEncodeV1(envelope, i * 3 + 1, PLEN);
+      for (let j = 0; j < PLEN; j++) payload[j] = (i ^ j) & 0xff;
+      signer.update(envelope, 0, VW_ENVELOPE_LEN);
+      signer.update(payload);
+      signer.finalize(tag);
+      const n = verifiedWeftRecordEncode(envelope, payload, tag, stream.subarray(i * recLen));
+      expect(n).toBe(recLen);
+    }
+    return { stream };
+  }
+
+  it('verifies the whole stream, zero-copy views, exact bytesConsumed', () => {
+    const { stream } = buildStream();
+    const r = verifiedWeftBatchDecodeVerify(key, stream);
+    expect(r.code).toBe(VW_OK);
+    expect(r.verified).toBe(N);
+    expect(r.bytesConsumed).toBe(N * recLen);
+    expect(r.records.length).toBe(N);
+    for (let i = 0; i < N; i++) {
+      expect(r.records[i].envelope.byteOffset).toBe(i * recLen);
+      expect(r.records[i].envelope.buffer).toBe(stream.buffer);
+      expect(r.records[i].seq).toBe(i * 3 + 1);
+      expect(r.records[i].payload.length).toBe(PLEN);
+    }
+  });
+
+  it('stops at the first bad record with a good prefix + resync offset', () => {
+    const { stream } = buildStream();
+    const k = 137;
+    stream[k * recLen + 20] ^= 0x40; // tamper payload byte 4
+    const r = verifiedWeftBatchDecodeVerify(key, stream);
+    expect(r.code).toBe(VW_ERR_TAG);
+    expect(r.verified).toBe(k);
+    expect(r.bytesConsumed).toBe(k * recLen);
+  });
+
+  it('maxViews bounds views but not verification; truncated tail ignored', () => {
+    const { stream } = buildStream();
+    const capped = verifiedWeftBatchDecodeVerify(key, stream, 10);
+    expect(capped.code).toBe(VW_OK);
+    expect(capped.verified).toBe(N);
+    expect(capped.records.length).toBe(10);
+
+    // A tail SHORTER than a minimal record (envelope+tag) is ignored — the
+    // truncation policy belongs to the caller (same contract as C/Rust).
+    const tail = verifiedWeftBatchDecodeVerify(key, stream.subarray(0, (N - 1) * recLen + 17));
+    expect(tail.code).toBe(VW_OK);
+    expect(tail.verified).toBe(N - 1);
+    expect(tail.bytesConsumed).toBe((N - 1) * recLen);
+
+    // A record that STARTS but does not FIT (>= 48 recognizable bytes) is a
+    // truncated record: VW_ERR_SHORT at that offset — identical to the
+    // per-record decode semantics in all three ports.
+    const midRec = verifiedWeftBatchDecodeVerify(key, stream.subarray(0, N * recLen - 30));
+    expect(midRec.code).toBe(VW_ERR_SHORT);
+    expect(midRec.verified).toBe(N - 1);
+    expect(midRec.bytesConsumed).toBe((N - 1) * recLen);
+  });
+});
+
+describe('V10: optional native WebCrypto accelerator', () => {
+  const key = deriveKey(new TextEncoder().encode('v10-native'));
+  const N = 200;
+  const PLEN = 64;
+  const recLen = VW_ENVELOPE_LEN + PLEN + HMAC_TAG_LEN;
+
+  it('agrees bit-exactly with the sync reference (or is declared absent)', async () => {
+    const signer = new VerifiedWeftSigner(key);
+    const stream = new Uint8Array(N * recLen);
+    const envelope = new Uint8Array(16);
+    const payload = new Uint8Array(PLEN);
+    const tag = new Uint8Array(HMAC_TAG_LEN);
+    for (let i = 0; i < N; i++) {
+      weftEnvelopeEncodeV1(envelope, i, PLEN);
+      for (let j = 0; j < PLEN; j++) payload[j] = (i * 7 + j) & 0xff;
+      signer.update(envelope, 0, VW_ENVELOPE_LEN);
+      signer.update(payload);
+      signer.finalize(tag);
+      verifiedWeftRecordEncode(envelope, payload, tag, stream.subarray(i * recLen));
+    }
+
+    const sync = verifiedWeftBatchDecodeVerify(key, stream);
+    expect(sync.code).toBe(VW_OK);
+    expect(sync.verified).toBe(N);
+
+    const native = await verifiedWeftBatchVerifyNative(key, stream);
+    const subtle = (globalThis as { crypto?: { subtle?: SubtleCrypto } }).crypto?.subtle;
+    if (!subtle) {
+      // Declared absence: the accelerator returns null and the sync path is
+      // the only normative answer (honesty boundary, not a failure).
+      expect(native).toBeNull();
+      return;
+    }
+    expect(native).not.toBeNull();
+    expect(native!.code).toBe(VW_OK);
+    expect(native!.verified).toBe(N);
+
+    // Tamper: both paths must reject with the same stop semantics.
+    stream[50 * recLen + 20] ^= 0x40;
+    const syncBad = verifiedWeftBatchDecodeVerify(key, stream);
+    const nativeBad = await verifiedWeftBatchVerifyNative(key, stream);
+    expect(syncBad.code).toBe(VW_ERR_TAG);
+    expect(syncBad.verified).toBe(50);
+    expect(nativeBad!.code).toBe(VW_ERR_TAG);
+    expect(nativeBad!.verified).toBe(50);
+    expect(nativeBad!.bytesConsumed).toBe(syncBad.bytesConsumed);
   });
 });

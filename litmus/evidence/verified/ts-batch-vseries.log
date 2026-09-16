@@ -1,0 +1,13 @@
+# Series 6 — TS VerifiedWeft pre-keyed verifier + batch + optional native accelerator
+# env: node v24.19.0, vitest via pnpm workspace
+# date: 2026-09-16T16:59:38Z
+
+ ✓ test/verified.test.ts (17 tests) 138ms
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+
+=== binding parity (core/ts/verified.ts <-> packages/core/src/verified.ts) ===
+[PASS] core/ts/fanout.ts  <->  packages/core/src/fanout.ts
+[PASS] core/ts/verified.ts  <->  packages/core/src/verified.ts
+{"shard":"binding-parity","passed":13,"failed":0,"total":13,"cells":{"core/kotlin/FrameCursor.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Fanout.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Steward.kt":{"status":"PASS","detail":"identical"},"core/kotlin/TriadNative.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Weft.kt":{"status":"PASS","detail":"identical"},"core/dart/frame_cursor.dart":{"status":"PASS","detail":"identical"},"core/dart/fanout.dart":{"status":"PASS","detail":"identical"},"core/dart/heddle.dart":{"status":"PASS","detail":"identical"},"core/dart/steward.dart":{"status":"PASS","detail":"identical"},"core/dart/weft.dart":{"status":"PASS","detail":"identical"},"core/ts/weft.ts":{"status":"PASS","detail":"identical"},"core/ts/fanout.ts":{"status":"PASS","detail":"identical"},"core/ts/verified.ts":{"status":"PASS","detail":"identical"}}}
+✅ Binding parity: 13/13 pairs byte-identical

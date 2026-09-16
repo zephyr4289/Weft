@@ -1,0 +1,1 @@
+{"shard":"fanout-native","status":"PASSED","gates":"C F-series+torture x2 regimes + rust suite + loom(bound 2) + xlang TS<->C"}

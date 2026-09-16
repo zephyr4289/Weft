@@ -1,0 +1,19 @@
+==================================================
+SHARD: site-determinism
+DESCRIPTION: make site double-render, byte-identical sha256 check
+STATUS: PASSED ✅
+COMMIT: b6283649afb257a46761b723c6b79fe1fac7359e
+RUN: 55
+==================================================
+
+  → /home/runner/work/Weft/Weft/bench/site/index.html
+  → /home/runner/work/Weft/Weft/bench/site/b-suite.html
+  → /home/runner/work/Weft/Weft/bench/site/w-suite.html
+  → /home/runner/work/Weft/Weft/bench/site/reproducibility.html
+
+✓ Site generated at /home/runner/work/Weft/Weft/bench/site
+  pages: 4
+  timestamp-injected pages: 2 (target: 0 for deterministic render)
+First render sha256:  b4c214c67f9a3251cbff81d7c1c7d6286a68410cfd51eda35e9129cea4a51d25
+Second render sha256: b4c214c67f9a3251cbff81d7c1c7d6286a68410cfd51eda35e9129cea4a51d25
+✅ Site regeneration: deterministic (byte-identical)

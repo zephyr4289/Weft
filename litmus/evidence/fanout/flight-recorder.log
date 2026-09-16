@@ -1,0 +1,32 @@
+# weft-fanout-rec — .weftrec v2 flight-recorder evidence (FORMATS.md §1.5)
+# Env: x86_64-sandbox, gcc 14, 2026-09-16T10:39:07Z
+# Gates: selftest x2 regimes (O2 fenced acq/rel + all-seq_cst) + ASAN + TSAN, 20000 frames, 64-word payload
+
+== weft-fanout-rec (O2 fenced acq/rel) ==
+validate: selftest_a.weftrec — 2488 records, final seq 20000, sum(dropped)=17512 — telescoping exact, mixer bit-exact
+validate: selftest_b.weftrec — 2076 records, final seq 2488, sum(dropped)=412 — telescoping exact
+selftest: content-faithful replay — 2076/2488 source payloads recaptured in order, payload-exact; final frame converged
+selftest: PASS — capture -> validate(mixer) -> replay -> recapture -> compare, all green (20000 frames published, 64-word payload)
+exit: 0
+
+== weft-fanout-rec-seq (O2 all-seq_cst) ==
+validate: selftest_a.weftrec — 2568 records, final seq 20000, sum(dropped)=17432 — telescoping exact, mixer bit-exact
+validate: selftest_b.weftrec — 2409 records, final seq 2568, sum(dropped)=159 — telescoping exact
+selftest: content-faithful replay — 2409/2568 source payloads recaptured in order, payload-exact; final frame converged
+selftest: PASS — capture -> validate(mixer) -> replay -> recapture -> compare, all green (20000 frames published, 64-word payload)
+exit: 0
+
+== weft-fanout-rec-asan (ASAN) ==
+validate: selftest_a.weftrec — 6078 records, final seq 20000, sum(dropped)=13922 — telescoping exact, mixer bit-exact
+validate: selftest_b.weftrec — 5631 records, final seq 6078, sum(dropped)=447 — telescoping exact
+selftest: content-faithful replay — 5631/6078 source payloads recaptured in order, payload-exact; final frame converged
+selftest: PASS — capture -> validate(mixer) -> replay -> recapture -> compare, all green (20000 frames published, 64-word payload)
+exit: 0
+
+== weft-fanout-rec-tsan (TSAN) ==
+validate: selftest_a.weftrec — 7265 records, final seq 20000, sum(dropped)=12735 — telescoping exact, mixer bit-exact
+validate: selftest_b.weftrec — 6638 records, final seq 7265, sum(dropped)=627 — telescoping exact
+selftest: content-faithful replay — 6638/7265 source payloads recaptured in order, payload-exact; final frame converged
+selftest: PASS — capture -> validate(mixer) -> replay -> recapture -> compare, all green (20000 frames published, 64-word payload)
+exit: 0
+

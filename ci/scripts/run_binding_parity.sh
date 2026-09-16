@@ -36,6 +36,7 @@ PAIRS=(
   "core/kotlin/TriadNative.kt|android/weft-core/src/main/kotlin/dev/weft/TriadNative.kt"
   "core/kotlin/Weft.kt|android/weft-core/src/main/kotlin/dev/weft/Weft.kt"
   "core/dart/frame_cursor.dart|packages/flutter_weft/lib/src/reference/frame_cursor.dart"
+  "core/dart/fanout.dart|packages/flutter_weft/lib/src/reference/fanout.dart"
   "core/dart/heddle.dart|packages/flutter_weft/lib/src/reference/heddle.dart"
   "core/dart/steward.dart|packages/flutter_weft/lib/src/reference/steward.dart"
   "core/dart/weft.dart|packages/flutter_weft/lib/src/reference/weft.dart"

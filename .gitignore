@@ -14,6 +14,12 @@ core/c/fanout-runner-seq
 core/c/fanout-runner-tsan
 tools/weft-probe/weft_probe
 tools/weft-record/weft_record
+tools/weft-fanout-rec/weft-fanout-rec
+tools/weft-fanout-rec/weft-fanout-rec-seq
+tools/weft-fanout-rec/weft-fanout-rec-asan
+tools/weft-fanout-rec/weft-fanout-rec-tsan
+tools/weft-fanout-rec/selftest_a.weftrec
+tools/weft-fanout-rec/selftest_b.weftrec
 core/rust/target/
 *.o
 *.so

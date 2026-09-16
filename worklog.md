@@ -363,3 +363,26 @@ Stage Summary:
   - /home/z/my-project/download/Weft-Phase4-Errata-R4-Correction-Slip.pdf (2pp, sha256 3f7a827a)
   - /home/z/my-project/upload/weft-docs/weft-docs/weft/litmus/evidence/clean-tree-r3/ (full per-target logs)
 - Senior round-6 verification protocol: SHA256SUMS -c, results.json hash check, report 611.5pt scan, site double-render hash, clean-tree log review.
+
+---
+
+## Series 5 — VM-Port Fan-Out Parity + Flight Recorder (2026-09-16)
+
+Task ID: S5 (contrib branch `contrib/vm-fanout-parity-and-flight-rec`)
+Agent: contributor (Series 5)
+
+Task: Close the RFC-0004 fan-out gap for the three VM-port kernels (Kotlin, Swift, Dart — still 1:1 after Series 4 closed C/Rust) and deliver the flight-recorder consumer RFC 0004's motivation names but no tool served.
+
+Work Log:
+- Survey: fan-out coverage grep confirmed `core/kotlin`, `core/swift`, `core/dart` had zero fan-out surface; `tools/weft-record`/`weft-playback` cover only kernel-envelope (1:1) captures; the flutter reference barrel never exported `frame_cursor.dart` (oversight).
+- Patch 1 — Kotlin ring (`core/kotlin/Fanout.kt` + byte-identical android mirror + FanoutTest.kt): direct-ByteBuffer ring, VarHandle fenced acq/rel regime (setVolatile+fullFence P1, setRelease stamps, getAcquire loads, getOpaque payload words, fullFence P2 — the C regime mapped to the JVM), declared API-33+/JVM-9+ boundary; F1–F10 battery incl. real 100k-frame writer+3-reader torture.
+- Patch 2 — Swift ring (`core/swift/Fanout.swift` + FanoutTests.swift): one 64-byte-aligned region, UnsafeAtomic SC stamps (swift-atomics exposes no fence — the TS regime, stated) + relaxed-atomic u32 payload words (the C stance); F1–F10 incl. DispatchQueue torture.
+- Patch 3 — Dart ring (`core/dart/fanout.dart` + flutter mirror + fanout_test.dart + barrel fix): single-isolate reference (the port's honesty wall), LE word-value copy loop, FFI-attachable from-bytes reader; full battery, no torture (declared — the concurrent gates live in C/Kotlin/Swift).
+- Patch 4 — Flight recorder (`tools/weft-fanout-rec`): .weftrec v2 (FORMATS.md §1.5) — shm-attached capture with per-claim drop accounting (the honest capture), CRC + strict-seq + gap + telescoping validation, --expect-mixer, content-faithful replay (renumbering declared), end-to-end selftest with concurrent replay+recapture and payload-subsequence compare; gate 5 of fanout-native CI shard.
+- Patch 5 — Enforcement + docs: port_validator fan-out rule pack (3 new JSON targets, aggregator-compatible), binding-parity pairs for the two new mirrors (12/12), PORTS.md §6 mapping table, RFC-0004 Series-5 implementation record, ARCHITECTURE.md Q2 sync.
+- Local verification (x86_64-sandbox, gcc 14.2): flight-recorder selftest green x2 regimes + ASAN (leak-clean after compare_payloads fix) + TSAN (race-clean) — evidence committed at `litmus/evidence/fanout/flight-recorder.log`; port validator 7/7 targets green; binding parity 12/12 identical; core/c kernels byte-frozen (0 diffs).
+
+Stage Summary:
+- Fan-out is now expressible natively in ALL SIX Weft ports, byte-compatible, each gated by a same-shape F-series battery; the RFC-0004 consumer story gains its flight recorder with a versioned, CRC'd, accounting-exact file format.
+- Kernel Freeze: PRESERVED (weft.{c,h}, lib.rs, all six kernels untouched — 0 diffs beyond driver-layer additions). Release checksums untouched.
+- Open: Swift/Dart batteries run in their package CI workflows (apple/flutter) — locally unverified (no toolchains in sandbox); declared, environment-tagged.

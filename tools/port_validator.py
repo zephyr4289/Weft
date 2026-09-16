@@ -32,6 +32,32 @@ EXCHANGE_MARKERS = {
     'ts': ['Atomics.exchange'],
 }
 
+# Fan-out rule pack (RFC 0004 driver layer, Series 5): each VM port ships a
+# BYTE-COMPATIBLE ring alongside the C/Rust/TS rings. The validator checks
+# existence + spec-citing header + the port-specific ordering markers (the
+# memory-model row of docs/PORTS.md §6, mechanically) + the shared protocol
+# API surface (begin/publish/claim/view/stats + the ring-bytes formula).
+FANOUT_FILES = {
+    'kotlin': {
+        'path': ROOT / 'core' / 'kotlin' / 'Fanout.kt',
+        'markers': ['VarHandle', 'byteBufferViewVarHandle', 'fullFence',
+                    'setRelease', 'getAcquire', 'getOpaque'],
+    },
+    'swift': {
+        'path': ROOT / 'core' / 'swift' / 'Fanout.swift',
+        'markers': ['UnsafeAtomic', 'sequentiallyConsistent', '.relaxed',
+                    'loadThenWrappingIncrement'],
+    },
+    'dart': {
+        'path': ROOT / 'core' / 'dart' / 'fanout.dart',
+        'markers': ['single-isolate', 'Endian.little', 'sublistView'],
+    },
+}
+
+# Protocol API surface every fan-out port must expose (case-insensitive;
+# the ring-bytes helper is named per language but contains 'ringbytes').
+FANOUT_API = ['begin', 'publish', 'claim', 'view', 'stats', 'ringbytes']
+
 def check_file_header(filepath, lang):
     """Check that the file has a 'why exists' paragraph citing a spec section."""
     try:
@@ -130,7 +156,37 @@ def check_ts(filepath):
             checks.append({'check': f'api_{category}_{sym}', 'pass': found,
                            'detail': f'{sym} found' if found else f'MISSING {sym}'})
     
-    return checks
+def check_fanout(target):
+    """Validate a port's RFC-0004 fan-out ring module (Series 5 rule pack).
+    Emits one JSON result line like validate_target; same shape so the CI
+    aggregator (run_ports_validate_shard.sh) consumes it unchanged."""
+    spec = FANOUT_FILES[target]
+    path = spec['path']
+    checks = []
+    if not path.exists():
+        checks.append({'file': str(path.relative_to(ROOT)), 'check': 'file_exists',
+                       'pass': False, 'detail': 'fan-out ring module not found'})
+        result = {'target': f'fanout-{target}', 'pass': False, 'checks': checks}
+        print(json.dumps(result))
+        return False
+    header_ok, header_detail = check_file_header(path, target)
+    checks.append({'file': str(path.relative_to(ROOT)), 'check': 'header',
+                   'pass': header_ok, 'detail': header_detail})
+    with open(path) as f:
+        src = f.read()
+    for m in spec['markers']:
+        checks.append({'file': str(path.relative_to(ROOT)), 'check': f'fanout_marker_{m}',
+                       'pass': m in src,
+                       'detail': f'{m} found' if m in src else f'MISSING {m}'})
+    for sym in FANOUT_API:
+        found = sym.lower() in src.lower()
+        checks.append({'file': str(path.relative_to(ROOT)), 'check': f'fanout_api_{sym}',
+                       'pass': found,
+                       'detail': f'{sym} found' if found else f'MISSING {sym}'})
+    all_pass = all(c.get('pass', False) for c in checks)
+    result = {'target': f'fanout-{target}', 'pass': all_pass, 'checks': checks}
+    print(json.dumps(result))
+    return all_pass
 
 def validate_target(target, files):
     """Validate all files for a target language.
@@ -247,6 +303,10 @@ def main():
         files = targets.get(target, [])
         if not validate_target(target, files):
             all_pass = False
+        # Fan-out rule pack: kotlin/swift/dart ports carry the Series-5 ring.
+        if target in FANOUT_FILES:
+            if not check_fanout(target):
+                all_pass = False
     
     return 0 if all_pass else 1
 

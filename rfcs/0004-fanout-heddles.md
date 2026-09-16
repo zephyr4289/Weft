@@ -52,6 +52,37 @@ None of the kernel invariants I1–I6 — the ring lives entirely outside the ke
 - **FI2** — per-slot stamp monotonicity: stamps on a slot are strictly increasing frame seqs (or 0 while invalidated), so an unchanged stamp proves a consistent copy.
 - **FI3** — per-reader telescoping drop accounting (`sum(dropped) == lastSeq - freshClaims`, exact).
 
+### Native driver-layer ports (C, Rust) — 2026-09-16, byte-compatible
+
+The ring is now normative in the canonical languages as sibling driver-layer
+modules — `core/c/fanout.{h,c}` and `core/rust/src/fanout.rs` — with a
+BYTE-COMPATIBLE layout (the interop contract): one ring produced by any port
+is consumable by any other, proven mechanically by `fixtures/xlang-fanout/`
+(TS producer → C consumer and C producer → TS consumer, bit-exact payload
+validation). This is what unblocks fan-out for Android JNI, Flutter FFI,
+C++ engines, and Rust audio graphs — the surfaces where the no-GC thesis
+bites hardest.
+
+The C/Rust ports implement the same protocol with a **tighter ordering
+regime** than the TS port's seqcst-everything (which is a JS constraint, not
+a choice): Release publication stamps + Acquire loads + Relaxed atomic u32
+payload words + two SeqCst fences carrying the bracket proof (P1: the
+invalidate store+fence before the fill; P2: the fence between copy and
+revalidation). The relaxed-atomic payload words make the ring data-race-free
+in the strict C11 sense — and TSAN-clean, which plain seqlock payload
+accesses never are. Both regimes (fenced acq/rel and all-seqcst) are
+torture-gated; the mapping is normative in `docs/PORTS.md` §5.
+
+Evidence (`litmus/evidence/fanout/`): C F-series ×4 builds (O2/seqcst/ASAN/TSAN)
+all green; C torture 1M frames × 4 readers in both regimes with zero
+integrity violations and exact telescoping; **TSAN torture clean** (100k
+frames, ~31M claims, zero race reports); Rust suite green including an
+**exhaustive Loom model** of the ring protocol (`core/rust/tests/loom_fanout.rs`,
+preemption bounds 2 and 3: no torn frame accepted, no future violation,
+exact telescoping in every reachable execution) and a 1M-frame release
+torture; cross-language interop both directions green. CI gate:
+`fanout-native` shard (`ci/scripts/run_fanout_native_shard.sh`).
+
 ### Litmus impact
 No L-series change — the kernel litmus suite is untouched and stays canonical for kernel semantics. The driver layer is covered by the package-level F-series battery: 28 tests in `packages/core/test/fanout.test.ts`, including a cross-thread protocol litmus where an independent worker-side writer (plain JS implementing this section's layout, not importing the class) publishes 100k frames while three readers validate every claimed byte — zero torn claims observed (`node-vitest/linux-sandbox`). No existing test fails; the addition is purely userland.
 
@@ -99,6 +130,7 @@ kernel's I6 handshake governs only the broadcaster's claim of the source.
 
 ## Implementation plan
 - **Built**: driver layer in `@weft/core` + bindings (`WeftFanoutCanvas`, `useWeftFanout`, `weftFanoutCanvas`, `useWeftFanoutDraw`) + 28-test F-series battery + 23 binding tests + benchmark, delivered on branch `contrib/rfc-0004-fanout-driver-layer` (2026-09).
+- **Built (native, 2026-09-16)**: C port (`core/c/fanout.{h,c}` + F-series + torture runner + xlang dump/validate modes) and Rust port (`core/rust/src/fanout.rs` + F-series + exhaustive Loom model + release torture) — byte-compatible with the TS ring, both ordering regimes torture-gated, kernel files untouched (`weft.{c,h}` byte-frozen; `lib.rs` gains only the two `pub mod` declarations).
 - **Mechanical acceptance criterion** (flips `Status` to `Implemented`): F-series battery green in CI (`pnpm --filter @weft/core test`), cross-thread litmus with zero torn claims, api-extractor baselines regenerated, and the benchmark log committed with environment tags.
 - **Status flip is a staff action**: per round-6 §4 this RFC "stays userland until an RFC-0004 implementation directive is issued"; the implementation above is offered for that directive. Kernel RFCs need two kernel-maintainer approvals; this RFC needs none (no kernel surface), one maintainer approval per the contribution ladder rungs 2–3.
 

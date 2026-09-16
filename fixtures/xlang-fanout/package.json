@@ -1,0 +1,9 @@
+{
+  "name": "fixture-xlang-fanout",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "xlang": "bash run.sh"
+  }
+}

@@ -74,7 +74,12 @@ accounting rather than reporting a huge burst.
 - Ports: TypeScript (`packages/core/src/cursor.ts`, subpath
   `@weft/core/cursor`), Kotlin (`core/kotlin/FrameCursor.kt` + android
   mirror), Swift (`core/swift/FrameCursor.swift`), Dart
-  (`core/dart/frame_cursor.dart`). Same shape, port-idiomatic payloads.
+  (`core/dart/frame_cursor.dart`), and — since 2026-09-16 — the canonical
+  languages: C (`core/c/frame_cursor.{h,c}`) and Rust
+  (`core/rust/src/frame_cursor.rs`). Same shape, port-idiomatic payloads;
+  all six languages pin the same semantics (null-frame baseline, reset rule
+  for decreasing seq — which is also what keeps idle back-to-back claims at
+  zero drops as the kernel recycles the reader's previous hold).
 - The web demo's Mode C HUD now reports real per-reader drops through the
   cursor (previously it printed the kernel's revocation counter, which is
   identically zero outside L7-style tests — a misleading display).

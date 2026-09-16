@@ -236,6 +236,13 @@ jobs:
             args: ""
             needs_rust: false
 
+          # --- RFC 0004 native fan-out (C + Rust + TS<->C interop gates) ---
+          - shard: "fanout-native"
+            description: "C/Rust fan-out ring: F-series + torture x2 regimes + Loom + xlang"
+            script: "ci/scripts/run_fanout_native_shard.sh"
+            args: ""
+            needs_rust: true
+
           # --- Site determinism (regenerate + compare) ---
           - shard: "site-determinism"
             description: "make site double-render, byte-identical sha256 check"
@@ -280,6 +287,13 @@ jobs:
       - name: Set up Rust toolchain
         if: matrix.needs_rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up pnpm + build @weft/core dist (fanout-native interop leg)
+        if: matrix.shard == 'fanout-native'
+        run: |
+          npm i -g pnpm@9
+          pnpm install --frozen-lockfile
+          pnpm --filter @weft/core build
 
       - name: Cache Rust build
         if: matrix.needs_rust

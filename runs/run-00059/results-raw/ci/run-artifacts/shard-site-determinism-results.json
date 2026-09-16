@@ -1,0 +1,14 @@
+{
+  "shard": "site-determinism",
+  "status": "PASSED",
+  "first_sha256": "b4c214c67f9a3251cbff81d7c1c7d6286a68410cfd51eda35e9129cea4a51d25",
+  "second_sha256": "b4c214c67f9a3251cbff81d7c1c7d6286a68410cfd51eda35e9129cea4a51d25",
+  "byte_identical": true,
+  "client_side_js_hits": 0,
+  "pages": [
+    "b-suite.html",
+    "index.html",
+    "reproducibility.html",
+    "w-suite.html"
+  ]
+}

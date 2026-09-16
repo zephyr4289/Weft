@@ -1,0 +1,28 @@
+{
+  "shard": "forensic-scan",
+  "threshold_pt": 611.5,
+  "pdfs": [
+    {
+      "pdf": "reports/Weft-Whitepaper-v1.0.4.pdf",
+      "flags": 0
+    },
+    {
+      "pdf": "reports/Weft-Phase5-Release-Report-v1.0.1.pdf",
+      "flags": 0
+    },
+    {
+      "pdf": "reports/Weft-Phase5-C2-Soak-Evidence.pdf",
+      "flags": 1
+    },
+    {
+      "pdf": "reports/Weft-Phase4-Errata.pdf",
+      "flags": 0
+    },
+    {
+      "pdf": "reports/Weft-Phase4-Errata-R4-Correction-Slip.pdf",
+      "flags": 0
+    }
+  ],
+  "total_flags": 1,
+  "status": "FAILED"
+}

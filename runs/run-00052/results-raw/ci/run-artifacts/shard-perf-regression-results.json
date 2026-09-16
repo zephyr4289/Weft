@@ -1,0 +1,313 @@
+{
+  "shard": "perf-regression",
+  "status": "PASSED",
+  "threshold_pct": 15,
+  "regression_count": 0,
+  "improvement_count": 20,
+  "cells_compared": 20,
+  "regressions": [],
+  "improvements": [
+    {
+      "workload": "W1",
+      "backend": "A",
+      "baseline": 120.2,
+      "actual": 151.0,
+      "delta_pct": 25.6,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W1",
+      "backend": "B",
+      "baseline": 140.5,
+      "actual": 175.5,
+      "delta_pct": 24.9,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W1",
+      "backend": "C",
+      "baseline": 140.9,
+      "actual": 175.4,
+      "delta_pct": 24.5,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W1",
+      "backend": "D",
+      "baseline": 87.5,
+      "actual": 109.6,
+      "delta_pct": 25.3,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W2",
+      "backend": "A",
+      "baseline": 78.6,
+      "actual": 100.6,
+      "delta_pct": 28.0,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W2",
+      "backend": "B",
+      "baseline": 111.7,
+      "actual": 140.2,
+      "delta_pct": 25.5,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W2",
+      "backend": "C",
+      "baseline": 111.0,
+      "actual": 140.5,
+      "delta_pct": 26.6,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W2",
+      "backend": "D",
+      "baseline": 45.4,
+      "actual": 56.6,
+      "delta_pct": 24.7,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W3",
+      "backend": "A",
+      "baseline": 9.7,
+      "actual": 12.1,
+      "delta_pct": 24.7,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W3",
+      "backend": "B",
+      "baseline": 11.5,
+      "actual": 14.6,
+      "delta_pct": 27.0,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W3",
+      "backend": "C",
+      "baseline": 11.5,
+      "actual": 14.5,
+      "delta_pct": 26.1,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W3",
+      "backend": "D",
+      "baseline": 6.2,
+      "actual": 7.9,
+      "delta_pct": 27.4,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W4",
+      "backend": "A",
+      "baseline": 2838.8,
+      "actual": 3591.5,
+      "delta_pct": 26.5,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W4",
+      "backend": "B",
+      "baseline": 3008.8,
+      "actual": 3811.3,
+      "delta_pct": 26.7,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W4",
+      "backend": "C",
+      "baseline": 2847.4,
+      "actual": 3637.0,
+      "delta_pct": 27.7,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W4",
+      "backend": "D",
+      "baseline": 2828.5,
+      "actual": 3629.4,
+      "delta_pct": 28.3,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W5",
+      "backend": "A",
+      "baseline": 19.1,
+      "actual": 24.2,
+      "delta_pct": 26.7,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W5",
+      "backend": "B",
+      "baseline": 24.2,
+      "actual": 31.4,
+      "delta_pct": 29.8,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W5",
+      "backend": "C",
+      "baseline": 24.1,
+      "actual": 31.2,
+      "delta_pct": 29.5,
+      "reason": "improvement"
+    },
+    {
+      "workload": "W5",
+      "backend": "D",
+      "baseline": 11.6,
+      "actual": 15.0,
+      "delta_pct": 29.3,
+      "reason": "improvement"
+    }
+  ],
+  "all_compared": [
+    {
+      "workload": "W1",
+      "backend": "A",
+      "baseline_p99": 120.2,
+      "actual_p99": 151.0,
+      "delta_pct": 25.6
+    },
+    {
+      "workload": "W1",
+      "backend": "B",
+      "baseline_p99": 140.5,
+      "actual_p99": 175.5,
+      "delta_pct": 24.9
+    },
+    {
+      "workload": "W1",
+      "backend": "C",
+      "baseline_p99": 140.9,
+      "actual_p99": 175.4,
+      "delta_pct": 24.5
+    },
+    {
+      "workload": "W1",
+      "backend": "D",
+      "baseline_p99": 87.5,
+      "actual_p99": 109.6,
+      "delta_pct": 25.3
+    },
+    {
+      "workload": "W2",
+      "backend": "A",
+      "baseline_p99": 78.6,
+      "actual_p99": 100.6,
+      "delta_pct": 28.0
+    },
+    {
+      "workload": "W2",
+      "backend": "B",
+      "baseline_p99": 111.7,
+      "actual_p99": 140.2,
+      "delta_pct": 25.5
+    },
+    {
+      "workload": "W2",
+      "backend": "C",
+      "baseline_p99": 111.0,
+      "actual_p99": 140.5,
+      "delta_pct": 26.6
+    },
+    {
+      "workload": "W2",
+      "backend": "D",
+      "baseline_p99": 45.4,
+      "actual_p99": 56.6,
+      "delta_pct": 24.7
+    },
+    {
+      "workload": "W3",
+      "backend": "A",
+      "baseline_p99": 9.7,
+      "actual_p99": 12.1,
+      "delta_pct": 24.7
+    },
+    {
+      "workload": "W3",
+      "backend": "B",
+      "baseline_p99": 11.5,
+      "actual_p99": 14.6,
+      "delta_pct": 27.0
+    },
+    {
+      "workload": "W3",
+      "backend": "C",
+      "baseline_p99": 11.5,
+      "actual_p99": 14.5,
+      "delta_pct": 26.1
+    },
+    {
+      "workload": "W3",
+      "backend": "D",
+      "baseline_p99": 6.2,
+      "actual_p99": 7.9,
+      "delta_pct": 27.4
+    },
+    {
+      "workload": "W4",
+      "backend": "A",
+      "baseline_p99": 2838.8,
+      "actual_p99": 3591.5,
+      "delta_pct": 26.5
+    },
+    {
+      "workload": "W4",
+      "backend": "B",
+      "baseline_p99": 3008.8,
+      "actual_p99": 3811.3,
+      "delta_pct": 26.7
+    },
+    {
+      "workload": "W4",
+      "backend": "C",
+      "baseline_p99": 2847.4,
+      "actual_p99": 3637.0,
+      "delta_pct": 27.7
+    },
+    {
+      "workload": "W4",
+      "backend": "D",
+      "baseline_p99": 2828.5,
+      "actual_p99": 3629.4,
+      "delta_pct": 28.3
+    },
+    {
+      "workload": "W5",
+      "backend": "A",
+      "baseline_p99": 19.1,
+      "actual_p99": 24.2,
+      "delta_pct": 26.7
+    },
+    {
+      "workload": "W5",
+      "backend": "B",
+      "baseline_p99": 24.2,
+      "actual_p99": 31.4,
+      "delta_pct": 29.8
+    },
+    {
+      "workload": "W5",
+      "backend": "C",
+      "baseline_p99": 24.1,
+      "actual_p99": 31.2,
+      "delta_pct": 29.5
+    },
+    {
+      "workload": "W5",
+      "backend": "D",
+      "baseline_p99": 11.6,
+      "actual_p99": 15.0,
+      "delta_pct": 29.3
+    }
+  ]
+}

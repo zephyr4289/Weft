@@ -14,6 +14,10 @@ core/c/fanout-runner
 core/c/fanout-runner-asan
 core/c/fanout-runner-seq
 core/c/fanout-runner-tsan
+core/c/verified-test
+core/c/verified-test-asan
+core/c/verified-runner
+core/c/verified-runner-asan
 tools/weft-probe/weft_probe
 tools/weft-record/weft_record
 tools/weft-fanout-rec/weft-fanout-rec

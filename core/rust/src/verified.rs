@@ -464,7 +464,7 @@ mod hw_arm {
         0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
         0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
         0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a,
-        0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70808,
+        0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
         0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
     ];
 
@@ -486,7 +486,8 @@ mod hw_arm {
             for i in 0..16usize {
                 let wk;
                 if i < 4 {
-                    wk = unsafe { vaddq_u32(w0, vld1q_u32(K.as_ptr().add(4 * i))) };
+                    let w = match i { 0 => w0, 1 => w1, 2 => w2, _ => w3 };
+                    wk = unsafe { vaddq_u32(w, vld1q_u32(K.as_ptr().add(4 * i))) };
                 } else {
                     // su0/su1 extend the rotating schedule vector in place
                     // (same index math as the C port, see sha256_hw.c).
@@ -507,7 +508,7 @@ mod hw_arm {
                 }
                 let tmp = state0;
                 state0 = unsafe { vsha256hq_u32(state0, state1, wk) };
-                state1 = unsafe { vsha256h2q_u32(tmp, state1, wk) };
+                state1 = unsafe { vsha256h2q_u32(state1, tmp, wk) };
             }
 
             state0 = unsafe { vaddq_u32(state0, save0) };

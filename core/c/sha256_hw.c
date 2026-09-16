@@ -311,7 +311,7 @@ static const uint32_t WEFT_SHA_K_ARM[64] = {
     0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
     0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
     0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a,
-    0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70808,
+    0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
     0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 };
 
@@ -332,7 +332,8 @@ static void sha256_transform_arm_ce(uint32_t state[8], const uint8_t* data,
         for (int i = 0; i < 16; i++) {
             uint32x4_t WK;
             if (i < 4) {
-                WK = vaddq_u32(W0, vld1q_u32(&WEFT_SHA_K_ARM[4 * i]));
+                uint32x4_t w = (i == 0) ? W0 : (i == 1) ? W1 : (i == 2) ? W2 : W3;
+                WK = vaddq_u32(w, vld1q_u32(&WEFT_SHA_K_ARM[4 * i]));
             } else {
                 /* W[i%4] = W[i%4-16] + sigma0(W[..-15]) + W[..-7] + sigma1(W[..-2]):
                    su0 takes (block being extended, next block);
@@ -350,7 +351,7 @@ static void sha256_transform_arm_ce(uint32_t state[8], const uint8_t* data,
             }
             const uint32x4_t TMP2 = STATE0;
             STATE0 = vsha256hq_u32(STATE0, STATE1, WK);
-            STATE1 = vsha256h2q_u32(TMP2, STATE1, WK);
+            STATE1 = vsha256h2q_u32(STATE1, TMP2, WK);
         }
 
         STATE0 = vaddq_u32(STATE0, SAVE0);

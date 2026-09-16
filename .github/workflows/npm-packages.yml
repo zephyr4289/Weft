@@ -21,6 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Binding parity guard (core/ts <-> packages/core)
+        run: bash ci/scripts/run_binding_parity.sh
+
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:

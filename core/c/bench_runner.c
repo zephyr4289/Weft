@@ -82,17 +82,24 @@ static uint64_t percentile_u64(uint64_t* sorted, size_t n, double p) {
     return sorted[idx];
 }
 
+#include <unistd.h>
+#include <fcntl.h>
+
 // ---------------------------------------------------------------------------
 // RSS measurement (B5)
 // ---------------------------------------------------------------------------
 
 static long get_rss_pages(void) {
     // /proc/self/statm: size resident shared text lib data dt (in pages)
-    FILE* f = fopen("/proc/self/statm", "r");
-    if (!f) return 0;
-    long size, resident;
-    fscanf(f, "%ld %ld", &size, &resident);
-    fclose(f);
+    int fd = open("/proc/self/statm", O_RDONLY);
+    if (fd < 0) return 0;
+    char buf[128];
+    ssize_t n = read(fd, buf, sizeof(buf) - 1);
+    close(fd);
+    if (n <= 0) return 0;
+    buf[n] = '\0';
+    long size = 0, resident = 0;
+    if (sscanf(buf, "%ld %ld", &size, &resident) < 2) return 0;
     return resident;
 }
 
@@ -401,14 +408,17 @@ static int run_b5(bench_cli_t* c) {
     weft_t w;
     if (weft_init(&w, payload_max) != 0) return 1;
 
-    // Warmup: 1000 publishes
+    // Warmup: 10000 publishes + claims + read_slice
     uint32_t seq = 1;
-    for (int i = 0; i < 1000; i++) {
+    uint8_t dummy[256];
+    for (int i = 0; i < 10000; i++) {
         fill_payload(&w, seq, payload_max);
         weft_publish(&w, seq, payload_max);
         weft_r_claim(&w); // drain
+        weft_r_read_slice(&w, dummy, 0, payload_max < 256 ? payload_max : 256);
         seq++;
     }
+    (void)get_rss_pages();
 
     // Snapshot RSS before steady-state
     long rss_before = get_rss_pages();

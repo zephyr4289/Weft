@@ -17,6 +17,7 @@ esac
 
 # Canonical bundle isolation per WO-P5-RELEASE decision 1:
 # Back up the canonical results.json, run the harness, restore it.
+CANON_SHA="unknown"
 if [ -f bench/results.json ]; then
   cp bench/results.json /tmp/weft-canonical-results.json.bak
   CANON_SHA=$(sha256sum bench/results.json | cut -d' ' -f1)
@@ -36,7 +37,7 @@ fi
 
 # Write structured results JSON
 python3 -c "
-import json
+import json, sys
 r = json.load(open('bench/results.json'))
 matrix = r.get('matrix', {})
 cells = {k: v.get('pass') for k, v in matrix.items() if k.startswith('${LANG_ARG}/')}
@@ -48,7 +49,7 @@ out = {
     'cells_pass': n_pass,
     'cells_total': n_total,
     'cells': cells,
-    'canonical_sha256_prefix': '$(echo $CANON_SHA | cut -c1-8)',
+    'canonical_sha256_prefix': '${CANON_SHA:0:8}',
 }
 json.dump(out, open('ci/run-artifacts/shard-bench-b-${LANG_ARG}-results.json', 'w'), indent=2)
 print(json.dumps(out, indent=2))
@@ -56,8 +57,7 @@ print(json.dumps(out, indent=2))
 
 # Exit non-zero if any cell is RED
 python3 -c "
-import json
+import json, sys
 r = json.load(open('ci/run-artifacts/shard-bench-b-${LANG_ARG}-results.json'))
-import sys
 sys.exit(0 if r['status'] == 'PASSED' else 1)
 " || exit 1

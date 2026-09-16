@@ -314,6 +314,7 @@ jobs:
       - name: Run shard
         id: shard_run
         run: |
+          set -o pipefail  # tee must not swallow the build exit code
           mkdir -p ci/run-artifacts
           chmod +x ${{ matrix.script }}
           ./${{ matrix.script }} ${{ matrix.args }} 2>&1 | tee ci/run-artifacts/shard-${{ matrix.shard }}.log

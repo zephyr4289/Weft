@@ -1,0 +1,8 @@
+# C fan-out torture under AddressSanitizer
+# env: x86_64 / linux-sandbox / gcc 14.2.0 -O1 -fsanitize=address / 2026-09-16T07:25:00Z
+
+reader 0: fresh=30185 dropped=269815 claims=29656700 skipped=0 torn_exhausted=23 last_seq=300000 identity=OK
+reader 1: fresh=19988 dropped=280012 claims=17082794 skipped=0 torn_exhausted=1 last_seq=300000 identity=OK
+reader 2: fresh=21150 dropped=278850 claims=21941872 skipped=0 torn_exhausted=0 last_seq=300000 identity=OK
+reader 3: fresh=32311 dropped=267689 claims=22059304 skipped=0 torn_exhausted=0 last_seq=300000 identity=OK
+torture: frames=300000 slots=4 words=256 readers=4 publishes=300000 elapsed_ms=995.8 rate=301262/s verdict=PASS

@@ -1,0 +1,17 @@
+# C fan-out ring evidence (RFC-0004 driver layer, core/c/fanout.{h,c})
+# env: x86_64 / linux-sandbox / gcc 14.2.0 / 2026-09-16T07:24:46Z
+# regime: fenced-acq/rel (default) unless noted; payload = relaxed-atomic u32 words
+
+## F-series conformance (fanout-test) — 4 builds
+--- fanout-test ---
+
+PASS: 0 failure(s)
+--- fanout-test-seq ---
+
+PASS: 0 failure(s)
+--- fanout-test-asan ---
+
+PASS: 0 failure(s)
+--- fanout-test-tsan ---
+
+PASS: 0 failure(s)

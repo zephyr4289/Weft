@@ -57,3 +57,23 @@
 | TS kernel | Unchanged from Phase 0. The four Heddle bindings (`@weft/react`, `@weft/svelte`, `@weft/vue`, `@weft/react-native`) wrap the kernel's `Weft` class — no kernel modifications. |
 | Divergence note | Already documented in WHITEPAPER §7.1: "SC Atomics ≥ C relaxed — where the web port is *stronger*, and why that is not cheating." |
 | SAB/COOP-COEP | Cited per §8.2: SAB requires COOP/COEP; default web path is one-copy Transferable. Each binding cites §8.2 where shared arrays are involved. |
+
+---
+
+## 5. Fan-out driver layer (RFC 0004 — `core/c/fanout.{h,c}`, `core/rust/src/fanout.rs`, `core/ts/fanout.ts`)
+
+The fan-out ring is DRIVER LAYER, not kernel — but it is a shared-memory
+protocol with its own ordering matrix, so it gets a PORTS row of its own.
+The ring layout is byte-compatible across all three languages (the interop
+contract, proven by `fixtures/xlang-fanout/`).
+
+| Row | Content |
+|---|---|
+| Ring layout | One region: `[latestSeq u64][publishes u64][slotSeq[M] u64][M payload slots]`, payload bytes % 4 == 0, `ring_bytes = 16 + 8M + M*payload_bytes`. Identical formula in TS (`core/ts/fanout.ts`), C (`weft_fanout_ring_bytes`), Rust (`fanout::ring_bytes`). |
+| `latestSeq` publication | TS: `Atomics.store(BigInt64Array)` — SeqCst (the web gives no weaker choice). C/Rust (default regime): Release store; readers load Acquire. The publication point pairs Release→Acquire for the happy-path happens-before. |
+| Invalidate-before-fill (FI1) | TS: SeqCst store. C/Rust: **SeqCst store + SeqCst fence** before the fill cursor is returned — property P1 (no fill word may become visible before the invalidate stamp; a Release store alone orders PRIOR accesses, not subsequent ones). |
+| Payload words | TS: plain Float32 writes (bracket discipline — the documented stance of `core/ts/fanout.ts`). C/Rust: **Relaxed atomic u32 word** stores/loads — race-free in the strict model at zero x86 cost; this is also what keeps the C ring TSAN-clean (a plain payload access concurrent with the opposing side is a race by definition, whatever the brackets). |
+| Revalidation (P2) | TS: SeqCst loads around the copy. C/Rust: Acquire loads + **one SeqCst fence between copy and revalidation** — if the copy observed any overwrite word, the revalidation load must observe the invalidate-or-newer stamp. |
+| A/B regime | C compiles with `-DWEFT_FANOUT_SEQ_CST=1` for the TS-equivalent all-SeqCst stamps; both regimes are torture-gated (`litmus/evidence/fanout/`). The fenced acq/rel default measured ~11% higher publish throughput under identical 4-reader contention (x86_64 sandbox, environment-tagged). |
+| Divergence note | The C/Rust ports are *weaker-ordered but fenced* where the TS port is SeqCst-everything — the reverse of the kernel ports' "stronger, not cheating" stance, and for the same reason: the ordering each needs is the ordering each pays for, and the bracket proof is carried by the two fences (P1/P2), Loom's exhaustive model (Rust), and the TSAN/ASAN/torture gates (C). |
+

@@ -1,0 +1,26 @@
+# Rust fan-out ring + FrameCursor evidence (RFC-0004/0008 driver layer, core/rust)
+# env: x86_64 / linux-sandbox / rustc 1.98.1 / 2026-09-16T08:01:04Z
+# regime: fenced acq/rel (mirrors core/c default) — Release stamps, SeqCst
+# invalidate+fence (P1), Relaxed atomic u32 payload words, Acquire loads,
+# SeqCst fence before revalidation (P2)
+
+## F-series conformance + cursor tests (debug)
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.43s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+## Existing kernel loom model — regression check (unchanged, unbounded)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+## Torture at production scale: 1M frames, 1 writer x 4 readers, every fresh claim word-validated (release)
+reader 0: fresh=144998 dropped=855002 last_seq=1000000 identity=OK
+reader 1: fresh=104692 dropped=895308 last_seq=1000000 identity=OK
+reader 2: fresh=262403 dropped=737597 last_seq=1000000 identity=OK
+reader 3: fresh=180329 dropped=819671 last_seq=1000000 identity=OK
+torture: frames=1000000 slots=4 words=64 readers=4 verdict=PASS
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 1.46s
+
+## Loom exhaustive model of the ring protocol (no torn claims, no future, exact telescoping)
+### LOOM_MAX_PREEMPTIONS=2 (the in-test default — cargo test terminates in ~22s)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 21.69s
+### LOOM_MAX_PREEMPTIONS=3 (stronger exploration, ~3 min)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 193.94s

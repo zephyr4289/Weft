@@ -1,0 +1,15 @@
+# xlang fan-out interop evidence (RFC-0004 byte-compat gate)
+# env: x86_64 / linux-sandbox / gcc 14.2.0 + node v24.19.0 / 2026-09-16T08:07:23Z
+# TS side = SHIPPED @weft/core dist (packages/core/dist/index.js); C side = core/c/fanout-runner
+
+== xlang fan-out interop: env x86_64/Linux, node v24.19.0, frames=5000 ==
+-- direction 1: TS producer -> C consumer --
+writer: frames=5000 slots=4 floats=64 bytes=1072 latest=5000 publishes=5000
+validate-ring: ring-ts.bin — fresh seq=5000 dropped=4999 payload_words=64 verdict=PASS
+
+-- direction 2: C producer -> TS consumer --
+dump-ring: wrote ring-c.bin (1072 bytes) + ring-c.meta — frames=5000 slots=4 words=64
+reader: fresh seq=5000 dropped=4999 words=64 bits=OK verdict=PASS
+
+verdict: PASS
+exit=0

@@ -107,6 +107,10 @@ export class Weft {
     // (undocumented)
     dv: DataView;
     // (undocumented)
+    envelopeEncode(dstOff: number, version: number, headerSize: number, seq: number, payloadLen: number): void;
+    // (undocumented)
+    envelopeEncodeV1(dstOff: number, seq: number, payloadLen: number): void;
+    // (undocumented)
     epoch(): number;
     // (undocumented)
     fillPayload(seq: number, payloadLen: number): void;
@@ -122,6 +126,10 @@ export class Weft {
     revoke(): void;
     // (undocumented)
     rHeaderSize(): number;
+    // (undocumented)
+    rLive(): Uint8Array;
+    // (undocumented)
+    rLiveFloat32(): Float32Array;
     // (undocumented)
     rMagic(): number;
     // (undocumented)
@@ -168,14 +176,6 @@ export class Weft {
     wBeginFloat32(): Float32Array;
     // (undocumented)
     wWritePayload(src: Uint8Array): number;
-}
-
-// @public (undocumented)
-export interface Weft {
-    // (undocumented)
-    envelopeEncode(dstOff: number, version: number, headerSize: number, seq: number, payloadLen: number): void;
-    // (undocumented)
-    envelopeEncodeV1(dstOff: number, seq: number, payloadLen: number): void;
 }
 
 // @public (undocumented)

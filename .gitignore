@@ -65,3 +65,8 @@ minisign/
 
 # JNI harness local build output (ci/scripts/run_fanout_native_shard.sh)
 fixtures/jni-fanout/build/
+
+# Browser SAB leg scratch project (the workspace lockfile stays frozen)
+ci/browser-tmp/
+tools/stranger-repro/build/
+tools/stranger-repro/STRANGER-REPRO-REPORT.*

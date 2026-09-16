@@ -1,0 +1,106 @@
+<!doctype html>
+<!-- harness.html — the in-page SAB leg.
+     Runs the REAL @weft/core (the dist build this repo ships) inside a
+     cross-origin-isolated browser context: kernel publish/claim roundtrip
+     + a 1-writer/2-reader fan-out stream with pat() validation. The report
+     is POSTed to /report; the shard's pass/fail gates on it. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Weft SAB harness</title>
+</head>
+<body>
+<script type="module">
+  const report = {
+    crossOriginIsolated: self.crossOriginIsolated === true,
+    sabAvailable: typeof SharedArrayBuffer !== 'undefined',
+    kernelRoundtrip: { ok: false, detail: 'not run' },
+    fanout: { ok: false, detail: 'not run', tornAccepted: -1, frames: 0 },
+  };
+
+  try {
+    const mod = await import('/dist/index.mjs');
+    const { Weft, WeftFanoutBroadcaster, pat } = mod;
+
+    // --- 1. Kernel roundtrip over a REAL SharedArrayBuffer-backed ring ---
+    const w = new Weft(256);
+    const seq = 1;
+    const cur = w.wBegin();
+    for (let i = 0; i < 256; i++) cur[i] = (i * 31 + seq) & 0xFF;
+    const pub = w.publish(seq, 256);
+    const claimed = w.claim();
+    const kernelOk = pub === 0 /* PubResult.OK */ && claimed > 0
+      && w.rSeq() === seq;
+    let bytesOk = true;
+    if (kernelOk) {
+      const live = w.rLive();
+      for (let i = 0; i < 256; i += 7) {
+        if (live[i] !== ((i * 31 + seq) & 0xFF)) { bytesOk = false; break; }
+      }
+    }
+    report.kernelRoundtrip = {
+      ok: kernelOk && bytesOk,
+      detail: `pub=${pub} claimed=${claimed} bytesOk=${bytesOk}`,
+    };
+
+    // --- 2. Fan-out: 1 writer, 2 readers, 5000 frames, pat-validated ---
+    const FRAMES = 5000;
+    const WORDS = 64; // floats
+    const b = new WeftFanoutBroadcaster(WORDS, 4);
+    const r1 = new mod.WeftFanoutReader(b.sab, WORDS, 4);
+    const r2 = new mod.WeftFanoutReader(b.sab, WORDS, 4);
+    let torn = 0;
+    let fresh1 = 0, fresh2 = 0;
+
+    // pat() comes from the kernel (04-LITMUS §0.1 canonical generator).
+    for (let f = 1; f <= FRAMES; f++) {
+      const view = b.begin();
+      for (let i = 0; i < WORDS; i++) {
+        view[i] = pat(f, i * 4);
+      }
+      b.publish();
+      const c1 = r1.claim();
+      if (c1.fresh) {
+        fresh1++;
+        const v = r1.view();
+        for (let i = 0; i < WORDS; i++) {
+          if (v[i] !== pat(c1.seq, i * 4)) { torn++; break; }
+        }
+      }
+      if (f % 2 === 0) {
+        const c2 = r2.claim();
+        if (c2.fresh) {
+          fresh2++;
+          const v = r2.view();
+          for (let i = 0; i < WORDS; i++) {
+            if (v[i] !== pat(c2.seq, i * 4)) { torn++; break; }
+          }
+        }
+      }
+    }
+    // Convergence: both readers end on the final frame.
+    const done1 = r1.claim();
+    const done2 = r2.claim();
+    report.fanout = {
+      ok: torn === 0 && done1.seq === FRAMES && done2.seq === FRAMES
+        && r1.stats().drops === FRAMES - r1.stats().fresh
+        && r2.stats().drops === FRAMES - r2.stats().fresh,
+      detail: `fresh1=${fresh1} fresh2=${fresh2} done1=${done1.seq} done2=${done2.seq}`,
+      tornAccepted: torn,
+      frames: FRAMES,
+    };
+  } catch (e) {
+    report.error = String(e && e.stack || e);
+    report.kernelRoundtrip.detail = report.kernelRoundtrip.detail === 'not run'
+      ? String(e) : report.kernelRoundtrip.detail;
+  }
+
+  await fetch('/report', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(report),
+  });
+  document.title = 'WEFT_SAB_REPORT_SENT';
+</script>
+</body>
+</html>

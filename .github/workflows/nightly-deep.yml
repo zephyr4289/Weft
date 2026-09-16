@@ -79,6 +79,7 @@ jobs:
       - name: Run litmus × 5 iterations
         id: litmus_x5
         run: |
+          set -o pipefail  # tee must not swallow the build exit code
           mkdir -p ci/run-artifacts
           chmod +x ci/scripts/run_litmus_stability.sh
           ./ci/scripts/run_litmus_stability.sh ${{ matrix.lang }} 5 2>&1 | tee ci/run-artifacts/shard-litmus-stability-${{ matrix.lang }}.log
@@ -116,6 +117,7 @@ jobs:
 
       - name: Run long thermal (600s per backend × 4 backends)
         run: |
+          set -o pipefail  # tee must not swallow the build exit code
           mkdir -p ci/run-artifacts
           chmod +x ci/scripts/run_thermal_shard.sh
           ./ci/scripts/run_thermal_shard.sh 600 2>&1 | tee ci/run-artifacts/shard-thermal-long.log
@@ -157,6 +159,7 @@ jobs:
 
       - name: Run TSAN litmus × 5 iterations
         run: |
+          set -o pipefail  # tee must not swallow the build exit code
           mkdir -p ci/run-artifacts
           chmod +x ci/scripts/run_tsan_deep.sh
           ./ci/scripts/run_tsan_deep.sh 5 2>&1 | tee ci/run-artifacts/shard-tsan-deep.log
@@ -213,6 +216,7 @@ jobs:
 
       - name: Run clean-tree validation
         run: |
+          set -o pipefail  # tee must not swallow the build exit code
           mkdir -p ci/run-artifacts
           chmod +x ci/scripts/run_clean_tree_deep.sh
           ./ci/scripts/run_clean_tree_deep.sh weft-nightly.tar.gz 2>&1 | tee ci/run-artifacts/shard-clean-tree.log

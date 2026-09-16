@@ -83,6 +83,28 @@ exact telescoping in every reachable execution) and a 1M-frame release
 torture; cross-language interop both directions green. CI gate:
 `fanout-native` shard (`ci/scripts/run_fanout_native_shard.sh`).
 
+### Mobile FFI surfaces (Android JNI, Flutter/Dart FFI) — 2026-09-16
+
+The byte-compatible ring is what lets ONE C implementation serve every
+runtime: `weft_jni.c` binds it for Android (direct-ByteBuffer zero-copy
+cursor, in-process readers across Android threads, foreign-ring attach for
+TS-produced sessions) and `packages/flutter_weft` binds it through
+`dart:ffi` (handles C-allocated and C-freed, `NativeFinalizer` bound to the
+C free function; cross-isolate consumers pass the reader handle as its raw
+address). A pure-JVM Kotlin port (`core/kotlin/Fanout.kt`, mirrored to the
+android package) carries the same protocol for non-instrumented JVMs — an
+AtomicLongArray/FloatArray semantics port, stated as such (the JVM has no
+SharedArrayBuffer; cross-language interop is the JNI/C path).
+
+Evidence: `fixtures/jni-fanout/` (JVM torture harness over the exact
+Android C sources: 53 checks, 200k frames × 3 reader threads, zero
+violations — log committed; runs in the `fanout-native` CI shard);
+`FanoutTest.kt` (pure-JVM F-series + threaded torture, host-JVM verified);
+`test/fanout_ffi_test.dart` (DF-series + cross-isolate torture —
+CI-GATED per the D-12/D-14 precedent: no Flutter SDK in the contributor
+sandbox). Ordering map rows for the JVM and Dart surfaces live in
+`docs/PORTS.md` §5.
+
 ### Litmus impact
 No L-series change — the kernel litmus suite is untouched and stays canonical for kernel semantics. The driver layer is covered by the package-level F-series battery: 28 tests in `packages/core/test/fanout.test.ts`, including a cross-thread protocol litmus where an independent worker-side writer (plain JS implementing this section's layout, not importing the class) publishes 100k frames while three readers validate every claimed byte — zero torn claims observed (`node-vitest/linux-sandbox`). No existing test fails; the addition is purely userland.
 

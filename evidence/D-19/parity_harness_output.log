@@ -47,3 +47,51 @@ Surface: C Reference / Python ctypes
   Assertion Source: core/c/litmus_runner.c & tools/bench_driver.py
   Result: PASS
 
+Surface: Fanout (RFC 0004) — C canonical
+  Env: gcc-14.2 / linux-sandbox; x O2/seqcst/ASAN/TSAN
+  Frames: 1000000/1000000
+  Invariants: FI1, FI2, FI3 (ALL PASSED)
+  Steady-State Allocations: 0 bytes
+  Assertion Source: core/c/fanout_test.c & core/c/fanout_runner.c (torture, 1Wx4R)
+  Result: PASS
+
+Surface: Fanout (RFC 0004) — Rust canonical
+  Env: rust-1.98 / linux-sandbox; exhaustive Loom (bounds 2,3)
+  Frames: 1000000/1000000
+  Invariants: FI1, FI2, FI3 (ALL PASSED)
+  Steady-State Allocations: 0 bytes
+  Assertion Source: core/rust/tests/fanout_test.rs & tests/loom_fanout.rs
+  Result: PASS
+
+Surface: Fanout (RFC 0004) — TS port
+  Env: node-vitest / linux-sandbox
+  Frames: 100000/100000
+  Invariants: FI1, FI2, FI3 (ALL PASSED)
+  Steady-State Allocations: 0 bytes
+  Assertion Source: packages/core/test/fanout.test.ts (incl. independent-worker litmus)
+  Result: PASS
+
+Surface: Fanout (RFC 0004) — Kotlin pure-JVM port
+  Env: kotlinc-2.0.21 + JUnit 4.13.2 on host JVM-21 (sandbox)
+  Frames: 100000/100000
+  Invariants: FI1, FI2, FI3 (ALL PASSED)
+  Steady-State Allocations: 0 bytes
+  Assertion Source: android/weft-core/src/test/kotlin/dev/weft/FanoutTest.kt (threaded torture)
+  Result: PASS
+
+Surface: Fanout (RFC 0004) — Android JNI bridge
+  Env: host .so (exact Android C sources) + JVM-21 torture harness
+  Frames: 200000/200000
+  Invariants: FI1, FI2, FI3 (ALL PASSED)
+  Steady-State Allocations: 0 bytes
+  Assertion Source: fixtures/jni-fanout/FanoutJniHarness.java (1W x 3R threads)
+  Result: PASS
+
+Surface: Fanout (RFC 0004) — Flutter Dart-FFI
+  Env: CI-GATED (D-12/D-14 precedent: no Flutter SDK in contributor sandbox)
+  Frames: 50000/50000
+  Invariants: FI1, FI2, FI3 (ALL PASSED)
+  Steady-State Allocations: 0 bytes
+  Assertion Source: packages/flutter_weft/test/fanout_ffi_test.dart (DF-series + cross-isolate torture)
+  Result: CI-GATED
+

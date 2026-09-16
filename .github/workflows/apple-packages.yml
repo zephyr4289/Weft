@@ -26,11 +26,13 @@ jobs:
       - name: Build Swift Package
         id: swift_build
         run: |
+          set -o pipefail  # tee must not swallow the build exit code
           swift build -v 2>&1 | tee /tmp/swift_build_output.log
 
       - name: Run Swift Unit Tests
         id: swift_test
         run: |
+          set -o pipefail  # tee must not swallow the build exit code
           swift test -v 2>&1 | tee -a /tmp/swift_build_output.log
 
       - name: Archive Swift Artifacts

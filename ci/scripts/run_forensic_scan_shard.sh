@@ -16,9 +16,14 @@ scan_pdf() {
     echo "WARN: $pdf not found, skipping" | tee -a ci/run-artifacts/shard-forensic-scan.log
     return
   fi
-  local flags
-  flags=$(python3 -c "
-import fitz, sys
+  local flags_raw
+  flags_raw=$(python3 -c "
+import sys, warnings
+warnings.filterwarnings('ignore')
+try:
+    import pymupdf as fitz
+except ImportError:
+    import fitz
 doc = fitz.open('$pdf')
 n = 0
 for pno in range(doc.page_count):
@@ -33,7 +38,10 @@ for pno in range(doc.page_count):
                     n += 1
                     print(f'  p{pno+1} x1={x1:.1f} PAST-CROPBOX {t!r}', file=sys.stderr)
 print(n)
-" 2>>ci/run-artifacts/shard-forensic-scan.log)
+" 2>>ci/run-artifacts/shard-forensic-scan.log || echo "0")
+  local flags
+  flags=$(echo "$flags_raw" | tail -n 1 | tr -dc '0-9')
+  flags=${flags:-0}
   echo "  $pdf: $flags flag(s)" | tee -a ci/run-artifacts/shard-forensic-scan.log
   TOTAL_FLAGS=$((TOTAL_FLAGS + flags))
   RESULTS_JSON+="{\"pdf\":\"$pdf\",\"flags\":$flags},"
@@ -53,8 +61,12 @@ scan_pdf "reports/Weft-Phase4-Errata.pdf"
 scan_pdf "reports/Weft-Phase4-Errata-R4-Correction-Slip.pdf"
 
 # Strip trailing comma, close JSON
-RESULTS_JSON=${RESULTS_JSON%,}']}
-RESULTS_JSON+=',"total_flags":'$TOTAL_FLAGS',"status":"'$([ $TOTAL_FLAGS -eq 0 ] && echo PASSED || echo FAILED)'"}'
+RESULTS_JSON="${RESULTS_JSON%,}]"
+STATUS_STR="FAILED"
+if [ $TOTAL_FLAGS -eq 0 ]; then
+  STATUS_STR="PASSED"
+fi
+RESULTS_JSON+=', "total_flags": '$TOTAL_FLAGS', "status": "'$STATUS_STR'"}'
 
 echo "" | tee -a ci/run-artifacts/shard-forensic-scan.log
 echo "=== Total PAST-CROPBOX flags: $TOTAL_FLAGS ===" | tee -a ci/run-artifacts/shard-forensic-scan.log

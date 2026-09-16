@@ -52,6 +52,10 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-compose:1.9.3")
+    // viewModel() in MainActivity resolves from this artifact — it was
+    // missing, so the sample app did not compile on CI ("Unresolved
+    // reference 'viewModel'", android CI log for 8d6eebf).
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.compose.ui:ui:1.7.6")
     implementation("androidx.compose.material3:material3:1.3.1")
     implementation("androidx.compose.foundation:foundation:1.7.6")

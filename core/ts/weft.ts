@@ -73,23 +73,34 @@ function computeBufSize(payloadMax: number): number {
 /// `w_work` + reader-private `r_work` + I6 state + telemetry.
 ///
 /// Memory layout in the SharedArrayBuffer:
-///   [0..64) control block (Int32Array of 16 — we use slots 0..6)
+///   [0..64) control block (Int32Array of 16 — we use all 16 slots)
 ///     slot 0: latest (Int32)
 ///     slot 1: w_work (Int32, writer-private)
 ///     slot 2: r_work (Int32, reader-private)
 ///     slot 3: revoked (Int32 — 0/1 for false/true)
 ///     slot 4: epoch (Int32)
-///     slot 5: t_publish (BigInt64? No — use two Int32 slots: lo, hi)
-///     slots 5-6: t_publish (lo, hi — BigInt64 via DataView)
-///     slots 7-8: t_claim
-///     slots 9-10: t_drop
-///     slots 11-12: t_wsteps
-///     slots 13-14: t_rsteps
+///     slots 5-6: t_publish (lo, hi — u64 as dual i32 halves)
+///     slots 7-8: t_claim (lo, hi)
+///     slots 9-10: t_drop (lo, hi)   [slot indices in u64 terms; see below]
 ///   [64..64+3*buf_size) three buffers, each `buf_size` bytes
 ///
-/// We use BigInt64Array views for the u64 counters via DataView on the SAB
-/// directly (since BigInt64Array requires 8-byte alignment, which 64-byte
-/// control block guarantees).
+/// TELEMETRY COUNTER REGIME (2026-09-16, evidence-closed gap): the hot
+/// path increments the u64 counters as DUAL i32 HALVES via Atomics on the
+/// Int32 view — allocation-free (Law 2; the W6 feed bench measured ~90 B
+/// per publish of BigInt boxing here: the 1n literal, the Atomics.add
+/// return value, and the t_wsteps sum, each a fresh heap BigInt).
+/// The BigInt64 view below still reads the SAME 8 bytes as one u64 for the
+/// COLD getters (tPublish()/tClaim()/tDrop()) — the exact u64 observable
+/// API and the C-port u64 parity are preserved. Division of labor:
+///   hot path:  Atomics.add(Int32 lo, 1) + carry bump of the hi half —
+///              Number arithmetic only, zero allocation.
+///   cold path: Atomics.load(BigInt64) — allocates its result, as any cold
+///              path may (the debugView contract).
+/// Stated divergence (AXIOM T bounds it): the two-step increment is not
+/// atomic-as-u64 — a racing cold reader can observe the transient
+/// (new lo, old hi) window once per 2^32 increments; settled reads are
+/// exact. The C kernel's single u64 fetch_add remains the atomic gold
+/// standard the port cannot express in JS Atomics.
 export class Weft {
   /// The single SharedArrayBuffer.
   sab: SharedArrayBuffer;
@@ -112,19 +123,37 @@ export class Weft {
   static readonly SLOT_R_WORK = 2;
   static readonly SLOT_REVOKED = 3;
   static readonly SLOT_EPOCH = 4;
-  // u64 slots (BigInt64Array indices, 8 bytes each, starting at byte 40 → u64 index 5)
+  // Dual-i32 halves of the u64 telemetry counters — the HOT path bumps
+  // these (allocation-free); the cold getters read the composite u64
+  // through the BigInt64 view (slots below, same 8 bytes).
+  static readonly SLOT_T_PUBLISH_LO = 10; // bytes 40-43
+  static readonly SLOT_T_PUBLISH_HI = 11; // bytes 44-47
+  static readonly SLOT_T_CLAIM_LO = 12;   // bytes 48-51
+  static readonly SLOT_T_CLAIM_HI = 13;   // bytes 52-55
+  static readonly SLOT_T_DROP_LO = 14;    // bytes 56-59
+  static readonly SLOT_T_DROP_HI = 15;    // bytes 60-63
+  // u64 slots (BigInt64Array indices — the COLD read view; byte ranges
+  // coincide with the Int32 halves above by construction).
   static readonly SLOT64_T_PUBLISH = 5;  // bytes 40-47
   static readonly SLOT64_T_CLAIM = 6;    // bytes 48-55
   static readonly SLOT64_T_DROP = 7;     // bytes 56-63
 
-  // Note: t_wsteps and t_rsteps are stored in the same u64 array further along
-  // (would need slots 8-9 and 10-11). For Phase 0 we co-locate them in the
-  // control block by extending it to 128 bytes if needed. For simplicity,
-  // we put t_wsteps and t_rsteps as plain JS numbers (single-threaded access
-  // by contract — wsteps by writer, rsteps by reader — and they're only
-  // read by the litmus runner, not synchronized).
-  t_wsteps: bigint = 0n;
-  t_rsteps: bigint = 0n;
+  // Note: t_wsteps and t_rsteps are writer-/reader-private advisory step
+  // counters (single-threaded access by contract — wsteps by the writer,
+  // rsteps by the reader). They are plain JS numbers: integer-exact to
+  // 2^53 with zero per-step allocation (the previous bigint fields boxed a
+  // fresh BigInt on every publish/claim — part of the measured ~90 B/publish
+  // telemetry cost this regime closes).
+  t_wsteps: number = 0;
+  t_rsteps: number = 0;
+
+  /// Hot-path u64-counter bump: lo + 1 with carry into hi when the lo half
+  /// wraps (Atomics.add returns the OLD signed value; -1 == 0xFFFFFFFF).
+  /// Zero allocation; not atomic-as-u64 (see the layout comment — AXIOM T).
+  private bumpCounter(loSlot: number, hiSlot: number): void {
+    const prev = Atomics.add(this.ctrl, loSlot, 1);
+    if (prev === -1) Atomics.add(this.ctrl, hiSlot, 1); // carried past 2^32-1
+  }
 
   /// Writer-cursor views, one per buffer slot, allocated ONCE at construction
   /// (Law 2: zero allocation per call — wBegin just indexes this array).
@@ -272,7 +301,7 @@ export class Weft {
     if (Atomics.load(this.ctrl, Weft.SLOT_REVOKED) !== 0) {
       // ACK: epoch.fetch_add(1, AcqRel). In TS, Atomics.add is seqcst (stronger).
       Atomics.add(this.ctrl, Weft.SLOT_EPOCH, 1);
-      Atomics.add(this.ctrlU64, Weft.SLOT64_T_DROP, 1n);
+      this.bumpCounter(Weft.SLOT_T_DROP_LO, Weft.SLOT_T_DROP_HI);
       return PubResult.DroppedRevoked;
     }
 
@@ -283,7 +312,12 @@ export class Weft {
     this.envelopeEncodeV1(bufOff, seq, payloadLen);
 
     // Write canary = seq at buf[w_work].tail (u64 LE at buf_size-8).
-    this.dv.setBigUint64(bufOff + this.bufSize - 8, BigInt(seq), true);
+    // Dual u32 writes: the exact BigInt(seq) bit pattern for the whole
+    // int32 envelope domain (negative seq sign-extends, exactly as
+    // BigInt two's-complement did), with zero allocation (Law 2).
+    const canaryOff = bufOff + this.bufSize - 8;
+    this.dv.setUint32(canaryOff, seq >>> 0, true);
+    this.dv.setUint32(canaryOff + 4, seq < 0 ? 0xFFFFFFFF : 0, true);
 
     // THE atomic: publish + take old latest.
     // Atomics.exchange is seqcst in TS (the only choice). The catalog says AcqRel;
@@ -294,9 +328,10 @@ export class Weft {
     // because TS Atomics.store is seqcst, but the field is thread-private by contract).
     Atomics.store(this.ctrl, Weft.SLOT_W_WORK, old);
 
-    // Telemetry.
-    Atomics.add(this.ctrlU64, Weft.SLOT64_T_PUBLISH, 1n);
-    this.t_wsteps += 1n;
+    // Telemetry (allocation-free — see the counter-regime note in the
+    // layout comment).
+    this.bumpCounter(Weft.SLOT_T_PUBLISH_LO, Weft.SLOT_T_PUBLISH_HI);
+    this.t_wsteps += 1;
 
     return PubResult.Ok;
   }
@@ -310,8 +345,8 @@ export class Weft {
     const r = Atomics.load(this.ctrl, Weft.SLOT_R_WORK);
     const mine = Atomics.exchange(this.ctrl, Weft.SLOT_LATEST, r);
     Atomics.store(this.ctrl, Weft.SLOT_R_WORK, mine);
-    Atomics.add(this.ctrlU64, Weft.SLOT64_T_CLAIM, 1n);
-    this.t_rsteps += 1n;
+    this.bumpCounter(Weft.SLOT_T_CLAIM_LO, Weft.SLOT_T_CLAIM_HI);
+    this.t_rsteps += 1;
     return mine;
   }
 
@@ -389,8 +424,13 @@ export class Weft {
       if (payload[i] !== pat(expectedSeq, i)) return false;
     }
     const r = Atomics.load(this.ctrl, Weft.SLOT_R_WORK);
-    const cv = this.dv.getBigUint64(this.bufOffset(r) + this.bufSize - 8, true);
-    if (cv !== BigInt(expectedSeq)) return false;
+    // Canary check, dual u32 (the write's mirror — same bit pattern, zero
+    // allocation; this method runs per claim in the litmus loops).
+    const canaryOff = this.bufOffset(r) + this.bufSize - 8;
+    if (this.dv.getUint32(canaryOff, true) !== (expectedSeq >>> 0)) return false;
+    if (this.dv.getUint32(canaryOff + 4, true) !== (expectedSeq < 0 ? 0xFFFFFFFF : 0)) {
+      return false;
+    }
     return true;
   }
 

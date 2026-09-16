@@ -13,6 +13,7 @@
 //   F6  publish-without-begin is a detectable no-op (returns 0)
 //   F7  attach to foreign/serialized ring — full handoff accounting
 //   F8  debug_stats — latest, publishes, slot stamps
+//   F9  heap lifecycle (_new/_free, the JNI/Dart-FFI binding pair) + ring accessor
 //   FC1..FC6 — FrameCursor: first/behind/reset semantics on the kernel reader
 //
 // Build (see core/c/Makefile): make fanout-test        (-O2)
@@ -203,7 +204,11 @@ int main(void) {
         uint8_t* copy2 = (uint8_t*)malloc(rb);
         memcpy(copy2, a.ring, rb);
         weft_fanout_t aw;
+        memset(&aw, 0, sizeof(aw)); // attach expects an EMPTY broadcaster
         CHECK(weft_fanout_attach_writer(&aw, copy2, rb, PB, 4) == 0, "F7 writer attach");
+        // Attach on a LIVE broadcaster must be refused (state intact, no leak).
+        CHECK(weft_fanout_attach_writer(&aw, copy2, rb, PB, 4) == -1,
+              "F7 second attach on the live broadcaster is refused");
         fill_frame(&aw, N + 1, WORDS);
         CHECK(weft_fanout_publish(&aw) == N + 1, "F7 attached writer continues numbering");
         weft_fanout_reader_t rr2;
@@ -230,6 +235,40 @@ int main(void) {
             if (d.slot_stamps[k] == 0 || d.slot_stamps[k] > 4) stamped_ok = 0;
         }
         CHECK(stamped_ok, "F8 slot stamps populated and in range");
+    }
+
+    // ----- F9: heap lifecycle (_new/_free) + ring accessor -----
+    // The pair the JNI and Dart-FFI bridges bind: allocate+init and
+    // destroy+free must each be ONE call (FFI-finalizer discipline), and
+    // weft_fanout_ring() must expose the byte-layout contract base.
+    {
+        CHECK(weft_fanout_new(12, 0) == NULL && weft_fanout_new(12, 65) == NULL &&
+              weft_fanout_new(6, 4) == NULL,
+              "F9 new rejects bad geometry (slots, mod-4)");
+        weft_fanout_t* fn = weft_fanout_new(64, 4);
+        CHECK(fn != NULL, "F9 new allocates");
+        const void* rp = weft_fanout_ring(fn);
+        CHECK(rp != NULL, "F9 ring accessor non-NULL");
+        // The layout contract, read raw: latestSeq at +0, publishes at +8.
+        const _Atomic uint64_t* raw = (const _Atomic uint64_t*)rp;
+        uint8_t* b = weft_fanout_begin(fn);
+        for (int i = 0; i < 64; i++) b[i] = (uint8_t)(0xF0 ^ i);
+        CHECK(weft_fanout_publish(fn) == 1, "F9 new ring publishes frame 1");
+        CHECK(atomic_load_explicit(raw, memory_order_acquire) == 1,
+              "F9 raw latestSeq == 1 at offset 0");
+        CHECK(atomic_load_explicit(raw + 1, memory_order_relaxed) == 1,
+              "F9 raw publishes == 1 at offset 8");
+        weft_fanout_reader_t* rn = weft_fanout_reader_new(rp, weft_fanout_ring_bytes(64, 4), 64, 4);
+        CHECK(rn != NULL, "F9 reader_new attaches to the ring pointer");
+        CHECK(weft_fanout_claim(rn)->fresh && weft_fanout_claim(rn)->seq == 1,
+              "F9 reader on the new/free ring claims frame 1");
+        CHECK(weft_fanout_reader_new(rp, 8, 64, 4) == NULL,
+              "F9 reader_new rejects ring_bytes mismatch");
+        weft_fanout_reader_free(rn);
+        weft_fanout_reader_free(NULL); // NULL-safe
+        weft_fanout_free(fn);
+        weft_fanout_free(NULL); // NULL-safe
+        CHECK(1, "F9 free pair NULL-safe, no crash");
     }
 
     // ----- FC1..FC6: FrameCursor on the kernel reader -----

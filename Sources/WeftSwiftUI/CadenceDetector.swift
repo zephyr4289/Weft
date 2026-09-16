@@ -10,6 +10,18 @@
 
 import Foundation
 
+// Conditional platform imports: screenMaxRefreshRate() uses UIScreen under
+// UIKit and NSScreen under AppKit behind matching canImport guards — the
+// symbols need their frameworks imported under the same conditions. The
+// AppKit arm compiled without its import on macOS ("cannot find 'NSScreen'
+// in scope", apple CI log for 8d6eebf — masked until now by the tee-pipe
+// exit-code swallow in the CI steps).
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
 /// Active rendering pipeline mode.
 public enum RendererMode: String, CaseIterable, Equatable, Sendable {
     case auto

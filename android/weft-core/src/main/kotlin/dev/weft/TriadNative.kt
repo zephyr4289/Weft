@@ -57,6 +57,34 @@ internal object TriadNative {
     external fun weftPublishCount(weftHandle: Long): Long
     external fun weftReadCount(weftHandle: Long): Long
 
+    // --- Fan-out ring (RFC 0004) — binds core/c/fanout.{h,c} via weft_jni.c ---
+    // The C ring is BYTE-COMPATIBLE with core/ts/fanout.ts, so a ring
+    // produced by any port is consumable here and vice versa. Pure-JVM
+    // semantics (no native library) live in Fanout.kt — these entries are
+    // the production native path, the same split as Weft.kt vs the kernel
+    // entries above.
+    external fun fanoutCreate(payloadBytes: Int, slotCount: Int): Long
+    external fun fanoutCreateForeign(ringBuf: ByteBuffer, payloadBytes: Int, slotCount: Int): Long
+    external fun fanoutRingBytes(payloadBytes: Int, slotCount: Int): Long
+    external fun fanoutDestroy(fanoutHandle: Long)
+    external fun fanoutBegin(fanoutHandle: Long): ByteBuffer?
+    external fun fanoutFill(fanoutHandle: Long, srcBuf: ByteBuffer, len: Int): Int
+    external fun fanoutPublish(fanoutHandle: Long): Long
+    external fun fanoutLatestSeq(fanoutHandle: Long): Long
+    external fun fanoutPublishes(fanoutHandle: Long): Long
+    external fun fanoutReaderCreate(fanoutHandle: Long): Long
+    external fun fanoutReaderCreateForeign(ringBuf: ByteBuffer, payloadBytes: Int, slotCount: Int): Long
+    external fun fanoutReaderDestroy(readerHandle: Long)
+    external fun fanoutClaim(readerHandle: Long): Long
+    external fun fanoutClaimFresh(readerHandle: Long): Boolean
+    external fun fanoutClaimDropped(readerHandle: Long): Long
+    external fun fanoutViewBuffer(readerHandle: Long): ByteBuffer?
+    external fun fanoutReaderStatsReads(readerHandle: Long): Long
+    external fun fanoutReaderStatsFresh(readerHandle: Long): Long
+    external fun fanoutReaderStatsDrops(readerHandle: Long): Long
+    external fun fanoutReaderStatsSkipped(readerHandle: Long): Long
+    external fun fanoutReaderStatsExhausted(readerHandle: Long): Long
+
     // --- Panic shield wrappers ---
     // Every JNI entry is wrapped: Throwable caught → error code returned.
     // No exception crosses the FFI boundary.
@@ -75,6 +103,55 @@ internal object TriadNative {
         } catch (t: Throwable) {
             System.err.println("Weft: JNI read panic: ${t.message}")
             false
+        }
+    }
+
+    // Fan-out panic shields (handle 0 / -1 / false = failure, never an
+    // exception crossing the boundary). The claim record is reader-owned
+    // and stable until that reader's next claim, so claim()/claimFresh()/
+    // claimDropped() read back one consistent claim across three calls.
+    fun safeFanoutCreate(payloadBytes: Int, slotCount: Int): Long {
+        return try {
+            fanoutCreate(payloadBytes, slotCount)
+        } catch (t: Throwable) {
+            System.err.println("Weft: JNI fanoutCreate panic: ${t.message}")
+            0L
+        }
+    }
+
+    fun safeFanoutReaderCreate(fanoutHandle: Long): Long {
+        return try {
+            fanoutReaderCreate(fanoutHandle)
+        } catch (t: Throwable) {
+            System.err.println("Weft: JNI fanoutReaderCreate panic: ${t.message}")
+            0L
+        }
+    }
+
+    fun safeFanoutBegin(fanoutHandle: Long): ByteBuffer? {
+        return try {
+            fanoutBegin(fanoutHandle)
+        } catch (t: Throwable) {
+            System.err.println("Weft: JNI fanoutBegin panic: ${t.message}")
+            null
+        }
+    }
+
+    fun safeFanoutPublish(fanoutHandle: Long): Long {
+        return try {
+            fanoutPublish(fanoutHandle)
+        } catch (t: Throwable) {
+            System.err.println("Weft: JNI fanoutPublish panic: ${t.message}")
+            0L
+        }
+    }
+
+    fun safeFanoutClaim(readerHandle: Long): Long {
+        return try {
+            fanoutClaim(readerHandle)
+        } catch (t: Throwable) {
+            System.err.println("Weft: JNI fanoutClaim panic: ${t.message}")
+            0L
         }
     }
 }

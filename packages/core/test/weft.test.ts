@@ -414,3 +414,79 @@ describe('reader envelope accessors', () => {
     expect(none.length).toBe(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Telemetry counter regime — dual i32 halves (2026-09-16)
+//
+// The hot path bumps u64 counters as two Int32 atomics with carry; the cold
+// getters compose the exact u64 through the BigInt64 view (same 8 bytes).
+// These tests pin the carry arithmetic at the 2^32 boundary and the exact
+// u64 observable API across it — the property Option A (single wrap-safe
+// u32) gives up and the reason Option B ships instead (bench: see
+// demos/web/evidence/feed-gc-bench.log — Mode C's telemetry cost closed).
+// ---------------------------------------------------------------------------
+
+describe('telemetry dual-half counters', () => {
+  it('counts exactly across the 2^32 carry boundary (t_publish)', () => {
+    const w = new Weft(64);
+    // White-box, documented layout: put the lo half one below the wrap.
+    Atomics.store(w.ctrl, Weft.SLOT_T_PUBLISH_LO, -1); // 0xFFFFFFFF
+    Atomics.store(w.ctrl, Weft.SLOT_T_PUBLISH_HI, 0);
+    expect(w.tPublish()).toBe(0xFFFFFFFFn);
+    w.wBegin()[0] = 1;
+    w.publish(1, 64);
+    // Carried: hi flipped, lo wrapped to 0 — the exact u64 is 2^32.
+    expect(w.tPublish()).toBe(0x1_0000_0000n);
+    w.wBegin()[0] = 2;
+    w.publish(2, 64);
+    expect(w.tPublish()).toBe(0x1_0000_0001n);
+  });
+
+  it('counts exactly across the 2^32 carry boundary (t_claim)', () => {
+    const w = new Weft(64);
+    Atomics.store(w.ctrl, Weft.SLOT_T_CLAIM_LO, -1);
+    Atomics.store(w.ctrl, Weft.SLOT_T_CLAIM_HI, 0x1234);
+    w.claim();
+    // The carry increments the hi half: 0x1234_FFFFFFFF + 1 = 0x1235_0000_0000.
+    expect(w.tClaim()).toBe(0x1235_0000_0000n);
+  });
+
+  it('t_drop carries through the revoked path', () => {
+    const w = new Weft(64);
+    Atomics.store(w.ctrl, Weft.SLOT_T_DROP_LO, -1);
+    Atomics.store(w.ctrl, Weft.SLOT_T_DROP_HI, 0);
+    w.revoke();
+    expect(w.publish(1, 64)).toBe(PubResult.DroppedRevoked);
+    expect(w.tDrop()).toBe(0x1_0000_0000n);
+  });
+
+  it('canary: dual-u32 write keeps the exact BigInt(seq) bit pattern, sign-extended', () => {
+    // verifyHeld for the positive domain (pat-filled frame), then the raw
+    // canary BYTES for the negative domain — the two's-complement u64 that
+    // setBigUint64(BigInt(seq)) produced, now produced by two u32 writes.
+    const w = new Weft(64);
+    w.fillPayload(7, 64);
+    expect(w.publish(7, 64)).toBe(PubResult.Ok);
+    w.claim();
+    expect(w.verifyHeld(7, 64)).toBe(true);
+
+    const w2 = new Weft(64);
+    w2.fillPayload(1, 64);
+    w2.publish(-5, 64);
+    w2.claim();
+    const raw = w2.rReadSlice(w2.bufSize - 8, 8);
+    expect(raw.length).toBe(8);
+    const dv = new DataView(raw.buffer, raw.byteOffset, 8);
+    expect(dv.getBigUint64(0, true)).toBe(0xFFFFFFFFFFFFFFFBn); // BigInt(-5)
+  });
+
+  it('t_wsteps/t_rsteps are allocation-free counters (number domain)', () => {
+    const w = new Weft(64);
+    w.wBegin()[0] = 1;
+    w.publish(1, 64);
+    w.claim();
+    expect(w.t_wsteps).toBe(1);
+    expect(w.t_rsteps).toBe(1);
+    expect(typeof w.t_wsteps).toBe('number');
+  });
+});

@@ -43,7 +43,7 @@ print(json.dumps(out, indent=2))
 
 # Exit non-zero if any cell is RED
 python3 -c "
-import json
+import json, sys
 r = json.load(open('ci/run-artifacts/shard-litmus-${LANG_ARG}-results.json'))
 sys.exit(0 if r['status'] == 'PASSED' else 1)
 " || exit 1

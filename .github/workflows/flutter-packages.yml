@@ -33,29 +33,34 @@ jobs:
 
       - name: Compile Native C Kernel (libweft.so)
         run: |
+          set -o pipefail  # tee must not swallow the build exit code
           mkdir -p packages/flutter_weft/build
-          gcc -shared -fPIC -O3 -Icore/c core/c/weft.c -o packages/flutter_weft/libweft.so 2>&1 | tee -a /tmp/flutter_build_output.log
+          gcc -shared -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c -o packages/flutter_weft/libweft.so 2>&1 | tee -a /tmp/flutter_build_output.log
           cp packages/flutter_weft/libweft.so /tmp/libweft.so
           sudo cp packages/flutter_weft/libweft.so /usr/local/lib/libweft.so
           sudo ldconfig || true
 
       - name: Install Dependencies
         run: |
+          set -o pipefail  # tee must not swallow the build exit code
           cd packages/flutter_weft
           flutter pub get 2>&1 | tee -a /tmp/flutter_build_output.log
 
       - name: Dart Analyze
         run: |
+          set -o pipefail  # tee must not swallow the build exit code
           cd packages/flutter_weft
           dart analyze --fatal-infos 2>&1 | tee -a /tmp/flutter_build_output.log
 
       - name: Run Tests
         run: |
+          set -o pipefail  # tee must not swallow the build exit code
           cd packages/flutter_weft
           flutter test -v 2>&1 | tee -a /tmp/flutter_build_output.log
 
       - name: Publish Dry Run
         run: |
+          set -o pipefail  # tee must not swallow the build exit code
           cd packages/flutter_weft
           dart pub publish --dry-run 2>&1 | tee -a /tmp/flutter_build_output.log
 

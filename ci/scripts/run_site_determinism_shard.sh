@@ -25,12 +25,13 @@ else
 fi
 
 # Also verify no client-side JS in any page
-JS_HITS=$(grep -lE "<script|javascript:" bench/site/*.html 2>/dev/null | wc -l)
+JS_HITS=$( (grep -lE "<script|javascript:" bench/site/*.html 2>/dev/null || true) | grep -c . || true)
 echo "Client-side JS hits: $JS_HITS (target: 0)" | tee -a ci/run-artifacts/shard-site-determinism.log
 
 # Write results JSON
 python3 -c "
-import json
+import json, os, glob
+pages = [os.path.basename(p) for p in sorted(glob.glob('bench/site/*.html'))]
 out = {
     'shard': 'site-determinism',
     'status': '$STATUS',
@@ -38,7 +39,7 @@ out = {
     'second_sha256': '$SECOND_SHA',
     'byte_identical': '$FIRST_SHA' == '$SECOND_SHA',
     'client_side_js_hits': $JS_HITS,
-    'pages': $(ls bench/site/ | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin]))'),
+    'pages': pages,
 }
 json.dump(out, open('ci/run-artifacts/shard-site-determinism-results.json', 'w'), indent=2)
 print(json.dumps(out, indent=2))

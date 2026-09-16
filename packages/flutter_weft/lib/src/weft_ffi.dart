@@ -18,7 +18,14 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'bindings.dart';
 
-class WeftFFI {
+/// WeftFFI wraps the native C Triad kernel handle. `implements Finalizable`
+/// is REQUIRED by NativeFinalizer.attach (its target parameter is
+/// Finalizable — the SDK enforces the "attach before the object dies"
+/// contract through the type system); without it this file did not compile
+/// ("The argument type 'WeftFFI' can't be assigned to the parameter type
+/// 'Finalizable'", flutter CI log for 8d6eebf — masked until now by the
+/// tee-pipe exit-code swallow in the CI steps).
+class WeftFFI implements Finalizable {
   final WeftNativeBindings bindings;
   final Pointer<WeftStruct> _handle;
   final int payloadMax;

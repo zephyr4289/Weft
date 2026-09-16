@@ -265,7 +265,19 @@ if (isMainThread) {
     let totalClaims = 0n;
     let allDrainOk = true;
 
-    for (const hold of holds) {
+    // v1.1.1: adaptive exposure window. On slow or loaded runners a single pass of the
+    // hold schedule can lawfully land under the claims floor (staff probes: 236/164/164/
+    // 171/166 across 5 runs) — an exposure shortfall, not a data-integrity failure. The
+    // schedule therefore repeats (bounded by MAX_PASSES and a wall clock) until the floor
+    // is met. The gate is untouched: torn==0 && drain_ok && claims>=minClaims.
+    const MAX_PASSES = 8;
+    const wallCapNs = 10_000_000_000n;  // 10s, in nanoseconds (nowNs() domain)
+    const seriesStart = nowNs();
+    let passes = 1;
+    const schedule: number[] = [...holds];
+
+    while (schedule.length > 0) {
+      const hold = schedule.shift()!;
       const w = new Weft(payloadMax);
       // Start the worker (don't await — run reader concurrently).
       const replyPromise = runWriter({
@@ -332,12 +344,20 @@ if (isMainThread) {
       claimsPerSAccum += holdCps;
       holdsCount++;  // R2 fix: was declared but never incremented — caused claims_per_s=0.0 telemetry
       process.stderr.write(`L1 hold=${hold}ms claims=${claims} torn=${torn} drain_ok=${drainOk} claims_per_s=${holdCps.toFixed(1)}\n`);
+
+      // Adaptive re-arm: under the floor with budget left -> schedule another full pass.
+      if (schedule.length === 0 && totalClaims < minClaims &&
+          passes < MAX_PASSES && (nowNs() - seriesStart) < wallCapNs) {
+        passes++;
+        for (const h of holds) schedule.push(h);
+        process.stderr.write(`L1 exposure-shortfall (claims=${totalClaims} < ${minClaims}) — extending window to pass ${passes}\n`);
+      }
     }
 
     const claimsPerS = holdsCount > 0 ? claimsPerSAccum / holdsCount : 0.0;
     const pass = totalTorn === 0 && allDrainOk && totalClaims >= minClaims;
     const holdsStr = holds.join(',');
-    process.stdout.write(`{"test":"L1-tear","lang":"ts","pass":${pass},"metrics":{"holds_ms":[${holdsStr}],"claims":${totalClaims},"claims_per_s":${claimsPerS.toFixed(1)},"torn":${totalTorn},"drain_ok":${allDrainOk}}}\n`);
+    process.stdout.write(`{"test":"L1-tear","lang":"ts","pass":${pass},"metrics":{"holds_ms":[${holdsStr}],"claims":${totalClaims},"claims_per_s":${claimsPerS.toFixed(1)},"torn":${totalTorn},"drain_ok":${allDrainOk},"window_passes":${passes}}}\n`);
     return pass ? 0 : 1;
   }
 

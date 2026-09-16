@@ -8,11 +8,45 @@ import { FanoutClaim } from '@weft/core';
 import { Weft } from '@weft/core';
 import { WeftFanoutBroadcaster } from '@weft/core';
 
+// @public (undocumented)
+export function createUiThreadFrameSource(broadcaster: WeftFanoutBroadcaster): UiThreadFrameSource;
+
+// @public (undocumented)
+export function uiThreadClaim(source: UiThreadFrameSource): {
+    fresh: boolean;
+    seq: number;
+    dropped: number;
+    skipped: boolean;
+    payload: Float32Array;
+};
+
+// @public (undocumented)
+export interface UiThreadFrameSource {
+    // (undocumented)
+    lastSeq: number;
+    // (undocumented)
+    payloadBase: number;
+    // (undocumented)
+    payloadFloats: number;
+    // (undocumented)
+    sab: SharedArrayBuffer;
+    // (undocumented)
+    slotCount: number;
+}
+
 // @public
 export function useWeftDraw(weft: Weft, draw: (buf: Uint8Array) => void, registerFrameCallback?: (cb: () => void) => (() => void) | void): () => void;
 
 // @public
 export function useWeftFanoutDraw(broadcaster: WeftFanoutBroadcaster, draw: (floats: Float32Array, claim: FanoutClaim) => void, registerFrameCallback?: (cb: () => void) => (() => void) | void): () => void;
+
+// @public (undocumented)
+export function useWeftUiThread(source: UiThreadFrameSource, draw: (payload: Float32Array, rec: {
+    fresh: boolean;
+    seq: number;
+    dropped: number;
+    skipped: boolean;
+}) => void, registerFrameCallback?: (cb: () => void) => (() => void) | void): () => void;
 
 // (No @packageDocumentation comment for this package)
 

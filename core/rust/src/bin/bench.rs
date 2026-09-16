@@ -33,13 +33,23 @@ fn percentile(sorted: &[u64], p: f64) -> u64 {
     sorted[idx]
 }
 
-fn fill_payload(w: &Weft, seq: u32, payload_len: u32) {
+/// Fill the writer's working buffer with pat(seq, i) payload via a CALLER-OWNED
+/// scratch buffer. The scratch is allocated ONCE per bench (or per writer
+/// thread) and reused for every publish — killing the per-publish
+/// `vec![0u8; len]` that put ~100 ns of allocator work (and its tail: page
+/// faults, mmap growth, p99 spikes) inside every measured publish. The C
+/// runner writes through `weft_w_begin` directly (no intermediate copy); the
+/// Rust kernel exposes no `w_begin` slice cursor (a documented port-parity
+/// gap — adding one is kernel surface, not a bench fix), so this pays one
+/// extra `copy_nonoverlapping` per publish instead. §4.7 holds: the kernel
+/// gains zero benchmark code; only the runner changed.
+fn fill_payload(w: &Weft, seq: u32, payload_len: u32, scratch: &mut [u8]) {
+    debug_assert!(scratch.len() >= payload_len as usize);
+    for i in 0..payload_len as usize {
+        scratch[i] = pat(seq, i as u32);
+    }
     unsafe {
-        let mut buf = vec![0u8; payload_len as usize];
-        for i in 0..payload_len {
-            buf[i as usize] = pat(seq, i);
-        }
-        w.w_write_payload(buf.as_ptr(), payload_len as usize).ok();
+        w.w_write_payload(scratch.as_ptr(), payload_len as usize).ok();
     }
 }
 
@@ -49,12 +59,13 @@ fn fill_payload(w: &Weft, seq: u32, payload_len: u32) {
 fn run_b1(payload_max: usize, measure_s: f64) -> i32 {
     let w = Weft::new(payload_max).unwrap();
     let clock_oh = measure_clock_overhead();
+    let mut scratch = vec![0u8; payload_max];
 
     // Warmup
     let warmup_deadline = Instant::now() + Duration::from_secs(1);
     let mut seq = 1u32;
     while Instant::now() < warmup_deadline && seq < 100000 {
-        unsafe { fill_payload(&w, seq, payload_max as u32); w.publish(seq, payload_max as u32); }
+        unsafe { fill_payload(&w, seq, payload_max as u32, &mut scratch); w.publish(seq, payload_max as u32); }
         seq += 1;
     }
 
@@ -63,7 +74,7 @@ fn run_b1(payload_max: usize, measure_s: f64) -> i32 {
     let block_end = block_start + Duration::from_secs_f64(measure_s);
     let mut block_count = 0u64;
     while Instant::now() < block_end {
-        unsafe { fill_payload(&w, seq, payload_max as u32); w.publish(seq, payload_max as u32); }
+        unsafe { fill_payload(&w, seq, payload_max as u32, &mut scratch); w.publish(seq, payload_max as u32); }
         block_count += 1; seq += 1;
     }
     let block_elapsed = Instant::now().duration_since(block_start).as_secs_f64();
@@ -75,7 +86,7 @@ fn run_b1(payload_max: usize, measure_s: f64) -> i32 {
     let s_end = Instant::now() + Duration::from_secs_f64(measure_s);
     let mut op = 0u64;
     while Instant::now() < s_end {
-        unsafe { fill_payload(&w, seq, payload_max as u32); }
+        unsafe { fill_payload(&w, seq, payload_max as u32, &mut scratch); }
         if op % stride == 0 && samples.len() < 100000 {
             let t0 = Instant::now();
             unsafe { w.publish(seq, payload_max as u32); }
@@ -108,15 +119,16 @@ fn run_b3() -> i32 {
 
     for &pmax in &sizes {
         let w = Weft::new(pmax).unwrap();
+        let mut scratch = vec![0u8; pmax];
         // Publish 100 frames first
         for seq in 1..=100u32 {
-            unsafe { fill_payload(&w, seq, pmax as u32); w.publish(seq, pmax as u32); }
+            unsafe { fill_payload(&w, seq, pmax as u32, &mut scratch); w.publish(seq, pmax as u32); }
         }
         // Measure claim p50
         let mut samples = Vec::with_capacity(5000);
         let mut seq = 101u32;
         for _ in 0..5000 {
-            unsafe { fill_payload(&w, seq, pmax as u32); w.publish(seq, pmax as u32); }
+            unsafe { fill_payload(&w, seq, pmax as u32, &mut scratch); w.publish(seq, pmax as u32); }
             seq += 1;
             let t0 = Instant::now();
             w.claim();
@@ -143,12 +155,13 @@ fn run_b3() -> i32 {
 // says the kernel gains zero benchmark code. RSS is the honest proxy.
 fn run_b5(payload_max: usize, frames: usize) -> i32 {
     let w = Weft::new(payload_max).unwrap();
+    let mut scratch = vec![0u8; payload_max];
     // Warmup: 10000 publishes + claims + touch read slice + warmup get_rss_pages
     let mut seq = 1u32;
     let mut dummy = [0u8; 256];
     for _ in 0..10000 {
         unsafe {
-            fill_payload(&w, seq, payload_max as u32);
+            fill_payload(&w, seq, payload_max as u32, &mut scratch);
             w.publish(seq, payload_max as u32);
             w.claim();
             let copy_len = if payload_max < 256 { payload_max } else { 256 };
@@ -163,7 +176,7 @@ fn run_b5(payload_max: usize, frames: usize) -> i32 {
     // Steady-state: frames, publish + claim
     for _ in 0..frames {
         unsafe {
-            fill_payload(&w, seq, payload_max as u32);
+            fill_payload(&w, seq, payload_max as u32, &mut scratch);
             w.publish(seq, payload_max as u32);
             w.claim();
         }
@@ -205,10 +218,11 @@ fn run_b2(payload_max: usize, measure_s: f64) -> i32 {
     let w = Arc::new(Weft::new(payload_max).unwrap());
     let clock_oh = measure_clock_overhead();
     let stride = 256;
+    let mut scratch = vec![0u8; payload_max];
     // Warmup
     let mut seq = 1u32;
     for _ in 0..1000 {
-        unsafe { fill_payload(&w, seq, payload_max as u32); w.publish(seq, payload_max as u32); w.claim(); }
+        unsafe { fill_payload(&w, seq, payload_max as u32, &mut scratch); w.publish(seq, payload_max as u32); w.claim(); }
         seq += 1;
     }
     let stop = Arc::new(AtomicBool::new(false));
@@ -218,9 +232,10 @@ fn run_b2(payload_max: usize, measure_s: f64) -> i32 {
     let w2 = w.clone(); let stop2 = stop.clone(); let wc2 = w_count.clone();
     let writer = std::thread::spawn(move || {
         let mut seq = 1u32; let mut op = 0u64;
+        let mut scratch = vec![0u8; payload_max];
         let mut samples = Vec::with_capacity(100000);
         while !stop2.load(Ordering::Relaxed) {
-            unsafe { fill_payload(&w2, seq, payload_max as u32); }
+            unsafe { fill_payload(&w2, seq, payload_max as u32, &mut scratch); }
             if op % stride == 0 && samples.len() < 100000 {
                 let t0 = Instant::now();
                 unsafe { w2.publish(seq, payload_max as u32); }
@@ -267,10 +282,11 @@ fn run_b4(payload_max: usize, writer_hz: i32, hold_ms: i32, measure_s: f64) -> i
     let w = Arc::new(Weft::new(payload_max).unwrap());
     let clock_oh = measure_clock_overhead();
     let stride = 256;
+    let mut scratch = vec![0u8; payload_max];
     // Warmup
     let mut seq = 1u32;
     for _ in 0..1000 {
-        unsafe { fill_payload(&w, seq, payload_max as u32); w.publish(seq, payload_max as u32); }
+        unsafe { fill_payload(&w, seq, payload_max as u32, &mut scratch); w.publish(seq, payload_max as u32); }
         seq += 1;
     }
     let stop = Arc::new(AtomicBool::new(false));
@@ -282,9 +298,10 @@ fn run_b4(payload_max: usize, writer_hz: i32, hold_ms: i32, measure_s: f64) -> i
         let period = Duration::from_nanos(1_000_000_000 / writer_hz as u64);
         let mut next = Instant::now() + period;
         let mut seq = 1u32; let mut op = 0u64;
+        let mut scratch = vec![0u8; payload_max];
         let mut samples = Vec::with_capacity(100000);
         while !stop2.load(Ordering::Relaxed) {
-            unsafe { fill_payload(&w2, seq, payload_max as u32); }
+            unsafe { fill_payload(&w2, seq, payload_max as u32, &mut scratch); }
             if op % stride == 0 && samples.len() < 100000 {
                 let t0 = Instant::now();
                 unsafe { w2.publish(seq, payload_max as u32); }

@@ -10,12 +10,23 @@ void main() {
     late WeftNativeBindings bindings;
 
     setUpAll(() {
-      // Look for compiled libweft.so in build or local directory
+      // OS-aware search (Series 7: the flutter leg runs on linux AND macOS
+      // AND windows runners — the kernel is compiled per-OS by the workflow).
       final soPaths = [
         'libweft.so',
         'build/libweft.so',
         '/tmp/libweft.so',
-        '../../build/libweft.so'
+        '../../build/libweft.so',
+        if (Platform.isMacOS) ...[
+          'libweft.dylib',
+          'build/libweft.dylib',
+          '/tmp/libweft.dylib',
+        ],
+        if (Platform.isWindows) ...[
+          'weft.dll',
+          r'build\weft.dll',
+          r'C:\tmp\weft.dll',
+        ],
       ];
       String? foundPath;
       for (final p in soPaths) {

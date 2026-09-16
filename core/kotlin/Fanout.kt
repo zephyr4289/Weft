@@ -420,33 +420,46 @@ internal object FanoutVh {
     private val INT_VIEW: VarHandle =
         MethodHandles.byteBufferViewVarHandle(IntArray::class.java, ByteOrder.LITTLE_ENDIAN)
 
-    /** Acquire load of an i64 ctrl slot (pairs with stampStoreRelease). */
-    fun stampLoadAcquire(buf: ByteBuffer, byteOffset: Int): Long =
-        LONG_VIEW.getAcquire(buf, byteOffset) as Long
+    private val LONG_GET_ACQUIRE: java.lang.invoke.MethodHandle =
+        LONG_VIEW.toMethodHandle(VarHandle.AccessMode.GET_ACQUIRE)
+    private val LONG_SET_RELEASE: java.lang.invoke.MethodHandle =
+        LONG_VIEW.toMethodHandle(VarHandle.AccessMode.SET_RELEASE)
+    private val LONG_SET_VOLATILE: java.lang.invoke.MethodHandle =
+        LONG_VIEW.toMethodHandle(VarHandle.AccessMode.SET_VOLATILE)
+    private val LONG_GET_AND_ADD: java.lang.invoke.MethodHandle =
+        LONG_VIEW.toMethodHandle(VarHandle.AccessMode.GET_AND_ADD)
+    private val INT_GET_OPAQUE: java.lang.invoke.MethodHandle =
+        INT_VIEW.toMethodHandle(VarHandle.AccessMode.GET_OPAQUE)
+    private val INT_SET_OPAQUE: java.lang.invoke.MethodHandle =
+        INT_VIEW.toMethodHandle(VarHandle.AccessMode.SET_OPAQUE)
 
-    /** Release store of an i64 ctrl slot (the publication point). */
+    /** Acquire load of an i64 ctrl slot (getAcquire; pairs with stampStoreRelease). */
+    fun stampLoadAcquire(buf: ByteBuffer, byteOffset: Int): Long =
+        LONG_GET_ACQUIRE.invokeWithArguments(buf, byteOffset) as Long
+
+    /** Release store of an i64 ctrl slot (setRelease; the publication point). */
     fun stampStoreRelease(buf: ByteBuffer, byteOffset: Int, v: Long) {
-        LONG_VIEW.setRelease(buf, byteOffset, v)
+        LONG_SET_RELEASE.invokeWithArguments(buf, byteOffset, v)
     }
 
-    /** SeqCst store of an i64 ctrl slot (the FI1 invalidate). */
+    /** SeqCst store of an i64 ctrl slot (setVolatile; the FI1 invalidate). */
     fun stampStoreVolatile(buf: ByteBuffer, byteOffset: Int, v: Long) {
-        LONG_VIEW.setVolatile(buf, byteOffset, v)
+        LONG_SET_VOLATILE.invokeWithArguments(buf, byteOffset, v)
     }
 
     /** SC fetch-add on the publishes telemetry counter (advisory; the JVM
      *  exposes no relaxed RMW mode — declared divergence, AXIOM T). */
     fun publishesAdd(buf: ByteBuffer, delta: Long): Long =
-        LONG_VIEW.getAndAdd(buf, 8 * WeftFanoutBroadcaster.CTRL_PUBLISHES, delta) as Long
+        LONG_GET_AND_ADD.invokeWithArguments(buf, 8 * WeftFanoutBroadcaster.CTRL_PUBLISHES, delta) as Long
 
-    /** Opaque (coherence-only) load of a u32 payload word — the JVM analog
+    /** Opaque (coherence-only) load of a u32 payload word (getOpaque) — the JVM analog
      *  of C's relaxed u32 accesses: race-free by construction, ordering
      *  carried by the stamp bracket, not the words. */
     fun wordLoadOpaque(buf: ByteBuffer, byteOffset: Int): Int =
-        INT_VIEW.getOpaque(buf, byteOffset) as Int
+        INT_GET_OPAQUE.invokeWithArguments(buf, byteOffset) as Int
 
-    /** Opaque store of a u32 payload word (the race-free fill path). */
+    /** Opaque store of a u32 payload word (setOpaque; the race-free fill path). */
     fun wordStoreOpaque(buf: ByteBuffer, byteOffset: Int, v: Int) {
-        INT_VIEW.setOpaque(buf, byteOffset, v)
+        INT_SET_OPAQUE.invokeWithArguments(buf, byteOffset, v)
     }
 }

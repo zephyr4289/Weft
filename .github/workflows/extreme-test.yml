@@ -243,6 +243,13 @@ jobs:
             args: ""
             needs_rust: true
 
+          # --- RFC 0005 VerifiedWeft (C + Rust + TS + xlang auth gates) ---
+          - shard: "verifiedweft"
+            description: "RFC 0005: V-series x3 kernels + C<->TS interop + tamper rejection"
+            script: "ci/scripts/run_verifiedweft_shard.sh"
+            args: ""
+            needs_rust: true
+
           # --- Site determinism (regenerate + compare) ---
           - shard: "site-determinism"
             description: "make site double-render, byte-identical sha256 check"
@@ -294,6 +301,12 @@ jobs:
           npm i -g pnpm@9
           pnpm install --frozen-lockfile
           pnpm --filter @weft/core build
+
+      - name: Set up pnpm (verifiedweft TS + xlang legs)
+        if: matrix.shard == 'verifiedweft'
+        run: |
+          npm i -g pnpm@9
+          pnpm install --frozen-lockfile
 
       - name: Cache Rust build
         if: matrix.needs_rust

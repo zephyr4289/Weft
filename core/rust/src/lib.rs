@@ -39,6 +39,9 @@ use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 // frozen kernel items above/below are byte-identical to origin/main.
 pub mod fanout;
 pub mod frame_cursor;
+/// VerifiedWeft — authenticated frame records (RFC 0005). Driver-layer:
+/// composes BESIDE the kernel; byte-compat with core/c/verified.c.
+pub mod verified;
 
 /// Magic "WEFT" little-endian: bytes 57 45 46 54 → u32 LE = 0x54464557.
 pub const WEFT_MAGIC: u32 = 0x54464557;

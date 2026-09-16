@@ -44,6 +44,10 @@ fi
 # --- 3: TS gate ---
 step "TS V-series (vitest, @weft/core)"
 if command -v pnpm >/dev/null 2>&1 && [ -f pnpm-lock.yaml ]; then
+  # Cold-start guard: fresh worktrees have no node_modules yet.
+  if [ ! -d node_modules ]; then
+    pnpm install --frozen-lockfile --silent >/dev/null 2>&1 || true
+  fi
   pnpm --filter @weft/core exec vitest run test/verified.test.ts 2>&1 | tee -a "$LOG" || fail=1
 else
   echo "pnpm/pnpm-lock not found — SKIPPED (declared)" | tee -a "$LOG"

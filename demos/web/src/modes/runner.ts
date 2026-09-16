@@ -121,10 +121,14 @@ export class ModeCRunner implements ModeRunner {
 
   consumeFrame(target: Float32Array): boolean {
     this.weft.claim();
-    const rPtr = this.weft.rReadSlice(16, this.floatCount * 4);
-    if (rPtr.length === 0) return false;
-    const f32View = new Float32Array(rPtr.buffer, rPtr.byteOffset, this.floatCount);
-    target.set(f32View);
+    // Hot path (Law 2): the kernel's CACHED live Float32 view of the
+    // reader-held buffer — zero allocation per frame. The old path allocated
+    // TWO view objects per consume (rReadSlice's fresh Uint8Array + a fresh
+    // Float32Array wrapper) — that was the feed-gc-bench P+C remainder.
+    // rLiveFloat32() is the documented draw-phase API (the TS analog of C's
+    // weft_r_live_ptr); its element count is exactly floatCount because
+    // payloadMax = floatCount * 4.
+    target.set(this.weft.rLiveFloat32());
     return true;
   }
 

@@ -25,9 +25,9 @@
 // allocates nothing.
 
 import React, { useEffect, useRef } from 'react';
-import { WeftFanoutBroadcaster, type FanoutClaim } from '@weft/core';
-import { WeftFanoutCanvas } from '@weft/react';
+import { WeftFanoutBroadcaster, FreshnessGovernor, GovernorActionKind, type FanoutClaim } from '@weft/core';
 import { drawW6FeedLadder } from '../workloads/draw';
+import { decideDraw } from '../modes/governorPolicy';
 import {
   SyntheticL2Feed,
   L2BookEngine,
@@ -119,6 +119,107 @@ function drawStatsView(
 }
 
 // ---------------------------------------------------------------------------
+// GovernedFanoutView — the RFC-0009 wiring: framesBehind -> gov.step().
+//
+// One view = one reader + one FreshnessGovernor. Per tick:
+//   claim = reader.claim()                       (the fan-out analog of
+//    framesBehind: claim.dropped — frames published between this view's
+//    claims that it never saw, same semantics, per RFC-0008)
+//   action = gov.step(claim.dropped, performance.now())
+//   decision = decideDraw(action, seq !== lastDrawn)   (governorPolicy.ts)
+// Idempotent redraws are elided (FastPath + same seq -> no memcpy, no
+// raster — the saved-draw counter is on the HUD); Skip(n) draws the newest
+// frame once while the n intermediates are counted as DECIDED drops in the
+// governor's own counter; Snapshot forces one draw; Reseed (rate-limited,
+// 250 ms) resets the view's baseline after drawing.
+// ---------------------------------------------------------------------------
+
+interface GovernedViewProps {
+  broadcaster: WeftFanoutBroadcaster;
+  draw: (ctx: CanvasRenderingContext2D, floats: Float32Array, claim: FanoutClaim) => void;
+  /** Poll cadence: 'raf' (display rate) or a fixed ms period (slow views). */
+  cadenceMs: 'raf' | number;
+  width: number;
+  height: number;
+  style?: React.CSSProperties;
+}
+
+const ACTION_LABEL = ['FAST', 'SKIP', 'SNAP', 'RESEED'] as const;
+const ACTION_COLOR = ['#34d399', '#fbbf24', '#38bdf8', '#f87171'] as const;
+
+function GovernedFanoutView({ broadcaster, draw, cadenceMs, width, height, style }: GovernedViewProps) {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const drawRef = React.useRef(draw);
+  drawRef.current = draw;
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const reader = broadcaster.createReader();
+    const gov = new FreshnessGovernor();
+    let lastDrawnSeq = -1;
+    let savedDraws = 0;
+    let drawn = 0;
+    let raf = 0;
+    let timer = 0;
+    let disposed = false;
+
+    const tick = () => {
+      if (disposed) return;
+      const claim = reader.claim();
+      const action = gov.step(claim.dropped, performance.now());
+      const seqChanged = claim.seq !== lastDrawnSeq;
+      const d = decideDraw(action, seqChanged);
+      if (d.draw) {
+        drawRef.current(ctx, reader.view(), claim);
+        drawn++;
+        lastDrawnSeq = claim.seq;
+        // Governor HUD strip (top 14px): action + live counters.
+        ctx.font = '10px monospace';
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, width, 14);
+        ctx.fillStyle = ACTION_COLOR[action.kind] ?? '#94a3b8';
+        const label = action.kind === GovernorActionKind.Skip
+          ? `SKIP(${action.skipN})`
+          : ACTION_LABEL[action.kind];
+        ctx.fillText(
+          `${label}  behind=${claim.dropped}  draws=${drawn}  elided=${savedDraws}  decided-drops=${gov.decidedDrops}  reseeds=${gov.reseeds}`,
+          4, 10
+        );
+      } else {
+        savedDraws++;
+      }
+      if (d.reset) {
+        // Reseed: the view rebuilds its baseline (drawn once above); the
+        // cooldown makes this at most one per 250 ms.
+        lastDrawnSeq = claim.seq;
+      }
+      schedule();
+    };
+
+    const schedule = () => {
+      if (cadenceMs === 'raf') {
+        raf = requestAnimationFrame(tick);
+      } else {
+        timer = window.setTimeout(tick, cadenceMs);
+      }
+    };
+    tick();
+
+    return () => {
+      disposed = true;
+      cancelAnimationFrame(raf);
+      window.clearTimeout(timer);
+    };
+  }, [broadcaster, cadenceMs, width]); // draw intentionally excluded — latest-ref.
+
+  return <canvas ref={canvasRef} width={width} height={height} style={style} />;
+}
+
+// ---------------------------------------------------------------------------
 // Panel — the single writer (feed + engine + broadcaster) lives here.
 // ---------------------------------------------------------------------------
 
@@ -185,27 +286,34 @@ export const FeedFanoutViews: React.FC<{ running: boolean }> = ({ running }) => 
       }}
     >
       <div style={{ fontSize: '13px', color: '#38bdf8', marginBottom: '4px', fontWeight: 'bold' }}>
-        RFC-0004 Fan-Out Feed Views — 1 writer · 3 independent consumers (W6)
+        RFC-0004 Fan-Out Feed Views + RFC-0009 Freshness Governor — 1 writer · 3 governed consumers
       </div>
       <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '12px' }}>
         SIMULATED FEED · main-thread rAF producer @ ~3,000 msgs/s (60 Hz × 50 msgs folded) ·
-        cross-thread writer covered by test/feedfanout.test.ts · each view owns its reader and
-        drop accounting
+        cross-thread writer covered by test/feedfanout.test.ts · each view owns its reader,
+        its drop accounting, and its FreshnessGovernor: framesBehind (claim.dropped) →
+        gov.step() → FastPath / Skip(n) / Snapshot / Reseed (250 ms cooldown) · the HUD
+        strip on each canvas shows the live ladder · the measured savings proof is
+        scripts/governor_bench.ts (B4 display-adversarial matrix)
       </div>
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         <div>
           <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>
-            Depth Ladder
+            Depth Ladder · rAF · mostly FastPath
           </div>
-          {b && <WeftFanoutCanvas broadcaster={b} draw={drawLadderView} width={420} height={250} style={canvasStyle} />}
+          {b && <GovernedFanoutView broadcaster={b} draw={drawLadderView} cadenceMs="raf" width={420} height={250} style={canvasStyle} />}
         </div>
         <div>
-          <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>Trade Tape</div>
-          {b && <WeftFanoutCanvas broadcaster={b} draw={drawTapeView} width={270} height={250} style={canvasStyle} />}
+          <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>
+            Trade Tape · 90 ms · Skip territory
+          </div>
+          {b && <GovernedFanoutView broadcaster={b} draw={drawTapeView} cadenceMs={90} width={270} height={250} style={canvasStyle} />}
         </div>
         <div>
-          <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>Stats HUD</div>
-          {b && <WeftFanoutCanvas broadcaster={b} draw={drawStatsView} width={210} height={250} style={canvasStyle} />}
+          <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>
+            Stats HUD · 250 ms · Snapshot/Reseed territory
+          </div>
+          {b && <GovernedFanoutView broadcaster={b} draw={drawStatsView} cadenceMs={250} width={210} height={250} style={canvasStyle} />}
         </div>
       </div>
     </div>

@@ -158,6 +158,31 @@ if (!isMainThread) {
   (w as any).buf0Offset = 64;
   (w as any).bufSize = spec.bufSize;
   (w as any).payloadMax = spec.payloadMax;
+  // REBUILD the cached cursor views over the SHARED SAB (2026-09-16): the
+  // constructor's wViews/wF32Views/rViews/rF32Views still point at the
+  // constructor's own (discarded) SAB. The old DataView-based fillPayload
+  // worked by accident (dv was overridden above); the bulk wBegin().set()
+  // fill exposed the divergence — payload bytes landed in the wrong buffer
+  // (L1-tear/L6-ownership caught it). Mirror the constructor's view loop.
+  {
+    const wViews: Uint8Array[] = [];
+    const wF32Views: Float32Array[] = [];
+    const rViews: Uint8Array[] = [];
+    const rF32Views: Float32Array[] = [];
+    for (let i = 0; i < 3; i++) {
+      const payloadOff = (w as any).buf0Offset + i * spec.bufSize + 16;
+      wViews.push(new Uint8Array(spec.sab, payloadOff, spec.payloadMax));
+      wF32Views.push(new Float32Array(spec.sab, payloadOff, Math.floor(spec.payloadMax / 4)));
+      rViews.push(new Uint8Array(spec.sab, payloadOff, spec.payloadMax));
+      rF32Views.push(new Float32Array(spec.sab, payloadOff, Math.floor(spec.payloadMax / 4)));
+    }
+    (w as any).wViews = wViews;
+    (w as any).wF32Views = wF32Views;
+    (w as any).rViews = rViews;
+    (w as any).rF32Views = rF32Views;
+    // Reset the fill scratch: it was sized for the constructor's payloadMax.
+    (w as any).fillScratch = null;
+  }
 
   let published = 0n;
   let firstRevokedAt = 0n;
@@ -265,7 +290,19 @@ if (isMainThread) {
     let totalClaims = 0n;
     let allDrainOk = true;
 
-    for (const hold of holds) {
+    // v1.1.1: adaptive exposure window. On slow or loaded runners a single pass of the
+    // hold schedule can lawfully land under the claims floor (staff probes: 236/164/164/
+    // 171/166 across 5 runs) — an exposure shortfall, not a data-integrity failure. The
+    // schedule therefore repeats (bounded by MAX_PASSES and a wall clock) until the floor
+    // is met. The gate is untouched: torn==0 && drain_ok && claims>=minClaims.
+    const MAX_PASSES = 8;
+    const wallCapNs = 10_000_000_000n;  // 10s, in nanoseconds (nowNs() domain)
+    const seriesStart = nowNs();
+    let passes = 1;
+    const schedule: number[] = [...holds];
+
+    while (schedule.length > 0) {
+      const hold = schedule.shift()!;
       const w = new Weft(payloadMax);
       // Start the worker (don't await — run reader concurrently).
       const replyPromise = runWriter({
@@ -332,12 +369,20 @@ if (isMainThread) {
       claimsPerSAccum += holdCps;
       holdsCount++;  // R2 fix: was declared but never incremented — caused claims_per_s=0.0 telemetry
       process.stderr.write(`L1 hold=${hold}ms claims=${claims} torn=${torn} drain_ok=${drainOk} claims_per_s=${holdCps.toFixed(1)}\n`);
+
+      // Adaptive re-arm: under the floor with budget left -> schedule another full pass.
+      if (schedule.length === 0 && totalClaims < minClaims &&
+          passes < MAX_PASSES && (nowNs() - seriesStart) < wallCapNs) {
+        passes++;
+        for (const h of holds) schedule.push(h);
+        process.stderr.write(`L1 exposure-shortfall (claims=${totalClaims} < ${minClaims}) — extending window to pass ${passes}\n`);
+      }
     }
 
     const claimsPerS = holdsCount > 0 ? claimsPerSAccum / holdsCount : 0.0;
     const pass = totalTorn === 0 && allDrainOk && totalClaims >= minClaims;
     const holdsStr = holds.join(',');
-    process.stdout.write(`{"test":"L1-tear","lang":"ts","pass":${pass},"metrics":{"holds_ms":[${holdsStr}],"claims":${totalClaims},"claims_per_s":${claimsPerS.toFixed(1)},"torn":${totalTorn},"drain_ok":${allDrainOk}}}\n`);
+    process.stdout.write(`{"test":"L1-tear","lang":"ts","pass":${pass},"metrics":{"holds_ms":[${holdsStr}],"claims":${totalClaims},"claims_per_s":${claimsPerS.toFixed(1)},"torn":${totalTorn},"drain_ok":${allDrainOk},"window_passes":${passes}}}\n`);
     return pass ? 0 : 1;
   }
 

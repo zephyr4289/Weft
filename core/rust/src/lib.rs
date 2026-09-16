@@ -39,6 +39,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 // frozen kernel items above/below are byte-identical to origin/main.
 pub mod fanout;
 pub mod frame_cursor;
+pub mod governor;
 /// VerifiedWeft — authenticated frame records (RFC 0005). Driver-layer:
 /// composes BESIDE the kernel; byte-compat with core/c/verified.c.
 pub mod verified;
@@ -250,14 +251,17 @@ impl Weft {
 
         let w = self.w_work.load(Ordering::Relaxed) as usize;
 
-        // Fill payload with pat(seq, i).
-        // SAFETY: writer owns buffers[w] exclusively; payload region [16..16+payload_max)
-        // is within buf_size.
-        unsafe {
-            for i in 0..self.payload_max {
-                std::ptr::write_bytes(self.buffers[w].add(16 + i), pat(seq, i as u32), 1);
-            }
-        }
+        // NOTE (C-parity fix, 2026-09-16): this publish previously re-filled the
+        // payload region with pat(seq, i) — a litmus convenience inherited from
+        // the original port that the canonical C kernel (02 §2: envelope +
+        // canary + exchange — nothing else) does NOT do. It silently overwrote
+        // payload written through w_write_payload (the writer-cursor contract,
+        // RFC-0001 §4), doubled the fill work in every litmus/bench call, and
+        // put ~560 ns of pat() inside the measured publish (B1/B2/B4 tails).
+        // The writer fills via w_write_payload (or a scratch + copy) before
+        // publish, exactly as C's bench/litmus do through weft_w_begin.
+        // Payload bytes beyond what the writer wrote keep their previous
+        // contents — the same stale-tail contract as C.
 
         // Write envelope (v1, seq, payload_len) into buf[w_work].
         envelope_encode_v1(self.buffers[w], seq, payload_len);

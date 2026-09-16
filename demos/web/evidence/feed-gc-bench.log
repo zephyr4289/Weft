@@ -1,6 +1,6 @@
 W6 FEED-PRESSURE GC HARNESS — measured A/B/C/D artifact
 ========================================================
-date: 2026-09-16T10:34:38.719Z
+date: 2026-09-16T17:24:50.047Z
 node: v24.19.0 · platform: linux x64
 ticks/pass: 1000 (window 100) · extended: 3000 ticks · reps: 5 (medians reported)
 method: M1 GC-free-window heapUsed deltas (produce / full cycle, bytes per 100-tick
@@ -12,10 +12,10 @@ scope:  Mode A models per-message reactive event materialization — NOT a measu
 
 path | alloc/window P (B) | alloc/window P+C (B) | valid win  | produce P50/P99/P100 (µs) | consume P50 (µs) | msgs/s   | GC ev (3k ticks) | GC pause (ms) | peak heap Δ (MB) | leak (KB)
 ---- | ------------------: | -------------------: | --------- | ------------------------- | ---------------: | -------: | ---------------- | -------------: | ----------------: | --------:
-  A |             900496 |              900400 | 6/10 · 6/10 |     9.7/   25.2/   248.7 |             0.1 |  4466756 |               15 |          2.06 |             1.85 |     16.5
-  B |                144 |                 144 | 10/10 · 10/10 |     8.5/   13.5/    19.4 |             0.1 |  5529697 |                0 |          0.00 |             0.06 |      2.3
-  C |                144 |               20944 | 10/10 · 10/10 |     8.6/   13.9/    18.3 |             0.3 |  5407763 |                0 |          0.00 |             0.66 |      4.4
-  D |                144 |                 144 | 10/10 · 10/10 |     8.5/   13.3/    17.5 |             0.1 |  5628719 |                0 |          0.00 |             0.06 |      2.5
+  A |             900480 |              900488 | 6/10 · 6/10 |     9.7/   24.4/   239.6 |             0.1 |  4430050 |               15 |          1.97 |             1.85 |     16.5
+  B |                144 |                 144 | 10/10 · 10/10 |     8.5/   13.7/    18.7 |             0.1 |  5612358 |                0 |          0.00 |             0.06 |      2.3
+  C |                144 |                 144 | 10/10 · 10/10 |     8.8/   13.9/    19.2 |             0.2 |  5365797 |                0 |          0.00 |             0.06 |      4.3
+  D |                144 |                 144 | 10/10 · 10/10 |     8.5/   14.0/    18.6 |             0.1 |  5619785 |                0 |          0.00 |             0.06 |      2.5
 
 reading the table:
 - alloc/window P is the INGESTION path (feed -> fold -> frame): the number the
@@ -29,11 +29,16 @@ reading the table:
   telemetry regime change in core/ts/weft.ts (dual-i32 halves, Number step
   counters, dual-u32 canary) CLOSED that gap to the sampling-noise floor:
   the microbench run beside this log measured ~152 B → ~0.3 B per
-  publish+claim cycle and a ~1.5x throughput improvement. P+C adds the
-  consume path: one rReadSlice view per claim (kernel public read API) +
-  <= 3 cached Float32 wrappers total — the W1-W5 ModeCRunner pays two views
-  per frame. That is the remaining P+C allocation: a documented runner-side
-  public-API choice, not kernel telemetry.
+  publish+claim cycle and a ~1.5x throughput improvement. P+C once added the
+  consume path on top: one rReadSlice view object per claim (W6 runner) or
+  two view objects per frame (W1-W5 ModeCRunner: rReadSlice + a fresh
+  Float32Array wrapper) — ~20.9 KB/window of runner-side allocation. The
+  2026-09-16 consume-path fix closed it: both runners now claim once and
+  read through rLiveFloat32() — the kernel's per-slot CACHED live view,
+  the documented draw-phase API (TS analog of C's weft_r_live_ptr).
+  P+C now measures 144 B/window for ALL modes: B == C == D at the sampling-
+  noise floor end-to-end — produce AND consume, Law 2 closed through the
+  whole frame path.
 - GC ev / GC pause: Mode A logged 15 collection events and ~2 ms of pause over
   3,000 ticks at DEFAULT heap settings; B/C/D logged 0. A larger nursery defers
   scavenge timing without changing the allocation-rate column — event counts

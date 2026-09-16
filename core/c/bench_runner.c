@@ -306,11 +306,16 @@ static int run_b1(bench_cli_t* c) {
     free(samples);
     weft_destroy(&w);
 
-    bool pass = true; // informational
+    // Sanity gate (2026-09-16): p999 <= 25x p50 — machine-independent tail
+    // explosion detector (this C runner's own reference ratio ~2.1).
+    // Absolute ops/s stays informational (3x+ cross-machine variance).
+    const uint64_t TAIL_RATIO = 25;
+    bool pass = block_ops_per_s > 0.0 &&
+                p999 <= TAIL_RATIO * (p50 > 1 ? p50 : 1);
     printf("{\"bench\":\"B1-pub-throughput\",\"lang\":\"c\",\"pass\":%s,"
            "\"metrics\":{\"ops_per_s\":%.0f,\"p50\":%lu,\"p90\":%lu,\"p99\":%lu,"
            "\"p999\":%lu,\"max\":%lu,\"clock_overhead_ns\":%lu},"
-           "\"notes\":\"informational; payload_max=%d\"}\n",
+           "\"notes\":\"sanity gate: p999 <= 25x p50; payload_max=%d\"}\n",
            pass ? "true" : "false", block_ops_per_s,
            p50, p90, p99, p999, max_sample, clock_overhead, pmax);
     return pass ? 0 : 1;
@@ -565,12 +570,21 @@ static int run_b2(bench_cli_t* c) {
     free(rargs.samples);
     weft_destroy(&w);
 
-    bool pass = true; // informational
+    // Sanity gate (2026-09-16): publish p99 <= 12x p50, claim p99 <= 20x p50,
+    // rates > 0 — this C runner's own reference ratios: publish ~2.8, claim
+    // ~12.2 (the contended claim tail is the noisiest healthy number in the
+    // suite; the claim budget is ~1.6x its reference — enough for jitter,
+    // far below any real tail explosion).
+    const uint64_t PUB_TAIL_RATIO = 12;
+    const uint64_t CLAIM_TAIL_RATIO = 20;
+    bool pass = w_rate > 0.0 && r_rate > 0.0 &&
+                w_p99 <= PUB_TAIL_RATIO * (w_p50 > 1 ? w_p50 : 1) &&
+                r_p99 <= CLAIM_TAIL_RATIO * (r_p50 > 1 ? r_p50 : 1);
     printf("{\"bench\":\"B2-contended\",\"lang\":\"c\",\"pass\":%s,"
            "\"metrics\":{\"publishes_per_s\":%.0f,\"claims_per_s\":%.0f,"
            "\"sampled_publish_p50\":%lu,\"sampled_publish_p99\":%lu,"
            "\"sampled_claim_p50\":%lu,\"sampled_claim_p99\":%lu,"
-           "\"clock_overhead_ns\":%lu},\"notes\":\"informational\"}\n",
+           "\"clock_overhead_ns\":%lu},\"notes\":\"sanity gate: p99 <= 12x p50 both sides\"}\n",
            pass ? "true" : "false", w_rate, r_rate,
            w_p50, w_p99, r_p50, r_p99, clock_overhead);
     return pass ? 0 : 1;
@@ -727,21 +741,28 @@ static int run_b4(bench_cli_t* c) {
 
     sort_u64(wargs.samples, wargs.n_samples);
     sort_u64(rargs.samples, rargs.n_samples);
+    uint64_t pub_p50 = percentile_u64(wargs.samples, wargs.n_samples, 50.0);
     uint64_t pub_p99 = percentile_u64(wargs.samples, wargs.n_samples, 99.0);
     uint64_t pub_p999 = percentile_u64(wargs.samples, wargs.n_samples, 99.9);
+    uint64_t claim_p50 = percentile_u64(rargs.samples, rargs.n_samples, 50.0);
     uint64_t claim_p99 = percentile_u64(rargs.samples, rargs.n_samples, 99.0);
 
     free(wargs.samples);
     free(rargs.samples);
     weft_destroy(&w);
 
-    bool pass = true; // informational
+    // Sanity gate (2026-09-16): p99 <= 25x p50 both sides, delivered > 0
+    // (wider budget than B2 — the hold-paced regime is noisier).
+    const uint64_t TAIL_RATIO = 25;
+    bool pass = delivered_per_s > 0.0 &&
+                pub_p99 <= TAIL_RATIO * (pub_p50 > 1 ? pub_p50 : 1) &&
+                claim_p99 <= TAIL_RATIO * (claim_p50 > 1 ? claim_p50 : 1);
     printf("{\"bench\":\"B4-display-adversarial\",\"lang\":\"c\",\"pass\":%s,"
-           "\"metrics\":{\"delivered_frames_per_s\":%.1f,\"publish_p99\":%lu,"
-           "\"publish_p999\":%lu,\"claim_p99\":%lu,\"clock_overhead_ns\":%lu},"
-           "\"notes\":\"informational; writer_hz=%d hold_ms=%d\"}\n",
+           "\"metrics\":{\"delivered_frames_per_s\":%.1f,\"publish_p50\":%lu,\"publish_p99\":%lu,"
+           "\"publish_p999\":%lu,\"claim_p50\":%lu,\"claim_p99\":%lu,\"clock_overhead_ns\":%lu},"
+           "\"notes\":\"sanity gate: p99 <= 25x p50 both sides, delivered > 0; writer_hz=%d hold_ms=%d\"}\n",
            pass ? "true" : "false", delivered_per_s,
-           pub_p99, pub_p999, claim_p99, clock_overhead, writer_hz, hold_ms);
+           pub_p50, pub_p99, pub_p999, claim_p50, claim_p99, clock_overhead, writer_hz, hold_ms);
     return pass ? 0 : 1;
 }
 

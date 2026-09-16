@@ -22,7 +22,8 @@ benchmarks:
       - sampled p999
       - sampled max
       - clock_overhead_ns
-    gate: informational
+    gate: sanity
+    gate_predicate: "p999 <= 25x p50 AND ops_per_s > 0 (intra-run tail ratio; machine-independent); driver adds cross-language floor rust/ts ops_per_s >= 0.25x c (same-invocation)"
     params:
       payload_max: [256, 4096]
       measure_s: 3.0
@@ -41,7 +42,8 @@ benchmarks:
       - sampled_claim_p50
       - sampled_claim_p99
       - clock_overhead_ns
-    gate: informational
+    gate: sanity
+    gate_predicate: "publish p99 <= 12x p50 AND claim p99 <= 20x p50 AND rates > 0 (C reference ratios: publish ~2.8, claim ~12.2); driver adds cross-language ceiling rust p99 <= 4x c on both sides (same-invocation). TS claim-tail budget documented for its single-threaded limitation"
     params:
       payload_max: 256
       measure_s: 3.0
@@ -68,10 +70,13 @@ benchmarks:
     setup: "Writer paced ∈ {60, 240, 960} Hz × reader holds ∈ {0, 5, 10, 50} ms — 12 sub-configs. Measure ≥ 10 s per config."
     metrics:
       - delivered_frames_per_s
+      - publish_p50
       - publish_p99
       - publish_p999
+      - claim_p50
       - claim_p99
-    gate: informational
+    gate: sanity
+    gate_predicate: "publish p99 <= 25x p50 AND claim p99 <= 25x p50 AND delivered > 0 (hold-paced regime budget); driver adds cross-language ceilings rust publish_p99 <= 8x c (tiny 60Hz sample count — coarse ratio) and claim_p99 <= 4x c (same-invocation)"
     params:
       writer_hz: [60, 240, 960]
       holds_ms: [0, 5, 10, 50]
@@ -87,7 +92,7 @@ benchmarks:
       - alloc_count_delta
       - rss_growth_pages
     gate: structural
-    gate_predicate: "C/Rust: alloc_bytes_delta == 0 AND alloc_count_delta == 0 AND rss_growth_pages <= 2; TS: advisory"
+    gate_predicate: "C/Rust: alloc_bytes_delta == 0 AND alloc_count_delta == 0 AND rss_growth_pages <= 2; TS: forced-GC heapUsed delta (methodology v2), |delta| <= 65536 B per 10^6 frames (--expose-gc; advisory without the flag)"
     params:
       payload_max: 256
       frames: 1000000

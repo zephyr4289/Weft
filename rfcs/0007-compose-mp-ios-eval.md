@@ -48,3 +48,24 @@ CMP iOS introduces Skiko / Kotlin Multiplatform runtime dependencies.
 
 ## Staff Decision
 [EMPTY]
+
+## Evidence (Series 7 — the evaluation becomes an instrument)
+
+The evaluation is now a rig, not prose: `contrib/cmp-eval-rig/` freezes the
+`CmpCadenceReport` shape — identical columns to the native path's
+`CadenceProbeReport` (`Sources/WeftSwiftUI/MTKViewCadenceProbe.swift`) — so
+the first CMP build compares like-for-like against the native probe.
+
+Measured so far (the native side of the comparison):
+
+- `MetalProbeTests.swift` (CI-proven, macOS runner + iOS-simulator legs):
+  draw-phase claims == frames rendered, torn accepted == 0 under display
+  pacing, the 120 Hz path REQUESTED and accepted by the view plumbing;
+  measured-vs-requested cadence published separately (simulator/VM numbers
+  never pass for device numbers).
+
+Pending (falsifiable, instrumented):
+
+- `CmpDrawProbe` recompositions == 0 (the draw-phase isolation gate),
+- p95 interval delta CMP vs native at identical requested cadence,
+- ProMotion 120 Hz device rate on BOTH paths (Hardware Deferral List).

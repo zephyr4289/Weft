@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Weft } from '@weft/core';
+import { FanoutTimeline } from './FanoutTimeline';
 
 export interface TelemetrySample {
   timestamp: number;
@@ -183,6 +184,11 @@ export const Inspector: React.FC<InspectorProps> = ({ weft }) => {
           </div>
         )}
       </div>
+
+      {/* Series 6: the post-mortem counterpart — .weftrec v2 fan-out
+          flight-recorder captures (daemon output) with the telescoping
+          badge the roadmap named. */}
+      <FanoutTimeline />
     </div>
   );
 };

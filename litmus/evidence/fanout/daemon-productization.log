@@ -1,0 +1,21 @@
+# Series 6 — flight-recorder productization: daemon + JS v2 parse + Inspector timeline
+# env: x86_64 sandbox, gcc 14, node v24.19.0
+# date: 2026-09-16T17:15:06Z
+
+== daemon build (default + seq + asan + tsan) ==
+0
+0 errors/warnings
+
+== daemon e2e: live producer 8kHz x4s, SIGINT shutdown, validate(mixer) ==
+weft-fanout-rec daemon: attached /weft_daemon_test2 (1072 B ring, 4 slots, 256 B payload) -> /tmp/daemon-test2.weftrec
+[stats] 2s elapsed | 8155 claims | 2326 dropped | latestSeq 10481
+weft-fanout-rec daemon: stopped (signal) — 12175 claims, 2530 dropped frames accounted (the honest capture; telemetry advisory)
+validate: /tmp/daemon-test2.weftrec — 12175 records, final seq 14705, sum(dropped)=2530 — telescoping exact, mixer bit-exact
+
+== flight-rec selftest x2 regimes (the CI gate, regression check) ==
+selftest: PASS — capture -> validate(mixer) -> replay -> recapture -> compare, all green (20000 frames published, 64-word payload)
+selftest: PASS — capture -> validate(mixer) -> replay -> recapture -> compare, all green (20000 frames published, 64-word payload)
+
+== JS: demos/web vitest (14 v2 tests + 8 v1 + 31 existing) ==
+ Test Files  4 passed (4)
+      Tests  53 passed (53)

@@ -20,6 +20,19 @@
 //       is the honest capture). Quiesce detection bounds the loop (Law 1):
 //       stop when the producer stops advancing latestSeq for --idle-ms.
 //
+//   daemon <file> --shm <name> --payload B --slots M
+//          [--idle-ms I] [--stats-secs S]
+//       Productized long-running capture (Series 6): the same honest
+//       recorder as `capture`, but signal-driven — SIGINT/SIGTERM stop the
+//       loop, close the file crash-tolerantly (frame_count patched, or 0 =>
+//       scan path), and exit 0; SIGHUP prints a one-line stats snapshot to
+//       stderr at any time (the ops touch). No --max-frames/--max-secs cap:
+//       the daemon runs until signaled (or until --idle-ms quiesce if
+//       given; default 0 = never stop on idle — a watcher should outlive a
+//       paused producer). Progress lines to stderr every --stats-secs
+//       (default 10 s). SIGPIPE is ignored (piping the stats line to a
+//       closed consumer must not kill a capture session).
+//
 //   replay <file> --shm <name> --payload B --slots M [--hz H]
 //       Validates every record CRC, then republishes the recorded frames
 //       into a FRESH shm ring (created O_EXCL) at an optional pace, so any
@@ -59,6 +72,7 @@
 #include <fcntl.h>
 #include <inttypes.h>
 #include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -741,6 +755,112 @@ static int cmd_selftest(uint64_t frames, uint64_t words) {
     return 0;
 }
 
+
+// ---------------------------------------------------------------------------
+// daemon — productized long-running capture (Series 6)
+// ---------------------------------------------------------------------------
+
+/// Signal flags: handlers are async-signal-safe (write a flag, nothing
+/// else); all FILE* work happens on the main loop side of the barrier.
+static volatile sig_atomic_t g_rec_stop = 0;    // SIGINT/SIGTERM
+static volatile sig_atomic_t g_rec_stats = 0;   // SIGHUP
+
+static void rec_signal_handler(int sig) {
+    if (sig == SIGINT || sig == SIGTERM) g_rec_stop = 1;
+    if (sig == SIGHUP) g_rec_stats = 1;
+}
+
+static int cmd_daemon(const char* path, const char* shm_name, size_t payload_bytes,
+                      unsigned slot_count, double idle_secs, double stats_secs) {
+    const size_t rb = weft_fanout_ring_bytes(payload_bytes, slot_count);
+    if (rb == 0) die("bad geometry (--payload must be a positive multiple of 4, "
+                     "--slots in [2,64])");
+    uint8_t* ring = shm_map_existing(shm_name, rb, 0);
+
+    weft_fanout_reader_t r;
+    if (weft_fanout_reader_init(&r, ring, rb, payload_bytes, slot_count) != 0)
+        die("reader attach failed");
+
+    FILE* fp = fopen(path, "wb");
+    if (!fp) die_errno(path);
+    write_header(fp, 0); // frame_count patched at close (crash-tolerant path)
+
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = rec_signal_handler;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
+    sigaction(SIGHUP, &sa, NULL);
+    signal(SIGPIPE, SIG_IGN);
+
+    const double t0 = now_secs();
+    double last_progress = t0;
+    double last_stats = t0;
+    uint64_t n_records = 0, n_dropped = 0, last_latest = 0;
+    const char* stop_reason = "signal";
+
+    fprintf(stderr, "weft-fanout-rec daemon: attached /%s (%zu B ring, %u slots, "
+            "%zu B payload) -> %s\n", shm_name, rb, slot_count, payload_bytes, path);
+
+    while (!g_rec_stop) {
+        const double t = now_secs();
+        if (g_rec_stats) {
+            g_rec_stats = 0;
+            fprintf(stderr, "[stats] %lus elapsed | %llu claims | %llu dropped | "
+                    "latestSeq %llu\n",
+                    (unsigned long)(t - t0), (unsigned long long)n_records,
+                    (unsigned long long)n_dropped, (unsigned long long)last_latest);
+        }
+        if (stats_secs > 0 && t - last_stats >= stats_secs) {
+            last_stats = t;
+            fprintf(stderr, "[stats] %lus elapsed | %llu claims | %llu dropped | "
+                    "latestSeq %llu\n",
+                    (unsigned long)(t - t0), (unsigned long long)n_records,
+                    (unsigned long long)n_dropped, (unsigned long long)last_latest);
+        }
+        if (idle_secs > 0 && t - last_progress >= idle_secs) {
+            stop_reason = "idle (producer quiesced)";
+            break;
+        }
+        const weft_fanout_claim_t* c = weft_fanout_claim(&r);
+        if (c->fresh) {
+            if (append_record(fp, c->seq, c->dropped, weft_fanout_view(&r),
+                              (uint32_t)payload_bytes) != 0) {
+                // Crash-tolerance rule (v1 §1.3): never emit a silently
+                // truncated file — close with the scan path and report.
+                fprintf(stderr, "weft_fanout_rec daemon: write failed at record "
+                        "%" PRIu64 " — closing crash-tolerant\n", n_records);
+                stop_reason = "write error";
+                break;
+            }
+            n_records++;
+            n_dropped += c->dropped;
+            last_progress = t;
+        } else {
+            _Atomic uint64_t* ctrl = (_Atomic uint64_t*)ring;
+            const uint64_t latest = atomic_load_explicit(ctrl, memory_order_acquire);
+            if (latest != last_latest) {
+                last_latest = latest;
+                last_progress = t;
+            }
+        }
+    }
+
+    // Clean close: patch frame_count + header crc (0 => scan path on crash).
+    write_header(fp, (uint32_t)n_records);
+    if (fclose(fp) != 0) die_errno("fclose(daemon)");
+    weft_fanout_reader_destroy(&r);
+    munmap(ring, rb);
+
+    fprintf(stderr, "weft-fanout-rec daemon: stopped (%s) — %" PRIu64 " claims, "
+            "%" PRIu64 " dropped frames accounted (the honest capture; "
+            "telemetry advisory)\n", stop_reason, n_records, n_dropped);
+    printf("daemon: %s — %" PRIu64 " claims, %" PRIu64 " dropped\n",
+           path, n_records, n_dropped);
+    return 0;
+}
+
 // ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
@@ -749,6 +869,8 @@ static void usage(const char* prog) {
     fprintf(stderr,
         "usage: %s capture <file> --shm <name> --payload <bytes> --slots <n>"
         " [--max-frames n] [--max-secs s] [--idle-ms ms]\n"
+        "       %s daemon <file> --shm <name> --payload <bytes> --slots <n>"
+        " [--idle-ms ms] [--stats-secs s]\n"
         "       %s replay <file> --shm <name> --payload <bytes> --slots <n> [--hz h]\n"
         "       %s validate <file> [--expect-mixer]\n"
         "       %s selftest [--frames n] [--words w]\n"
@@ -761,8 +883,10 @@ static void usage(const char* prog) {
         "validate: CRC + strict seq + gap accounting + telescoping identity\n"
         "          (+ optional 04-LITMUS mixer check).\n"
         "selftest: end-to-end gate (writer thread -> capture -> validate ->\n"
-        "          replay -> recapture -> payload-exact compare).\n",
-        prog, prog, prog, prog);
+        "          replay -> recapture -> payload-exact compare).\n"
+        "daemon:  signal-driven long-running capture — SIGINT/SIGTERM close\n"
+        "          crash-tolerantly and exit 0; SIGHUP prints stats.\n",
+        prog, prog, prog, prog, prog);
 }
 
 int main(int argc, char** argv) {
@@ -789,6 +913,32 @@ int main(int argc, char** argv) {
             else { usage(argv[0]); return 2; }
         }
         return cmd_validate(argv[2], expect_mixer);
+    }
+
+    if (strcmp(cmd, "daemon") == 0) {
+        if (argc < 3) { usage(argv[0]); return 2; }
+        const char* path = argv[2];
+        const char* shm_name = NULL;
+        long payload = 0, slots = 4;
+        double idle_ms = 0.0, stats_secs = 10.0;
+        for (int i = 3; i < argc; i++) {
+            if (strcmp(argv[i], "--shm") == 0 && i + 1 < argc) shm_name = argv[++i];
+            else if (strcmp(argv[i], "--payload") == 0 && i + 1 < argc)
+                payload = strtol(argv[++i], NULL, 10);
+            else if (strcmp(argv[i], "--slots") == 0 && i + 1 < argc)
+                slots = strtol(argv[++i], NULL, 10);
+            else if (strcmp(argv[i], "--idle-ms") == 0 && i + 1 < argc)
+                idle_ms = strtod(argv[++i], NULL);
+            else if (strcmp(argv[i], "--stats-secs") == 0 && i + 1 < argc)
+                stats_secs = strtod(argv[++i], NULL);
+            else { usage(argv[0]); return 2; }
+        }
+        if (!shm_name || payload <= 0 || (payload % 4) != 0 || slots < 2 || slots > 64) {
+            usage(argv[0]);
+            return 2;
+        }
+        return cmd_daemon(path, shm_name, (size_t)payload, (unsigned)slots,
+                          idle_ms / 1000.0, stats_secs);
     }
 
     // capture / replay share the geometry + shm args.

@@ -8,6 +8,8 @@
 # The -seq variants build with -DWEFT_FANOUT_SEQ_CST=1 (the TS-equivalent
 # all-seq_cst stamp regime) so both ordering regimes are torture-gated.
 # VerifiedWeft targets (RFC 0005): verified-test, verified-runner, -asan variants.
+# Governor targets (RFC 0009): governor-test — G-series conformance + the
+# xlang-dump trace mode that G5 cross-language parity fixture consumes.
 
 CC       = gcc
 CFLAGS   = -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE
@@ -71,8 +73,14 @@ verified-runner: sha256.c hmac.c verified.c verified_runner.c weft.c weft.h sha2
 verified-runner-asan: sha256.c hmac.c verified.c verified_runner.c weft.c weft.h sha256.h hmac.h verified.h
 	$(CC) $(CFLAGS_ASAN) -o verified-runner-asan $(VW_SRC) verified_runner.c
 
+governor-test: governor.c governor_test.c governor.h
+	$(CC) $(CFLAGS) -o governor-test governor.c governor_test.c
+
+governor-test-asan: governor.c governor_test.c governor.h
+	$(CC) $(CFLAGS_ASAN) -o governor-test-asan governor.c governor_test.c
+
 clean:
-	rm -f $(TARGET) $(TARGET_TSAN) fanout-test fanout-test-asan fanout-test-tsan \
+	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
 	      verified-test verified-test-asan verified-runner verified-runner-asan
 

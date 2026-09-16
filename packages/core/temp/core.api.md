@@ -76,6 +76,81 @@ export interface FanoutReaderStats {
 }
 
 // @public (undocumented)
+export interface FrameClaim {
+    // (undocumented)
+    first: boolean;
+    // (undocumented)
+    framesBehind: number;
+    // (undocumented)
+    payload: Uint8Array;
+    // (undocumented)
+    seq: number;
+}
+
+// @public (undocumented)
+export class FrameCursor {
+    // (undocumented)
+    claim(weft: Weft): FrameClaim;
+    // (undocumented)
+    claims: number;
+    // (undocumented)
+    totalDropped: number;
+}
+
+// @public (undocumented)
+export class FreshnessGovernor {
+    constructor(config?: Partial<GovernorConfig>);
+    // (undocumented)
+    readonly act: GovernorAction;
+    // (undocumented)
+    get config(): Readonly<GovernorConfig>;
+    // (undocumented)
+    decidedDrops: number;
+    // (undocumented)
+    reseeds: number;
+    // (undocumented)
+    reset(): void;
+    // (undocumented)
+    step(framesBehind: number, nowMs: number): GovernorAction;
+    // (undocumented)
+    steps: number;
+}
+
+// @public (undocumented)
+export const GOVERNOR_DEFAULTS: Readonly<GovernorConfig>;
+
+// @public (undocumented)
+export interface GovernorAction {
+    // (undocumented)
+    kind: GovernorActionKind;
+    // (undocumented)
+    skipN: number;
+}
+
+// @public (undocumented)
+export const GovernorActionKind: {
+    readonly FastPath: 0;
+    readonly Skip: 1;
+    readonly Snapshot: 2;
+    readonly Reseed: 3;
+};
+
+// @public (undocumented)
+export type GovernorActionKind = (typeof GovernorActionKind)[keyof typeof GovernorActionKind];
+
+// @public (undocumented)
+export interface GovernorConfig {
+    // (undocumented)
+    fastPathBehind: number;
+    // (undocumented)
+    reseedCooldownMs: number;
+    // (undocumented)
+    skipBehind: number;
+    // (undocumented)
+    snapshotBehind: number;
+}
+
+// @public (undocumented)
 export const HMAC_TAG_LEN = 32;
 
 // @public

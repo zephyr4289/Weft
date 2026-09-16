@@ -62,8 +62,13 @@ function runB1(payloadMax: number, measureS: number): number {
   const p99 = percentile(samples, 99);
   const p999 = percentile(samples, 99.9);
   const maxS = samples.length > 0 ? samples[samples.length - 1] : 0n;
-  process.stdout.write(`{"bench":"B1-pub-throughput","lang":"ts","pass":true,"metrics":{"ops_per_s":${Math.round(opsPerS)},"p50":${p50},"p90":${p90},"p99":${p99},"p999":${p999},"max":${maxS},"clock_overhead_ns":${clockOh}},"notes":"informational; payload_max=${payloadMax}"}\n`);
-  return 0;
+  // Sanity gate (2026-09-16): p999 <= 25x p50 (C reference ratio: ~2.1;
+  // the pre-scratch-fix Rust ratio was 8.7, its buggy max/p50 was ~35).
+  // Absolute throughput stays informational — it varies 3x+ across machines.
+  const TAIL_RATIO = 25;
+  const pass = opsPerS > 0 && Number(p999) <= TAIL_RATIO * Math.max(Number(p50), 1);
+  process.stdout.write(`{"bench":"B1-pub-throughput","lang":"ts","pass":${pass},"metrics":{"ops_per_s":${Math.round(opsPerS)},"p50":${p50},"p90":${p90},"p99":${p99},"p999":${p999},"max":${maxS},"clock_overhead_ns":${clockOh}},"notes":"sanity gate: p999 <= ${TAIL_RATIO}x p50; payload_max=${payloadMax}"}\n`);
+  return pass ? 0 : 1;
 }
 
 // B3 — scaling-fingerprint (structural gate)
@@ -90,18 +95,38 @@ function runB3(): number {
   return pass ? 0 : 1;
 }
 
-// B5 — memory-contract (zero-alloc gate, TS advisory)
+// B5 — memory-contract (zero-alloc gate, TS)
+//
+// Methodology v2 (2026-09-16): the old advisory number (558472 B in the
+// phase-1 report) was a MEASUREMENT artifact, not real allocation —
+// heapUsed was sampled without settling the heap, so the delta captured
+// new-space growth and GC state, not steady-state allocation. Phase-isolation
+// proof (b5-isolate, forced GC): fill / publish / claim are individually and
+// jointly zero-alloc; the artifact vanished under gc() before both samples.
+//
+// Now: force GC before each sample (requires --expose-gc; the bench_driver
+// passes it; without the flag we degrade to the old advisory note, loudly),
+// and make the gate REAL: |delta| <= 64 KiB per 10^6 frames — 64x tighter
+// than the artifact it replaces, loose enough for residual GC jitter.
 function runB5(payloadMax: number, frames: number): number {
   const w = new Weft(payloadMax);
+  const gc: (() => void) | undefined =
+    typeof globalThis.gc === 'function' ? () => globalThis.gc() : undefined;
   let seq = 1;
   for (let i = 0; i < 1000; i++) { fillPayload(w, seq, payloadMax); w.publish(seq, payloadMax); w.claim(); seq++; }
+  gc?.();
   const heapBefore = process.memoryUsage().heapUsed;
   for (let i = 0; i < frames; i++) { fillPayload(w, seq, payloadMax); w.publish(seq, payloadMax); w.claim(); seq++; }
+  gc?.();
   const heapAfter = process.memoryUsage().heapUsed;
   const heapDelta = heapAfter - heapBefore;
-  // TS: advisory only — GC-noisy, no gate
-  process.stdout.write(`{"bench":"B5-memory-contract","lang":"ts","pass":true,"metrics":{"alloc_bytes_delta":${heapDelta},"alloc_count_delta":0,"rss_growth_pages":0},"notes":"GC-noisy, advisory — TS has no allocator hooks; heapUsed delta is proxy"}\n`);
-  return 0;
+  const TOLERANCE_BYTES = 65536; // |delta| gate: zero-alloc + GC jitter budget
+  const pass = gc ? Math.abs(heapDelta) <= TOLERANCE_BYTES : true;
+  const notes = gc
+    ? `forced-GC heapUsed delta (methodology v2); gate |delta| <= ${TOLERANCE_BYTES} B over ${frames} frames`
+    : 'ADVISORY ONLY — run under --expose-gc for the forced-GC gate; heapUsed delta is GC-noisy without it';
+  process.stdout.write(`{"bench":"B5-memory-contract","lang":"ts","pass":${pass},"metrics":{"alloc_bytes_delta":${heapDelta},"alloc_count_delta":0,"rss_growth_pages":0},"notes":"${notes}"}\n`);
+  return pass ? 0 : 1;
 }
 
 // B2 — contended (informational, simplified — single-threaded alternating)
@@ -133,8 +158,26 @@ function runB2(payloadMax: number, measureS: number): number {
   }
   pubSamples.sort((a, b) => Number(a - b));
   claimSamples.sort((a, b) => Number(a - b));
-  process.stdout.write(`{"bench":"B2-contended","lang":"ts","pass":true,"metrics":{"publishes_per_s":${Math.round(pubCount / measureS)},"claims_per_s":${Math.round(claimCount / measureS)},"sampled_publish_p50":${percentile(pubSamples, 50)},"sampled_publish_p99":${percentile(pubSamples, 99)},"sampled_claim_p50":${percentile(claimSamples, 50)},"sampled_claim_p99":${percentile(claimSamples, 99)},"clock_overhead_ns":${clockOh}},"notes":"informational; single-threaded alternating (TS limitation)"}\n`);
-  return 0;
+  // Sanity gate (2026-09-16, the regression-gates work order): replaces the
+  // hardcoded pass:true. Ratios are WITHIN one run — machine-independent by
+  // construction. A tail explosion (allocator leak in the harness, lock
+  // convoy, page-fault storm) trips these long before absolute numbers
+  // would (they vary 3x+ across machines).
+  const pubP50 = Number(percentile(pubSamples, 50));
+  const pubP99 = Number(percentile(pubSamples, 99));
+  const claimP50 = Number(percentile(claimSamples, 50));
+  const claimP99 = Number(percentile(claimSamples, 99));
+  const pubsPerS = Math.round(pubCount / measureS);
+  const claimsPerS = Math.round(claimCount / measureS);
+  // C reference ratios: publish ~2.8, claim ~12.2 (the noisiest healthy
+  // number in the suite — the claim budget gets 4x headroom).
+  const PUB_TAIL_RATIO = 12;
+  const CLAIM_TAIL_RATIO = 20;
+  const pass = pubsPerS > 0 && claimsPerS > 0 &&
+    pubP99 <= PUB_TAIL_RATIO * Math.max(pubP50, 1) &&
+    claimP99 <= CLAIM_TAIL_RATIO * Math.max(claimP50, 1);
+  process.stdout.write(`{"bench":"B2-contended","lang":"ts","pass":${pass},"metrics":{"publishes_per_s":${pubsPerS},"claims_per_s":${claimsPerS},"sampled_publish_p50":${percentile(pubSamples, 50)},"sampled_publish_p99":${percentile(pubSamples, 99)},"sampled_claim_p50":${percentile(claimSamples, 50)},"sampled_claim_p99":${percentile(claimSamples, 99)},"clock_overhead_ns":${clockOh}},"notes":"sanity gate: pub p99 <= 12x p50, claim p99 <= 20x p50; single-threaded alternating (TS limitation)"}\n`);
+  return pass ? 0 : 1;
 }
 
 // B4 — display-adversarial (informational, simplified)
@@ -167,8 +210,15 @@ function runB4(payloadMax: number, writerHz: number, holdMs: number, measureS: n
   }
   claimSamples.sort((a, b) => Number(a - b));
   const delPerS = delivered / measureS;
-  process.stdout.write(`{"bench":"B4-display-adversarial","lang":"ts","pass":true,"metrics":{"delivered_frames_per_s":${delPerS.toFixed(1)},"publish_p99":0,"publish_p999":0,"claim_p99":${percentile(claimSamples, 99)},"clock_overhead_ns":${clockOh}},"notes":"informational; single-threaded (TS limitation); writer_hz=${writerHz} hold_ms=${holdMs}"}\n`);
-  return 0;
+  // Sanity gate (see B2): TS B4 is single-threaded (the documented
+  // limitation) so the publish side is untimed (p99 = 0, as before); the
+  // claim tail ratio + delivered > 0 carry the gate.
+  const claimP50 = Number(percentile(claimSamples, 50));
+  const claimP99 = Number(percentile(claimSamples, 99));
+  const TAIL_RATIO = 25; // hold-paced reader: wider budget than B2
+  const pass = delivered > 0 && claimP99 <= TAIL_RATIO * Math.max(claimP50, 1);
+  process.stdout.write(`{"bench":"B4-display-adversarial","lang":"ts","pass":${pass},"metrics":{"delivered_frames_per_s":${delPerS.toFixed(1)},"publish_p50":0,"publish_p99":0,"publish_p999":0,"claim_p50":${percentile(claimSamples, 50)},"claim_p99":${percentile(claimSamples, 99)},"clock_overhead_ns":${clockOh}},"notes":"sanity gate: claim p99 <= ${TAIL_RATIO}x p50, delivered > 0; single-threaded (TS limitation); writer_hz=${writerHz} hold_ms=${holdMs}"}\n`);
+  return pass ? 0 : 1;
 }
 
 // Main

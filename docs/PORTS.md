@@ -112,3 +112,31 @@ surface); `ci/scripts/run_binding_parity.sh` hashes the two new mirror
 pairs (`core/kotlin/Fanout.kt` ↔ `android/weft-core/.../Fanout.kt`,
 `core/dart/fanout.dart` ↔ `packages/flutter_weft/lib/src/reference/fanout.dart`).
 
+
+
+---
+
+## 7. Freshness governor (RFC 0009 — `core/c/governor.{h,c}`, `core/rust/src/governor.rs`, `packages/core/src/governor.ts`)
+
+The governor is PURE CONTROL LOGIC — driver layer with no memory model at
+all (no shared state, no atomics, no kernel contact; it reads a u32 the
+consumer hands it). Its cross-language contract is therefore not an ordering
+matrix but an ARITHMETIC matrix: the same (framesBehind, nowMs) trace must
+produce the identical action sequence in every language.
+
+| Row | Content |
+|---|---|
+| Action set (closed) | `FastPath` (behind <= fast_path_behind, default 1) · `Skip(n)` (<= skip_behind, default 4; n = behind - fast_path_behind, counted in `decided_drops` — Law 4) · `Snapshot` (<= snapshot_behind, default 16) · `Reseed` (rate-limited: one per `reseed_cooldown_ms`, default 250; a suppressed Reseed degrades to `Snapshot` — the documented fallback). A fifth action is a new RFC. |
+| Kind discriminants | PROTOCOL values 0/1/2/3 (TS `GovernorActionKind`, C `weft_gov_kind_t`, Rust `GovernorActionKind`) — G5 packs them into trace bytes; renumbering is a protocol break. |
+| Time injection | `step(framesBehind, nowMs)` takes the clock as a PARAMETER (TS `number`, C `i64`, Rust `i64`) — step is a pure function of (behind, now_ms) + internal state, which is what makes the G5 trace parity deterministic across languages. Callers pass any monotonic ms clock. |
+| Zero allocation (G4) | C: no `malloc` anywhere in the path (struct-resident state; identity-stable action record — the `weft_frame_cursor_t` pattern). Rust: `Copy` action returned by value, `&mut self`. TS: state is 4 counters + 1 timestamp; `step()` returns the governor's OWN pre-allocated action object, mutated in place (`act`), never a fresh allocation. |
+| Input source | ANY monotonic per-consumer staleness count: `weft_frame_cursor_update()` frames_behind (triad kernel), or a fan-out reader's `claim.dropped` (§5 rings — same semantics, per RFC-0008). Composed by the app per RFC-0009's open-question lean: the governor never touches a Weft, a ring, or a Triad. |
+| Conformance | G1 ladder (behind 0..64 -> documented action), G2 monotone, G3 reseed flap (10k spikes, <= ceil(N/cooldown) Reseeds, >= cooldown spacing), G3b suppressed->Snapshot, G4 zero-alloc, G5 parity — one deterministic xorshift32 trace (04-LITMUS §0.2), three emitters, byte-compared (`fixtures/xlang-governor/`). |
+| Demos wiring | `demos/web/src/components/FeedFanoutViews.tsx` — each fan-out view owns its governor: `claim.dropped -> gov.step() -> decideDraw()` (the shared policy module `demos/web/src/modes/governorPolicy.ts`); the measured savings proof is `demos/web/scripts/governor_bench.ts` (B4 display-adversarial matrix, naive vs governor: saved memcpy + saved fences with a per-row convergence gate). |
+
+Divergence notes: none — the three implementations are arithmetic-identical
+by construction (same thresholds, same cooldown comparison, same fallback),
+and G5's byte comparison is the standing proof. The consumer-side draw
+policy (what each app DOES with an action) is deliberately NOT ported —
+it is app policy by RFC-0009's "advisory only" lean; the demo module is a
+reference implementation, not a contract.

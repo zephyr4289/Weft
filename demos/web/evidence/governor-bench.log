@@ -1,0 +1,35 @@
+# governor_bench.log — RFC-0009 B4 proof: saved memcpy + fences
+# run 2026-09-16T16:44:28.559Z · node v24.19.0 · x64
+# matrix: writer_hz {60,240,960} x hold_ms {0,5,10,50} x policy {naive,governor}
+# 256 floats (1024 B) per draw memcpy · real fan-out ring (worker writer, main-thread reader)
+
+hz  hold | naive: claims memcpys MBcopied deliv finalSeq | gov: claims memcpys MBcopied deliv finalSeq | saved fences saved memcpy
+ 60    0 |  6865964  6865964 7030.75    55      73/73 |  3906632       54    0.06    54      73/73 |     43.1%     100.0%
+ 60    5 |      154      154    0.16    51      71/73 |      103       46    0.05    46      72/73 |     33.1%      70.1%
+ 60   10 |       81       81    0.08    47      72/74 |       66       52    0.05    52      73/74 |     18.5%      35.8%
+ 60   50 |       20       20    0.02    20      71/74 |       20       20    0.02    20      70/73 |      0.0%       0.0%
+240    0 |  4895705  4895705 5013.20   186     256/256 |  3820240      201    0.21   201     251/251 |     22.0%     100.0%
+240    5 |      159      159    0.16   154     247/248 |      151      146    0.15   146     249/253 |      5.0%       8.2%
+240   10 |       80       80    0.08    80     250/252 |       80       80    0.08    80     253/258 |      0.0%       0.0%
+240   50 |       20       20    0.02    20     244/256 |       20       20    0.02    20     246/255 |      0.0%       0.0%
+960    0 |  6715481  6715481 6876.65   710     937/937 |  3943760      721    0.74   721     918/918 |     41.3%     100.0%
+960    5 |      157      157    0.16   152     904/909 |      153      151    0.15   151     906/916 |      2.5%       3.8%
+960   10 |       81       81    0.08    81     914/924 |       81       80    0.08    80     914/923 |      0.0%       1.2%
+960   50 |       20       20    0.02    20     846/894 |       20       20    0.02    20     882/911 |      0.0%       0.0%
+
+reading the table:
+- saved fences = claims the governor policy did NOT pay (the FastPath
+  throttle skips the poll after an unchanged frame — bounded to every
+  other poll, self-correcting through framesBehind).
+- saved memcpy = draw-phase payload copies the governor policy did NOT
+  pay (idempotent redraws elided: FastPath + same seq).
+- deliv = distinct frames drawn — a POLICY outcome: Skip(n) drops
+  intermediates BY DECISION (Law 4), so the governor legitimately draws
+  fewer distinct frames when behind. The GATED invariant is the
+  finalSeq/writerPublished pair: each policy must end the window
+  holding a frame within one poll-period (+ stop latency) of its
+  writer's final published count — no stale, no lost consumer.
+- Ratios are the result; absolute rates are node-sandbox numbers.
+- Convergence lag bound per row: ceil(hz*(hold+25ms)) + 2 frames
+  (one poll period + stop-message latency).
+RESULT: PASS — content parity holds; savings recorded above

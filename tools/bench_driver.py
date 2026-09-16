@@ -72,7 +72,9 @@ def run_one(lang, bench_id, catalog, timeout=120):
     elif lang == "rust":
         cmd = [str(ROOT / RUNNERS["rust"])]
     elif lang == "ts":
-        cmd = ["node", "--no-warnings", str(ROOT / TS_RUNNER)]
+        # --expose-gc: B5's forced-GC methodology v2 (real gate). The runner
+        # degrades loudly to advisory if the flag is ever absent.
+        cmd = ["node", "--no-warnings", "--expose-gc", str(ROOT / TS_RUNNER)]
     else:
         return None, f"unknown lang: {lang}", 2
 
@@ -118,6 +120,68 @@ def capture_env():
     env["catalog_version"] = "weft-bench v1"
     return env
 
+# ---------------------------------------------------------------------------
+# Regression gates (2026-09-16): B1/B2/B4 self-report REAL pass values
+# (intra-run tail-ratio sanity — machine-independent), and the driver adds a
+# CROSS-LANGUAGE parity gate that only fires when c AND rust ran in the SAME
+# invocation (same machine, same load — the machine cancels out). This is the
+# gate that would have caught the Rust bench's per-publish vec! allocation
+# (measured: Rust B2 publish p99 = 9.5x C, B4 = 45x C, before the fix).
+# TS joins the B1 throughput floor only; its B2/B4 are single-threaded
+# alternating (the documented limitation) so p99 parity vs true multithreaded
+# contention is apples-to-oranges — exempted with that reason, in the report.
+# ---------------------------------------------------------------------------
+XLANG_GATES = [
+    # (bench, metric path rust, metric path c, comparator, limit)
+    ("B1-pub-throughput", "ops_per_s", "ops_per_s", ">=", 0.25),
+    ("B2-contended", "sampled_publish_p99", "sampled_publish_p99", "<=", 4.0),
+    ("B2-contended", "sampled_claim_p99", "sampled_claim_p99", "<=", 4.0),
+    # B4 publish p99 ceiling is 8x, not 4x: at the catalog's first config
+    # (writer 60 Hz x hold 0) the runner samples ~3 publish timings per run
+    # (600 publishes / stride 256), so the p99 ratio between two healthy
+    # languages is intrinsically coarse (observed 1.0-4.5x jitter). The
+    # regression this gate exists for measured 45x — 8x catches it with
+    # the whole noise band below. Claim p99 has thousands of samples (the
+    # reader spins) and holds the tight 4x ceiling.
+    ("B4-display-adversarial", "publish_p99", "publish_p99", "<=", 8.0),
+    ("B4-display-adversarial", "claim_p99", "claim_p99", "<=", 4.0),
+]
+
+def run_xlang_gates(results):
+    """Returns (gate_lines, gate_fail) for the report. Only languages that
+    actually ran participate; c-vs-rust pairs require BOTH sides."""
+    lines = []
+    fail = False
+    for bench_id, metric, _c_metric, cmp_op, limit in XLANG_GATES:
+        c_v = results.get(("c", bench_id), {}).get("metrics", {}).get(metric)
+        r_v = results.get(("rust", bench_id), {}).get("metrics", {}).get(metric)
+        if c_v is None or r_v is None:
+            lines.append(f"- c/rust {bench_id}.{metric}: SKIPPED (needs both languages in this run)")
+            continue
+        if cmp_op == ">=":
+            ok = r_v >= limit * c_v
+            rel = r_v / c_v if c_v else float("inf")
+            human = f"rust {r_v:.0f} = {rel:.2f}x c (floor {limit}x)"
+        else:
+            ok = r_v <= limit * c_v
+            rel = r_v / c_v if c_v else float("inf")
+            human = f"rust {r_v:.0f} = {rel:.2f}x c (ceiling {limit}x)"
+        lines.append(f"- c/rust {bench_id}.{metric}: {'PASS' if ok else 'RED'} — {human}")
+        if not ok:
+            fail = True
+    # TS B1 joins the throughput floor (same-runtime variance is smaller
+    # than the floor's headroom).
+    t_v = results.get(("ts", "B1-pub-throughput"), {}).get("metrics", {}).get("ops_per_s")
+    c_v = results.get(("c", "B1-pub-throughput"), {}).get("metrics", {}).get("ops_per_s")
+    if t_v is not None and c_v:
+        ok = t_v >= 0.25 * c_v
+        lines.append(f"- c/ts B1-pub-throughput.ops_per_s: {'PASS' if ok else 'RED'} — ts {t_v:.0f} = {t_v / c_v:.2f}x c (floor 0.25x)")
+        if not ok:
+            fail = True
+    lines.append("- ts B2/B4 p99 parity: EXEMPT (TS B2/B4 are single-threaded alternating — "
+                 "the documented limitation; p99 vs true multithreaded contention is not comparable)")
+    return lines, fail
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--langs", default=",".join(LANGS_DEFAULT))
@@ -143,16 +207,18 @@ def main():
             if verdict:
                 results[(lang, bench_id)] = verdict
 
-    write_report(catalog, langs, results, raw, env)
+    gate_lines, gate_fail = run_xlang_gates(results)
+
+    write_report(catalog, langs, results, raw, env, gate_lines)
     write_results_json(catalog, langs, results, raw, env)
 
     any_red = any(
         (not results.get((lang, bench_id), {}).get("pass", False))
         for lang in langs for bench_id in BENCHES
     )
-    return 1 if any_red else 0
+    return 1 if (any_red or gate_fail) else 0
 
-def write_report(catalog, langs, results, raw, env):
+def write_report(catalog, langs, results, raw, env, gate_lines=None):
     import datetime
     lines = []
     ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
@@ -227,6 +293,18 @@ def write_report(catalog, langs, results, raw, env):
     for (lang, bench_id), (verdict, stderr, exit_code) in raw.items():
         if verdict and not verdict.get("pass", False):
             lines.append(f"- **{lang}/{bench_id}** RED: {verdict.get('notes', stderr[:200])}")
+    lines.append("")
+
+    lines.append("## Regression gates (2026-09-16)")
+    lines.append("")
+    lines.append("B1/B2/B4 now self-report computed sanity verdicts (tail-ratio")
+    lines.append("predicates inside one run — machine-independent), and this driver")
+    lines.append("adds a cross-language parity gate: c and rust run on the same machine")
+    lines.append("in this invocation, so the machine cancels out and a diverging")
+    lines.append("language is a REGRESSION, not an environment artifact.")
+    lines.append("")
+    if gate_lines:
+        lines.extend(gate_lines)
     lines.append("")
 
     lines.append("## Sign-off")

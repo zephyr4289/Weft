@@ -158,6 +158,31 @@ if (!isMainThread) {
   (w as any).buf0Offset = 64;
   (w as any).bufSize = spec.bufSize;
   (w as any).payloadMax = spec.payloadMax;
+  // REBUILD the cached cursor views over the SHARED SAB (2026-09-16): the
+  // constructor's wViews/wF32Views/rViews/rF32Views still point at the
+  // constructor's own (discarded) SAB. The old DataView-based fillPayload
+  // worked by accident (dv was overridden above); the bulk wBegin().set()
+  // fill exposed the divergence — payload bytes landed in the wrong buffer
+  // (L1-tear/L6-ownership caught it). Mirror the constructor's view loop.
+  {
+    const wViews: Uint8Array[] = [];
+    const wF32Views: Float32Array[] = [];
+    const rViews: Uint8Array[] = [];
+    const rF32Views: Float32Array[] = [];
+    for (let i = 0; i < 3; i++) {
+      const payloadOff = (w as any).buf0Offset + i * spec.bufSize + 16;
+      wViews.push(new Uint8Array(spec.sab, payloadOff, spec.payloadMax));
+      wF32Views.push(new Float32Array(spec.sab, payloadOff, Math.floor(spec.payloadMax / 4)));
+      rViews.push(new Uint8Array(spec.sab, payloadOff, spec.payloadMax));
+      rF32Views.push(new Float32Array(spec.sab, payloadOff, Math.floor(spec.payloadMax / 4)));
+    }
+    (w as any).wViews = wViews;
+    (w as any).wF32Views = wF32Views;
+    (w as any).rViews = rViews;
+    (w as any).rF32Views = rF32Views;
+    // Reset the fill scratch: it was sized for the constructor's payloadMax.
+    (w as any).fillScratch = null;
+  }
 
   let published = 0n;
   let firstRevokedAt = 0n;

@@ -19,13 +19,12 @@
 // Law 2 (zero steady-state allocation) holds by construction on the
 // INGESTION path (produceFrame) of B/C/D: the feed writes into a runner-
 // owned batch buffer, the engine is SoA typed arrays, and Mode C's export
-// lands directly in the kernel's cached cursor view. The consume path pays
-// one small view object per claim (rReadSlice's return — the kernel's
-// public read API allocates its slice view by design); the Float32 wrapper
-// is cached per slot (<= 3 total, keyed on the public byteOffset), which
-// is one fewer per-frame allocation than the W1–W5 ModeCRunner pays. The
-// measured evidence is the GC harness (scripts/feed_gc_bench.ts); the
-// matrix asserts the cursor-identity discipline (<= 3 kernel views).
+// lands directly in the kernel's cached cursor view. The consume path is
+// now equally zero-alloc (2026-09-16): rLiveFloat32() returns the kernel's
+// per-slot CACHED view after claim — no rReadSlice slice object per claim,
+// no keyed Float32 wrapper. The measured evidence is the GC harness
+// (scripts/feed_gc_bench.ts); the matrix asserts the cursor-identity
+// discipline (<= 3 kernel views).
 
 import { Weft, PubResult } from '@weft/core';
 import type { ModeRunner } from './runner';
@@ -135,9 +134,6 @@ export class W6ModeCRunner implements ModeRunner {
   private feed = new SyntheticL2Feed();
   private engine = new L2BookEngine();
   private batch = new Float64Array(W6_FEED_TO_DISPLAY * W6_MSG_FIELDS);
-  /// Cached Float32 read view, keyed on the public rReadSlice byteOffset
-  /// (<= 3 distinct slots — see the file header's Law 2 note).
-  private rView: Float32Array | null = null;
 
   constructor() {
     this.weft = new Weft(W6_FRAME_BYTES);
@@ -156,12 +152,11 @@ export class W6ModeCRunner implements ModeRunner {
 
   consumeFrame(target: Float32Array): boolean {
     this.weft.claim();
-    const rPtr = this.weft.rReadSlice(16, W6_FRAME_BYTES);
-    if (rPtr.length === 0) return false;
-    if (this.rView === null || this.rView.byteOffset !== rPtr.byteOffset) {
-      this.rView = new Float32Array(rPtr.buffer, rPtr.byteOffset, W6_FLOAT_COUNT);
-    }
-    target.set(this.rView);
+    // Hot path (Law 2): the kernel's cached live Float32 view — zero
+    // allocation per claim. (Previously: one rReadSlice view object per
+    // claim + a keyed Float32 wrapper — the documented P+C remainder,
+    // now closed.)
+    target.set(this.weft.rLiveFloat32());
     return true;
   }
 

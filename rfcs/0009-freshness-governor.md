@@ -119,3 +119,30 @@ None — the governor is pure control logic.
 ## Staff Decision
 
 [EMPTY]
+
+## Implementation record (2026-09-16 — evidence only; Status remains Draft, a staff action)
+
+Implemented in TS + C + Rust per the nanoseconds work order:
+
+- `packages/core/src/governor.ts` (`FreshnessGovernor`, exported; the RFC's
+  published defaults), `core/c/governor.{h,c}` (`weft_governor_*`),
+  `core/rust/src/governor.rs` (`Governor`). Time is INJECTED
+  (`step(behind, nowMs)`) — step is a pure function of the trace, which is
+  what makes G5 deterministic; the rate-limited Reseed degrades to Snapshot
+  (the documented fallback).
+- Conformance: G1/G2/G3/G3b/G4/Law-4/custom pinned in all three languages
+  (`packages/core/test/governor.test.ts`, `core/c/governor_test.c`,
+  `core/rust/tests/governor_test.rs`); G5 via
+  `fixtures/xlang-governor/` — one deterministic xorshift32 trace (§0.2),
+  three emitters, byte-identical action logs (20,001 bytes), all four
+  action classes exercised. Wired into the native CI shard.
+- Wiring (the open questions' "composed by the app" lean):
+  `demos/web/src/components/FeedFanoutViews.tsx` — each fan-out view owns
+  its governor, `claim.dropped -> gov.step() -> decideDraw()`
+  (`demos/web/src/modes/governorPolicy.ts`, the shared pure policy).
+- B4 proof (`demos/web/scripts/governor_bench.ts`, evidence committed):
+  the B4 display-adversarial matrix, naive vs governor draw policy on a
+  real worker-driven fan-out ring. Redundant-poll regime (hold=0):
+  100% of draw memcpys elided, 22-43% of claim fences elided, convergence
+  gated per row. Paced-reader regime (hold >= 10 ms): savings ~0 — honest
+  finding, nothing to elide when the consumer is slower than the writer.

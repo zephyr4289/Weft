@@ -1,5 +1,7 @@
 # Build artifacts (don't commit; CI regenerates)
 core/c/spike
+core/c/governor-test
+core/c/governor-test-asan
 core/c/spike-tsan
 core/c/bench
 core/c/bench-asan
@@ -56,3 +58,6 @@ tools/weft-playback/weft_play
 spikes/verified-weft/verified_weft_bench
 minisign/
 
+
+# JNI harness local build output (ci/scripts/run_fanout_native_shard.sh)
+fixtures/jni-fanout/build/

@@ -56,6 +56,88 @@ weft_vw_result_t weft_vw_verify(const uint8_t auth_key[WEFT_VW_KEY_LEN],
     return WEFT_VW_OK;
 }
 
+// --- Series 6: pre-keyed verifier + batch -----------------------------------
+
+void weft_vw_verifier_init(weft_vw_verifier_t* v, const uint8_t auth_key[WEFT_VW_KEY_LEN]) {
+    hmac_sha256_init_key(&v->key, auth_key, WEFT_VW_KEY_LEN);
+}
+
+weft_vw_result_t weft_vw_verifier_verify(weft_vw_verifier_t* v,
+                                         const uint8_t* envelope,
+                                         const uint8_t* payload, size_t payload_len,
+                                         const uint8_t tag[WEFT_VW_TAG_LEN]) {
+    hmac_sha256_update(&v->key, envelope, WEFT_VW_ENVELOPE_LEN);
+    hmac_sha256_update(&v->key, payload, payload_len);
+    uint8_t expect[WEFT_VW_TAG_LEN];
+    hmac_sha256_final(&v->key, expect);  // reseeds the pad — reusable
+    if (weft_vw_ct_eq(expect, tag, WEFT_VW_TAG_LEN) != 1) {
+        return WEFT_VW_ERR_TAG;
+    }
+    return WEFT_VW_OK;
+}
+
+weft_vw_result_t weft_vw_batch_decode_verify(const uint8_t auth_key[WEFT_VW_KEY_LEN],
+                                             const uint8_t* src, size_t src_len,
+                                             weft_vw_record_view_t* views,
+                                             size_t views_cap,
+                                             size_t* n_verified,
+                                             size_t* bytes_consumed) {
+    weft_vw_verifier_t v;
+    weft_vw_verifier_init(&v, auth_key);
+
+    size_t verified = 0;
+    size_t off = 0;
+    while (off + WEFT_VW_ENVELOPE_LEN + WEFT_VW_TAG_LEN <= src_len) {
+        const uint8_t* rec = src + off;
+        // Envelope geometry (03-ENVELOPE §1, little-endian) — mirrors
+        // weft_vw_record_decode_verify exactly; a shared decode would just
+        // re-derive these four fields.
+        if (!(rec[0] == 'W' && rec[1] == 'E' && rec[2] == 'F' && rec[3] == 'T')) {
+            *n_verified = verified;
+            *bytes_consumed = off;
+            return WEFT_VW_ERR_BAD_MAGIC;
+        }
+        const uint16_t header_size = (uint16_t)(rec[6] | ((uint16_t)rec[7] << 8));
+        const uint32_t plen = (uint32_t)rec[12] | ((uint32_t)rec[13] << 8) |
+                              ((uint32_t)rec[14] << 16) | ((uint32_t)rec[15] << 24);
+        if (header_size < WEFT_VW_ENVELOPE_LEN) {
+            *n_verified = verified;
+            *bytes_consumed = off;
+            return WEFT_VW_ERR_BAD_MAGIC;
+        }
+        const size_t body = (size_t)header_size + plen;
+        if (body > src_len - off - WEFT_VW_TAG_LEN) {
+            // Record claims to extend past the buffer: truncation or garbage.
+            *n_verified = verified;
+            *bytes_consumed = off;
+            return WEFT_VW_ERR_SHORT;
+        }
+
+        const weft_vw_result_t vr = weft_vw_verifier_verify(
+            &v, rec, rec + header_size, plen, rec + body);
+        if (vr != WEFT_VW_OK) {
+            *n_verified = verified;
+            *bytes_consumed = off;
+            return vr;
+        }
+
+        if (views != NULL && verified < views_cap) {
+            weft_vw_record_view_t* out = &views[verified];
+            out->envelope = rec;
+            out->payload = rec + header_size;
+            out->payload_len = plen;
+            out->seq = (uint32_t)rec[8] | ((uint32_t)rec[9] << 8) |
+                       ((uint32_t)rec[10] << 16) | ((uint32_t)rec[11] << 24);
+        }
+        verified++;
+        off += body + WEFT_VW_TAG_LEN;
+    }
+
+    *n_verified = verified;
+    *bytes_consumed = off;
+    return WEFT_VW_OK;
+}
+
 size_t weft_vw_record_encode(const uint8_t* envelope, const uint8_t* payload,
                              size_t payload_len, const uint8_t tag[WEFT_VW_TAG_LEN],
                              uint8_t* dst, size_t dst_len) {

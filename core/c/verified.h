@@ -60,6 +60,56 @@ void weft_vw_sign(weft_vw_signer_t* s,
                   const uint8_t* envelope, const uint8_t* payload, size_t payload_len,
                   uint8_t out_tag[WEFT_VW_TAG_LEN]);
 
+// --- Series 6: pre-keyed verifier + batch stream verification ---------------
+// weft_vw_verify() re-derives the HMAC key schedule on every call — two extra
+// compressions per frame, the classic one-shot API shape. Consumers that
+// verify a stream of records from ONE key (flight-recorder ingest, WebSocket
+// bridge, cross-origin SAB readers — RFC 0005's own motivation) can pre-key
+// once and amortize the schedule across the whole stream.
+
+/// Reusable per-stream verifier state (pre-keyed; the verify mirror of
+/// weft_vw_signer_t). No allocation; reseeded by hmac final, same as signer.
+typedef struct weft_vw_verifier {
+    hmac_sha256_key_t key;
+} weft_vw_verifier_t;
+
+void weft_vw_verifier_init(weft_vw_verifier_t* v, const uint8_t auth_key[WEFT_VW_KEY_LEN]);
+
+/// Verify one frame with the pre-keyed state. Identical accept/reject
+/// semantics to weft_vw_verify (same codes, same constant-time compare);
+/// only the key schedule is amortized. Hot path for stream consumers.
+weft_vw_result_t weft_vw_verifier_verify(weft_vw_verifier_t* v,
+                                         const uint8_t* envelope,
+                                         const uint8_t* payload, size_t payload_len,
+                                         const uint8_t tag[WEFT_VW_TAG_LEN]);
+
+/// Zero-copy view of one verified record inside a batch buffer.
+typedef struct weft_vw_record_view {
+    const uint8_t* envelope;  // 16 bytes, points INTO the batch buffer
+    const uint8_t* payload;   // payload_len bytes, points INTO the buffer
+    size_t payload_len;
+    uint32_t seq;             // envelope seq field, decoded little-endian
+} weft_vw_record_view_t;
+
+/// Walk a buffer of concatenated auth records, verifying each in order.
+/// Semantics (Law 4 — drop and count, never consume):
+///   - returns WEFT_VW_OK when ALL records verify; *n_verified = record count
+///   - stops at the FIRST bad record, returning its code; *n_verified then
+///     counts only the good prefix — the caller drops/logs from there
+///   - *bytes_consumed = end offset of the last VERIFIED record, so a stream
+///     consumer can resume a re-synced stream after a bad record
+///   - views (optional, may be NULL) are filled for verified records only,
+///     zero-copy into src; views_cap bounds the fill, extra records still
+///     verify and count
+/// Trailing bytes short of a full record are ignored (n_bytes_consumed < src_len
+/// is legal); the caller decides whether that is truncation or a partial read.
+weft_vw_result_t weft_vw_batch_decode_verify(const uint8_t auth_key[WEFT_VW_KEY_LEN],
+                                             const uint8_t* src, size_t src_len,
+                                             weft_vw_record_view_t* views,
+                                             size_t views_cap,
+                                             size_t* n_verified,
+                                             size_t* bytes_consumed);
+
 /// Verify one frame record's bytes in constant time.
 /// Returns WEFT_VW_OK only when the tag matches byte-for-byte (timing-safe).
 weft_vw_result_t weft_vw_verify(const uint8_t auth_key[WEFT_VW_KEY_LEN],

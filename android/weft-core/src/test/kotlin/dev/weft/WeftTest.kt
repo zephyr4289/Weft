@@ -91,10 +91,18 @@ class WeftTest {
         assertEquals("Final claimed sequence reached", totalFrames, lastClaimedSeq)
         assertTrue("Steady-state fresh frames processed", freshClaims > 0)
 
-        // I6: Clean teardown
+        // I6: Clean teardown. The epoch ACK fires on the writer's FIRST
+        // publish attempt after revocation (02 §6: revoked is checked before
+        // any byte write, then epoch.getAndAdd ACKs) — reclaim can only
+        // observe the advance after that attempt. The previous revision
+        // asserted reclaim() without the ACK-triggering publish, which can
+        // only time out (deterministically false); masked until now because
+        // the test source set did not compile on CI at all.
         val ePre = weft.epochVal()
         weft.revoke()
         assertTrue("I6 Invariant: Revoked flag set", weft.isRevoked())
+        val ack = weft.publish(seq = totalFrames + 1, payloadLen = payloadBytes)
+        assertEquals("I6: post-revoke publish is dropped", PubResult.DROPPED_REVOKED, ack)
         val reclaimed = weft.reclaim(preRevokeEpoch = ePre, timeoutMs = 100)
         assertTrue("I6 Invariant: Epoch acknowledged and reclaimed", reclaimed)
     }

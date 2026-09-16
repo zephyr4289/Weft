@@ -15,7 +15,11 @@ import androidx.lifecycle.viewModelScope
 
 /// The Steward: owns Wefts, frees them on scope exit.
 /// Per WHITEPAPER §7.3: ViewModel-scoped (survives config change).
-class Steward : ViewModel() {
+/// OPEN for the same reason ViewModel is: tests and previews subclass to
+/// simulate onCleared() disposal (the ViewModel pattern's own testing idiom
+/// — a final class here broke the JVM test gate's compilation; see the
+/// android CI log for 8d6eebf).
+open class Steward : ViewModel() {
 
     private val wefts: MutableMap<Long, Weft> = mutableMapOf()
     private var nextId: Long = 1

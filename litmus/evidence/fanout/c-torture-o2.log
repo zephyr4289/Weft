@@ -1,0 +1,9 @@
+# C fan-out torture: 1 writer x 4 readers, every fresh claim word-validated
+# env: x86_64 / linux-sandbox / gcc 14.2.0 -O2 / 2026-09-16T07:24:46Z
+# regime: fenced-acq/rel (default)
+
+reader 0: fresh=125286 dropped=874714 claims=80446459 skipped=0 torn_exhausted=0 last_seq=1000000 identity=OK
+reader 1: fresh=158816 dropped=841184 claims=68853141 skipped=0 torn_exhausted=0 last_seq=1000000 identity=OK
+reader 2: fresh=156381 dropped=843619 claims=53595355 skipped=0 torn_exhausted=0 last_seq=1000000 identity=OK
+reader 3: fresh=127 dropped=999873 claims=119258755 skipped=0 torn_exhausted=0 last_seq=1000000 identity=OK
+torture: frames=1000000 slots=4 words=256 readers=4 publishes=1000000 elapsed_ms=1958.6 rate=510560/s verdict=PASS

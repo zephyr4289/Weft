@@ -4,12 +4,24 @@ core/c/spike-tsan
 core/c/bench
 core/c/bench-asan
 core/c/libweft.so
+core/c/fanout-test
+core/c/fanout-test-asan
+core/c/fanout-test-seq
+core/c/fanout-test-tsan
+core/c/fanout-runner
+core/c/fanout-runner-asan
+core/c/fanout-runner-seq
+core/c/fanout-runner-tsan
 tools/weft-probe/weft_probe
 tools/weft-record/weft_record
 core/rust/target/
 *.o
 *.so
 *.tar.gz
+
+# xlang fixture scratch (run.sh regenerates)
+fixtures/xlang-fanout/ring-*.bin
+fixtures/xlang-fanout/ring-*.meta
 
 # CI scratch
 ci/run-artifacts/

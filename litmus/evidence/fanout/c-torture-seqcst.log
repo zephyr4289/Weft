@@ -1,0 +1,9 @@
+# C fan-out torture — A/B: all-seq_cst stamp regime (TS-equivalent ordering)
+# env: x86_64 / linux-sandbox / gcc 14.2.0 -O2 -DWEFT_FANOUT_SEQ_CST=1 / 2026-09-16T07:24:58Z
+# compare against c-torture-o2.log (identical harness, only the stamp ordering differs)
+
+reader 0: fresh=135287 dropped=864713 claims=134214121 skipped=0 torn_exhausted=21 last_seq=1000000 identity=OK
+reader 1: fresh=181195 dropped=818805 claims=73578180 skipped=0 torn_exhausted=1 last_seq=1000000 identity=OK
+reader 2: fresh=76228 dropped=923772 claims=108230117 skipped=0 torn_exhausted=0 last_seq=1000000 identity=OK
+reader 3: fresh=91376 dropped=908624 claims=117785979 skipped=0 torn_exhausted=0 last_seq=1000000 identity=OK
+torture: frames=1000000 slots=4 words=256 readers=4 publishes=1000000 elapsed_ms=2191.3 rate=456354/s verdict=PASS

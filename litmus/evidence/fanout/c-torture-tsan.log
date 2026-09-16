@@ -1,0 +1,10 @@
+# C fan-out torture under ThreadSanitizer
+# env: x86_64 / linux-sandbox / gcc 14.2.0 -O0 -g -fsanitize=thread / 2026-09-16T07:25:01Z
+# claim: ZERO data-race reports (payload words are relaxed atomics; stamps acq/rel;
+# fences seq_cst) and zero integrity violations, 1 writer x 4 readers x ~31M claims.
+
+reader 0: fresh=26293 dropped=73707 claims=7872261 skipped=0 torn_exhausted=0 last_seq=100000 identity=OK
+reader 1: fresh=26824 dropped=73176 claims=6933298 skipped=0 torn_exhausted=0 last_seq=100000 identity=OK
+reader 2: fresh=19546 dropped=80454 claims=6975267 skipped=0 torn_exhausted=0 last_seq=100000 identity=OK
+reader 3: fresh=24154 dropped=75846 claims=7753213 skipped=0 torn_exhausted=0 last_seq=100000 identity=OK
+torture: frames=100000 slots=4 words=256 readers=4 publishes=100000 elapsed_ms=9173.4 rate=10901/s verdict=PASS

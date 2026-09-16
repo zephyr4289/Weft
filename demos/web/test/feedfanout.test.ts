@@ -294,9 +294,12 @@ describe('fanout feed cross-thread protocol litmus', () => {
       }
       const msg = await done;
       // Drain: final claim per reader.
-      for (const r of readers) {
-        const c = r.claim();
-        if (c.fresh && !validateFeedFrame(r.view(), c.seq)) invalid++;
+      for (let ri = 0; ri < readers.length; ri++) {
+        const c = readers[ri].claim();
+        if (c.fresh) {
+          if (!validateFeedFrame(readers[ri].view(), c.seq)) invalid++;
+          prevSeq[ri] = c.seq;
+        }
       }
 
       // THE headline assertion: zero invalid payloads across 2M folded

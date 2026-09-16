@@ -1,0 +1,63 @@
+=== Weft fan-out JNI harness (2026-09-16T10:15:44Z) ===
+env: Linux 5.10.134-013.15.kangaroo.al8.x86_64, gcc 14, openjdk version "21.0.12.1" 2026-08-18
+sources: weft_jni.c + core/c/weft.c + core/c/fanout.c (host .so, -O2)
+
+ok: JF1 payloadBytes=0 rejected
+ok: JF1 payload not multiple of 4 rejected
+ok: JF1 slotCount<2 rejected
+ok: JF1 slotCount>64 rejected
+ok: JF1 ring_bytes = 16 + 8M + M*payload (the interop contract)
+ok: JF1 ring_bytes rejects bad geometry
+ok: JF2 fanoutCreate handle
+ok: JF2 begin: direct BB cursor, cap=payload
+ok: JF2 publish returns frame seq 1
+ok: JF2 readerCreate on the broadcaster's ring
+ok: JF2 first claim: fresh, seq 1, dropped 0
+ok: JF2 view buffer: cap=payload
+ok: JF2 claimed bytes match pat(1,i) — no tear on the happy path
+ok: JF2 advisory latestSeq/publishes (AXIOM T)
+ok: JF3 10 fresh claims, last frame 40
+ok: JF3 telescoping: sum(dropped) == 30 exactly
+ok: JF3 identity: lastSeq - freshClaims == sum(dropped)
+ok: JF4 baseline: reader holds frame 1
+ok: JF4 mid-overwrite claim: graceful skip, keeps frame 1 (Law 1: bounded, counted)
+ok: JF4 skip counted in reader stats (never silent)
+ok: JF4 publish after the skip publishes frame 9
+ok: JF4 next claim is fresh with exact telescoped drops
+ok: JF4 publish-without-begin returns the last frame seq (no-op)
+ok: JF5 reader 0 fresh claims == 70/1
+ok: JF5 reader 0 telescoping exact: sum(dropped) == lastClaimed(70) - fresh
+ok: JF5 reader 0 reads == claim calls
+ok: JF5 reader 1 fresh claims == 70/3
+ok: JF5 reader 1 telescoping exact: sum(dropped) == lastClaimed(69) - fresh
+ok: JF5 reader 1 reads == claim calls
+ok: JF5 reader 2 fresh claims == 70/7
+ok: JF5 reader 2 telescoping exact: sum(dropped) == lastClaimed(70) - fresh
+ok: JF5 reader 2 reads == claim calls
+ok: JF6 foreign broadcaster attaches by geometry alone
+ok: JF6 publish on foreign ring (numbering from latestSeq=0)
+ok: JF6 foreign reader attaches
+ok: JF6 foreign reader claims frame 1 — one ring, two entry points
+ok: JF6 foreign attach rejects ring_bytes mismatch
+ok: JF6 foreign reader rejects ring_bytes mismatch
+ok: JF7 fill copies payload/4 words
+ok: JF7 publish after fill
+ok: JF7 fill path delivers intact bytes
+ok: JF7 fill rejects len%4!=0
+ok: JF8 reader thread fanout-reader-0 terminated
+ok: JF8 reader thread fanout-reader-1 terminated
+ok: JF8 reader thread fanout-reader-2 terminated
+ok: JF8 torture: zero protocol violations across 200000 frames x 3 readers (violations: [])
+ok: JF8 reader 0 stats populated (reads=12617720 fresh=37417 dropped=162583 skipped=0 exhausted=0)
+ok: JF8 reader 0 converged to the final frame
+ok: JF8 reader 1 stats populated (reads=14151447 fresh=61303 dropped=138697 skipped=0 exhausted=0)
+ok: JF8 reader 1 converged to the final frame
+ok: JF8 reader 2 stats populated (reads=11350993 fresh=82826 dropped=117174 skipped=0 exhausted=0)
+ok: JF8 reader 2 converged to the final frame
+ok: JF8 readers observed frames (181546 fresh claims total)
+       torture perf: ~274K publishes/s through the JNI zero-copy cursor path (informative, host JVM)
+
+PASS: 0 failure(s), 53 check(s), 776 ms total
+env: java 21.0.12.1 (amd64), host gcc .so, -O2
+
+exit: 0

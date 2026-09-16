@@ -195,7 +195,10 @@ size_t weft_fanout_ring_bytes(size_t payload_bytes, unsigned slot_count);
 int weft_fanout_init(weft_fanout_t* f, size_t payload_bytes, unsigned slot_count);
 
 /// Attach a broadcaster to FOREIGN ring memory (e.g. produced by another
-/// port, or shared via FFI). Geometry is validated against ring_bytes.
+/// port, or shared via FFI). `f` must be an EMPTY (zeroed) weft_fanout_t —
+/// attaching over a live broadcaster is refused (-1, state stays intact)
+/// so an init-allocated ring can never be silently orphaned. Geometry is
+/// validated against ring_bytes.
 /// w_seq continues from the ring's latestSeq so per-slot stamp monotonicity
 /// survives producer handoff. The caller owns the memory; destroy frees
 /// nothing (but see the RFC 0004 open question on multi-reader lifecycle —
@@ -228,8 +231,27 @@ uint64_t weft_fanout_publish(weft_fanout_t* f);
 /// Release the ring. Frees only what init allocated. Idempotent.
 void weft_fanout_destroy(weft_fanout_t* f);
 
+/// Heap-allocate + init in one call (calloc; returns NULL on bad geometry or
+/// OOM). WHY THIS EXISTS: FFI-finalizer discipline. Dart's NativeFinalizer
+/// (packages/flutter_weft) and the JNI bridge (android/weft-core) both need
+/// "allocate" and "release" to be ONE C call each, so a foreign runtime's GC
+/// backstop can never free the struct while the ring it owns is still alive —
+/// the exact hazard a split calloc/destroy pair invites. weft_fanout_free
+/// has the void(void*) signature NativeFinalizer requires.
+weft_fanout_t* weft_fanout_new(size_t payload_bytes, unsigned slot_count);
+
+/// weft_fanout_destroy + free the struct. NULL-safe. Idempotent by
+/// destruction of the handle (the caller drops it).
+void weft_fanout_free(weft_fanout_t* f);
+
 /// Advisory state snapshot (cold path; AXIOM T).
 void weft_fanout_debug_stats(const weft_fanout_t* f, weft_fanout_debug_t* out);
+
+/// The ring base pointer (byte-compatible layout contract; see fanout.h
+/// header). For FFI runtimes that read the advisory ctrl words (latestSeq,
+/// publishes) directly from the documented offsets — unsynchronized reads,
+/// AXIOM T advisory only. NULL if not initialized.
+const void* weft_fanout_ring(const weft_fanout_t* f);
 
 // ---------------------------------------------------------------------------
 // Reader (the consumer side) — N per ring, each fully independent
@@ -256,6 +278,15 @@ const void* weft_fanout_view(const weft_fanout_reader_t* r);
 
 /// Advisory statistics snapshot (cold path; AXIOM T).
 void weft_fanout_reader_stats(const weft_fanout_reader_t* r, weft_fanout_stats_t* out);
+
+/// Heap-allocate + init in one call (calloc; NULL on bad geometry/OOM).
+/// Same FFI-finalizer rationale as weft_fanout_new: the reader's copy buffer
+/// and the struct must die together, in one call.
+weft_fanout_reader_t* weft_fanout_reader_new(const void* ring, size_t ring_bytes,
+                                             size_t payload_bytes, unsigned slot_count);
+
+/// weft_fanout_reader_destroy + free the struct. NULL-safe.
+void weft_fanout_reader_free(weft_fanout_reader_t* r);
 
 /// Release the reader (frees only the copy buffer). Idempotent.
 void weft_fanout_reader_destroy(weft_fanout_reader_t* r);

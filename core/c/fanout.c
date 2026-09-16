@@ -78,6 +78,10 @@ int weft_fanout_init(weft_fanout_t* f, size_t payload_bytes, unsigned slot_count
 int weft_fanout_attach_writer(weft_fanout_t* f, void* ring, size_t ring_bytes,
                               size_t payload_bytes, unsigned slot_count) {
     if (!f || !ring) return -1;
+    // Refuse to attach over a live broadcaster: the memset below would wipe
+    // owns_ring and silently LEAK an init-allocated ring. Caller error —
+    // documented, and contained (state stays intact, nothing freed).
+    if (f->ring) return -1;
     memset(f, 0, sizeof(*f));
     if (!fan_geometry_ok(payload_bytes, slot_count)) return -1;
     if (ring_bytes != weft_fanout_ring_bytes(payload_bytes, slot_count)) return -1;
@@ -143,6 +147,24 @@ void weft_fanout_destroy(weft_fanout_t* f) {
     f->w_cursor = NULL;
     f->owns_ring = 0;
 }
+
+weft_fanout_t* weft_fanout_new(size_t payload_bytes, unsigned slot_count) {
+    weft_fanout_t* f = (weft_fanout_t*)calloc(1, sizeof(weft_fanout_t));
+    if (!f) return NULL;
+    if (weft_fanout_init(f, payload_bytes, slot_count) != 0) {
+        free(f);
+        return NULL;
+    }
+    return f;
+}
+
+void weft_fanout_free(weft_fanout_t* f) {
+    if (!f) return;
+    weft_fanout_destroy(f);
+    free(f);
+}
+
+const void* weft_fanout_ring(const weft_fanout_t* f) { return f ? (const void*)f->ring : NULL; }
 
 void weft_fanout_debug_stats(const weft_fanout_t* f, weft_fanout_debug_t* out) {
     out->latest_seq = fan_stamp_load(f->ctrl + FAN_IDX_LATEST);
@@ -264,4 +286,21 @@ void weft_fanout_reader_destroy(weft_fanout_reader_t* r) {
     r->target = NULL;
     r->ring = NULL;
     r->ctrl = NULL;
+}
+
+weft_fanout_reader_t* weft_fanout_reader_new(const void* ring, size_t ring_bytes,
+                                             size_t payload_bytes, unsigned slot_count) {
+    weft_fanout_reader_t* r = (weft_fanout_reader_t*)calloc(1, sizeof(weft_fanout_reader_t));
+    if (!r) return NULL;
+    if (weft_fanout_reader_init(r, ring, ring_bytes, payload_bytes, slot_count) != 0) {
+        free(r);
+        return NULL;
+    }
+    return r;
+}
+
+void weft_fanout_reader_free(weft_fanout_reader_t* r) {
+    if (!r) return;
+    weft_fanout_reader_destroy(r);
+    free(r);
 }

@@ -31,6 +31,7 @@ LOG=ci/run-artifacts/shard-binding-parity.log
 # pair table: canonical|mirror  (paths relative to ROOT)
 PAIRS=(
   "core/kotlin/FrameCursor.kt|android/weft-core/src/main/kotlin/dev/weft/FrameCursor.kt"
+  "core/kotlin/Fanout.kt|android/weft-core/src/main/kotlin/dev/weft/Fanout.kt"
   "core/kotlin/Steward.kt|android/weft-core/src/main/kotlin/dev/weft/Steward.kt"
   "core/kotlin/TriadNative.kt|android/weft-core/src/main/kotlin/dev/weft/TriadNative.kt"
   "core/kotlin/Weft.kt|android/weft-core/src/main/kotlin/dev/weft/Weft.kt"

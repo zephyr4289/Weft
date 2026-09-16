@@ -1,0 +1,40 @@
+# Kotlin fan-out ring — F-series battery evidence (FanoutTest.kt)
+# Env: JVM 21.0.12 / kotlinc 2.0.21 / x86_64-sandbox, 2026-09-16
+# Compile: kotlinc -jvm-target 21 core/kotlin/Fanout.kt + test battery (JUnit 4 via
+# junit-platform-console-standalone 1.10.3)
+# Gate: 11/11 green including F10 — REAL multi-thread torture (writer thread +
+# 3 reader threads, 100k frames, 64-word mixer payloads, every fresh claim
+# word-validated, zero torn accepts, per-reader telescoping exact, all readers
+# converge on the final frame).
+  
+  Thanks for using JUnit! Support its development at https://junit.org/sponsoring
+  
+  [36m╷[0m
+  [36m├─[0m [36mJUnit Jupiter[0m [32m✔[0m
+  [36m├─[0m [36mJUnit Vintage[0m [32m✔[0m
+  [36m│  └─[0m [36mFanoutTest[0m [32m✔[0m
+  [36m│     ├─[0m [34mf2Roundtrip[0m [32m✔[0m
+  [36m│     ├─[0m [34mf1GeometryValidation[0m [32m✔[0m
+  [36m│     ├─[0m [34mf6GracefulSkip[0m [32m✔[0m
+  [36m│     ├─[0m [34mf3DropAccounting[0m [32m✔[0m
+  [36m│     ├─[0m [34mf7FourConsumerScenario[0m [32m✔[0m
+  [36m│     ├─[0m [34mf5RingOverwriteYieldsLatest[0m [32m✔[0m
+  [36m│     ├─[0m [34mf8ZeroAllocationIdentity[0m [32m✔[0m
+  [36m│     ├─[0m [34mf4TelescopingIdentity[0m [32m✔[0m
+  [36m│     ├─[0m [34mf9LayoutParityRawCtrl[0m [32m✔[0m
+  [36m│     ├─[0m [34mf10MultiThreadTorture[0m [32m✔[0m
+  [36m│     └─[0m [34mf6bAbandonedBeginsObservable[0m [32m✔[0m
+  [36m└─[0m [36mJUnit Platform Suite[0m [32m✔[0m
+  
+  Test run finished after 468 ms
+  [         4 containers found      ]
+  [         0 containers skipped    ]
+  [         4 containers started    ]
+  [         0 containers aborted    ]
+  [         4 containers successful ]
+  [         0 containers failed     ]
+  [        11 tests found           ]
+  [         0 tests skipped         ]
+  [        11 tests started         ]
+  [        11 tests successful      ]
+  [         0 tests failed          ]

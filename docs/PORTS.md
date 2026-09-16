@@ -82,3 +82,33 @@ port and the mobile runtimes reach the C ring through FFI bridges.
 | Android JNI (`weft_jni.c` → `core/c/fanout.c`) | The C ring itself — every ordering property is the C row's, unchanged; the bridge adds only handle passing, direct-ByteBuffer cursors, and per-reader record accessors (the record is reader-owned and stable until that reader's next claim, so claim/claimFresh/claimDropped read back one consistent claim across three JNI transitions). No JVM callbacks from C → no thread attachment anywhere. |
 | Flutter/Dart FFI (`packages/flutter_weft`) | The C ring through `dart:ffi` — ordering is the C row's; Dart adds no shared state (handles C-allocated/C-freed, claim record and copy buffer are native memory). Cross-isolate consumers pass the reader handle as its raw address; the writer stays single-isolate by contract (D-14). |
 
+
+---
+
+## 6. VM-port fan-out rings (RFC 0004 — Series 5: `core/kotlin/Fanout.kt`, `core/swift/Fanout.swift`, `core/dart/fanout.dart`)
+
+The three VM-port kernels (Kotlin §1, Swift §2, Dart §3) ship their own
+RFC-0004 rings alongside the C/Rust/TS rings of §5 — same byte-compatible
+layout (the interop contract of §5), same protocol, port-specific memory
+primitives. The kernel ports stay 1:1 and frozen; these are driver-layer
+modules, one per port, each with its own F-series battery and a real
+multi-thread torture where the platform can express one.
+
+| Port | Ring memory | Ordering regime (the port's §5 mapping) | Divergence / boundary notes |
+|---|---|---|---|
+| Kotlin/JVM | ONE direct `ByteBuffer` (`allocateDirect`, LE) — JNI-attachable by `weft_fanout_attach_writer`/`NewDirectByteBuffer`; the JVM analog of posting the TS SAB | The C regime mapped to VarHandle access modes: begin() invalidate = `setVolatile` (SC store) + `VarHandle.fullFence()` (P1); publish() stamps = `setRelease`; claim() stamps = `getAcquire`; payload words = `getOpaque` (the JVM analog of C relaxed u32 — race-free by construction); one `fullFence()` between copy and revalidation (P2) | `publishes` telemetry add is `getAndAdd` (SC — the JVM exposes no relaxed RMW; advisory per AXIOM T, declared divergence). Platform boundary: VarHandle requires JVM 9+ / Android API 33+; older Android keeps the kernel 1:1 path or the JNI road to `core/c/fanout.h` (same bytes). Torture: writer + 3 reader threads, 100k mixer-validated frames (FanoutTest.kt F10). |
+| Swift | ONE 64-byte-aligned `UnsafeMutableRawPointer` region; ctrl as `UInt64.AtomicRepresentation`, payload as `UInt32.AtomicRepresentation` — a C peer or any port's bytes attach with zero copy (`bindMemory` for foreign rings) | The honest Swift hybrid: stamps SEQUENTIALLY CONSISTENT via `UnsafeAtomic` (swift-atomics exposes no standalone fence, so the C port's P1/P2 fence pairs cannot be expressed — SC stores are also Releases, SC loads also Acquires, and the SC access carries the bracket duty on every targeted implementation; the TS port's regime, stated as such); payload words RELAXED-ATOMIC u32 on both sides (the C port's stance) | Stronger than the TS port on payload (atomic words vs plain Float32 stores), differently-proofed than C on stamps. Publishes telemetry add is relaxed (`loadThenWrappingIncrement`). Torture: writer + 3 concurrent DispatchQueue readers, 100k mixer-validated frames (FanoutTests.swift F10). |
+| Dart/Flutter | ONE `Uint8List` region, all accessors `Endian.little`; `WeftFanoutReader(bytes)` attaches to any port's bytes (FFI `Pointer<Uint8>.asTypedList` or a copy), geometry-validated | SINGLE-ISOLATE REFERENCE — the honesty load-bearing wall of the Dart port (§3): plain ByteData accesses, valid only because writer and readers run on one event loop; the bracket discipline is retained verbatim (an await between copy halves is legal Dart and the tear freedom survives); no cross-thread ordering claims transfer | The copy is an explicit LE word loop (word VALUES, not byte reinterpretation — host-endianness-proof). Cross-thread fan-out on Flutter goes through dart:ffi to the C ring (§5) — same bytes. Float users: `wordToFloat(view()[i])` (the bit-pattern reinterpretation, zero-alloc scratch). Battery: fanout_test.dart (no torture — declared: the concurrent gates live in C/Kotlin/Swift and the FFI road). |
+
+Flight recorder (`tools/weft-fanout-rec`, .weftrec v2 — FORMATS.md §1.5): the
+capture/replay consumer named in RFC 0004's motivation, attaching to any
+port's ring over POSIX shm. Evidence: `litmus/evidence/fanout/flight-recorder.log`
+(both C ordering regimes + ASAN + TSAN green).
+
+Structural enforcement: `tools/port_validator.py` carries a fan-out rule
+pack per VM port (existence + spec-citing header + the ordering markers of
+this section + the shared begin/publish/claim/view/stats/ring-bytes API
+surface); `ci/scripts/run_binding_parity.sh` hashes the two new mirror
+pairs (`core/kotlin/Fanout.kt` ↔ `android/weft-core/.../Fanout.kt`,
+`core/dart/fanout.dart` ↔ `packages/flutter_weft/lib/src/reference/fanout.dart`).
+

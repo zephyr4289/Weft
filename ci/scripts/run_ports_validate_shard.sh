@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # run_ports_validate_shard.sh — Phase 4 port structural validator.
-# 4 targets: kotlin + swift + dart + ts. Each exits 0 = PASS.
+# Targets: kotlin + swift + dart + ts port rule packs, plus the Series-5
+# fan-out rule pack (fanout-kotlin/swift/dart — RFC 0004 VM-port rings).
+# Each emits one JSON line; all must pass.
 set -euo pipefail
 
 mkdir -p ci/run-artifacts
@@ -46,7 +48,7 @@ EXIT=$?
 set -e
 
 if [ $EXIT -eq 0 ]; then
-  echo "✅ ports-validate: 4/4 PASS"
+  echo "✅ ports-validate: all targets PASS (ports + fan-out rule packs)"
 else
   echo "❌ ports-validate: at least one target FAILED"
   exit 1

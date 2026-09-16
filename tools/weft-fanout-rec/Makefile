@@ -15,24 +15,30 @@ CFLAGS  ?= -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE
 CFLAGS_DBG = -O1 -g -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -fsanitize=thread
 CFLAGS_ASAN = -O1 -g -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -fsanitize=address
 INCLUDE  = -I$(ROOT)/core/c
+LIBS     = -lm
 FANOUT   = $(ROOT)/core/c/fanout.c
 SRC      = weft_fanout_rec.c
 
-.PHONY: all test test-seq clean
+.PHONY: all test test-seq e2e clean
+
+# e2e — RFC-0010 demo gate: capture -> validate -> replay -> recapture under
+# v3 compression, wave family (the road the lead's roadmap named).
+e2e: weft-fanout-rec
+	bash e2e.sh
 
 all: weft-fanout-rec weft-fanout-rec-seq
 
 weft-fanout-rec: $(SRC) $(FANOUT) $(ROOT)/core/c/fanout.h
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $(SRC) $(FANOUT)
+	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $(SRC) $(FANOUT) $(LIBS)
 
 weft-fanout-rec-seq: $(SRC) $(FANOUT) $(ROOT)/core/c/fanout.h
-	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 $(INCLUDE) -o $@ $(SRC) $(FANOUT)
+	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 $(INCLUDE) -o $@ $(SRC) $(FANOUT) $(LIBS)
 
 weft-fanout-rec-asan: $(SRC) $(FANOUT) $(ROOT)/core/c/fanout.h
-	$(CC) $(CFLAGS_ASAN) $(INCLUDE) -o $@ $(SRC) $(FANOUT)
+	$(CC) $(CFLAGS_ASAN) $(INCLUDE) -o $@ $(SRC) $(FANOUT) $(LIBS)
 
 weft-fanout-rec-tsan: $(SRC) $(FANOUT) $(ROOT)/core/c/fanout.h
-	$(CC) $(CFLAGS_DBG) $(INCLUDE) -o $@ $(SRC) $(FANOUT)
+	$(CC) $(CFLAGS_DBG) $(INCLUDE) -o $@ $(SRC) $(FANOUT) $(LIBS)
 
 test: weft-fanout-rec
 	./weft-fanout-rec selftest --frames 20000 --words 64

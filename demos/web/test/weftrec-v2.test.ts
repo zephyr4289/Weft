@@ -58,6 +58,17 @@ describe('version gates (FORMATS §1.3 — v1 tooling rejects v2, v2 rejects v1)
     ]);
     expect(() => parseWeftrecV2(v1)).toThrow(/v1 kernel capture/);
   });
+
+  it('v2 parser rejects a v3 (RFC-0010 compressed) file — unknown version', () => {
+    // A v3 header: same magic/layout, version 3, flags FANOUT|COMPRESSED.
+    const h = new Uint8Array(32);
+    const dv = new DataView(h.buffer);
+    dv.setUint32(0, 0x43455257, true); // "WREC"
+    dv.setUint16(4, 3, true);          // format_version 3 (RFC-0010)
+    dv.setUint16(6, 32, true);
+    dv.setUint32(8, 0x1 | 0x2, true);  // FANOUT | COMPRESSED
+    expect(() => parseWeftrecV2(h)).toThrow(/unknown future version|!= 2/);
+  });
 });
 
 describe('v2 round-trip (writeWeftrecV2 -> parseWeftrecV2)', () => {

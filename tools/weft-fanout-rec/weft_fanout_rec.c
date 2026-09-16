@@ -71,6 +71,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <math.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
@@ -141,6 +142,75 @@ static void die_errno(const char* what) {
 }
 
 // ---------------------------------------------------------------------------
+// v3 payload compression (RFC-0010 draft): codec 1 = delta-zigzag-varint
+// ---------------------------------------------------------------------------
+// HONEST SCOPE: the codec targets REAL signal payloads (smooth curves, PCM,
+// structured telemetry — frame payloads with local coherence). The 04-LITMUS
+// mixer family is deliberately pseudorandom and will NOT compress; the
+// writer self-limits (compressed >= original -> emit codec 0, stored), so a
+// mixer capture under --compress costs only the per-record codec word.
+// ---------------------------------------------------------------------------
+
+#define WREC3_FORMAT_VERSION 3u     // v2 layout + codec fields (RFC-0010)
+#define WREC3_FLAG_COMPRESSED 0x2u  // flags bit 1: records may be compressed
+#define WREC3_CODEC_STORED 0u       // payload bytes verbatim
+#define WREC3_CODEC_DZV 1u          // delta-zigzag-varint over u32 words
+
+/// Max dzv output for `words` u32s: worst case 5 bytes per varint.
+#define DZV_MAX(words) ((words) * 5u)
+
+/// Compress `words` u32 values into dst (capacity >= DZV_MAX(words)).
+/// Returns bytes written. Inverse of dzv_decompress.
+static uint32_t dzv_compress(uint8_t* dst, const uint32_t* src, uint32_t words) {
+    uint32_t n = 0;
+    uint32_t prev = 0;
+    for (uint32_t i = 0; i < words; i++) {
+        const uint32_t d = src[i] - prev;   // wrapping delta
+        prev = src[i];
+        // zigzag: interpret d as the SIGNED delta (two's complement) and
+        // map to u32. The shift MUST be arithmetic on the signed view —
+        // (d >> 31) on unsigned d is logical and maps -1 to 1 instead of
+        // 0x1, breaking every negative-delta round-trip (caught by the e2e
+        // wave gate: word-to-word deltas of a falling curve are negative).
+        const int32_t sd = (int32_t)d;
+        const uint32_t z = ((uint32_t)sd << 1) ^ (uint32_t)(sd >> 31);
+        // LEB128 varint
+        uint32_t v = z;
+        do {
+            uint8_t b = (uint8_t)(v & 0x7fu);
+            v >>= 7;
+            if (v) b |= 0x80u;
+            dst[n++] = b;
+        } while (v);
+    }
+    return n;
+}
+
+/// Decompress `n` dzv bytes into `words` u32 values (caller sized).
+/// Returns 0 on success, -1 on malformed input (overrun/underrun).
+static int dzv_decompress(uint32_t* dst, uint32_t words,
+                          const uint8_t* src, uint32_t n) {
+    uint32_t prev = 0;
+    uint32_t ri = 0;
+    for (uint32_t i = 0; i < words; i++) {
+        uint32_t z = 0;
+        int shift = 0;
+        for (;;) {
+            if (ri >= n) return -1;             // truncated varint
+            const uint8_t b = src[ri++];
+            z |= (uint32_t)(b & 0x7fu) << shift;
+            if (!(b & 0x80u)) break;
+            shift += 7;
+            if (shift > 28) return -1;          // malformed (u32 overflow)
+        }
+        const uint32_t d = (z >> 1) ^ (uint32_t)(-(int32_t)(z & 1u)); // unzigzag
+        prev += d;                               // wrapping inverse delta
+        dst[i] = prev;
+    }
+    return ri == n ? 0 : -1;                     // trailing garbage = malformed
+}
+
+// ---------------------------------------------------------------------------
 // LE primitives (bit-exact, little-endian on every host — the wire contract)
 // ---------------------------------------------------------------------------
 
@@ -183,6 +253,22 @@ static void write_header(FILE* fp, uint32_t frame_count) {
     if (fwrite(h, 1, sizeof(h), fp) != sizeof(h)) die_errno("fwrite(header)");
 }
 
+/// Write the 32-byte v3 header (RFC-0010: v2 layout, version 3, flags
+/// FANOUT|COMPRESSED; v2 tooling rejects it via the version gate).
+static void write_header_v3(FILE* fp, uint32_t frame_count) {
+    uint8_t h[WREC_HEADER_SIZE];
+    memset(h, 0, sizeof(h));
+    put_u32(h + 0, WREC_MAGIC);
+    put_u16(h + 4, WREC3_FORMAT_VERSION);
+    put_u16(h + 6, WREC_HEADER_SIZE);
+    put_u32(h + 8, WREC_FLAG_FANOUT | WREC3_FLAG_COMPRESSED);
+    put_u32(h + 12, WREC_ENV_VERSION);
+    put_u32(h + 16, frame_count);
+    put_u32(h + 20, crc32_compute(h, 20));
+    if (fseek(fp, 0, SEEK_SET) != 0) die_errno("fseek(header v3)");
+    if (fwrite(h, 1, sizeof(h), fp) != sizeof(h)) die_errno("fwrite(header v3)");
+}
+
 /// Append one v2 fanout claim record; returns 0 on success.
 static int append_record(FILE* fp, uint64_t seq, uint64_t dropped,
                          const void* payload, uint32_t payload_len) {
@@ -213,55 +299,153 @@ typedef struct {
     uint8_t* payload;   // malloc'd when payload_len > 0 (caller frees)
 } wrec2_record_t;
 
-/// Read the next record from fp. Returns 1 on success, 0 on clean EOF,
-/// -1 on corruption (bad length / short read / crc mismatch).
-static int read_record(FILE* fp, wrec2_record_t* out) {
+/// Append one v3 claim record (RFC-0010): the v2 field at offset 6 becomes
+/// the per-record codec (0 stored / 1 dzv) and offset 28 the compressed
+/// stream length; payload_len at 24 stays the ORIGINAL ring payload length
+/// so validate/replay see wire-identical payloads after decompression.
+/// Self-limiting: when dzv does not shrink the payload (the honest case for
+/// the pseudorandom mixer family), the record is stored (codec 0).
+static int append_record_v3(FILE* fp, uint64_t seq, uint64_t dropped,
+                            const void* payload, uint32_t payload_len) {
+    uint8_t head[32];
+    const uint8_t* in = (const uint8_t*)payload;
+    uint16_t codec = WREC3_CODEC_STORED;
+    uint32_t stream_len = payload_len;
+    uint8_t* dzv_buf = NULL;
+
+    if ((payload_len % 4) == 0 && payload_len >= 4) {
+        dzv_buf = (uint8_t*)malloc(DZV_MAX(payload_len / 4));
+        if (!dzv_buf) die("out of memory (dzv)");
+        const uint32_t n = dzv_compress(dzv_buf, (const uint32_t*)payload,
+                                        payload_len / 4);
+        if (n < payload_len) {  // strictly smaller, else stored
+            codec = WREC3_CODEC_DZV;
+            stream_len = n;
+            in = dzv_buf;
+        }
+    }
+
+    put_u32(head + 0, WREC2_REC_FIXED + stream_len); // rec_len incl. crc
+    put_u16(head + 4, WREC2_KIND_FANOUT_CLAIM);
+    put_u16(head + 6, codec);
+    put_u64(head + 8, seq);
+    put_u64(head + 16, dropped);
+    put_u32(head + 24, payload_len);   // ORIGINAL length
+    put_u32(head + 28, stream_len);    // codec stream length
+    int rc = 0;
+    if (fwrite(head, 1, sizeof(head), fp) != sizeof(head)) rc = -1;
+    if (rc == 0 && stream_len && fwrite(in, 1, stream_len, fp) != stream_len) rc = -1;
+    if (rc == 0) {
+        uint32_t crc = crc32_update(0, head + 4, sizeof(head) - 4);
+        crc = crc32_update(crc, in, stream_len);
+        uint8_t c[4];
+        put_u32(c, crc);
+        if (fwrite(c, 1, sizeof(c), fp) != sizeof(c)) rc = -1;
+    }
+    free(dzv_buf);
+    return rc;
+}
+
+/// Read the next record from a v2 OR v3 file. For v3, decompression is
+/// transparent: out->payload is the ORIGINAL ring payload, wire-identical
+/// to what a v2 capture of the same session would hold. Returns 1 success,
+/// 0 clean EOF, -1 corruption.
+static int read_record_any(FILE* fp, wrec2_record_t* out, int version) {
     uint8_t head[32];
     size_t n = fread(head, 1, 4, fp);
-    if (n == 0) return 0;                    // clean EOF
+    if (n == 0) return 0;
     if (n != 4) return -1;
     const uint32_t rec_len = get_u32(head);
-    if (rec_len < WREC2_REC_FIXED || (rec_len % 4) != 0) return -1;
+    if (rec_len < WREC2_REC_FIXED) return -1;
+    // v2 payloads are u32-word shaped (ring contract) => rec_len % 4 == 0.
+    // v3 codec streams are BYTE-granular (dzv varints have no word
+    // alignment) => only the >= minimum and bounds rules apply (§1.6).
+    if (version < 3 && (rec_len % 4) != 0) return -1;
     if (fread(head + 4, 1, sizeof(head) - 4, fp) != sizeof(head) - 4) return -1;
-    if (get_u16(head + 4) != WREC2_KIND_FANOUT_CLAIM)
-        return -1; // v2's sole kind; unknown kinds are a version violation
+    if (get_u16(head + 4) != WREC2_KIND_FANOUT_CLAIM) return -1;
+
     out->seq = get_u64(head + 8);
     out->dropped = get_u64(head + 16);
     out->payload_len = get_u32(head + 24);
-    if ((uint64_t)out->payload_len + WREC2_REC_FIXED != rec_len) return -1;
-    out->payload = NULL;
-    if (out->payload_len) {
-        out->payload = (uint8_t*)malloc(out->payload_len);
-        if (!out->payload) die("out of memory");
-        if (fread(out->payload, 1, out->payload_len, fp) != out->payload_len) {
-            free(out->payload); out->payload = NULL; return -1;
+
+    uint32_t stream_len = out->payload_len;
+    uint16_t codec = WREC3_CODEC_STORED;
+    if (version >= 3) {
+        codec = get_u16(head + 6);
+        stream_len = get_u32(head + 28);
+        if ((uint64_t)stream_len + WREC2_REC_FIXED != rec_len) return -1;
+        if (codec != WREC3_CODEC_STORED && codec != WREC3_CODEC_DZV) return -1;
+    } else {
+        if ((uint64_t)out->payload_len + WREC2_REC_FIXED != rec_len) return -1;
+    }
+
+    uint8_t* stream = NULL;
+    if (stream_len) {
+        stream = (uint8_t*)malloc(stream_len);
+        if (!stream) die("out of memory");
+        if (fread(stream, 1, stream_len, fp) != stream_len) {
+            free(stream); return -1;
         }
     }
     uint8_t c[4];
-    if (fread(c, 1, 4, fp) != 4) { free(out->payload); out->payload = NULL; return -1; }
+    if (fread(c, 1, 4, fp) != 4) { free(stream); return -1; }
     uint32_t crc = crc32_update(0, head + 4, sizeof(head) - 4);
-    crc = crc32_update(crc, out->payload, out->payload_len);
-    if (crc != get_u32(c)) { free(out->payload); out->payload = NULL; return -1; }
+    crc = crc32_update(crc, stream, stream_len);
+    if (crc != get_u32(c)) { free(stream); return -1; }
+
+    out->payload = NULL;
+    if (codec == WREC3_CODEC_DZV) {
+        if ((out->payload_len % 4) != 0 || out->payload_len == 0) {
+            free(stream); return -1; // dzv is u32-word shaped by contract
+        }
+        out->payload = (uint8_t*)malloc(out->payload_len);
+        if (!out->payload) die("out of memory");
+        if (dzv_decompress((uint32_t*)out->payload, out->payload_len / 4,
+                           stream, stream_len) != 0) {
+            free(stream); free(out->payload); out->payload = NULL; return -1;
+        }
+        free(stream);
+    } else {
+        if (stream_len != out->payload_len) { free(stream); return -1; }
+        out->payload = stream; // stored: the stream IS the payload
+    }
     return 1;
 }
 
-/// Open + validate a v2 file header. Returns the FILE* positioned after the
-/// header; fills *frame_count. Dies on structural failure.
-static FILE* open_v2(const char* path, uint32_t* frame_count) {
+/// Open + validate a v2/v3 file header. Returns the FILE* positioned after
+/// the header; fills *frame_count and *version (2 or 3). Dies on structural
+/// failure. v1 kernel captures and unknown versions/fail-flags are rejected
+/// (the FORMATS.md §1.3 version gate; unknown flag bits are a version
+/// violation, not a skip case — flags are header-level in v2/v3).
+static FILE* open_weftrec(const char* path, uint32_t* frame_count, int* version) {
     FILE* fp = fopen(path, "rb");
     if (!fp) die_errno(path);
     uint8_t h[WREC_HEADER_SIZE];
     if (fread(h, 1, sizeof(h), fp) != sizeof(h)) die("short header");
     if (get_u32(h + 0) != WREC_MAGIC) die("bad magic (not a .weftrec file)");
-    if (get_u16(h + 4) != WREC_FORMAT_VERSION)
-        die("format_version != 2 — v1 kernel captures are not fan-out files "
-            "(use weft_record tooling for v1)");
+    const uint16_t ver = get_u16(h + 4);
+    if (ver != WREC_FORMAT_VERSION && ver != WREC3_FORMAT_VERSION)
+        die("format_version not in {2,3} — v1 kernel captures are not "
+            "fan-out files (use weft_record tooling); newer versions "
+            "belong to newer tooling");
     if (get_u16(h + 6) != WREC_HEADER_SIZE) die("unexpected header_size");
-    if (get_u32(h + 8) != WREC_FLAG_FANOUT) die("flags: fan-out bit not set");
+    const uint32_t flags = get_u32(h + 8);
+    if ((flags & WREC_FLAG_FANOUT) == 0) die("flags: fan-out bit not set");
+    if (ver == 2 && flags != WREC_FLAG_FANOUT)
+        die("v2 flags must be exactly FANOUT (0x1); compressed records are v3");
+    if (ver == 3 && (flags & ~(WREC_FLAG_FANOUT | WREC3_FLAG_COMPRESSED)) != 0)
+        die("v3 flags carry unknown bits (L8: reserved bits must be 0)");
     if (get_u32(h + 12) != WREC_ENV_VERSION) die("unexpected envelope_version");
     if (crc32_compute(h, 20) != get_u32(h + 20)) die("header crc mismatch");
     *frame_count = get_u32(h + 16);
+    *version = (int)ver;
     return fp;
+}
+
+/// v2-compat wrapper (selftest path).
+static FILE* open_v2(const char* path, uint32_t* frame_count) {
+    int version = 2;
+    return open_weftrec(path, frame_count, &version);
 }
 
 // ---------------------------------------------------------------------------
@@ -311,7 +495,7 @@ static uint8_t* shm_create(const char* name, size_t ring_bytes) {
 
 static int cmd_capture(const char* path, const char* shm_name, size_t payload_bytes,
                        unsigned slot_count, uint64_t max_frames, double max_secs,
-                       double idle_secs) {
+                       double idle_secs, int compress) {
     const size_t rb = weft_fanout_ring_bytes(payload_bytes, slot_count);
     if (rb == 0) die("bad geometry (--payload must be a positive multiple of 4, "
                      "--slots in [2,64])");
@@ -323,7 +507,7 @@ static int cmd_capture(const char* path, const char* shm_name, size_t payload_by
 
     FILE* fp = fopen(path, "wb");
     if (!fp) die_errno(path);
-    write_header(fp, 0); // frame_count patched at close
+    if (compress) write_header_v3(fp, 0); else write_header(fp, 0);
 
     const double t0 = now_secs();
     double last_progress = t0;
@@ -338,8 +522,12 @@ static int cmd_capture(const char* path, const char* shm_name, size_t payload_by
         }
         const weft_fanout_claim_t* c = weft_fanout_claim(&r);
         if (c->fresh) {
-            if (append_record(fp, c->seq, c->dropped, weft_fanout_view(&r),
-                              (uint32_t)payload_bytes) != 0) {
+            const int wrc = compress
+                ? append_record_v3(fp, c->seq, c->dropped, weft_fanout_view(&r),
+                                   (uint32_t)payload_bytes)
+                : append_record(fp, c->seq, c->dropped, weft_fanout_view(&r),
+                                (uint32_t)payload_bytes);
+            if (wrc != 0) {
                 // Crash-tolerance rule (v1 §1.3): never emit a silently
                 // truncated file — close with the scan path and report.
                 fprintf(stderr, "weft_fanout_rec: capture write failed at record "
@@ -362,7 +550,8 @@ static int cmd_capture(const char* path, const char* shm_name, size_t payload_by
     }
 
     // Close: patch frame_count + header crc (frame_count==0 => scan path).
-    write_header(fp, (uint32_t)n_records);
+    if (compress) write_header_v3(fp, (uint32_t)n_records);
+    else write_header(fp, (uint32_t)n_records);
     if (fclose(fp) != 0) die_errno("fclose(capture)");
     weft_fanout_reader_destroy(&r);
     munmap(ring, rb);
@@ -385,17 +574,32 @@ static uint32_t mixer_word(uint32_t seq, uint32_t w) {
 }
 
 // ---------------------------------------------------------------------------
+// wave family — the REAL-signal payload shape for compression evidence
+// (RFC-0010): smooth per-word curves with a small deterministic ripple, the
+// opposite entropy profile of the pseudorandom mixer. Bit-exact within the
+// C tool (same libm on producer and validator in one session).
+// ---------------------------------------------------------------------------
+
+static uint32_t wave_word(uint64_t seq, uint32_t w) {
+    const double phase = (double)seq * 0.013 + (double)w * 0.05;
+    const double amp = 900000.0 * sin(phase) + 900000.0;
+    const double ripple = 250.0 * sin(phase * 37.0);
+    return (uint32_t)(amp + ripple + 1000.0);
+}
+
+// ---------------------------------------------------------------------------
 // validate
 // ---------------------------------------------------------------------------
 
-static int cmd_validate(const char* path, int expect_mixer) {
+static int cmd_validate(const char* path, int expect_mixer, int expect_wave) {
     uint32_t frame_count = 0;
-    FILE* fp = open_v2(path, &frame_count);
+    int version = 2;
+    FILE* fp = open_weftrec(path, &frame_count, &version);
 
     uint64_t n = 0, sum_dropped = 0, last_seq = 0;
     wrec2_record_t rec;
     int rc;
-    while ((rc = read_record(fp, &rec)) == 1) {
+    while ((rc = read_record_any(fp, &rec, version)) == 1) {
         n++;
         if (n >= 2 && rec.seq <= last_seq)
             die("validate: seq not strictly increasing (record corruption)");
@@ -406,6 +610,17 @@ static int cmd_validate(const char* path, int expect_mixer) {
             for (uint32_t w = 0; w < rec.payload_len / 4; w++) {
                 if (v[w] != mixer_word((uint32_t)rec.seq, w)) {
                     fprintf(stderr, "weft_fanout_rec: validate: mixer mismatch at "
+                            "record %" PRIu64 " word %" PRIu32 "\n", n, w);
+                    free(rec.payload);
+                    return 1;
+                }
+            }
+        }
+        if (expect_wave && rec.payload_len) {
+            const uint32_t* v = (const uint32_t*)rec.payload;
+            for (uint32_t w = 0; w < rec.payload_len / 4; w++) {
+                if (v[w] != wave_word(rec.seq, w)) {
+                    fprintf(stderr, "weft_fanout_rec: validate: wave mismatch at "
                             "record %" PRIu64 " word %" PRIu32 "\n", n, w);
                     free(rec.payload);
                     return 1;
@@ -432,8 +647,9 @@ static int cmd_validate(const char* path, int expect_mixer) {
     }
     fclose(fp);
     printf("validate: %s — %llu records, final seq %" PRIu64 ", sum(dropped)=%" PRIu64
-           " — telescoping exact%s\n", path, (unsigned long long)n, last_seq,
-           sum_dropped, expect_mixer ? ", mixer bit-exact" : "");
+           " — telescoping exact%s%s (v%d)\n", path, (unsigned long long)n, last_seq,
+           sum_dropped, expect_mixer ? ", mixer bit-exact" : "",
+           expect_wave ? ", wave bit-exact" : "", version);
     return 0;
 }
 
@@ -445,12 +661,12 @@ static int cmd_validate(const char* path, int expect_mixer) {
 /// concurrent replay thread). Single writer by contract: the caller owns
 /// the attached weft_fanout_t. Fills *out_n with the republished count.
 static void replay_core(FILE* fp, weft_fanout_t* f, size_t payload_bytes,
-                        double hz, uint64_t* out_n) {
+                        double hz, int version, uint64_t* out_n) {
     const double t0 = now_secs();
     wrec2_record_t rec;
     uint64_t n = 0;
     int rc;
-    while ((rc = read_record(fp, &rec)) == 1) {
+    while ((rc = read_record_any(fp, &rec, version)) == 1) {
         if (rec.payload_len != payload_bytes)
             die("replay: record payload_len != ring geometry");
         if (!weft_fanout_begin(f)) die("replay: begin failed");
@@ -472,11 +688,12 @@ static void replay_core(FILE* fp, weft_fanout_t* f, size_t payload_bytes,
 
 static int cmd_replay(const char* path, const char* shm_name, size_t payload_bytes,
                       unsigned slot_count, double hz) {
+    int version = 2;
     const size_t rb = weft_fanout_ring_bytes(payload_bytes, slot_count);
     if (rb == 0) die("bad geometry");
 
     uint32_t frame_count = 0;
-    FILE* fp = open_v2(path, &frame_count);
+    FILE* fp = open_weftrec(path, &frame_count, &version);
 
     uint8_t* ring = shm_create(shm_name, rb);
     weft_fanout_t f = {0};
@@ -484,7 +701,7 @@ static int cmd_replay(const char* path, const char* shm_name, size_t payload_byt
         die("replay: writer attach failed (fresh ring must be zeroed)");
 
     uint64_t n = 0;
-    replay_core(fp, &f, payload_bytes, hz, &n);
+    replay_core(fp, &f, payload_bytes, hz, version, &n);
     fclose(fp);
     // The shm ring persists in /dev/shm until unlinked: any port's reader
     // attaches by name and consumes the replayed session.
@@ -544,15 +761,16 @@ static int compare_payloads(const char* a_path, const char* b_path) {
     wrec2_record_t *a = NULL, *b = NULL;
     size_t na = 0, nb = 0, capa = 0, capb = 0;
     uint32_t fh = 0;
-    FILE* fa_fp = open_v2(a_path, &fh);
-    FILE* fb_fp = open_v2(b_path, &fh);
+    int va = 2, vb = 2;
+    FILE* fa_fp = open_weftrec(a_path, &fh, &va);
+    FILE* fb_fp = open_weftrec(b_path, &fh, &vb);
     wrec2_record_t rec;
     int fa_rc, fb_rc;
-    while ((fa_rc = read_record(fa_fp, &rec)) == 1) {
+    while ((fa_rc = read_record_any(fa_fp, &rec, va)) == 1) {
         if (na == capa) { capa = capa ? capa * 2 : 64; a = realloc(a, capa * sizeof(*a)); }
         a[na++] = rec;
     }
-    while ((fb_rc = read_record(fb_fp, &rec)) == 1) {
+    while ((fb_rc = read_record_any(fb_fp, &rec, vb)) == 1) {
         if (nb == capb) { capb = capb ? capb * 2 : 64; b = realloc(b, capb * sizeof(*b)); }
         b[nb++] = rec;
     }
@@ -615,7 +833,7 @@ typedef struct {
 static void* selftest_replay_main(void* arg) {
     selftest_replay_t* rp = (selftest_replay_t*)arg;
     uint64_t n = 0;
-    replay_core(rp->fp, rp->f, rp->payload_bytes, 0.0, &n);
+    replay_core(rp->fp, rp->f, rp->payload_bytes, 0.0, 2, &n);
     atomic_store(rp->out_n, n);
     atomic_store(rp->done, 1);
     return NULL;
@@ -684,7 +902,7 @@ static int cmd_selftest(uint64_t frames, uint64_t words) {
     if (writer_rc != NULL) die("selftest: writer thread failed");
 
     // File A must validate: CRC + gap accounting + telescoping + mixer.
-    if (cmd_validate("selftest_a.weftrec", 1) != 0)
+    if (cmd_validate("selftest_a.weftrec", 1, 0) != 0)
         die("selftest: capture file failed validation");
 
     // Ring B: fresh shm. The replay thread republishes file A into it while
@@ -740,7 +958,7 @@ static int cmd_selftest(uint64_t frames, uint64_t words) {
     pthread_join(replayer, NULL);
     fclose(fa_fp);
 
-    if (cmd_validate("selftest_b.weftrec", 0) != 0)
+    if (cmd_validate("selftest_b.weftrec", 0, 0) != 0)
         die("selftest: replay capture failed validation");
     if (compare_payloads("selftest_a.weftrec", "selftest_b.weftrec") != 0)
         die("selftest: content-faithful replay check failed");
@@ -771,7 +989,8 @@ static void rec_signal_handler(int sig) {
 }
 
 static int cmd_daemon(const char* path, const char* shm_name, size_t payload_bytes,
-                      unsigned slot_count, double idle_secs, double stats_secs) {
+                      unsigned slot_count, double idle_secs, double stats_secs,
+                      int compress) {
     const size_t rb = weft_fanout_ring_bytes(payload_bytes, slot_count);
     if (rb == 0) die("bad geometry (--payload must be a positive multiple of 4, "
                      "--slots in [2,64])");
@@ -783,7 +1002,7 @@ static int cmd_daemon(const char* path, const char* shm_name, size_t payload_byt
 
     FILE* fp = fopen(path, "wb");
     if (!fp) die_errno(path);
-    write_header(fp, 0); // frame_count patched at close (crash-tolerant path)
+    if (compress) write_header_v3(fp, 0); else write_header(fp, 0);
 
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
@@ -825,8 +1044,12 @@ static int cmd_daemon(const char* path, const char* shm_name, size_t payload_byt
         }
         const weft_fanout_claim_t* c = weft_fanout_claim(&r);
         if (c->fresh) {
-            if (append_record(fp, c->seq, c->dropped, weft_fanout_view(&r),
-                              (uint32_t)payload_bytes) != 0) {
+            const int wrc = compress
+                ? append_record_v3(fp, c->seq, c->dropped, weft_fanout_view(&r),
+                                   (uint32_t)payload_bytes)
+                : append_record(fp, c->seq, c->dropped, weft_fanout_view(&r),
+                                (uint32_t)payload_bytes);
+            if (wrc != 0) {
                 // Crash-tolerance rule (v1 §1.3): never emit a silently
                 // truncated file — close with the scan path and report.
                 fprintf(stderr, "weft_fanout_rec daemon: write failed at record "
@@ -848,7 +1071,8 @@ static int cmd_daemon(const char* path, const char* shm_name, size_t payload_byt
     }
 
     // Clean close: patch frame_count + header crc (0 => scan path on crash).
-    write_header(fp, (uint32_t)n_records);
+    if (compress) write_header_v3(fp, (uint32_t)n_records);
+    else write_header(fp, (uint32_t)n_records);
     if (fclose(fp) != 0) die_errno("fclose(daemon)");
     weft_fanout_reader_destroy(&r);
     munmap(ring, rb);
@@ -862,18 +1086,67 @@ static int cmd_daemon(const char* path, const char* shm_name, size_t payload_byt
 }
 
 // ---------------------------------------------------------------------------
+// produce — the e2e/demo producer (RFC-0010 evidence road)
+// ---------------------------------------------------------------------------
+
+/// Publish `frames` frames of the mixer or wave family into a fresh shm
+/// ring at `hz` (0 = unthrottled). The e2e script's live producer: capture
+/// and daemon attach to this ring exactly as they would to any port's.
+static int cmd_produce(const char* shm_name, size_t payload_bytes,
+                       unsigned slot_count, uint64_t frames, double hz,
+                       const char* family) {
+    const int is_wave = strcmp(family, "wave") == 0;
+    if (!is_wave && strcmp(family, "mixer") != 0)
+        die("--family must be mixer or wave");
+    const size_t rb = weft_fanout_ring_bytes(payload_bytes, slot_count);
+    if (rb == 0) die("bad geometry");
+    uint8_t* ring = shm_create(shm_name, rb);
+    weft_fanout_t f = {0};
+    if (weft_fanout_attach_writer(&f, ring, rb, payload_bytes, slot_count) != 0)
+        die("producer attach failed");
+
+    const long ns_per_frame = hz > 0 ? (long)(1e9 / hz) : 0;
+    struct timespec ts = {0, 0};
+    uint32_t* buf = (uint32_t*)malloc(payload_bytes);
+    if (!buf) die("out of memory");
+    const uint32_t words = (uint32_t)(payload_bytes / 4);
+
+    for (uint64_t fr = 1; fr <= frames; fr++) {
+        for (uint32_t i = 0; i < words; i++) {
+            buf[i] = is_wave ? wave_word(fr, i) : mixer_word((uint32_t)fr, i);
+        }
+        (void)weft_fanout_begin(&f);
+        if (weft_fanout_fill(&f, buf, payload_bytes) < 0) die("producer fill");
+        (void)weft_fanout_publish(&f);
+        if (ns_per_frame > 0) {
+            ts.tv_nsec = ns_per_frame;
+            nanosleep(&ts, NULL);
+        }
+    }
+    free(buf);
+    munmap(ring, rb);
+    printf("produce: %s family, %llu frames -> shm /%s (ring left in place for "
+           "capture/daemon; producer exits — latestSeq holds)\n",
+           family, (unsigned long long)frames, shm_name);
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
 
 static void usage(const char* prog) {
     fprintf(stderr,
         "usage: %s capture <file> --shm <name> --payload <bytes> --slots <n>"
-        " [--max-frames n] [--max-secs s] [--idle-ms ms]\n"
+        " [--max-frames n] [--max-secs s] [--idle-ms ms] [--compress]\n"
         "       %s daemon <file> --shm <name> --payload <bytes> --slots <n>"
-        " [--idle-ms ms] [--stats-secs s]\n"
+        " [--idle-ms ms] [--stats-secs s] [--compress]\n"
         "       %s replay <file> --shm <name> --payload <bytes> --slots <n> [--hz h]\n"
-        "       %s validate <file> [--expect-mixer]\n"
+        "       %s validate <file> [--expect-mixer | --expect-wave]\n"
+        "       %s produce --shm <name> --payload <bytes> --slots <n>"
+        " --frames <n> [--hz h] [--family mixer|wave]\n"
         "       %s selftest [--frames n] [--words w]\n"
+        "       %s e2e (see tools/weft-fanout-rec/e2e.sh — the scripted road)\n"
         "\n"
         ".weftrec v2 fan-out flight-recorder capture/replay (FORMATS.md §3).\n"
         "capture:  attach as an N+1th reader to a live RFC-0004 shm ring and\n"
@@ -885,8 +1158,11 @@ static void usage(const char* prog) {
         "selftest: end-to-end gate (writer thread -> capture -> validate ->\n"
         "          replay -> recapture -> payload-exact compare).\n"
         "daemon:  signal-driven long-running capture — SIGINT/SIGTERM close\n"
-        "          crash-tolerantly and exit 0; SIGHUP prints stats.\n",
-        prog, prog, prog, prog, prog);
+        "          crash-tolerantly and exit 0; SIGHUP prints stats.\n"
+        "--compress: write .weftrec v3 (RFC-0010): per-record delta-zigzag-\n"
+        "          varint codec, self-limiting (stored when it would grow).\n"
+        "produce: the live-producer road for e2e/demo (mixer or wave family).\n",
+        prog, prog, prog, prog, prog, prog, prog);
 }
 
 int main(int argc, char** argv) {
@@ -907,12 +1183,42 @@ int main(int argc, char** argv) {
 
     if (strcmp(cmd, "validate") == 0) {
         if (argc < 3) { usage(argv[0]); return 2; }
-        int expect_mixer = 0;
+        int expect_mixer = 0, expect_wave = 0;
         for (int i = 3; i < argc; i++) {
             if (strcmp(argv[i], "--expect-mixer") == 0) expect_mixer = 1;
+            else if (strcmp(argv[i], "--expect-wave") == 0) expect_wave = 1;
             else { usage(argv[0]); return 2; }
         }
-        return cmd_validate(argv[2], expect_mixer);
+        if (expect_mixer && expect_wave)
+            die("--expect-mixer and --expect-wave are exclusive");
+        return cmd_validate(argv[2], expect_mixer, expect_wave);
+    }
+
+    if (strcmp(cmd, "produce") == 0) {
+        const char* shm_name = NULL;
+        long payload = 0, slots = 4;
+        uint64_t frames = 50000;
+        double hz = 0.0;
+        const char* family = "mixer";
+        for (int i = 2; i < argc; i++) {
+            if (strcmp(argv[i], "--shm") == 0 && i + 1 < argc) shm_name = argv[++i];
+            else if (strcmp(argv[i], "--payload") == 0 && i + 1 < argc)
+                payload = strtol(argv[++i], NULL, 10);
+            else if (strcmp(argv[i], "--slots") == 0 && i + 1 < argc)
+                slots = strtol(argv[++i], NULL, 10);
+            else if (strcmp(argv[i], "--frames") == 0 && i + 1 < argc)
+                frames = strtoull(argv[++i], NULL, 10);
+            else if (strcmp(argv[i], "--hz") == 0 && i + 1 < argc)
+                hz = strtod(argv[++i], NULL);
+            else if (strcmp(argv[i], "--family") == 0 && i + 1 < argc)
+                family = argv[++i];
+            else { usage(argv[0]); return 2; }
+        }
+        if (!shm_name || payload <= 0 || (payload % 4) != 0 || slots < 2 || slots > 64) {
+            usage(argv[0]);
+            return 2;
+        }
+        return cmd_produce(shm_name, (size_t)payload, (unsigned)slots, frames, hz, family);
     }
 
     if (strcmp(cmd, "daemon") == 0) {
@@ -921,6 +1227,7 @@ int main(int argc, char** argv) {
         const char* shm_name = NULL;
         long payload = 0, slots = 4;
         double idle_ms = 0.0, stats_secs = 10.0;
+        int compress = 0;
         for (int i = 3; i < argc; i++) {
             if (strcmp(argv[i], "--shm") == 0 && i + 1 < argc) shm_name = argv[++i];
             else if (strcmp(argv[i], "--payload") == 0 && i + 1 < argc)
@@ -931,6 +1238,7 @@ int main(int argc, char** argv) {
                 idle_ms = strtod(argv[++i], NULL);
             else if (strcmp(argv[i], "--stats-secs") == 0 && i + 1 < argc)
                 stats_secs = strtod(argv[++i], NULL);
+            else if (strcmp(argv[i], "--compress") == 0) compress = 1;
             else { usage(argv[0]); return 2; }
         }
         if (!shm_name || payload <= 0 || (payload % 4) != 0 || slots < 2 || slots > 64) {
@@ -938,7 +1246,7 @@ int main(int argc, char** argv) {
             return 2;
         }
         return cmd_daemon(path, shm_name, (size_t)payload, (unsigned)slots,
-                          idle_ms / 1000.0, stats_secs);
+                          idle_ms / 1000.0, stats_secs, compress);
     }
 
     // capture / replay share the geometry + shm args.
@@ -948,6 +1256,7 @@ int main(int argc, char** argv) {
     long payload = 0, slots = 4;
     double max_secs = 30.0, idle_ms = 2000.0, hz = 0.0;
     uint64_t max_frames = 1000000;
+    int compress = 0;
     for (int i = 3; i < argc; i++) {
         if (strcmp(argv[i], "--shm") == 0 && i + 1 < argc) shm_name = argv[++i];
         else if (strcmp(argv[i], "--payload") == 0 && i + 1 < argc)
@@ -962,6 +1271,7 @@ int main(int argc, char** argv) {
             idle_ms = strtod(argv[++i], NULL);
         else if (strcmp(argv[i], "--hz") == 0 && i + 1 < argc)
             hz = strtod(argv[++i], NULL);
+        else if (strcmp(argv[i], "--compress") == 0) compress = 1;
         else { usage(argv[0]); return 2; }
     }
     if (!shm_name || payload <= 0 || (payload % 4) != 0 || slots < 2 || slots > 64) {
@@ -971,9 +1281,11 @@ int main(int argc, char** argv) {
 
     if (strcmp(cmd, "capture") == 0)
         return cmd_capture(path, shm_name, (size_t)payload, (unsigned)slots,
-                           max_frames, max_secs, idle_ms / 1000.0);
-    if (strcmp(cmd, "replay") == 0)
+                           max_frames, max_secs, idle_ms / 1000.0, compress);
+    if (strcmp(cmd, "replay") == 0) {
+        if (compress) die("--compress applies to capture/daemon (replay writes a ring)");
         return cmd_replay(path, shm_name, (size_t)payload, (unsigned)slots, hz);
+    }
 
     usage(argv[0]);
     return 2;

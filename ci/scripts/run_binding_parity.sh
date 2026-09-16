@@ -38,7 +38,8 @@ PAIRS=(
   "core/dart/heddle.dart|packages/flutter_weft/lib/src/reference/heddle.dart"
   "core/dart/steward.dart|packages/flutter_weft/lib/src/reference/steward.dart"
   "core/dart/weft.dart|packages/flutter_weft/lib/src/reference/weft.dart"
-  "core/ts/weft.ts|packages/core/src/index.ts"
+  "core/ts/weft.ts|packages/core/src/weft.ts"
+  "core/ts/fanout.ts|packages/core/src/fanout.ts"
 )
 
 n_pass=0

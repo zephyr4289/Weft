@@ -1,0 +1,36 @@
+==================================================
+SHARD: litmus-ts
+DESCRIPTION: L1-L8 litmus suite, TS kernel (with EXPOSURE-RETRY)
+STATUS: PASSED ✅
+COMMIT: 023f46b8dac63a5ee4138cec28a042a790fcb22c
+RUN: 53
+==================================================
+
+# Loaded catalog: w# Loaded catalog: weft-litmus v2
+  run    -> exit=0 elaps    -> exit=0 elapsed=0.6s pass=True
+  running ts     -> exit=0 elaps    -> exit=0 elapsed=0.3s pass=True
+  running ts     -> exit=0 elaps    -> exit=0 elapsed=0.1s pass=True
+  running     -> exit=0 elaps    -> exit=0 elapsed=0.1s pass=True
+  running    -> exit=0 elaps    -> exit=0 elapsed=4.1s pass=True
+  running     -> exit=0 elaps    -> exit=0 elapsed=10.7s pass=True
+  running t    -> exit=0 elaps    -> exit=0 elapsed=0.1s pass=True
+  running    -> exit=0 elaps    -> exit=0 elapWrote /home/runner/Wrote /home/runner/work/Weft/WefWrote /home/runner/Wrote /home/runner/work/Weft/Weft/litmus/results.json
+{
+  "shard": "litmus-ts",
+  "status": "PASSED",
+  "cells_pass": 8,
+  "cells_total": 8,
+  "cells": {
+    "ts/L1-tear": true,
+    "ts/L2-writer-steps": true,
+    "ts/L3-reader-steps": true,
+    "ts/L4-freshness": true,
+    "ts/L5-progress": true,
+    "ts/L6-ownership": true,
+    "ts/L7-revocation": true,
+    "ts/L8-envelope": true
+  }
+}
+Traceback (most recent call last):
+  File "<string>", line 4, in <module>
+NameError: name 'sys' is not defined. Did you forget to import 'sys'?

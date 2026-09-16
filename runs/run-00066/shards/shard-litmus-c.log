@@ -1,0 +1,60 @@
+==================================================
+SHARD: litmus-c
+DESCRIPTION: L1-L8 litmus suite, C kernel (8 tests, 2 build modes)
+STATUS: PASSED ✅
+COMMIT: 08c4ffd886de1b9e5ad0fd000a4a3adc28f3ca13
+RUN: 66
+==================================================
+
+# Loaded catalog: weft-litmus v2
+  running c L1-tear...
+    -> exit=0 elapsed=7.6s pass=True
+  running c L2-writer-steps...
+    -> exit=0 elapsed=5.0s pass=True
+  running c L3-reader-steps...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L4-freshness...
+    -> exit=0 elapsed=2.1s pass=True
+  running c L5-progress...
+    -> exit=0 elapsed=5.0s pass=True
+  running c L6-ownership...
+    -> exit=0 elapsed=4.0s pass=True
+  running c L7-revocation...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L8-envelope...
+    -> exit=0 elapsed=0.0s pass=True
+Wrote /home/runner/work/Weft/Weft/litmus/REPORT.md
+Wrote /home/runner/work/Weft/Weft/litmus/results.json
+   -> exit=0 elapsed=7.6s pass=True
+  running c L2-writer-steps...
+    -> exit=0 elapsed=5.0s pass=True
+  running c L3-reader-steps...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L4-freshness...
+    -> exit=0 elapsed=2.1s pass=True
+  running c L5-progress...
+    -> exit=0 elapsed=5.0s pass=True
+  running c L6-ownership...
+    -> exit=0 elapsed=4.0s pass=True
+  running c L7-revocation...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L8-envelope...
+    -> exit=0 elapsed=0.0s pass=True
+Wrote /home/runner/work/Weft/Weft/litmus/REPORT.md
+Wrote /home/runner/work/Weft/Weft/litmus/results.json
+{
+  "shard": "litmus-c",
+  "status": "PASSED",
+  "cells_pass": 8,
+  "cells_total": 8,
+  "cells": {
+    "c/L1-tear": true,
+    "c/L2-writer-steps": true,
+    "c/L3-reader-steps": true,
+    "c/L4-freshness": true,
+    "c/L5-progress": true,
+    "c/L6-ownership": true,
+    "c/L7-revocation": true,
+    "c/L8-envelope": true
+  }
+}

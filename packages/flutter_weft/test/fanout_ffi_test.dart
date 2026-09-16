@@ -278,8 +278,8 @@ void main() {
       final args2 = _ReaderArgs(
           soPath: soPath, handleAddress: r2.handleAddress, frames: frames, payloadBytes: payloadBytes);
       final done = Future.wait([
-        Isolate.run(() => _readerIsolateLoop(args1)),
-        Isolate.run(() => _readerIsolateLoop(args2)),
+        _runReaderIsolate(args1),
+        _runReaderIsolate(args2),
       ]);
 
       // Writer: publish all frames from THIS isolate while the reader
@@ -333,6 +333,10 @@ class _ReaderArgs {
 // Module-level: the resolved .so path (set once by _openLib before any
 // test body runs; read by isolate closures via the captured args).
 String _soPath = 'libweft.so';
+
+Future<Map<String, Object>> _runReaderIsolate(_ReaderArgs a) {
+  return Isolate.run(() => _readerIsolateLoop(a));
+}
 
 Map<String, Object> _readerIsolateLoop(_ReaderArgs a) {
   final dylib = DynamicLibrary.open(a.soPath);

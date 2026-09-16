@@ -34,6 +34,12 @@
 use std::alloc::{alloc, dealloc, Layout};
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 
+// Driver-layer modules (RFC 0004 fan-out ring + RFC 0008 FrameCursor) —
+// sibling files that compose BESIDE the kernel at zero kernel surface; the
+// frozen kernel items above/below are byte-identical to origin/main.
+pub mod fanout;
+pub mod frame_cursor;
+
 /// Magic "WEFT" little-endian: bytes 57 45 46 54 → u32 LE = 0x54464557.
 pub const WEFT_MAGIC: u32 = 0x54464557;
 

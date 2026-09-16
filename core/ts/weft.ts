@@ -602,3 +602,11 @@ export function xorshift32(state: { v: number }): number {
   state.v = x;
   return x;
 }
+// ---------------------------------------------------------------------------
+// Fan-out driver layer (RFC 0004) — 1 writer, N readers, userland-only.
+// Accepted as a driver-layer pattern (round-6-adjudication §4); zero kernel
+// surface. See src/fanout.ts for the protocol and its boundary of the claim.
+// ---------------------------------------------------------------------------
+
+export * from './fanout';
+

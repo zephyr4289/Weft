@@ -56,7 +56,7 @@ public let VW_TAG_LEN = 32
 /// Signed envelope prefix length (bytes).
 public let VW_ENVELOPE_LEN = 16
 
-private let vwDomain = Data("Weft-VerifiedWeft-v1:key".utf8)
+let vwDomain = Data("Weft-VerifiedWeft-v1:key".utf8)
 
 /// One-time auth-key derivation with domain separation.
 public func vwDeriveKey(secret: Data) -> Data {

@@ -12,3 +12,4 @@ export 'reference/steward.dart';
 export 'reference/heddle.dart';
 export 'reference/frame_cursor.dart';
 export 'reference/fanout.dart';
+export 'reference/verified.dart';

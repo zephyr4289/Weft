@@ -18,7 +18,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_weft/src/reference/verified.dart' as vw;
+import 'package:weft_flutter/src/reference/verified.dart' as vw;
 
 Uint8List _hex(String s) {
   final out = Uint8List(s.length ~/ 2);

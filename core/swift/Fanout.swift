@@ -246,7 +246,7 @@ public final class WeftFanoutBroadcaster {
         UnsafeAtomic<UInt64>(at: ctrlPtr + FAN_IDX_SLOTSEQ + wSlot)
             .store(wSeq, ordering: .sequentiallyConsistent)
         ctrl.store(wSeq, ordering: .sequentiallyConsistent)
-        UnsafeAtomic<UInt64>(at: ctrlPtr + FAN_IDX_PUBLISHES)
+        _ = UnsafeAtomic<UInt64>(at: ctrlPtr + FAN_IDX_PUBLISHES)
             .loadThenWrappingIncrement(by: 1, ordering: .relaxed)
         return wSeq
     }
@@ -293,7 +293,7 @@ public final class WeftFanoutReader {
     /// The reader's own pre-allocated copy buffer — u32 words
     /// (payloadBytes/4), stable identity for the consumer's lifetime; holds
     /// frame data only after a fresh claim (Law 2).
-    private let target: [UInt32]
+    private var target: [UInt32]
 
     /// Last frame seq this reader has held consistent (0 = none yet).
     private var lastSeq: UInt64 = 0

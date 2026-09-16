@@ -234,7 +234,6 @@ class WeftFanoutReader {
   /// Ring depth (validated against the backing bytes).
   final int slotCount;
 
-  final Uint8List _bytes;
   final ByteData _view;
 
   /// The reader's own pre-allocated copy buffer — u32 words
@@ -264,8 +263,7 @@ class WeftFanoutReader {
   /// validated against the byte length so a mismatched pair fails fast
   /// instead of tearing. SINGLE-ISOLATE: same event loop as the writer.
   WeftFanoutReader(Uint8List bytes, this.payloadBytes, [this.slotCount = 4])
-      : _bytes = bytes,
-        _view = ByteData.view(bytes.buffer, bytes.offsetInBytes, bytes.length) {
+      : _view = ByteData.view(bytes.buffer, bytes.offsetInBytes, bytes.length) {
     if (payloadBytes <= 0 || payloadBytes % 4 != 0) {
       throw ArgumentError(
           'payloadBytes must be a positive multiple of 4 (got $payloadBytes)');

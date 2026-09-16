@@ -194,11 +194,13 @@ class WeftFanoutBroadcaster(
         begun = true
         FanoutVh.stampStoreVolatile(ring, 8 * (CTRL_SLOTSEQ + wSlot), 0L)
         VarHandle.fullFence()
-        return ring.duplicate()
-            .position(slotBase(wSlot))
-            .limit(slotBase(wSlot) + payloadBytes)
-            .slice()
-            .order(ByteOrder.LITTLE_ENDIAN)
+        val base = slotBase(wSlot)
+        val dup = ring.duplicate()
+        (dup as java.nio.Buffer).position(base)
+        (dup as java.nio.Buffer).limit(base + payloadBytes)
+        val sliced = dup.slice() as ByteBuffer
+        sliced.order(ByteOrder.LITTLE_ENDIAN)
+        return sliced
     }
 
     /// Fill the begun slot from src via opaque u32 word stores (the

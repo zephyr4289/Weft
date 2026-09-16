@@ -1,0 +1,24 @@
+{
+  "shard": "tools-interop",
+  "combos": [
+    {
+      "combo": "c-to-c",
+      "status": "PASSED"
+    },
+    {
+      "combo": "c-to-rust",
+      "status": "PASSED"
+    },
+    {
+      "combo": "rust-to-rust",
+      "status": "PASSED"
+    },
+    {
+      "combo": "rust-to-c",
+      "status": "PASSED"
+    }
+  ],
+  "status": "PASSED",
+  "combos_pass": 4,
+  "combos_total": 4
+}

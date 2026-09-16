@@ -1,0 +1,10 @@
+==================================================
+SHARD: browser-sab
+DESCRIPTION: chromium: crossOriginIsolated + SAB kernel roundtrip + 1W/2R fanout
+STATUS: FAILED ❌
+COMMIT: b4f191f101a3a4795bcb389262aa293d4b314363
+RUN: 76
+==================================================
+
+=== ensure @weft/core dist ===
+./ci/scripts/run_browser_sab_shard.sh: line 28: pnpm: command not found

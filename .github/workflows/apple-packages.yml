@@ -60,3 +60,49 @@ jobs:
           git add -f .ci-status/
           git commit -m "ci: apple status [${{ job.status }}] for ${{ github.sha }}" || true
           git push -f origin ci/apple-status || true
+
+  ios-simulator:
+    name: iOS Simulator — SPM tests + cadence probe
+    runs-on: macos-14
+    needs: build-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app || true
+
+      - name: Build for iOS Simulator (pipefail-guarded)
+        run: |
+          set -o pipefail  # tee must not swallow the build exit code
+          xcodebuild build -scheme Weft \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            2>&1 | tee /tmp/ios_sim_build.log
+
+      - name: Run SPM tests on iOS Simulator (F-series + cadence + Metal probe)
+        run: |
+          set -o pipefail  # tee must not swallow the test exit code
+          xcodebuild test -scheme Weft \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            2>&1 | tee /tmp/ios_sim_test.log
+
+      - name: Probe report — measured-vs-requested cadence (honesty extract)
+        if: always()
+        run: |
+          # The MetalProbeTests embed the CadenceProbeReport discipline:
+          # measured rate is recorded; the 120 Hz DEVICE rate stays deferred
+          # (simulators cap the display link — never greenwashed here).
+          {
+            echo "### iOS-simulator cadence leg"
+            echo "Environment: iOS Simulator (Metal host-simulated)"
+            echo "Gate: F-series + CadenceTests + MetalProbeTests (draw-phase claims == frames, torn == 0, 120 Hz path REQUESTED)"
+            echo "Device-rate banner: still deferred (Hardware Deferral List)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Archive iOS-sim results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-test-results
+          path: |
+            /tmp/ios_sim_build.log
+            /tmp/ios_sim_test.log

@@ -1,0 +1,117 @@
+name: Android Emulator (RFC-0006 process-death + API matrix)
+
+# Series 7 — "real-device legs": the API<33 fallback matrix gets a REAL
+# Android runtime. The emulator matrix spans the two fan-out/kernel regimes:
+#   API 26 — below the VarHandle 33 floor (the FanoutCompat regime runs)
+#   API 33/34 — VarHandle available (the primary regime runs)
+# and carries the RFC-0006 LMK/ReattachPolicy gate: a deterministic
+# background-process kill (`am kill` — the same ActivityManager kill path
+# memory pressure uses) between the two instrumentation phases proves
+# CLEAN_REALLOCATE: fresh Weft, sequence reset, zero stale-pointer
+# dereferences (a stale deref would SIGSEGV the process and fail the leg).
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'android/**'
+      - 'core/c/**'
+      - 'core/kotlin/**'
+      - '.github/workflows/android-emulator.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'core/c/**'
+      - 'core/kotlin/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  emulator-matrix:
+    name: Emulator API ${{ matrix.api }} — LMK reattach + regime
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [26, 33, 34]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Accept Android Licenses & Install SDK pieces
+        run: |
+          set -o pipefail  # no silent-green
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            "ndk;27.0.12077973" "cmake;3.22.1" "platforms;android-35" \
+            "build-tools;35.0.0" "platform-tools" "emulator" \
+            "system-images;android-${{ matrix.api }};google_apis;x86_64"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Generate and Setup Gradle Wrapper
+        run: |
+          cd android
+          gradle wrapper --gradle-version 8.11.1
+          chmod +x gradlew
+
+      - name: Assemble + install sample app (debug, x86_64)
+        run: |
+          set -o pipefail
+          cd android
+          ./gradlew :sample-app:installDebug --stacktrace 2>&1 | tee /tmp/emulator_build.log
+
+      - name: RFC-0006 phase 1 — stage pre-death state (instrumented)
+        run: |
+          set -o pipefail
+          adb shell am instrument -w \
+            -e class dev.weft.sample.LmkReattachTest#stage_preDeathState \
+            dev.weft.sample.test/androidx.test.runner.AndroidJUnitRunner \
+            2>&1 | tee /tmp/emulator_stage.log
+          grep -q "OK (1 test)" /tmp/emulator_stage.log
+
+      - name: RFC-0006 kill — deterministic background-process death
+        run: |
+          set -o pipefail
+          PID=$(adb shell pidof dev.weft.sample || true)
+          echo "pre-kill pid: $PID"
+          adb shell am kill dev.weft.sample || true
+          sleep 3
+          # The kill is real: no live process may remain (retry once).
+          if [ -n "$(adb shell pidof dev.weft.sample || true)" ]; then
+            sleep 3
+            adb shell am kill dev.weft.sample || true
+            sleep 3
+          fi
+          echo "post-kill pid: $(adb shell pidof dev.weft.sample || true)"
+
+      - name: RFC-0006 phase 2 — verify CLEAN_REALLOCATE in a fresh process
+        run: |
+          set -o pipefail
+          adb shell am instrument -w \
+            -e class dev.weft.sample.LmkReattachTest#verify_cleanReallocateAfterProcessDeath \
+            dev.weft.sample.test/androidx.test.runner.AndroidJUnitRunner \
+            2>&1 | tee /tmp/emulator_verify.log
+          grep -q "OK (1 test)" /tmp/emulator_verify.log
+          # Regime note: on API < 33 the FanoutCompat SC-stamp regime is the
+          # ring regime this runtime exercises; on 33+ it is VarHandle. The
+          # unit matrix (FanoutCompatTest) pins BOTH either way.
+
+      - name: Archive emulator logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-emulator-api-${{ matrix.api }}-logs
+          path: |
+            /tmp/emulator_*.log

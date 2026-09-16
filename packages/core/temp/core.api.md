@@ -157,11 +157,23 @@ export class Weft {
     // (undocumented)
     static readonly SLOT_REVOKED = 3;
     // (undocumented)
+    static readonly SLOT_T_CLAIM_HI = 13;
+    // (undocumented)
+    static readonly SLOT_T_CLAIM_LO = 12;
+    // (undocumented)
+    static readonly SLOT_T_DROP_HI = 15;
+    // (undocumented)
+    static readonly SLOT_T_DROP_LO = 14;
+    // (undocumented)
+    static readonly SLOT_T_PUBLISH_HI = 11;
+    // (undocumented)
+    static readonly SLOT_T_PUBLISH_LO = 10;
+    // (undocumented)
     static readonly SLOT_W_WORK = 1;
     // (undocumented)
-    t_rsteps: bigint;
+    t_rsteps: number;
     // (undocumented)
-    t_wsteps: bigint;
+    t_wsteps: number;
     // (undocumented)
     tClaim(): bigint;
     // (undocumented)

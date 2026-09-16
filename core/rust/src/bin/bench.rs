@@ -143,17 +143,30 @@ fn run_b3() -> i32 {
 // says the kernel gains zero benchmark code. RSS is the honest proxy.
 fn run_b5(payload_max: usize, frames: usize) -> i32 {
     let w = Weft::new(payload_max).unwrap();
-    // Warmup
+    // Warmup: 10000 publishes + claims + touch read slice + warmup get_rss_pages
     let mut seq = 1u32;
-    for _ in 0..1000 {
-        unsafe { fill_payload(&w, seq, payload_max as u32); w.publish(seq, payload_max as u32); w.claim(); }
+    let mut dummy = [0u8; 256];
+    for _ in 0..10000 {
+        unsafe {
+            fill_payload(&w, seq, payload_max as u32);
+            w.publish(seq, payload_max as u32);
+            w.claim();
+            let copy_len = if payload_max < 256 { payload_max } else { 256 };
+            w.r_read_slice(dummy.as_mut_ptr(), 0, copy_len);
+        }
         seq += 1;
     }
+    let _ = get_rss_pages();
+
     // RSS before
     let rss_before = get_rss_pages();
-    // Steady-state
+    // Steady-state: frames, publish + claim
     for _ in 0..frames {
-        unsafe { fill_payload(&w, seq, payload_max as u32); w.publish(seq, payload_max as u32); w.claim(); }
+        unsafe {
+            fill_payload(&w, seq, payload_max as u32);
+            w.publish(seq, payload_max as u32);
+            w.claim();
+        }
         seq += 1;
     }
     let rss_after = get_rss_pages();
@@ -168,14 +181,21 @@ fn run_b5(payload_max: usize, frames: usize) -> i32 {
 
 fn get_rss_pages() -> i64 {
     // /proc/self/statm: size resident shared text lib data dt (in pages)
+    use std::fs::File;
     use std::io::Read;
-    let mut f = std::fs::File::open("/proc/self/statm").unwrap();
-    let mut s = String::new();
-    f.read_to_string(&mut s).unwrap();
-    let parts: Vec<&str> = s.split_whitespace().collect();
-    if parts.len() >= 2 {
-        parts[1].parse::<i64>().unwrap_or(0)
-    } else { 0 }
+    if let Ok(mut f) = File::open("/proc/self/statm") {
+        let mut buf = [0u8; 128];
+        if let Ok(n) = f.read(&mut buf) {
+            if let Ok(s) = std::str::from_utf8(&buf[..n]) {
+                let mut iter = s.split_whitespace();
+                let _size = iter.next();
+                if let Some(resident) = iter.next() {
+                    return resident.parse::<i64>().unwrap_or(0);
+                }
+            }
+        }
+    }
+    0
 }
 
 // ---------------------------------------------------------------------------

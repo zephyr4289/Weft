@@ -1,4 +1,4 @@
-import 'dart:ffi';
+import 'dart:ffi' hide Size;
 import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 import 'package:weft_flutter/weft_flutter.dart';

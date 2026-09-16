@@ -233,11 +233,11 @@ class WeftFanoutReaderFFI implements Finalizable {
     try {
       bindings.fanoutReaderStats(_handle, out);
       return FanoutReaderStats(
-        reads: out.reads,
-        fresh: out.fresh,
-        drops: out.drops,
-        skippedMidOverwrite: out.skippedMidOverwrite,
-        tornExhausted: out.tornExhausted,
+        reads: out.ref.reads,
+        fresh: out.ref.fresh,
+        drops: out.ref.drops,
+        skippedMidOverwrite: out.ref.skippedMidOverwrite,
+        tornExhausted: out.ref.tornExhausted,
       );
     } finally {
       calloc.free(out);

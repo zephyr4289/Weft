@@ -92,7 +92,7 @@ C2 delivery (B2 soak evidence supplement):  ACCEPTED at World A
   - C run:     writer_rate=119.3 Hz, fresh=3,595, stale=761,411,828, RSS flat 1,432 kB
   - Rust run:   writer_rate=117.9 Hz, fresh=3,569, stale=720,920,347, RSS flat 1,268 kB
   - Both replays byte-identical (exit 0, all CRCs valid)
-Stale-tracking bug:                          DECLARED + FIXED (predicate: s != last_seq → s > max_seq_seen)
+Stale-tracking bug:               DECLARED + FIXED (predicate: s != last_seq → s > max_seq_seen)
 Phase 2 (Tools):                             CLOSED
 Next delivery:                                C3 — Phase 4 errata
 ```

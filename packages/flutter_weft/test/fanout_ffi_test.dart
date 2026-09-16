@@ -311,6 +311,93 @@ void main() {
       b.destroy();
     }
   });
+
+  // -------------------------------------------------------------------------
+  // DC-series: the PRODUCTION cross-isolate module (fanout_cross_isolate.dart)
+  // — the DFT plumbing promoted to a managed API: spawn/ready gate, cadence
+  // config, mid-flight stats, stop-protocol, session-owned lifetime.
+  // -------------------------------------------------------------------------
+
+  test('DC1 session lifecycle: spawn -> ready -> drive -> stopAll -> stats',
+      () async {
+    const frames = 20000;
+    const payloadBytes = 256;
+    final b = WeftFanoutFFI.allocate(bindings, payloadBytes, 4);
+    final session = CrossIsolateFanoutSession(broadcaster: b, soPath: soPath);
+    try {
+      final r0 = await session.spawnReader(
+          config: const CrossIsolateReaderConfig(tickEvery: 1));
+      final r1 = await session.spawnReader(
+          config: const CrossIsolateReaderConfig(
+              tickEvery: 4, verifyStride: 4));
+
+      // Writer drives the ring while both reader isolates claim.
+      for (var seq = 1; seq <= frames; seq++) {
+        final cur = b.begin();
+        for (var i = 0; i < payloadBytes; i++) {
+          cur[i] = _pat(seq, i);
+        }
+        b.publish();
+      }
+
+      // Mid-flight snapshot proves the observability channel works.
+      final midStats = await r0.requestStats();
+      expect(midStats.reads, greaterThan(0));
+
+      // Drain: final stats per reader, then session-owned destroy.
+      final finals = await session.stopAll();
+      expect(finals.length, 2);
+      for (final entry in finals.entries) {
+        final s = entry.value;
+        expect(s.ok, isTrue,
+            reason: 'reader ${entry.key} violations: ${s.violations}');
+        expect(s.lastSeq, frames,
+            reason: 'reader ${entry.key} converged to the final frame');
+        expect(s.fresh, greaterThan(0),
+            reason: 'reader ${entry.key} observed frames');
+        expect(s.lastSeq - s.fresh, s.drops,
+            reason: 'reader ${entry.key} telescoping exact (C counters)');
+      }
+    } finally {
+      b.destroy();
+    }
+  });
+
+  test('DC2 paced reader: paceMs parks (Law 1) and accounting stays exact',
+      () async {
+    const frames = 5000;
+    const payloadBytes = 256;
+    final b = WeftFanoutFFI.allocate(bindings, payloadBytes, 4);
+    final session = CrossIsolateFanoutSession(broadcaster: b, soPath: soPath);
+    try {
+      final paced = await session.spawnReader(
+          config: const CrossIsolateReaderConfig(
+              paceMs: 1, verifyStride: 8));
+      final sw = Stopwatch()..start();
+      for (var seq = 1; seq <= frames; seq++) {
+        final cur = b.begin();
+        for (var i = 0; i < payloadBytes; i++) {
+          cur[i] = _pat(seq, i);
+        }
+        b.publish();
+      }
+      final writeMs = sw.elapsedMilliseconds;
+      final finals = await session.stopAll();
+      final s = finals.values.first;
+      expect(s.ok, isTrue, reason: 'violations: ${s.violations}');
+      expect(s.lastSeq, frames);
+      expect(s.tornAccepted, 0);
+      expect(s.lastSeq - s.fresh, s.drops);
+      // A paced reader cannot have burned a claim per published frame at a
+      // 1ms pace while the writer finished faster than that (the honest
+      // no-spin proof: writes outran claims, drops absorbed the difference).
+      if (writeMs < frames) {
+        expect(s.reads, lessThan(frames * 2));
+      }
+    } finally {
+      b.destroy();
+    }
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -383,21 +470,34 @@ Map<String, Object> _readerIsolateLoop(_ReaderArgs a) {
 }
 
 DynamicLibrary _openLib() {
-  final soPaths = [
+  // OS-aware search (Series 7: the flutter leg runs on linux AND macOS AND
+  // windows runners — the native kernel is compiled per-OS by the workflow).
+  final base = <String>[
     'libweft.so',
     'build/libweft.so',
     'packages/flutter_weft/libweft.so',
     '/tmp/libweft.so',
-    '../../build/libweft.so'
+    '../../build/libweft.so',
+    if (Platform.isMacOS) ...[
+      'libweft.dylib',
+      'build/libweft.dylib',
+      'packages/flutter_weft/libweft.dylib',
+    ],
+    if (Platform.isWindows) ...[
+      'weft.dll',
+      'build\weft.dll',
+      r'packages\flutter_weft\weft.dll',
+      'packages\flutter_weft\libweft.dll',
+    ],
   ];
-  for (final p in soPaths) {
+  for (final p in base) {
     if (File(p).existsSync()) {
       _soPath = p;
       return DynamicLibrary.open(p);
     }
   }
-  // CI builds libweft.so next to the package; the workflow copies it to
-  // /tmp as well. If none exists this test FAILS loudly in CI (missing
-  // libweft.so = the gcc step broke) instead of silently skipping.
+  // CI builds the kernel next to the package; the workflow copies it to
+  // /tmp as well. If none exists this test FAILS loudly in CI (a missing
+  // kernel = the compile step broke) instead of silently skipping.
   return DynamicLibrary.open('libweft.so');
 }

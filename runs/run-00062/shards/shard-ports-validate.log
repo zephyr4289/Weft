@@ -1,0 +1,45 @@
+==================================================
+SHARD: ports-validate
+DESCRIPTION: Kotlin + Swift + Dart + TS heddles structural validator
+STATUS: PASSED ✅
+COMMIT: d3c3aea475520e142c71a952437ad946e4bf46a2
+RUN: 62
+==================================================
+
+{
+  "shard": "ports-validate",
+  "status": "PASSED",
+  "targets_pass": 4,
+  "targets_total": 4,
+  "targets": [
+    {
+      "target": "kotlin",
+      "pass": true,
+      "checks_total": 16,
+      "checks_pass": 16
+    },
+    {
+      "target": "swift",
+      "pass": true,
+      "checks_total": 15,
+      "checks_pass": 15
+    },
+    {
+      "target": "dart",
+      "pass": true,
+      "checks_total": 18,
+      "checks_pass": 18
+    },
+    {
+      "target": "ts",
+      "pass": true,
+      "checks_total": 8,
+      "checks_pass": 8
+    }
+  ]
+}
+✅ ports-validate: 4/4 PASS
+"}, {"file": "core/kotlin/Weft.kt", "check": "api_kernel_revoke", "pass": true, "detail": "revoke found"}, {"file": "core/kotlin/Weft.kt", "check": "api_kernel_reclaim", "pass": true, "detail": "reclaim found"}, {"file": "core/kotlin/Weft.kt", "check": "api_kernel_destroy", "pass": true, "detail": "destroy found"}, {"file": "core/kotlin/Weft.kt", "check": "api_kernel_debug", "pass": true, "detail": "debug found"}, {"file": "core/kotlin/Weft.kt", "check": "api_envelope_encode", "pass": true, "detail": "encode found"}, {"file": "core/kotlin/Weft.kt", "check": "api_envelope_decode", "pass": true, "detail": "decode found"}, {"file": "core/kotlin/Steward.kt", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/kotlin/Heddle.kt", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/kotlin/TriadNative.kt", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/kotlin/README.md", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/kotlin/README.md", "check": "status_banner", "pass": true, "detail": "STATUS: SOURCE-ONLY banner present"}]}
+{"target": "swift", "pass": true, "checks": [{"file": "core/swift/Weft.swift", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/swift/Weft.swift", "check": "exchange_marker", "pass": true, "detail": "ManagedAtomic.exchange(.acquiringAndReleasing)"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_init", "pass": true, "detail": "init found"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_publish", "pass": true, "detail": "publish found"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_claim", "pass": true, "detail": "claim found"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_revoke", "pass": true, "detail": "revoke found"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_reclaim", "pass": true, "detail": "reclaim found"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_destroy", "pass": true, "detail": "destroy found"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_debug", "pass": true, "detail": "debug found"}, {"file": "core/swift/Weft.swift", "check": "api_envelope_encode", "pass": true, "detail": "encode found"}, {"file": "core/swift/Weft.swift", "check": "api_envelope_decode", "pass": true, "detail": "decode found"}, {"file": "core/swift/Steward.swift", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/swift/Heddle.swift", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/swift/README.md", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/swift/README.md", "check": "status_banner", "pass": true, "detail": "STATUS: SOURCE-ONLY banner present"}]}
+{"target": "dart", "pass": true, "checks": [{"file": "core/dart/weft.dart", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/dart/weft.dart", "check": "single_isolate_banner", "pass": true, "detail": "single-isolate banner present"}, {"file": "core/dart/weft.dart", "check": "api_kernel_init", "pass": true, "detail": "init found"}, {"file": "core/dart/weft.dart", "check": "api_kernel_publish", "pass": true, "detail": "publish found"}, {"file": "core/dart/weft.dart", "check": "api_kernel_claim", "pass": true, "detail": "claim found"}, {"file": "core/dart/weft.dart", "check": "api_kernel_revoke", "pass": true, "detail": "revoke found"}, {"file": "core/dart/weft.dart", "check": "api_kernel_reclaim", "pass": true, "detail": "reclaim found"}, {"file": "core/dart/weft.dart", "check": "api_kernel_destroy", "pass": true, "detail": "destroy found"}, {"file": "core/dart/weft.dart", "check": "api_kernel_debug", "pass": true, "detail": "debug found"}, {"file": "core/dart/weft.dart", "check": "api_envelope_encode", "pass": true, "detail": "encode found"}, {"file": "core/dart/weft.dart", "check": "api_envelope_decode", "pass": true, "detail": "decode found"}, {"file": "core/dart/steward.dart", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/dart/steward.dart", "check": "single_isolate_banner", "pass": true, "detail": "single-isolate banner present"}, {"file": "core/dart/heddle.dart", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/dart/heddle.dart", "check": "single_isolate_banner", "pass": true, "detail": "single-isolate banner present"}, {"file": "core/dart/README.md", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/dart/README.md", "check": "status_banner", "pass": true, "detail": "STATUS: SOURCE-ONLY banner present"}, {"file": "core/dart/README.md", "check": "single_isolate_banner", "pass": true, "detail": "single-isolate banner present"}]}
+{"target": "ts", "pass": true, "checks": [{"file": "heddles/react/WeftCanvas.tsx", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "heddles/react/WeftCanvas.tsx", "check": "weft_import", "pass": true, "detail": "imports Weft kernel"}, {"file": "heddles/svelte/weft-action.ts", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "heddles/svelte/weft-action.ts", "check": "weft_import", "pass": true, "detail": "imports Weft kernel"}, {"file": "heddles/vue/useWeft.ts", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "heddles/vue/useWeft.ts", "check": "weft_import", "pass": true, "detail": "imports Weft kernel"}, {"file": "heddles/react-native/weft-rn.ts", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "heddles/react-native/weft-rn.ts", "check": "weft_import", "pass": true, "detail": "imports Weft kernel"}]}

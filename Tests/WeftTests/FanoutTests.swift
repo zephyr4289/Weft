@@ -45,7 +45,7 @@ final class FanoutTests: XCTestCase {
     }
 
     private func fillFrame(_ b: WeftFanoutBroadcaster, _ seq: UInt32, _ words: Int) {
-        b.begin()
+        _ = b.begin()
         XCTAssertEqual(words, b.fill(FanoutTests.mixerFrame(words, seq), words))
     }
 
@@ -226,7 +226,7 @@ final class FanoutTests: XCTestCase {
             XCTAssertEqual(UInt64(n) - expectedFresh, st.drops)
             XCTAssertEqual(0, st.skippedMidOverwrite) // single-threaded schedule
             XCTAssertEqual(0, st.tornExhausted)
-            XCTAssertEqual(n, consumer.reader.claim().seq)
+            XCTAssertEqual(UInt64(n), consumer.reader.claim().seq)
         }
     }
 
@@ -293,8 +293,8 @@ final class FanoutTests: XCTestCase {
                 var src = [UInt32](repeating: 0, count: words)
                 for f in 1...frames {
                     for w in 0..<words { src[w] = FanoutTests.tword(UInt32(f), UInt32(w)) }
-                    b.begin()
-                    b.fill(src, words)
+                    _ = b.begin()
+                    _ = b.fill(src, words)
                     b.publish()
                 }
             }

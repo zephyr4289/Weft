@@ -4,6 +4,7 @@ import { drawWorkload } from './workloads/draw';
 import { createModeRunner, ModeType, ModeRunner } from './modes/runner';
 import { Inspector } from './components/Inspector';
 import { Playback } from './components/Playback';
+import { FeedFanoutViews } from './components/FeedFanoutViews';
 
 type TabType = 'showcase' | 'inspector' | 'playback';
 
@@ -115,7 +116,7 @@ export const App: React.FC = () => {
               fontWeight: activeTab === 'showcase' ? 'bold' : 'normal',
             }}
           >
-            Workload Matrix (W1–W5)
+            Workload Matrix (W1–W6)
           </button>
           <button
             onClick={() => setActiveTab('inspector')}
@@ -157,7 +158,7 @@ export const App: React.FC = () => {
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '20px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>
-                Workload (W1–W5)
+                Workload (W1–W6)
               </label>
               <select
                 value={selectedWid}
@@ -275,6 +276,10 @@ export const App: React.FC = () => {
               {heapMb > 0 && <div>JS Heap: {heapMb} MB</div>}
             </div>
           </div>
+
+          {/* RFC-0004 fan-out feed views (W6 only): one broadcaster driving
+              three independent consumers — the Series-2 follow-up. */}
+          {selectedWid === 'W6' && <FeedFanoutViews running={isRunning} />}
         </>
       )}
 

@@ -8,6 +8,7 @@
 
 import { Weft, PubResult } from '@weft/core';
 import { generateWorkloadFrame } from '../workloads/generators';
+import { createW6ModeRunner } from './feedRunner';
 
 export type ModeType = 'A' | 'B' | 'C' | 'D';
 
@@ -177,6 +178,13 @@ export class ModeDRunner implements ModeRunner {
 }
 
 export function createModeRunner(mode: ModeType, wid: string, floatCount: number): ModeRunner {
+  // W6 is the stateful feed workload — its runners own a SyntheticL2Feed +
+  // book engine and fold K messages per tick (modes/feedRunner.ts). The
+  // floatCount argument is redundant for W6 (the layout is the shared
+  // W6_FLOAT_COUNT contract) but stays in the uniform signature.
+  if (wid === 'W6') {
+    return createW6ModeRunner(mode);
+  }
   switch (mode) {
     case 'A':
       return new ModeARunner(wid, floatCount);

@@ -499,9 +499,12 @@ describe('fanout cross-thread protocol litmus', () => {
     }
     const msg = await done;
     // Drain: final claim per reader.
-    for (const r of readers) {
-      const c = r.claim();
-      if (c.fresh && !validateFrame(r.view(), c.seq)) torn++;
+    for (let ri = 0; ri < readers.length; ri++) {
+      const c = readers[ri].claim();
+      if (c.fresh) {
+        if (!validateFrame(readers[ri].view(), c.seq)) torn++;
+        prevSeq[ri] = c.seq;
+      }
     }
 
     // THE headline assertion: zero torn or invalid payloads across the run.
@@ -552,9 +555,12 @@ describe('fanout cross-thread protocol litmus', () => {
       await new Promise<void>((r) => setImmediate(r));
     }
     await done;
-    for (const r of readers) {
-      const c = r.claim();
-      if (c.fresh && !validateFrame(r.view(), c.seq)) torn++;
+    for (let ri = 0; ri < readers.length; ri++) {
+      const c = readers[ri].claim();
+      if (c.fresh) {
+        if (!validateFrame(readers[ri].view(), c.seq)) torn++;
+        prevSeq[ri] = c.seq;
+      }
     }
     expect(torn).toBe(0);
     for (let ri = 0; ri < readers.length; ri++) {

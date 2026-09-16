@@ -1,0 +1,6 @@
+# Series 6 — Kotlin VerifiedWeft battery (platform Mac = HW road)
+# env: JVM 21.0.12.1, kotlinc 2.0.21, x86_64 sandbox
+# date: 2026-09-16T17:10:55Z
+
+[         8 tests successful      ]
+[         0 tests failed          ]

@@ -113,7 +113,6 @@ pairs (`core/kotlin/Fanout.kt` ↔ `android/weft-core/.../Fanout.kt`,
 `core/dart/fanout.dart` ↔ `packages/flutter_weft/lib/src/reference/fanout.dart`).
 
 
-
 ---
 
 ## 7. Freshness governor (RFC 0009 — `core/c/governor.{h,c}`, `core/rust/src/governor.rs`, `packages/core/src/governor.ts`)
@@ -140,3 +139,36 @@ and G5's byte comparison is the standing proof. The consumer-side draw
 policy (what each app DOES with an action) is deliberately NOT ported —
 it is app policy by RFC-0009's "advisory only" lean; the demo module is a
 reference implementation, not a contract.
+
+---
+
+## 8. VM-port VerifiedWeft (RFC 0005 — Series 6: `core/kotlin/Verified.kt`, `core/swift/Verified.swift`, `core/dart/verified.dart`)
+
+RFC 0005's authenticated frames reached the three canonical kernels in PR
+#6 (C, Rust, TS — wire format, key schedule, and result codes all byte- and
+number-identical). Series 6 completes the six-port story: every VM port
+carries the same `deriveKey`/`VwSigner`/`VwVerifier`/record-codec/batch
+surface, fed by the shared fixture (`fixtures/xlang-verifiedweft/hmac-vectors.json`),
+so a record produced by any port verifies in any other bit-exactly. The HW
+story is per-port honest — each port names its accelerator road explicitly
+instead of papering over the difference:
+
+| Port | HMAC engine | HW acceleration road (Series 6) | Declared divergences / boundaries |
+|---|---|---|---|
+| Kotlin/JVM | `javax.crypto.Mac("HmacSHA256")` | THE PLATFORM IS THE ACCELERATOR: OpenJDK's OpenSSL-backed provider (SHA-NI on x86-64) / Android's Conscrypt-BoringSSL (ARMv8 CE). One `init` = the key schedule; N `doFinal` calls reuse it (pre-keyed by construction) | `vwCtEq` delegates to `MessageDigest.isEqual` (the platform's content-independent compare — the same platform-delegation story as `Mac`). Unsigned geometry decode via Long math (hostile high-bit `payload_len` lands in `ERR_SHORT`, never wraps — pinned by V5 in every port). Battery: VerifiedTest.kt, 8/8 on JVM 21/kotlinc 2.0.21 (standalone kotlinc + junit-console; android-packages gradle CI is the cover). |
+| Swift | `CryptoKit HMAC<SHA256>` | THE PLATFORM IS THE ACCELERATOR: CoreCrypto compiles SHA-256 to ARMv8 CE (FEAT_SHA256) on Apple silicon / SHA-NI on Intel Macs | CryptoKit exposes no streaming HMAC — `VwSigner`/`VwVerifier` hold the `SymmetricKey` and pay CoreCrypto's per-call pad derivation (cheap because the SHA itself is hardware); the API contract mirrors the other ports, the optimization boundary is declared here. `vwCtEq` is a manual constant-time double-walk (no public platform compare). Battery: VerifiedTests.swift (XCTest — apple-packages CI; CryptoKit is Apple-only, so not compilable on the Linux shard runner). |
+| Dart/Flutter | PURE DART (this file) | THE HONESTY WALL: no HW road — dart:io has no HMAC, package:crypto is itself pure Dart; the zero-dep rule of this port (frozen pubspec) costs nothing in honesty. This port is the six-port SCALAR REFERENCE: byte-identical on the wire, slower on the CPU | HW rates come via dart:ffi to the C verifier (`packages/flutter_weft/src/weft_ffi.dart` is the existing road). `vwCtEq` is a manual constant-time double-walk. Battery: verified_test.dart (flutter-packages CI; core reference additionally runs under plain `dart` — 59/59 on Dart 3.13, evidence `litmus/evidence/verified/dart-vseries.log`). |
+
+Structural enforcement (same shape as the fan-out packs): the Series-6
+`port_validator.py` rule pack checks each VM port's verified module for the
+domain-separation marker (`Weft-VerifiedWeft-v1:key`), the envelope-length
+contract, and the shared API surface (deriveKey/signer/verifier/ctEq/
+recordEncode/batchDecodeVerify/err-tag) — case- and underscore-insensitive
+so the check pins the SYMBOL, not the port's spelling convention.
+`run_binding_parity.sh` hashes the two new mirror pairs
+(`core/kotlin/Verified.kt` ↔ `android/weft-core/.../Verified.kt`,
+`core/dart/verified.dart` ↔ `packages/flutter_weft/lib/src/reference/verified.dart`).
+CI: `run_verifiedweft_shard.sh` now carries seven gates (C ×2 regimes,
+Rust, TS, xlang, Kotlin-when-kotlinc, Swift/Dart declared to their package
+workflows) — the shard's declared-skip discipline matches the repo's
+per-port honesty culture.

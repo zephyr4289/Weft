@@ -61,12 +61,13 @@
 
 ---
 
-## 5. Fan-out driver layer (RFC 0004 — `core/c/fanout.{h,c}`, `core/rust/src/fanout.rs`, `core/ts/fanout.ts`)
+## 5. Fan-out driver layer (RFC 0004 — `core/c/fanout.{h,c}`, `core/rust/src/fanout.rs`, `core/ts/fanout.ts`, `core/kotlin/Fanout.kt`, JNI/Dart-FFI bridges)
 
 The fan-out ring is DRIVER LAYER, not kernel — but it is a shared-memory
 protocol with its own ordering matrix, so it gets a PORTS row of its own.
-The ring layout is byte-compatible across all three languages (the interop
-contract, proven by `fixtures/xlang-fanout/`).
+The ring layout is byte-compatible across the native languages (the interop
+contract, proven by `fixtures/xlang-fanout/`); the JVM carries a semantics
+port and the mobile runtimes reach the C ring through FFI bridges.
 
 | Row | Content |
 |---|---|
@@ -77,4 +78,7 @@ contract, proven by `fixtures/xlang-fanout/`).
 | Revalidation (P2) | TS: SeqCst loads around the copy. C/Rust: Acquire loads + **one SeqCst fence between copy and revalidation** — if the copy observed any overwrite word, the revalidation load must observe the invalidate-or-newer stamp. |
 | A/B regime | C compiles with `-DWEFT_FANOUT_SEQ_CST=1` for the TS-equivalent all-SeqCst stamps; both regimes are torture-gated (`litmus/evidence/fanout/`). The fenced acq/rel default measured ~11% higher publish throughput under identical 4-reader contention (x86_64 sandbox, environment-tagged). |
 | Divergence note | The C/Rust ports are *weaker-ordered but fenced* where the TS port is SeqCst-everything — the reverse of the kernel ports' "stronger, not cheating" stance, and for the same reason: the ordering each needs is the ordering each pays for, and the bracket proof is carried by the two fences (P1/P2), Loom's exhaustive model (Rust), and the TSAN/ASAN/torture gates (C). |
+| JVM port (`core/kotlin/Fanout.kt`) | SEMANTICS port, not a byte-layout port (the JVM has no SharedArrayBuffer — stated in the file header): ctrl is an `AtomicLongArray`, slots are heap `FloatArray`s. Stamp accesses are `AtomicLongArray` volatile ops (acquire/release per variable under JSR-133 — the C default regime, and stronger than plain fields); payload words are plain float elements (JLS §17.7: 32-bit accesses do not tear) bracketed by the stamps. The bracket's visibility rides the volatile barriers (JSR-133 cookbook: trailing StoreLoad after the invalidate store, leading LoadLoad before the revalidation load) — the same class of implementation-backed reasoning the TS port's seqcst stance carries. Cross-language interop is the JNI path below, not this port. |
+| Android JNI (`weft_jni.c` → `core/c/fanout.c`) | The C ring itself — every ordering property is the C row's, unchanged; the bridge adds only handle passing, direct-ByteBuffer cursors, and per-reader record accessors (the record is reader-owned and stable until that reader's next claim, so claim/claimFresh/claimDropped read back one consistent claim across three JNI transitions). No JVM callbacks from C → no thread attachment anywhere. |
+| Flutter/Dart FFI (`packages/flutter_weft`) | The C ring through `dart:ffi` — ordering is the C row's; Dart adds no shared state (handles C-allocated/C-freed, claim record and copy buffer are native memory). Cross-isolate consumers pass the reader handle as its raw address; the writer stays single-isolate by contract (D-14). |
 

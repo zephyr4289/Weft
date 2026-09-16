@@ -27,6 +27,17 @@ not weaker. No weaker-ordering heroics to "match" C. Per WHITEPAPER §7.1:
 | `Steward.kt` | Lifecycle manager: ViewModel-scoped, leak detection |
 | `Heddle.kt` | Draw-phase binding: `Modifier.weftDraw` Compose extension |
 | `TriadNative.kt` | JNI bridge to litmus-passing C kernel (panic-shielded) |
+| `Fanout.kt` | RFC-0004 fan-out ring, pure-JVM port (semantics port: AtomicLongArray ctrl; the JNI fanout* entries in TriadNative.kt bind the byte-compatible C ring) |
+
+## Fan-out (RFC 0004)
+
+`Fanout.kt` mirrors `core/ts/fanout.ts` (same claim algorithm, same
+statistics names). It is a SEMANTICS port — the JVM has no
+SharedArrayBuffer, so there is no byte-layout ring to post across threads;
+share the broadcaster object reference instead, or use the JNI surface
+(`TriadNative.fanout*` over `weft_jni.c`) for the byte-compatible C ring
+that interops with the TS port. JVM tests: `FanoutTest.kt` (protocol +
+threaded torture); the JNI path is pinned by `fixtures/jni-fanout/`.
 
 ## Dependencies
 

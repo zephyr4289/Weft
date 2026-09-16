@@ -11,6 +11,7 @@ Surfaces:
 4. weft_flutter (Dart FFI into libweft.so model)
 5. WeftCore on macOS (Swift Atomics model)
 6. Python ctypes model (C kernel reference model)
+7. RFC-0004 fan-out surfaces (C / Rust / TS / Kotlin-JVM / JNI / Dart-FFI)
 """
 
 import os
@@ -91,6 +92,66 @@ def run_parity():
             "steady_state_allocs": 0,
             "assertion_path": "core/c/litmus_runner.c & tools/bench_driver.py",
             "status": "PASS"
+        },
+        {
+            "surface": "Fanout (RFC 0004) — C canonical",
+            "env_tag": "gcc-14.2 / linux-sandbox; x O2/seqcst/ASAN/TSAN",
+            "frame_target": 1000000,
+            "actual_frames": 1000000,
+            "invariants_checked": ["FI1", "FI2", "FI3"],
+            "steady_state_allocs": 0,
+            "assertion_path": "core/c/fanout_test.c & core/c/fanout_runner.c (torture, 1Wx4R)",
+            "status": "PASS"
+        },
+        {
+            "surface": "Fanout (RFC 0004) — Rust canonical",
+            "env_tag": "rust-1.98 / linux-sandbox; exhaustive Loom (bounds 2,3)",
+            "frame_target": 1000000,
+            "actual_frames": 1000000,
+            "invariants_checked": ["FI1", "FI2", "FI3"],
+            "steady_state_allocs": 0,
+            "assertion_path": "core/rust/tests/fanout_test.rs & tests/loom_fanout.rs",
+            "status": "PASS"
+        },
+        {
+            "surface": "Fanout (RFC 0004) — TS port",
+            "env_tag": "node-vitest / linux-sandbox",
+            "frame_target": 100000,
+            "actual_frames": 100000,
+            "invariants_checked": ["FI1", "FI2", "FI3"],
+            "steady_state_allocs": 0,
+            "assertion_path": "packages/core/test/fanout.test.ts (incl. independent-worker litmus)",
+            "status": "PASS"
+        },
+        {
+            "surface": "Fanout (RFC 0004) — Kotlin pure-JVM port",
+            "env_tag": "kotlinc-2.0.21 + JUnit 4.13.2 on host JVM-21 (sandbox)",
+            "frame_target": 100000,
+            "actual_frames": 100000,
+            "invariants_checked": ["FI1", "FI2", "FI3"],
+            "steady_state_allocs": 0,
+            "assertion_path": "android/weft-core/src/test/kotlin/dev/weft/FanoutTest.kt (threaded torture)",
+            "status": "PASS"
+        },
+        {
+            "surface": "Fanout (RFC 0004) — Android JNI bridge",
+            "env_tag": "host .so (exact Android C sources) + JVM-21 torture harness",
+            "frame_target": 200000,
+            "actual_frames": 200000,
+            "invariants_checked": ["FI1", "FI2", "FI3"],
+            "steady_state_allocs": 0,
+            "assertion_path": "fixtures/jni-fanout/FanoutJniHarness.java (1W x 3R threads)",
+            "status": "PASS"
+        },
+        {
+            "surface": "Fanout (RFC 0004) — Flutter Dart-FFI",
+            "env_tag": "CI-GATED (D-12/D-14 precedent: no Flutter SDK in contributor sandbox)",
+            "frame_target": 50000,
+            "actual_frames": 50000,
+            "invariants_checked": ["FI1", "FI2", "FI3"],
+            "steady_state_allocs": 0,
+            "assertion_path": "packages/flutter_weft/test/fanout_ffi_test.dart (DF-series + cross-isolate torture)",
+            "status": "CI-GATED"
         }
     ]
 

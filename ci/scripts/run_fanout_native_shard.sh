@@ -56,9 +56,21 @@ else
   if [ -n "${CI:-}" ]; then fail=1; fi # in CI the workflow builds it; missing dist is a failure
 fi
 
+# --- 5: JNI bridge (host JVM over the exact Android C sources) ---
+# gcc + a JDK are preinstalled on ubuntu-latest runners; the harness
+# compiles weft_jni.c + weft.c + fanout.c itself and runs a 1W x 3R
+# threaded torture on real JVM threads.
+step "JNI fan-out harness (host JVM, 200k frames x 3 readers)"
+if command -v javac >/dev/null 2>&1 && command -v gcc >/dev/null 2>&1; then
+  EVIDENCE=0 bash fixtures/jni-fanout/run.sh 2>&1 | tee -a "$LOG" || fail=1
+else
+  echo "javac or gcc not found — JNI harness SKIPPED (declared)" | tee -a "$LOG"
+  if [ -n "${CI:-}" ]; then fail=1; fi # CI runners have both; missing toolchain is a failure
+fi
+
 if [ "$fail" -ne 0 ]; then
   echo '{"shard":"fanout-native","status":"FAILED"}' > ci/run-artifacts/shard-fanout-native-results.json
   exit 1
 fi
-echo '{"shard":"fanout-native","status":"PASSED","gates":"C F-series+torture x2 regimes + rust suite + loom(bound 2) + xlang TS<->C"}' > ci/run-artifacts/shard-fanout-native-results.json
+echo '{"shard":"fanout-native","status":"PASSED","gates":"C F-series+torture x2 regimes + rust suite + loom(bound 2) + xlang TS<->C + jni-harness JVM"}' > ci/run-artifacts/shard-fanout-native-results.json
 echo "✅ fanout-native shard PASSED" | tee -a "$LOG"

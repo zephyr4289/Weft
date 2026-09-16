@@ -55,6 +55,7 @@
 |---|---|
 | `latest` exchange | `Atomics.exchange(Int32Array, index, value)` — single RMW, SC (the web gives no weaker choice). SC ≥ C AcqRel. Already proven in Phase 0 litmus (24/24) and Phase 1 bench (15/15). |
 | TS kernel | Unchanged from Phase 0. The four Heddle bindings (`@weft/react`, `@weft/svelte`, `@weft/vue`, `@weft/react-native`) wrap the kernel's `Weft` class — no kernel modifications. |
+| Telemetry counters (2026-09-16 regime) | Hot path: dual-i32 halves (`Atomics.add` on the Int32 view, carry into the hi half once per 2³² increments) + Number step counters + dual-u32 canary — **allocation-free** (the BigInt regime boxed ~90 B/publish, measured by the W6 feed bench and closed by this change: `demos/web/evidence/feed-gc-bench.log`, direct per-cycle numbers in `demos/web/evidence/telemetry-microbench.log`). Cold path: the BigInt64 view composes the exact u64 (`tPublish()/tClaim()/tDrop()` still return bigint — the C-port u64 parity is preserved). Stated divergence: the two-step increment is not atomic-as-u64 (transient (new lo, old hi) window during carry, once per 2³² increments) — advisory only, AXIOM T; the C kernel's single u64 `fetch_add` remains the atomic gold standard JS Atomics cannot express. |
 | Divergence note | Already documented in WHITEPAPER §7.1: "SC Atomics ≥ C relaxed — where the web port is *stronger*, and why that is not cheating." |
 | SAB/COOP-COEP | Cited per §8.2: SAB requires COOP/COEP; default web path is one-copy Transferable. Each binding cites §8.2 where shared arrays are involved. |
 

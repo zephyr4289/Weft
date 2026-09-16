@@ -1,0 +1,17 @@
+TS KERNEL TELEMETRY MICROBENCH — publish/claim per-cycle cost
+================================================================
+date: 2026-09-16T10:34:37.288Z
+node: v24.19.0 · platform: linux x64
+payload: 64 B · 1000-cycle windows · 5 reps (medians)
+method: M1 GC-free-window heapUsed deltas (observer-guarded); M4 dedicated
+        hrtime pass. Frame written via the public wBegin cursor.
+
+M1 allocation: median 256 B / 1000-cycle window [195/200 valid windows] -> ~0.26 B per publish+claim cycle
+  history: the BigInt regime measured ~152 B/cycle here (152,256 B median
+  window); the dual-i32 regime measures at sampling noise. The W6 feed
+  bench attributes the same delta by subtraction (Mode C produce path).
+
+M4 throughput: median 231.5 ms / 2,000,000 cycles -> 8.64M publish+claim cycles/s
+  history: the BigInt regime measured ~347 ms (5.76M cycles/s) on this
+  machine class; the allocation-free regime ~229 ms (8.73M cycles/s).
+

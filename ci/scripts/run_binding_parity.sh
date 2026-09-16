@@ -40,6 +40,7 @@ PAIRS=(
   "core/dart/weft.dart|packages/flutter_weft/lib/src/reference/weft.dart"
   "core/ts/weft.ts|packages/core/src/weft.ts"
   "core/ts/fanout.ts|packages/core/src/fanout.ts"
+  "core/ts/verified.ts|packages/core/src/verified.ts"
 )
 
 n_pass=0

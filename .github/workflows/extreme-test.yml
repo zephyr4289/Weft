@@ -229,6 +229,13 @@ jobs:
             args: ""
             needs_rust: false
 
+          # --- RFC 0004 concurrent fan-out (true-parallelism gate) ---
+          - shard: "fanout-concurrent"
+            description: "1 writer + 4 reader workers, integrity-gated + daisy-chain"
+            script: "ci/scripts/run_fanout_shard.sh"
+            args: ""
+            needs_rust: false
+
           # --- Site determinism (regenerate + compare) ---
           - shard: "site-determinism"
             description: "make site double-render, byte-identical sha256 check"

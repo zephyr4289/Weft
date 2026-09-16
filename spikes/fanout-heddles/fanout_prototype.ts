@@ -2,6 +2,13 @@
  * spikes/fanout-heddles/fanout_prototype.ts
  * Prototype for RFC 0004: Multi-Consumer Fan-out Heddles
  *
+ * ⚠ SUPERSEDED — single-threaded sketch, kept as the RFC's historical
+ * artifact. It has NO atomics: plain fields, no torn-read possibility, and
+ * its "1.27M publishes/sec" number was never earned under real parallelism.
+ * The real implementation is fanout.cjs (SharedArrayBuffer + Atomics,
+ * all SeqCst) with true-parallelism gates in fanout_concurrent_test.cjs and
+ * honest concurrent rates in fanout_bench.cjs. See README.md.
+ *
  * Implements a 1-writer, N-reader seqlock fan-out ring.
  * Readers:
  *   1. Primary UI Canvas (60 Hz)

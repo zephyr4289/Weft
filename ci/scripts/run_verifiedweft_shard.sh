@@ -77,33 +77,35 @@ fi
 # --- 5: Kotlin V-series (JVM) ---
 step "Kotlin V-series (standalone kotlinc when present)"
 if command -v kotlinc >/dev/null 2>&1; then
-  KOUT=$(mktemp -d)
-  if kotlinc core/kotlin/Verified.kt \
-       android/weft-core/src/test/kotlin/dev/weft/VerifiedTest.kt \
-       -d "$KOUT" >>"$LOG" 2>&1; then
-    KRUN_LOG=$(mktemp)
-    if command -v java >/dev/null 2>&1; then
-      # junit-console jar via env override or best-effort glob
-      JUNIT_JAR="${WEFT_JUNIT_CONSOLE_JAR:-}"
-      if [ -z "$JUNIT_JAR" ]; then
-        for cand in toolchain/junit-console.jar /opt/junit-console.jar; do
-          [ -f "$cand" ] && JUNIT_JAR="$cand" && break
-        done
-      fi
-      KSTD=$(dirname "$(command -v kotlinc)")/lib/kotlin-stdlib.jar
-      if [ -n "$JUNIT_JAR" ] && [ -f "$KSTD" ]; then
-        java -jar "$JUNIT_JAR" -cp "$KOUT:$KSTD" --scan-classpath \
-             --fail-if-no-tests --details=summary >"$KRUN_LOG" 2>&1
-        grep -E "tests (successful|failed)" "$KRUN_LOG" | tee -a "$LOG"
-        grep -q "0 tests failed" "$KRUN_LOG" || fail=1
-      else
-        echo "junit-console/kotlin-stdlib not found — Kotlin battery SKIPPED (declared)" | tee -a "$LOG"
-      fi
+  # junit-console jar: env override or best-effort known locations. It is
+  # needed on BOTH the compile classpath (org.junit imports in the battery)
+  # and the runtime one.
+  JUNIT_JAR="${WEFT_JUNIT_CONSOLE_JAR:-}"
+  if [ -z "$JUNIT_JAR" ]; then
+    for cand in toolchain/junit-console.jar /opt/junit-console.jar; do
+      [ -f "$cand" ] && JUNIT_JAR="$cand" && break
+    done
+  fi
+  # kotlin-stdlib lives under the kotlinc distribution ROOT (not bin/):
+  # <kotlinc-dist>/lib/kotlin-stdlib.jar — resolve via bin/..
+  KSTD="$(cd "$(dirname "$(command -v kotlinc)")/.." && pwd)/lib/kotlin-stdlib.jar"
+  if [ -n "$JUNIT_JAR" ] && [ -f "$KSTD" ] && command -v java >/dev/null 2>&1; then
+    KOUT=$(mktemp -d)
+    if kotlinc core/kotlin/Verified.kt \
+         android/weft-core/src/test/kotlin/dev/weft/VerifiedTest.kt \
+         -cp "$JUNIT_JAR" -d "$KOUT" >>"$LOG" 2>&1; then
+      KRUN_LOG=$(mktemp)
+      java -jar "$JUNIT_JAR" -cp "$KOUT:$KSTD" --scan-classpath \
+           --fail-if-no-tests --details=summary >"$KRUN_LOG" 2>&1
+      grep -E "tests (successful|failed)" "$KRUN_LOG" | tee -a "$LOG"
+      grep -q "0 tests failed" "$KRUN_LOG" || fail=1
+      rm -rf "$KOUT" "$KRUN_LOG"
+    else
+      echo "kotlinc compile FAILED" | tee -a "$LOG"
+      fail=1
     fi
-    rm -rf "$KOUT" "$KRUN_LOG"
   else
-    echo "kotlinc compile FAILED" | tee -a "$LOG"
-    fail=1
+    echo "junit-console/kotlin-stdlib/java not found — Kotlin V-series SKIPPED (declared; android-packages gradle CI covers)" | tee -a "$LOG"
   fi
 else
   echo "kotlinc not found — Kotlin V-series SKIPPED (declared; android-packages gradle CI covers)" | tee -a "$LOG"

@@ -79,8 +79,12 @@ class Weft(val payloadMax: Int) {
 
     // --- Writer ---
 
-    /// Get a write cursor for the writer's working buffer.
-    fun wBegin(): ByteBuffer = buffers[wWork].duplicate().apply { position(16) }
+    /// Get a write cursor for the writer's working buffer: a payload-relative
+    /// SLICE (position 0 = payload start, zero-copy view). Writers index
+    /// relative to the payload: put(0, x) writes payload byte 0. The envelope
+    /// is written by publish() and is unreachable through this cursor's
+    /// intended window — never write the envelope yourself (02 §2).
+    fun wBegin(): ByteBuffer = buffers[wWork].duplicate().apply { position(16) }.slice()
 
     /// Publish: write envelope + canary, then exchange latest.
     /// Per 02 §2 + §6: revoked checked FIRST; exchange is THE atomic.
@@ -122,11 +126,28 @@ class Weft(val payloadMax: Int) {
     fun rPayloadLen(): Int = buffers[rWork].getInt(12)
 
     /// Read LIVE held-buffer bytes at call time (A3).
+    /// Uses duplicate() so the shared ByteBuffer's position is never mutated
+    /// (a reader-thread race in earlier revisions — see PORTS.md §1).
     fun rReadSlice(dst: ByteArray, offset: Int): Int {
         if (offset >= bufSize) return 0
         val n = minOf(dst.size, bufSize - offset)
         buffers[rWork].duplicate().apply { position(offset) }.get(dst, 0, n)
         return n
+    }
+
+    /// Live view of the READER-HELD buffer (r_work): a payload-relative SLICE
+    /// (absolute index 0 = payload start + [payloadOffset], zero-copy, shares
+    /// memory with the live buffer — never a snapshot; A3: the reader must
+    /// observe the live buffer). This is the API draw-phase bindings MUST use
+    /// after claim(); reading wBegin() from the draw thread is a protocol
+    /// violation (it is the writer's scratch buffer — torn reads by design).
+    /// Parity: C weft_r_live_ptr / Swift rLivePtr take absolute offsets;
+    /// this takes a payload-relative offset (0 = start of payload).
+    fun rLiveBuf(payloadOffset: Int = 0): ByteBuffer {
+        require(payloadOffset >= 0 && payloadOffset < payloadMax) {
+            "payloadOffset out of range: $payloadOffset"
+        }
+        return buffers[rWork].duplicate().apply { position(16 + payloadOffset) }.slice()
     }
 
     // --- I6 handshake ---

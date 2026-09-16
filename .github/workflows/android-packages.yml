@@ -21,6 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Binding parity guard (core/kotlin <-> android mirror)
+        run: bash ci/scripts/run_binding_parity.sh
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:

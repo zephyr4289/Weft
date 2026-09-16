@@ -328,6 +328,8 @@ def write_report(catalog, langs, results, raw):
     lines.append("")
     lines.append("**Verdict:** TS-specific exposure fragility. Protocol is sound (`torn=0`, `drain_ok=true`). The retry rule is the ratified honest outcome; persistent shortfall after retry triggers a catalog amendment request citing `claims_per_s` evidence (per WO-P0A A4).")
     lines.append("")
+    lines.append("**Resolution (v1.1.1):** `core/ts/litmus.ts` now uses an adaptive exposure window — if a full pass of the hold schedule lands under the floor, the schedule repeats (up to 8 passes, 10s wall cap) until `claims >= min_claims`. The gate is unchanged (`torn==0 && drain_ok && claims>=200`); statistical power is preserved on every runner speed and EXPOSURE-RETRY remains as the driver-side fallback. The shortfall class is closed at the source.")
+    lines.append("")
     lines.append("### Finding 3: L8-envelope negotiation — spec table inconsistency")
     lines.append("")
     lines.append("**Repro:** All three implementations verify the §3 formula `max({v ∈ S : v ≤ W})` and pass L8.")

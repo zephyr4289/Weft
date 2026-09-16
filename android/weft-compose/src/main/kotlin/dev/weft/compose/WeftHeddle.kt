@@ -29,6 +29,21 @@ public enum class ReattachPolicy {
 
 /**
  * A Compose Heddle holding a Weft channel bound to a Steward.
+ *
+ * Disposal implements the [ReattachPolicy] semantics declared at construction
+ * (previously the enum existed but dispose() ignored it):
+ *
+ *  - [ReattachPolicy.PRESERVE_HELD] — the Weft stays bound to the ViewModel-
+ *    scoped Steward; re-entering the composition re-binds to the same channel
+ *    and the last claimed frame is still held (default; survives navigation).
+ *  - [ReattachPolicy.RESET_ON_ATTACH] — the channel is kept but the next
+ *    claim() after re-attach re-renders from whatever is freshest at that
+ *    moment; no writer-side action on dispose (the producer keeps running).
+ *  - [ReattachPolicy.REVOKE_AND_RENEW] — the Weft is revoked and released
+ *    back to the Steward on dispose (I6 ordering: revoke BEFORE the reference
+ *    is dropped, so a late publish is a DROPPED_REVOKED no-op, never a write
+ *    into a channel nobody owns). Re-entering the composition allocates a
+ *    fresh channel.
  */
 public class WeftHeddle(
     public val steward: Steward,
@@ -39,8 +54,10 @@ public class WeftHeddle(
         private set
 
     internal fun dispose() {
-        if (!isDisposed) {
-            isDisposed = true
+        if (isDisposed) return
+        isDisposed = true
+        if (policy == ReattachPolicy.REVOKE_AND_RENEW) {
+            steward.release(weft)
         }
     }
 }

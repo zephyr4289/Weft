@@ -29,7 +29,7 @@ export const weftCanvas: Action<HTMLCanvasElement, WeftActionParams> = (canvas, 
     // Draw phase discipline: claim + read the live buffer inside the frame
     // callback only — never during Svelte reactivity effects.
     current.weft.claim();
-    const buf = current.weft.rReadSlice(16, current.weft.payloadMax);
+    const buf = current.weft.rLive();
     current.draw(ctx, buf);
     raf = requestAnimationFrame(tick);
   };

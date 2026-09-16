@@ -111,15 +111,37 @@ class Weft {
 
   void revoke() { _revoked = true; }
 
-  /// destroy: API parity with C kernel.
-  void destroy() { _revoked = true; _epoch += 1; }
+  /// destroy: API parity with C kernel. On a GC'd runtime, dropping the last
+  /// reference IS the deallocation; destroy() revokes the writer so a late
+  /// publish ACKs as droppedRevoked instead of writing into a channel nobody
+  /// owns. The epoch is NOT incremented here — the ACK belongs to the
+  /// writer's own publish path. (The previous revision faked the ACK
+  /// incrementally, diverging from every other port's destroy semantics.)
+  void destroy() { revoke(); }
+
+  /// Single-isolate reclaim: the epoch can only advance when this event loop
+  /// runs other code — a synchronous busy-wait can NEVER observe a change.
+  /// (The previous revision either returned instantly or froze the entire
+  /// isolate for the full timeout and then failed.) So: check the epoch
+  /// once; if the writer has ACKed, reclaim succeeded; otherwise return
+  /// false immediately and await the ACK with [reclaimAsync] instead.
+  /// [timeoutMs] is accepted for API parity with the C kernel and ignored:
+  /// there is no time to wait in a synchronous check on a single isolate.
   bool reclaim(int preRevokeEpoch, int timeoutMs) {
-    final start = DateTime.now().millisecondsSinceEpoch;
-    while (true) {
-      if (_epoch != preRevokeEpoch) return true;
-      if (DateTime.now().millisecondsSinceEpoch - start >= timeoutMs) return false;
-      // No sleep in single-isolate Dart — just yield
+    return _epoch != preRevokeEpoch;
+  }
+
+  /// Async reclaim: yields to the event loop between checks so a pending
+  /// writer turn can ACK. Returns true once the epoch advances past
+  /// [preRevokeEpoch]; false after [timeoutMs] milliseconds. This is the
+  /// correct I6 wait primitive for a single-isolate runtime.
+  Future<bool> reclaimAsync(int preRevokeEpoch, int timeoutMs) async {
+    final sw = Stopwatch()..start();
+    while (_epoch == preRevokeEpoch) {
+      if (sw.elapsedMilliseconds >= timeoutMs) return false;
+      await Future<void>.delayed(Duration.zero);
     }
+    return true;
   }
 
   // --- Telemetry (advisory) ---

@@ -52,13 +52,15 @@ run_combo() {
   fi
 }
 
-# Strip trailing comma and close JSON
-RESULTS_JSON=${RESULTS_JSON%,}]}
-
+# Strip trailing comma and close JSON — AFTER the combos run (this line used
+# to sit BEFORE the run_combo calls, closing the array early and appending
+# combo entries after the end of the document: "Extra data: char 37".
 run_combo "c-to-c"     "$C_RUNNER"   "$C_RUNNER"
 run_combo "c-to-rust"  "$C_RUNNER"   "$RUST_RUNNER"
 run_combo "rust-to-rust" "$RUST_RUNNER" "$RUST_RUNNER"
 run_combo "rust-to-c"  "$RUST_RUNNER" "$C_RUNNER"
+
+RESULTS_JSON=${RESULTS_JSON%,}]}
 
 # Finalize results JSON
 python3 -c "

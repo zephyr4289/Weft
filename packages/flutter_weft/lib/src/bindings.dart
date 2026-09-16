@@ -6,8 +6,19 @@
 import 'dart:ffi';
 import 'dart:io';
 
-// Opaque struct representing C `weft_t`
-final class WeftStruct extends Opaque {}
+// Opaque handle for the C `weft_t`. The previous revision allocated a
+// hardcoded `calloc<Uint8>(512)` byte block and cast it — correct today,
+// silent corruption the day the kernel struct grows past 512 bytes. This
+// typed declaration reserves the same 512 bytes EXPLICITLY and documents
+// the budget: core/c weft_t is ~104 bytes (3 pointers + 2 size_t + index
+// atomics + revocation state + 5 u64 telemetry counters). A mechanical
+// guard `_Static_assert(sizeof(weft_t) <= 512, ...)` lives in
+// android/weft-core/src/main/cpp/weft_jni.c — raise this reservation if a
+// kernel change (RFC-gated) grows the struct.
+final class WeftStruct extends Struct {
+  @Array(512)
+  external Array<Uint8> storage;
+}
 
 // C prototypes
 typedef WeftInitC = Int32 Function(Pointer<WeftStruct> w, IntPtr payloadMax);
@@ -40,6 +51,9 @@ typedef WeftTPublishDart = int Function(Pointer<WeftStruct> w);
 typedef WeftTClaimC = Uint64 Function(Pointer<WeftStruct> w);
 typedef WeftTClaimDart = int Function(Pointer<WeftStruct> w);
 
+typedef WeftEpochC = Uint32 Function(Pointer<WeftStruct> w);
+typedef WeftEpochDart = int Function(Pointer<WeftStruct> w);
+
 class WeftNativeBindings {
   final DynamicLibrary dylib;
 
@@ -53,6 +67,7 @@ class WeftNativeBindings {
   late final WeftReclaimDart weftReclaim;
   late final WeftTPublishDart weftTPublish;
   late final WeftTClaimDart weftTClaim;
+  late final WeftEpochDart weftEpoch;
 
   WeftNativeBindings(this.dylib) {
     weftInit = dylib.lookupFunction<WeftInitC, WeftInitDart>('weft_init');
@@ -65,6 +80,7 @@ class WeftNativeBindings {
     weftReclaim = dylib.lookupFunction<WeftReclaimC, WeftReclaimDart>('weft_reclaim');
     weftTPublish = dylib.lookupFunction<WeftTPublishC, WeftTPublishDart>('weft_t_publish');
     weftTClaim = dylib.lookupFunction<WeftTClaimC, WeftTClaimDart>('weft_t_claim');
+    weftEpoch = dylib.lookupFunction<WeftEpochC, WeftEpochDart>('weft_epoch');
   }
 
   static DynamicLibrary openLibrary([String? path]) {

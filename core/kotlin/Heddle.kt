@@ -6,6 +6,13 @@
 // invalidation. Per Q1/Q3 open questions (WHITEPAPER §10): Compose Multiplatform
 // graphicsLayer deferred-read support is unverified.
 //
+// DRAW-PHASE READ RULE (RFC-0001 §4.3): after claim(), the freshest complete
+// frame lives in the READER-HELD buffer (r_work). Draw code MUST read it via
+// weft.rLiveBuf(). Reading weft.wBegin() here is a protocol violation: that is
+// the writer's scratch buffer, concurrently being filled on the producer
+// thread — a torn read by construction, the exact tearing the Triad Protocol
+// exists to make impossible.
+//
 // STATUS: SOURCE-ONLY, PENDING REAL-DEVICE VERIFICATION.
 
 package dev.weft
@@ -17,15 +24,14 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import java.nio.ByteBuffer
 
 /// Bind a Weft to a Compose draw scope. The lambda runs on every VSYNC,
-/// reading the latest frame from the Weft. Zero recomposition.
+/// claiming the latest frame and exposing the reader-held payload as a
+/// zero-copy, payload-relative view. Zero recomposition.
 fun Modifier.weftDraw(
     weft: Weft,
     onDraw: DrawScope.(ByteBuffer) -> Unit
 ): Modifier = this.drawWithContent {
-    if (weft.claim().let { true }) {
-        val buf = weft.wBegin() // Returns the writer's working buffer view
-        onDraw(buf)
-    }
+    weft.claim()
+    onDraw(weft.rLiveBuf())
     drawContent()
 }
 

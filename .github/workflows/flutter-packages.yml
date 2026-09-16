@@ -17,6 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Binding parity guard (core/dart <-> flutter reference)
+        run: bash ci/scripts/run_binding_parity.sh
+
       - name: Initialize Log
         run: |
           touch /tmp/flutter_build_output.log

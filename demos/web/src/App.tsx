@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Weft } from '@weft/core';
 import { WORKLOAD_INFO, WorkloadMetadata } from './workloads/generators';
 import { drawWorkload } from './workloads/draw';
 import { createModeRunner, ModeType, ModeRunner } from './modes/runner';
@@ -25,6 +26,27 @@ export const App: React.FC = () => {
   const frameTimesRef = useRef<number[]>([]);
   const frameIdxRef = useRef<number>(0);
   const consumeBufRef = useRef<Float32Array | null>(null);
+
+  // Live kernel instance backing the Inspector and Playback tabs (previously
+  // those tabs were hardcoded mocks; they now observe/record a REAL Weft).
+  const [inspectorWeft, setInspectorWeft] = useState<Weft | null>(null);
+  useEffect(() => {
+    const w = new Weft(256);
+    setInspectorWeft(w);
+    let seq = 0;
+    let raf = 0;
+    let t0 = performance.now();
+    const produce = (now: number) => {
+      const f32 = w.wBeginFloat32();
+      f32[0] = Math.sin((now - t0) * 0.002);
+      f32[1] = Math.cos((now - t0) * 0.0013);
+      f32[2] = (now - t0) / 1000;
+      w.publish(++seq, 256);
+      raf = requestAnimationFrame(produce);
+    };
+    raf = requestAnimationFrame(produce);
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   const currentWorkload: WorkloadMetadata = WORKLOAD_INFO[selectedWid] || WORKLOAD_INFO['W1'];
 
@@ -149,8 +171,8 @@ export const App: React.FC = () => {
         </div>
       </header>
 
-      {activeTab === 'inspector' && <Inspector />}
-      {activeTab === 'playback' && <Playback />}
+      {activeTab === 'inspector' && inspectorWeft && <Inspector weft={inspectorWeft} />}
+      {activeTab === 'playback' && inspectorWeft && <Playback weft={inspectorWeft} />}
 
       {activeTab === 'showcase' && (
         <>

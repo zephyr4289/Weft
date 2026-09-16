@@ -69,6 +69,31 @@ Fan-out decouples readers from the writer, but slow readers will observe dropped
 ## Drawbacks
 Consumes more memory (N slots × payload size). Each reader pays one Float32 copy per fresh claim (the kernel's 1:1 path stays zero-copy — fan-out is not a zero-copy claim). The accounting is seq-based, so abandoned writer seqs read as drops. Single writer per ring, by contract.
 
+## Implementation evidence (2026-09-16)
+
+The original prototype (`spikes/fanout-heddles/fanout_prototype.ts`) validated
+the shape but was single-threaded — plain fields, no atomics — so its
+"1.27 million publishes/sec" number was never earned under real parallelism
+and its `claimLatest` had a latent tear window it could not even express.
+
+The pattern is now REAL (`spikes/fanout-heddles/fanout.cjs`): SharedArrayBuffer
++ Atomics (all SeqCst — the TS port's documented ordering regime), per-slot
+even/odd latches, a control-block publication point, bounded-retry
+stale-tolerant claims, and exact per-reader drop accounting (RFC 0008
+semantics per consumer). Conformance lives in `fanout_concurrent_test.cjs`
+(wired as the `fanout-concurrent` CI shard in extreme-test.yml) with hard
+gates: zero payload integrity violations under writer/reader contention,
+convergence to the final frame, and the telescoping drop-accounting identity.
+Phase 2 of the test exercises the composition this RFC proposes: a Triad
+kernel reader (public cursor API, kernel untouched) republishing into the
+ring for four consumer workers. Honest concurrent rates are in
+`fanout_bench.cjs` — environment-relative, invariants are not. Details:
+`spikes/fanout-heddles/README.md`.
+
+The Open question below (I6 multi-reader lifecycle) remains open: the ring
+is driver-layer, so slot ownership follows each runtime's GC rules; the
+kernel's I6 handshake governs only the broadcaster's claim of the source.
+
 ## Open questions
 - I6 multi-reader lifecycle and GC finalization ordering across heterogeneous runtimes. Partially answered for the TS runtime: a `WeftFanoutReader` is plain views + one buffer over a GC-managed SAB — disposal is GC-native, no handshake required; the ring's latest-wins semantics make a dead reader cost nothing. Remains open for Dart/Kotlin/Swift ports where finalizers are NOT guaranteed timely (see RFC 0006 for the Android-side rehydrate seam).
 

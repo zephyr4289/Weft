@@ -27,9 +27,22 @@ public final class Steward: ObservableObject {
         return w
     }
 
+    /// Release a single Weft ahead of scope exit. Per the I6 contract
+    /// (RFC-0001 §6), the writer is revoked BEFORE the ARC reference is
+    /// dropped — the next publish on a revoked Weft is a no-op that ACKs via
+    /// the epoch handshake (`.droppedRevoked`), so a late producer can never
+    /// write into a buffer nobody owns. Parity with Kotlin Steward.release.
+    public func release(_ weft: Weft) {
+        weft.revoke()
+        wefts = wefts.filter { $0.value !== weft }
+    }
+
+    /// Release all Wefts. Idempotent. Each is revoked before its ARC
+    /// reference is dropped (I6 ordering — see release(_:)).
     public func releaseAll() {
         guard !released else { return }
         released = true
+        for w in wefts.values { w.revoke() }
         wefts.removeAll() // ARC releases the Weft → deinit frees buffers
     }
 

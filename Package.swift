@@ -41,7 +41,6 @@ let package = Package(
         .target(
             name: "WeftCore",
             dependencies: [
-                "CWeft",
                 .product(name: "Atomics", package: "swift-atomics")
             ],
             path: "core/swift",

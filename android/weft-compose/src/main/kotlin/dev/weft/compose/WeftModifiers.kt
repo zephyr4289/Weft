@@ -22,6 +22,12 @@ import java.nio.ByteBuffer
  * Modifier that binds a Weft channel to Compose draw-phase execution.
  *
  * Reads occur strictly on VSYNC ticks inside [onDraw], avoiding recomposition.
+ *
+ * DRAW-PHASE READ RULE (RFC-0001 §4.3): the draw lambda receives the
+ * READER-HELD buffer (r_work) as a payload-relative zero-copy view — the
+ * freshest complete frame, exclusively owned by the draw thread until the
+ * next claim(). Never read heddle.weft.wBegin() here: that is the writer's
+ * scratch buffer, concurrently being filled on the producer thread.
  */
 public fun Modifier.weftDraw(
     heddle: WeftHeddle,
@@ -29,8 +35,7 @@ public fun Modifier.weftDraw(
 ): Modifier = this.drawWithContent {
     val weft = heddle.weft
     weft.claim()
-    val buf = weft.wBegin()
-    onDraw(buf)
+    onDraw(weft.rLiveBuf())
     drawContent()
 }
 

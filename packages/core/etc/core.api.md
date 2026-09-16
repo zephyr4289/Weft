@@ -4,6 +4,9 @@
 
 ```ts
 
+// @public
+export function ctEq(a: Uint8Array, b: Uint8Array): boolean;
+
 // @public (undocumented)
 export const DecodeResult: {
     readonly Ok: 0;
@@ -14,6 +17,9 @@ export const DecodeResult: {
 
 // @public (undocumented)
 export type DecodeResult = (typeof DecodeResult)[keyof typeof DecodeResult];
+
+// @public
+export function deriveKey(secret: Uint8Array): Uint8Array;
 
 // @public (undocumented)
 export function envelopeDecode(dv: DataView, srcOff: number, avail: number): {
@@ -70,6 +76,12 @@ export interface FanoutReaderStats {
 }
 
 // @public (undocumented)
+export const HMAC_TAG_LEN = 32;
+
+// @public
+export function hmacSha256(key: Uint8Array, data: Uint8Array): Uint8Array;
+
+// @public (undocumented)
 export function mix32(x: number): number;
 
 // @public (undocumented)
@@ -86,6 +98,62 @@ export const PubResult: {
 
 // @public (undocumented)
 export type PubResult = (typeof PubResult)[keyof typeof PubResult];
+
+// @public
+export class Sha256 {
+    constructor();
+    copyInto(dst: Sha256): void;
+    finalize(out: Uint8Array, outOff?: number): void;
+    init(): this;
+    update(data: Uint8Array, start?: number, end?: number): this;
+}
+
+// @public
+export function sha256(data: Uint8Array): Uint8Array;
+
+// @public (undocumented)
+export const SHA256_BLOCK_LEN = 64;
+
+// @public (undocumented)
+export const SHA256_DIGEST_LEN = 32;
+
+// @public
+export function verifiedWeftRecordDecodeVerify(authKey: Uint8Array, src: Uint8Array): {
+    envelope: Uint8Array;
+    payload: Uint8Array;
+    code: number;
+};
+
+// @public
+export function verifiedWeftRecordEncode(envelope: Uint8Array, payload: Uint8Array, tag: Uint8Array, dst: Uint8Array): number;
+
+// @public
+export class VerifiedWeftSigner {
+    constructor(key: Uint8Array);
+    finalize(out: Uint8Array): void;
+    update(data: Uint8Array, start?: number, end?: number): this;
+}
+
+// @public
+export function verifiedWeftVerify(authKey: Uint8Array, envelope: Uint8Array, payload: Uint8Array, tag: Uint8Array): number;
+
+// @public (undocumented)
+export const VW_ENVELOPE_LEN = 16;
+
+// @public (undocumented)
+export const VW_ERR_BAD_MAGIC = 2;
+
+// @public (undocumented)
+export const VW_ERR_SHORT = 1;
+
+// @public (undocumented)
+export const VW_ERR_TAG = 3;
+
+// @public (undocumented)
+export const VW_KEY_LEN = 32;
+
+// @public
+export const VW_OK = 0;
 
 // @public (undocumented)
 export class Weft {
@@ -223,6 +291,9 @@ export interface WeftDebugView {
     // (undocumented)
     wWork: number;
 }
+
+// @public
+export function weftEnvelopeEncodeV1(dst: Uint8Array, seq: number, payloadLen: number): void;
 
 // @public (undocumented)
 export class WeftFanoutBroadcaster {

@@ -1,0 +1,38 @@
+W6 FEED-PRESSURE GC HARNESS — measured A/B/C/D artifact
+========================================================
+date: 2026-09-15T21:32:55.724Z
+node: v24.19.0 · platform: linux x64
+ticks/pass: 1000 (window 100) · extended: 3000 ticks · reps: 5 (medians reported)
+method: M1 GC-free-window heapUsed deltas (produce / full cycle, bytes per 100-tick
+        window; windows containing any GC event are discarded); M2 GC events + pause
+        over the extended run (default heap settings — event counts are lower bounds);
+        M3 forced-GC leak delta; M4 per-tick produce latency percentiles.
+scope:  Mode A models per-message reactive event materialization — NOT a measurement
+        of any specific framework. GC behavior is engine/version-specific (node above).
+
+path | alloc/window P (B) | alloc/window P+C (B) | valid win  | produce P50/P99/P100 (µs) | consume P50 (µs) | msgs/s   | GC ev (3k ticks) | GC pause (ms) | peak heap Δ (MB) | leak (KB)
+---- | ------------------: | -------------------: | --------- | ------------------------- | ---------------: | -------: | ---------------- | -------------: | ----------------: | --------:
+  A |             900480 |              900480 | 6/10 · 6/10 |     9.3/   26.7/   246.2 |             0.1 |  4574904 |               15 |          1.85 |             1.84 |     16.5
+  B |                144 |                 144 | 10/10 · 10/10 |     8.5/   13.3/    18.0 |             0.1 |  5591147 |                0 |          0.00 |             0.06 |      2.3
+  C |               8944 |               36144 | 10/10 · 10/10 |     8.6/   13.6/    18.5 |             0.3 |  5443178 |                0 |          0.00 |             1.09 |      3.5
+  D |                144 |                 144 | 10/10 · 10/10 |     8.5/   13.5/    18.4 |             0.1 |  5635855 |                0 |          0.00 |             0.06 |      2.5
+
+reading the table:
+- alloc/window P is the INGESTION path (feed -> fold -> frame): the number the
+  "no GC scan overhead" claim is about. Mode A (reactive model) pays ~900 KB per
+  100 ticks; B and D (the same SoA engine through pooled / hand-rolled transport)
+  measure at sampling noise (144 B).
+- Mode C: 8.9 KB/window vs B's 144 B isolates, by subtraction, the kernel TS
+  port's per-publish advisory telemetry — BigInt atomics (t_publish, t_wsteps,
+  BigInt(seq) canary) at ~90 B/publish, a declared TS-port cost (06-PITFALLS §4
+  "safe but noisier"), not a W6-engine cost. P+C adds the consume path: one
+  rReadSlice view per claim (kernel public read API) + <= 3 cached Float32
+  wrappers total — the W1-W5 ModeCRunner pays two views per frame.
+- GC ev / GC pause: Mode A logged 15 collection events and ~2 ms of pause over
+  3,000 ticks at DEFAULT heap settings; B/C/D logged 0. A larger nursery defers
+  scavenge timing without changing the allocation-rate column — event counts
+  are lower bounds on pressure, and the P100 tail tells the same story
+  (A: ~260 µs worst tick vs C: ~19 µs).
+- leak (KB) near zero for every path: no path LEAKS — the difference is garbage
+  production rate, which is what drives collection pauses at real feed scales.
+

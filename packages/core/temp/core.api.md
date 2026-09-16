@@ -32,6 +32,44 @@ export function envelopeEncode(dv: DataView, dstOff: number, version: number, he
 export function envelopeEncodeV1(dv: DataView, dstOff: number, seq: number, payloadLen: number): void;
 
 // @public (undocumented)
+export interface FanoutClaim {
+    // (undocumented)
+    dropped: number;
+    // (undocumented)
+    fresh: boolean;
+    // (undocumented)
+    seq: number;
+}
+
+// @public (undocumented)
+export interface FanoutDebugStats {
+    // (undocumented)
+    latestSeq: bigint;
+    // (undocumented)
+    payloadFloats: number;
+    // (undocumented)
+    publishes: bigint;
+    // (undocumented)
+    slotCount: number;
+    // (undocumented)
+    slotStamps: bigint[];
+}
+
+// @public (undocumented)
+export interface FanoutReaderStats {
+    // (undocumented)
+    drops: number;
+    // (undocumented)
+    fresh: number;
+    // (undocumented)
+    reads: number;
+    // (undocumented)
+    skippedMidOverwrite: number;
+    // (undocumented)
+    tornExhausted: number;
+}
+
+// @public (undocumented)
 export function mix32(x: number): number;
 
 // @public (undocumented)
@@ -184,6 +222,46 @@ export interface WeftDebugView {
     tPublish: bigint;
     // (undocumented)
     wWork: number;
+}
+
+// @public (undocumented)
+export class WeftFanoutBroadcaster {
+    constructor(payloadFloats: number, slotCount?: number);
+    // (undocumented)
+    begin(): Float32Array;
+    // (undocumented)
+    createReader(): WeftFanoutReader;
+    // (undocumented)
+    ctrl: BigInt64Array;
+    // (undocumented)
+    debugStats(): FanoutDebugStats;
+    // (undocumented)
+    payloadFloats: number;
+    // (undocumented)
+    publish(): number;
+    // (undocumented)
+    sab: SharedArrayBuffer;
+    // (undocumented)
+    slotCount: number;
+}
+
+// @public (undocumented)
+export class WeftFanoutReader {
+    constructor(sab: SharedArrayBuffer, payloadFloats: number, slotCount?: number);
+    // (undocumented)
+    claim(): FanoutClaim;
+    // (undocumented)
+    ctrl: BigInt64Array;
+    // (undocumented)
+    payloadFloats: number;
+    // (undocumented)
+    sab: SharedArrayBuffer;
+    // (undocumented)
+    slotCount: number;
+    // (undocumented)
+    stats(): FanoutReaderStats;
+    // (undocumented)
+    view(): Float32Array;
 }
 
 // @public (undocumented)

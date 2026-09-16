@@ -5,7 +5,9 @@
 ```ts
 
 import { Action } from 'svelte/action';
+import { FanoutClaim } from '@weft/core';
 import { Weft } from '@weft/core';
+import { WeftFanoutBroadcaster } from '@weft/core';
 
 // @public (undocumented)
 export interface WeftActionParams {
@@ -17,6 +19,17 @@ export interface WeftActionParams {
 
 // @public (undocumented)
 export const weftCanvas: Action<HTMLCanvasElement, WeftActionParams>;
+
+// @public (undocumented)
+export interface WeftFanoutActionParams {
+    // (undocumented)
+    broadcaster: WeftFanoutBroadcaster;
+    // (undocumented)
+    draw: (ctx: CanvasRenderingContext2D, floats: Float32Array, claim: FanoutClaim) => void;
+}
+
+// @public (undocumented)
+export const weftFanoutCanvas: Action<HTMLCanvasElement, WeftFanoutActionParams>;
 
 // (No @packageDocumentation comment for this package)
 

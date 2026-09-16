@@ -4,10 +4,15 @@
 
 ```ts
 
+import { FanoutClaim } from '@weft/core';
 import { Weft } from '@weft/core';
+import { WeftFanoutBroadcaster } from '@weft/core';
 
 // @public
 export function useWeftDraw(weft: Weft, draw: (buf: Uint8Array) => void, registerFrameCallback?: (cb: () => void) => (() => void) | void): () => void;
+
+// @public
+export function useWeftFanoutDraw(broadcaster: WeftFanoutBroadcaster, draw: (floats: Float32Array, claim: FanoutClaim) => void, registerFrameCallback?: (cb: () => void) => (() => void) | void): () => void;
 
 // (No @packageDocumentation comment for this package)
 

@@ -491,6 +491,7 @@ def prove_kotlin():
                 for f in ('Fanout.kt', 'FanoutCompat.kt', 'FrameCursor.kt',
                           'Weft.kt', 'TriadNative.kt', 'Verified.kt',
                           'Governor.kt', 'Recycler.kt', 'GovernedFanoutConsumer.kt',
+                          'BlendQ12.kt', 'RenderQos.kt',
                           'FanoutVhBridge.java')]
         srcs = [s for s in srcs if Path(s).exists()]
         build = subprocess.run([kotlinc] + srcs + ['-d', td], capture_output=True,

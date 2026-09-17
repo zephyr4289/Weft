@@ -226,6 +226,19 @@ blend-test-asan: blend_q12.c blend_test.c blend_q12.h
 blend-runner: blend_q12.c blend_runner.c blend_q12.h
 	$(CC) $(CFLAGS) -o blend-runner blend_q12.c blend_runner.c
 
+# ---- Series 8: thread QoS + the native render worklet ---------------------
+# worklet-test: W1 no-lost-ticks, W2 single-consumer order, W3 QoS honesty,
+#               W4 post->run latency distribution, W5 the governed blend
+#               loop on the worklet thread.
+# qos-test: thread_qos flags honesty (affinity applies / RT refused is
+#           declared; the big-core mask parses or abstains).
+
+worklet-test: worklet.c worklet.h thread_qos.c thread_qos.h worklet_test.c blend_q12.c blend_q12.h
+	$(CC) $(CFLAGS) -o worklet-test worklet.c thread_qos.c worklet_test.c blend_q12.c
+
+qos-test: thread_qos.c thread_qos.h qos_test.c
+	$(CC) $(CFLAGS) -o qos-test thread_qos.c qos_test.c
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
@@ -236,7 +249,8 @@ clean:
 	      turbo-test turbo-test-asan turbo-test-tsan turbo-test-seq \
 	      uring-test uring-test-asan uring-test-tsan \
 	      turbo-runner turbo-runner-sys bench \
-	      blend-test blend-test-asan blend-runner
+	      blend-test blend-test-asan blend-runner \
+	      worklet-test qos-test
 
 .PHONY: all clean
 

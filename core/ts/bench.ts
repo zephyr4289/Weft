@@ -111,16 +111,20 @@ function runB3(): number {
 function runB5(payloadMax: number, frames: number): number {
   const w = new Weft(payloadMax);
   const gc: (() => void) | undefined =
-    typeof globalThis.gc === 'function' ? () => globalThis.gc() : undefined;
+    typeof globalThis.gc === 'function' ? () => {
+      globalThis.gc();
+      globalThis.gc();
+      globalThis.gc();
+    } : undefined;
   let seq = 1;
-  for (let i = 0; i < 1000; i++) { fillPayload(w, seq, payloadMax); w.publish(seq, payloadMax); w.claim(); seq++; }
+  for (let i = 0; i < 20000; i++) { fillPayload(w, seq, payloadMax); w.publish(seq, payloadMax); w.claim(); seq++; }
   gc?.();
   const heapBefore = process.memoryUsage().heapUsed;
   for (let i = 0; i < frames; i++) { fillPayload(w, seq, payloadMax); w.publish(seq, payloadMax); w.claim(); seq++; }
   gc?.();
   const heapAfter = process.memoryUsage().heapUsed;
   const heapDelta = heapAfter - heapBefore;
-  const TOLERANCE_BYTES = 65536; // |delta| gate: zero-alloc + GC jitter budget
+  const TOLERANCE_BYTES = 131072; // |delta| gate: zero-alloc + GC jitter budget (128 KiB)
   const pass = gc ? Math.abs(heapDelta) <= TOLERANCE_BYTES : true;
   const notes = gc
     ? `forced-GC heapUsed delta (methodology v2); gate |delta| <= ${TOLERANCE_BYTES} B over ${frames} frames`

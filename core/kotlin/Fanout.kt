@@ -433,33 +433,43 @@ internal object FanoutVh {
     private val INT_SET_OPAQUE: java.lang.invoke.MethodHandle =
         INT_VIEW.toMethodHandle(VarHandle.AccessMode.SET_OPAQUE)
 
+    // SERIES 7 (0-GC drawing loops): every accessor routes through
+    // FanoutVhBridge (the javac-compiled signature-polymorphic shim) —
+    // Kotlin cannot emit invokeExact call sites (KT-20871), and
+    // invokeWithArguments BOXES every primitive + allocates an Object[]
+    // per call (~4.6 KB per claim at 64 words, measured by the C5 audit).
+    // Same access modes, same ordering — only the invocation mechanics
+    // changed (the F-series battery pins the semantics).
+
     /** Acquire load of an i64 ctrl slot (getAcquire; pairs with stampStoreRelease). */
     fun stampLoadAcquire(buf: ByteBuffer, byteOffset: Int): Long =
-        LONG_GET_ACQUIRE.invokeWithArguments(buf, byteOffset) as Long
+        FanoutVhBridge.getAcquireLong(LONG_GET_ACQUIRE, buf, byteOffset)
 
     /** Release store of an i64 ctrl slot (setRelease; the publication point). */
     fun stampStoreRelease(buf: ByteBuffer, byteOffset: Int, v: Long) {
-        LONG_SET_RELEASE.invokeWithArguments(buf, byteOffset, v)
+        FanoutVhBridge.setReleaseLong(LONG_SET_RELEASE, buf, byteOffset, v)
     }
 
     /** SeqCst store of an i64 ctrl slot (setVolatile; the FI1 invalidate). */
     fun stampStoreVolatile(buf: ByteBuffer, byteOffset: Int, v: Long) {
-        LONG_SET_VOLATILE.invokeWithArguments(buf, byteOffset, v)
+        FanoutVhBridge.setVolatileLong(LONG_SET_VOLATILE, buf, byteOffset, v)
     }
 
     /** SC fetch-add on the publishes telemetry counter (advisory; the JVM
      *  exposes no relaxed RMW mode — declared divergence, AXIOM T). */
     fun publishesAdd(buf: ByteBuffer, delta: Long): Long =
-        LONG_GET_AND_ADD.invokeWithArguments(buf, 8 * WeftFanoutBroadcaster.CTRL_PUBLISHES, delta) as Long
+        FanoutVhBridge.getAndAddLong(
+            LONG_GET_AND_ADD, buf, 8 * WeftFanoutBroadcaster.CTRL_PUBLISHES, delta
+        )
 
     /** Opaque (coherence-only) load of a u32 payload word (getOpaque) — the JVM analog
      *  of C's relaxed u32 accesses: race-free by construction, ordering
      *  carried by the stamp bracket, not the words. */
     fun wordLoadOpaque(buf: ByteBuffer, byteOffset: Int): Int =
-        INT_GET_OPAQUE.invokeWithArguments(buf, byteOffset) as Int
+        FanoutVhBridge.getOpaqueInt(INT_GET_OPAQUE, buf, byteOffset)
 
     /** Opaque store of a u32 payload word (setOpaque; the race-free fill path). */
     fun wordStoreOpaque(buf: ByteBuffer, byteOffset: Int, v: Int) {
-        INT_SET_OPAQUE.invokeWithArguments(buf, byteOffset, v)
+        FanoutVhBridge.setOpaqueInt(INT_SET_OPAQUE, buf, byteOffset, v)
     }
 }

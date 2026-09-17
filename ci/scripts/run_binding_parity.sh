@@ -38,6 +38,8 @@ PAIRS=(
   "core/kotlin/Weft.kt|android/weft-core/src/main/kotlin/dev/weft/Weft.kt"
   "core/kotlin/Governor.kt|android/weft-core/src/main/kotlin/dev/weft/Governor.kt"
   "core/kotlin/Recycler.kt|android/weft-core/src/main/kotlin/dev/weft/Recycler.kt"
+  "core/kotlin/GovernedFanoutConsumer.kt|android/weft-core/src/main/kotlin/dev/weft/GovernedFanoutConsumer.kt"
+  "core/kotlin/FanoutVhBridge.java|android/weft-core/src/main/java/dev/weft/FanoutVhBridge.java"
   "core/dart/frame_cursor.dart|packages/flutter_weft/lib/src/reference/frame_cursor.dart"
   "core/dart/fanout.dart|packages/flutter_weft/lib/src/reference/fanout.dart"
   "core/dart/heddle.dart|packages/flutter_weft/lib/src/reference/heddle.dart"
@@ -50,6 +52,7 @@ PAIRS=(
   "core/dart/verified.dart|packages/flutter_weft/lib/src/reference/verified.dart"
   "core/dart/governor.dart|packages/flutter_weft/lib/src/reference/governor.dart"
   "core/dart/recycler.dart|packages/flutter_weft/lib/src/reference/recycler.dart"
+  "core/dart/governed_consumer.dart|packages/flutter_weft/lib/src/reference/governed_consumer.dart"
 )
 
 n_pass=0

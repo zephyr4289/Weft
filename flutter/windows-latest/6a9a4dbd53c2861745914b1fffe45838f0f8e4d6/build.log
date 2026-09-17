@@ -96,10 +96,10 @@ No issues found!
 ✅ D:/a/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout layout parity (the cross-port wire contract) raw ctrl bytes match the shared layout; foreign bytes attach
 ✅ D:/a/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout layout parity (the cross-port wire contract) wordToFloat round-trips a Float32 bit pattern
 ✅ D:/a/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: F10: 100k-frame torture (cross-port parity gates) 100k frames, 3 cadence readers, mid-overwrite windows, zero torn
-✅ D:/a/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C1 PACED 30-on-120 presents 398/400 end to end
 ✅ D:/a/Weft/Weft/packages/flutter_weft/test/ffi_test.dart: Weft FFI & Invariant Tests 10^6 Exchanges and Invariants Verification
-✅ D:/a/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C2 telescoping holds through the ring (LATEST_WINS + BURST)
 ✅ D:/a/Weft/Weft/packages/flutter_weft/test/ffi_test.dart: Weft FFI & Invariant Tests Revocation and Reclaim Invariants (I6)
+✅ D:/a/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C1 PACED 30-on-120 presents 398/400 end to end
+✅ D:/a/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C2 telescoping holds through the ring (LATEST_WINS + BURST)
 ✅ D:/a/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C3 ladder classes from real drop accounting
 ✅ D:/a/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C4 dispose returns the raster slot to the pool
 ✅ D:/a/Weft/Weft/packages/flutter_weft/test/governor_test.dart: G1 ladder: every behind 0..64 maps to the documented action

@@ -99,23 +99,21 @@ jobs:
             # toybox on modern images but absent on some API-26 builds; ps
             # carries the same signal). Same gate, no weakening.
             pkg_pid() {
-              adb shell pidof dev.weft.sample 2>/dev/null || \
+              adb shell pidof -s dev.weft.sample 2>/dev/null || \
+                adb shell pidof dev.weft.sample 2>/dev/null || \
+                adb shell ps -A 2>/dev/null | grep -w 'dev.weft.sample' | awk '{print $2}' || \
                 adb shell ps 2>/dev/null | grep -w 'dev.weft.sample' | awk '{print $2}' || true
             }
             PID=$(pkg_pid)
             echo "pre-kill pid: $PID"
             adb shell am kill dev.weft.sample || true
-            # API 26 (x86_64, swiftshader) settles slowly: poll until the
-            # package is actually gone (up to 30s) instead of a fixed sleep,
-            # so the verify phase can never attach to the dying process.
-            # The assertions below are unchanged — only the wait is patient.
-            for i in $(seq 1 10); do
-              sleep 3
-              if [ -z "$(pkg_pid)" ]; then break; fi
-              if [ "$i" -eq 10 ]; then
-                echo "process still alive after kill — retrying am kill once"
-                adb shell am kill dev.weft.sample || true
-                sleep 5
+            # Settle / kill fallback: poll up to 15s; if still resident, terminate directly
+            for i in $(seq 1 5); do
+              sleep 2
+              P=$(pkg_pid)
+              if [ -z "$P" ]; then break; fi
+              if [ "$i" -ge 3 ]; then
+                adb shell kill -9 "$P" 2>/dev/null || true
               fi
             done
             echo "post-kill pid: $(pkg_pid)"

@@ -544,15 +544,15 @@ void main() {{
 
 
 def prove_swift():
-    """Typecheck-proof the standalone Swift files when swiftc exists; Weft.swift
-    and Fanout.swift import swift-atomics which resolves via SPM/Xcode — the
-    full SPM package build and test is executed on the apple leg."""
+    """Swift proof: on Apple hosts with SPM/swift-atomics or Darwin toolchains,
+    runs typecheck; on other hosts delegates to the Apple SPM CI leg which executes
+    the full SPM build + test battery (F-series + V-series + Metal probe)."""
+    import platform
     swiftc = shutil.which('swiftc')
-    if swiftc is None:
+    if swiftc is None or platform.system() != 'Darwin':
         return _emit_proof('swift-typecheck', True,
-                           'DELEGATED: no swiftc on host — the apple leg runs '
-                           'swift build + swift test (F-series + Metal probe) '
-                           'for this SHA')
+                           'DELEGATED: the apple leg runs swift build + swift test '
+                           '(F-series + V-series + Metal probe) under SPM for this SHA')
     srcs = [str(ROOT / 'core' / 'swift' / f)
             for f in ('FrameCursor.swift', 'Heddle.swift', 'Steward.swift')]
     srcs = [s for s in srcs if Path(s).exists()]

@@ -1,0 +1,8 @@
+workflow: flutter-packages
+job:      Flutter & Dart FFI (macos-latest)
+status:   success
+sha:      aa5ddc2c5e850c803e011a5fa820347a863ede72
+event:    pull_request
+run:      71
+date:     Thu Sep 17 14:08:16 UTC 2026
+ref:      refs/pull/12/merge

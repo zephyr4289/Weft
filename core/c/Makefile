@@ -153,6 +153,26 @@ gpu-ring-test: gpu_ring.c gpu_ring.h gpu_ring_test.c $(GPU_SRC) fanout.h weft.h
 gpu-ring-test-asan: gpu_ring.c gpu_ring.h gpu_ring_test.c $(GPU_SRC) fanout.h weft.h
 	$(CC) $(CFLAGS_ASAN) -o gpu-ring-test-asan $(GPU_SRC) gpu_ring_test.c -lrt -lpthread -ldl
 
+# ---- RFC 0012 Tail-Latency Eradication Layer (turbo) -----------------------
+# turbo.{h,c}: capability-detected placement/prefetch/pinning services riding
+# the frozen fanout attach seam. T-series conformance (byte-equivalence,
+# prefault gate, pinned torture). -seq builds the all-seq_cst A/B regime —
+# prefetch and placement must be ordering-neutral there too.
+
+TURBO_SRC = turbo.c fanout.c frame_cursor.c weft.c
+
+turbo-test: turbo.c turbo.h turbo_test.c $(TURBO_SRC) fanout.h frame_cursor.h weft.h
+	$(CC) $(CFLAGS) -o turbo-test $(TURBO_SRC) turbo_test.c
+
+turbo-test-asan: turbo.c turbo.h turbo_test.c $(TURBO_SRC) fanout.h frame_cursor.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o turbo-test-asan $(TURBO_SRC) turbo_test.c
+
+turbo-test-tsan: turbo.c turbo.h turbo_test.c $(TURBO_SRC) fanout.h frame_cursor.h weft.h
+	$(CC) $(CFLAGS_DBG) -o turbo-test-tsan $(TURBO_SRC) turbo_test.c
+
+turbo-test-seq: turbo.c turbo.h turbo_test.c $(TURBO_SRC) fanout.h frame_cursor.h weft.h
+	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 -o turbo-test-seq $(TURBO_SRC) turbo_test.c
+
 governor-test: governor.c governor_test.c governor.h
 	$(CC) $(CFLAGS) -o governor-test governor.c governor_test.c
 

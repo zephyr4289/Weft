@@ -1,0 +1,8 @@
+# B-suite C-leg re-run vs committed baseline (sha256 16b5c663...) — 2026-09-17T20:42:50Z
+# baseline: B1 ops=2916757 p50=45 p99=53 p999=96 | B2 pub=1002408 claim=11579138 | B3 ratio=1.175
+{"bench":"B1-pub-throughput","lang":"c","pass":true,"metrics":{"ops_per_s":2872059,"p50":45,"p90":46,"p99":50,"p999":153,"max":7067,"clock_overhead_ns":23},"notes":"sanity gate: p999 <= 25x p50; payload_max=256"}
+{"bench":"B2-contended","lang":"c","pass":true,"metrics":{"publishes_per_s":1283272,"claims_per_s":13459886,"sampled_publish_p50":442,"sampled_publish_p99":902,"sampled_claim_p50":39,"sampled_claim_p99":547,"clock_overhead_ns":23},"notes":"sanity gate: p99 <= 12x p50 both sides"}
+{"bench":"B3-scaling-fingerprint","lang":"c","pass":true,"metrics":{"per_size_p50":[37,38,37,37,45],"ratio_64K_vs_64B":1.216,"clock_overhead_ns":23},"notes":"structural gate: ratio < 2.0 (got 1.216)"}
+--- F-series (fanout regression) ---
+PASS: 0 failure(s)
+PASS: 0 failure(s)

@@ -4,6 +4,10 @@ core/c/governor-test
 core/c/governor-test-asan
 core/c/spike-tsan
 core/c/bench
+core/c/turbo-test
+core/c/turbo-test-asan
+core/c/turbo-test-tsan
+core/c/turbo-test-seq
 core/c/bench-asan
 core/c/libweft.so
 core/c/fanout-test

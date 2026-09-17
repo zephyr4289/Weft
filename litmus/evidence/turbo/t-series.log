@@ -1,0 +1,61 @@
+# T-series (plain / asan / tsan / seq regimes) — 2026-09-17T20:42:50Z
+--- turbo-test ---
+  T2 ring: 2128 B, thp_advised=0 locked=0 prefaulted=1 numa_node=-1
+ok: T2 ring BYTES IDENTICAL across 10k frames (placement changes nothing observable)
+  T3 minor faults: before=0 after=0 delta=0 over 1000 frames
+  T7 SCHED_FIFO(10) -> -1 (Operation not permitted)
+ok: T7 SCHED_FIFO: granted or documented refusal, never a crash
+  T7 mlockall -> -12 (Cannot allocate memory)
+ok: T7 mlockall: granted or documented refusal, never a crash
+ok: T8 reader 1 init (turbo claim)
+ok: T8 reader 2 init (plain claim)
+ok: T8 reader 1 thread
+ok: T8 reader 2 thread
+  T8 reader1(turbo): reads=11473687 fresh=226635 drops=273365 last=500000 torn=0
+  T8 reader2(plain): reads=11279400 fresh=244479 drops=255521 last=500000 torn=0
+T-SERIES: ALL PASS
+--- turbo-test-asan ---
+  T2 ring: 2128 B, thp_advised=0 locked=0 prefaulted=1 numa_node=-1
+ok: T2 ring BYTES IDENTICAL across 10k frames (placement changes nothing observable)
+  T3 minor faults: before=0 after=0 delta=0 over 1000 frames
+  T7 SCHED_FIFO(10) -> -1 (Operation not permitted)
+ok: T7 SCHED_FIFO: granted or documented refusal, never a crash
+  T7 mlockall -> 0 (granted)
+ok: T7 mlockall: granted or documented refusal, never a crash
+ok: T8 reader 1 init (turbo claim)
+ok: T8 reader 2 init (plain claim)
+ok: T8 reader 1 thread
+ok: T8 reader 2 thread
+  T8 reader1(turbo): reads=8505672 fresh=242539 drops=257461 last=500000 torn=0
+  T8 reader2(plain): reads=12148266 fresh=237431 drops=262569 last=500000 torn=0
+T-SERIES: ALL PASS
+--- turbo-test-tsan ---
+  T2 ring: 2128 B, thp_advised=0 locked=0 prefaulted=1 numa_node=-1
+ok: T2 ring BYTES IDENTICAL across 10k frames (placement changes nothing observable)
+  T3 minor faults: before=0 after=0 delta=0 over 1000 frames
+  T7 SCHED_FIFO(10) -> -1 (Operation not permitted)
+ok: T7 SCHED_FIFO: granted or documented refusal, never a crash
+  T7 mlockall -> 0 (granted)
+ok: T7 mlockall: granted or documented refusal, never a crash
+ok: T8 reader 1 init (turbo claim)
+ok: T8 reader 2 init (plain claim)
+ok: T8 reader 1 thread
+ok: T8 reader 2 thread
+  T8 reader1(turbo): reads=1065030 fresh=222698 drops=277302 last=500000 torn=0
+  T8 reader2(plain): reads=1488381 fresh=212851 drops=287149 last=500000 torn=0
+T-SERIES: ALL PASS
+--- turbo-test-seq ---
+  T2 ring: 2128 B, thp_advised=0 locked=0 prefaulted=1 numa_node=-1
+ok: T2 ring BYTES IDENTICAL across 10k frames (placement changes nothing observable)
+  T3 minor faults: before=0 after=0 delta=0 over 1000 frames
+  T7 SCHED_FIFO(10) -> -1 (Operation not permitted)
+ok: T7 SCHED_FIFO: granted or documented refusal, never a crash
+  T7 mlockall -> -12 (Cannot allocate memory)
+ok: T7 mlockall: granted or documented refusal, never a crash
+ok: T8 reader 1 init (turbo claim)
+ok: T8 reader 2 init (plain claim)
+ok: T8 reader 1 thread
+ok: T8 reader 2 thread
+  T8 reader1(turbo): reads=22215185 fresh=245380 drops=254620 last=500000 torn=0
+  T8 reader2(plain): reads=19628399 fresh=242342 drops=257658 last=500000 torn=0
+T-SERIES: ALL PASS

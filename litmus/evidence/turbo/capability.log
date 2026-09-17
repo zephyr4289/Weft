@@ -1,0 +1,13 @@
+# turbo/uring capability report — 2026-09-17T20:42:50Z
+# (register probe note: an early scratch probe hardcoded opcode 2 =
+#  IORING_REGISTER_FILES and mis-reported EBADF; the committed probe
+#  uses the header enum and is correct: registration IS functional
+#  on this kernel — retraction recorded, Law 4)
+turbo-capability-report
+  page_size=4096 hugepage_size=2097152 ncpu=2
+  thp_mode=[always] madvise never (1)
+  numa_nodes=1 node0_cpus=2 [single-node: ladder verified, cross-node deferred]
+  affinity=available
+  mlock=available (errno 0)
+  sched_fifo=REFUSED (errno 1)
+uring-capability: mode=ring register_errno=0 kernel=5.10.134-013.15.kangaroo.al8.x86_64 (fixed-recv rung needs >= 5.19; multishot+sqpoll: PREDICTED, hardware-gated)

@@ -1,0 +1,1 @@
+{"shard":"chaos","status":"PASSED","gates":"selftest + stepped shapes x2 regimes + asan + free 2M"}

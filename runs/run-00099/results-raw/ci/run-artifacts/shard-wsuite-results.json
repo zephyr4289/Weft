@@ -1,0 +1,169 @@
+{
+  "shard": "wsuite",
+  "status": "PASSED",
+  "cells_pass": 20,
+  "cells_total": 20,
+  "alloc_violations": 0,
+  "cells": [
+    {
+      "workload": "W1",
+      "backend": "A",
+      "pass": true,
+      "p99": 111.4,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W1",
+      "backend": "B",
+      "pass": true,
+      "p99": 128.2,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W1",
+      "backend": "C",
+      "pass": true,
+      "p99": 126.6,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W1",
+      "backend": "D",
+      "pass": true,
+      "p99": 80.8,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W2",
+      "backend": "A",
+      "pass": true,
+      "p99": 74.5,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W2",
+      "backend": "B",
+      "pass": true,
+      "p99": 102.8,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W2",
+      "backend": "C",
+      "pass": true,
+      "p99": 102.9,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W2",
+      "backend": "D",
+      "pass": true,
+      "p99": 42.3,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W3",
+      "backend": "A",
+      "pass": true,
+      "p99": 9.4,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W3",
+      "backend": "B",
+      "pass": true,
+      "p99": 11.0,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W3",
+      "backend": "C",
+      "pass": true,
+      "p99": 10.8,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W3",
+      "backend": "D",
+      "pass": true,
+      "p99": 5.8,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W4",
+      "backend": "A",
+      "pass": true,
+      "p99": 2787.7,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W4",
+      "backend": "B",
+      "pass": true,
+      "p99": 2931.5,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W4",
+      "backend": "C",
+      "pass": true,
+      "p99": 2795.3,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W4",
+      "backend": "D",
+      "pass": true,
+      "p99": 2753.2,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W5",
+      "backend": "A",
+      "pass": true,
+      "p99": 19.0,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W5",
+      "backend": "B",
+      "pass": true,
+      "p99": 22.7,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W5",
+      "backend": "C",
+      "pass": true,
+      "p99": 22.7,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W5",
+      "backend": "D",
+      "pass": true,
+      "p99": 10.7,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    }
+  ]
+}

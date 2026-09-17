@@ -1,0 +1,1 @@
+{"shard":"formal","status":"PASSED","gates":"FanoutSeqlock PROVEN + ReattachPolicy PROVEN (TLC, pinned jar)"}

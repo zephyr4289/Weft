@@ -44,7 +44,54 @@ jobs:
             .build/
             Package.resolved
 
-      - name: Publish CI Result Branch
+      # -----------------------------------------------------------------------
+      # LOG PUBLISH — runs on every trigger (PR + push + dispatch).
+      # Branch: ci/logs   Path: apple-macos/{sha}/build.log
+      # -----------------------------------------------------------------------
+      - name: Publish logs → ci/logs branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          SHA="${{ github.sha }}"
+          EVENT="${{ github.event_name }}"
+          STATUS="${{ job.status }}"
+          LOG_DIR="apple-macos/${SHA}"
+
+          WORK=$(mktemp -d)
+          cp -r .git "$WORK/.git"
+          cd "$WORK"
+
+          git fetch origin ci/logs 2>/dev/null && git checkout ci/logs || {
+            git checkout --orphan ci/logs
+            git rm -rf . 2>/dev/null || true
+            git commit --allow-empty -m "chore(ci): init ci/logs branch" || true
+          }
+
+          mkdir -p "$LOG_DIR"
+
+          {
+            echo "workflow: apple-packages"
+            echo "job:      Swift SPM & macOS Tests"
+            echo "status:   $STATUS"
+            echo "sha:      $SHA"
+            echo "event:    $EVENT"
+            echo "run:      ${{ github.run_number }}"
+            echo "date:     $(date -u)"
+            echo "ref:      ${{ github.ref }}"
+          } > "$LOG_DIR/status.txt"
+
+          [ -f /tmp/swift_build_output.log ] \
+            && cp /tmp/swift_build_output.log "$LOG_DIR/build.log" \
+            || echo "(no log)" > "$LOG_DIR/build.log"
+
+          git add -f "$LOG_DIR/"
+          git commit -m "ci(apple-macos): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
+          git push origin ci/logs || true
+
+      # Legacy branch kept for backward compat
+      - name: Publish CI Result Branch (legacy)
         if: always() && github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
@@ -106,3 +153,53 @@ jobs:
           path: |
             /tmp/ios_sim_build.log
             /tmp/ios_sim_test.log
+
+      # -----------------------------------------------------------------------
+      # LOG PUBLISH — iOS Simulator job, every trigger including PRs
+      # Branch: ci/logs   Path: apple-ios-sim/{sha}/
+      # -----------------------------------------------------------------------
+      - name: Publish logs → ci/logs branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          SHA="${{ github.sha }}"
+          EVENT="${{ github.event_name }}"
+          STATUS="${{ job.status }}"
+          LOG_DIR="apple-ios-sim/${SHA}"
+
+          WORK=$(mktemp -d)
+          cp -r .git "$WORK/.git"
+          cd "$WORK"
+
+          git fetch origin ci/logs 2>/dev/null && git checkout ci/logs || {
+            git checkout --orphan ci/logs
+            git rm -rf . 2>/dev/null || true
+            git commit --allow-empty -m "chore(ci): init ci/logs branch" || true
+          }
+
+          mkdir -p "$LOG_DIR"
+
+          {
+            echo "workflow: apple-packages"
+            echo "job:      iOS Simulator — SPM tests + cadence probe"
+            echo "status:   $STATUS"
+            echo "sha:      $SHA"
+            echo "event:    $EVENT"
+            echo "run:      ${{ github.run_number }}"
+            echo "date:     $(date -u)"
+            echo "ref:      ${{ github.ref }}"
+          } > "$LOG_DIR/status.txt"
+
+          [ -f /tmp/ios_sim_build.log ] \
+            && cp /tmp/ios_sim_build.log "$LOG_DIR/build.log" \
+            || echo "(no build log)" > "$LOG_DIR/build.log"
+
+          [ -f /tmp/ios_sim_test.log ] \
+            && cp /tmp/ios_sim_test.log "$LOG_DIR/test.log" \
+            || echo "(no test log)" > "$LOG_DIR/test.log"
+
+          git add -f "$LOG_DIR/"
+          git commit -m "ci(apple-ios-sim): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
+          git push origin ci/logs || true

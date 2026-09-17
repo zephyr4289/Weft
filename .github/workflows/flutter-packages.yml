@@ -131,7 +131,56 @@ jobs:
             packages/flutter_weft/weft.dll
           if-no-files-found: ignore
 
-      - name: Publish CI Result Branch
+      # -----------------------------------------------------------------------
+      # LOG PUBLISH — runs on every trigger (PR + push + dispatch), all 3 OSes.
+      # Branch: ci/logs   Path: flutter/{os}/{sha}/
+      # Now you can debug any OS failure without guessing from timing.
+      # -----------------------------------------------------------------------
+      - name: Publish logs → ci/logs branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          SHA="${{ github.sha }}"
+          EVENT="${{ github.event_name }}"
+          STATUS="${{ job.status }}"
+          OS_SLUG=$(echo "${{ matrix.os }}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+          LOG_DIR="flutter/${OS_SLUG}/${SHA}"
+
+          WORK=$(mktemp -d)
+          cp -r .git "$WORK/.git"
+          cd "$WORK"
+
+          git fetch origin ci/logs 2>/dev/null && git checkout ci/logs || {
+            git checkout --orphan ci/logs
+            git rm -rf . 2>/dev/null || true
+            git commit --allow-empty -m "chore(ci): init ci/logs branch" || true
+          }
+
+          mkdir -p "$LOG_DIR"
+
+          {
+            echo "workflow: flutter-packages"
+            echo "job:      Flutter & Dart FFI (${{ matrix.os }})"
+            echo "status:   $STATUS"
+            echo "sha:      $SHA"
+            echo "event:    $EVENT"
+            echo "run:      ${{ github.run_number }}"
+            echo "date:     $(date -u)"
+            echo "ref:      ${{ github.ref }}"
+          } > "$LOG_DIR/status.txt"
+
+          [ -f /tmp/flutter_build_output.log ] \
+            && cp /tmp/flutter_build_output.log "$LOG_DIR/build.log" \
+            || echo "(no log)" > "$LOG_DIR/build.log"
+
+          git add -f "$LOG_DIR/"
+          git commit -m "ci(flutter-${OS_SLUG}): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
+          git push origin ci/logs || true
+
+      # Keep the legacy ci/flutter-status branch (linux/push only)
+      - name: Publish CI Result Branch (legacy)
         if: always() && runner.os == 'Linux' && github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"

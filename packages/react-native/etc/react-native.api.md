@@ -8,8 +8,146 @@ import { FanoutClaim } from '@weft/core';
 import { Weft } from '@weft/core';
 import { WeftFanoutBroadcaster } from '@weft/core';
 
+// @public
+export interface CadenceState {
+    // (undocumented)
+    arrivalTicks: number;
+    // (undocumented)
+    coalescedByDecision: number;
+    // (undocumented)
+    elided: number;
+    // (undocumented)
+    ewmaGapQ12: number;
+    // (undocumented)
+    haveGap: boolean;
+    // (undocumented)
+    interpFrames: number;
+    // (undocumented)
+    k: number;
+    // (undocumented)
+    lastAlpha: number;
+    // (undocumented)
+    lastArrivalTick: number;
+    // (undocumented)
+    lastBaseSeq: number;
+    // (undocumented)
+    lastPresentedSeq: number;
+    // (undocumented)
+    lastSeenLatest: number;
+    // (undocumented)
+    lastTargetSeq: number;
+    // (undocumented)
+    missedPresentTicks: number;
+    // (undocumented)
+    newestObsTick: number;
+    // (undocumented)
+    newestSeq: number;
+    // (undocumented)
+    policy: number;
+    // (undocumented)
+    presents: number;
+    // (undocumented)
+    prevObsTick: number;
+    // (undocumented)
+    prevSeq: number;
+    // (undocumented)
+    reassessTicks: number;
+    // (undocumented)
+    tickInCycle: number;
+    // (undocumented)
+    ticks: number;
+    // (undocumented)
+    ticksSinceAssess: number;
+}
+
+// @public
+export function cadenceStep(s: CadenceState, latestSeq: number, out: GovernedDecision): void;
+
+// @public
+export function createCadenceState(policy: number, reassessTicks?: number): CadenceState;
+
+// @public
+export function createDecision(): GovernedDecision;
+
+// @public
+export function createGovernedUiThread(opts: {
+    policy: number;
+    latestSeq: SharedNum;
+    framesBehind: SharedNum;
+    nowMs: SharedNum;
+    reassessTicks?: number;
+    ladder?: Partial<LadderState>;
+    out?: {
+        action?: SharedNum;
+        skipN?: SharedNum;
+        present?: SharedNum;
+        interp?: SharedNum;
+        alphaQ12?: SharedNum;
+        coalesced?: SharedNum;
+        presentSeq?: SharedNum;
+        k?: SharedNum;
+    };
+}): () => void;
+
+// @public
+export function createLadderState(overrides?: Partial<LadderState>): LadderState;
+
 // @public (undocumented)
 export function createUiThreadFrameSource(broadcaster: WeftFanoutBroadcaster): UiThreadFrameSource;
+
+// @public
+export interface GovernedDecision {
+    // (undocumented)
+    action: number;
+    // (undocumented)
+    actionChanged: boolean;
+    // (undocumented)
+    alphaQ12: number;
+    // (undocumented)
+    coalesced: number;
+    // (undocumented)
+    interp: boolean;
+    // (undocumented)
+    k: number;
+    // (undocumented)
+    present: boolean;
+    // (undocumented)
+    presentSeq: number;
+    // (undocumented)
+    skipN: number;
+}
+
+// @public
+export interface LadderState {
+    // (undocumented)
+    decidedDrops: number;
+    // (undocumented)
+    fastPathBehind: number;
+    // (undocumented)
+    lastReseedMs: number;
+    // (undocumented)
+    reseedCooldownMs: number;
+    // (undocumented)
+    reseeds: number;
+    // (undocumented)
+    skipBehind: number;
+    // (undocumented)
+    snapshotBehind: number;
+    // (undocumented)
+    steps: number;
+}
+
+// @public
+export function ladderStep(s: LadderState, framesBehind: number, nowMs: number, out: GovernedDecision, prevAction: number): void;
+
+// @public (undocumented)
+export function referenceTickTrace(policy: number, seqs: number[], behinds: number[], nowMs: number[]): number[];
+
+// @public
+export interface SharedNum {
+    // (undocumented)
+    value: number;
+}
 
 // @public (undocumented)
 export function uiThreadClaim(source: UiThreadFrameSource): {

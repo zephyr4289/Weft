@@ -423,7 +423,9 @@ export function referenceTickTrace(
   nowMs: number[]
 ): number[] {
   const gov = new FreshnessGovernor();
-  const pol = new CadencePolicy({ policy });
+  // The cast is deliberate: this oracle accepts ANY kind value so the
+  // closed-set guard stays testable; CadencePolicy throws on unknowns.
+  const pol = new CadencePolicy({ policy: policy as CadencePolicyKind });
   const packed: number[] = [];
   for (let i = 0; i < seqs.length; i++) {
     const a = gov.step(behinds[i], nowMs[i]);

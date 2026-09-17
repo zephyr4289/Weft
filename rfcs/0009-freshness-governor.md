@@ -276,3 +276,22 @@ lifecycle" work order):
   120 Hz ticker vs volatile worker feed, per-policy present-rate
   steadiness, evidence committed) + the pinned exact-count regimes in
   every port's PC battery.
+- Local xlang evidence (x86_64 sandbox, node + kotlinc + dart; swift
+  declared to apple CI): G5 ladder trace TS = C = Kotlin = Dart (20001
+  bytes, all four action classes); PC3 cadence trace TS = Kotlin = Dart
+  (120001 bytes, all three policies presented, interpPacked=10000,
+  coalescedPacked=36240 at STEPS=10000).
+- Series-7 allocation findings, found by the R7/R8/C5 audits and fixed
+  in-wave: (a) Kotlin `Weft.rLiveBuf()` allocated 2 ByteBuffer wrappers
+  per call — the per-frame API is now `rLiveWords()` (zero allocation);
+  (b) a WIRE-ORDER bug: Java `ByteBuffer.slice()` does not inherit the
+  source order, so `wBegin()`/`rLiveBuf()` were BIG_ENDIAN slices over
+  the LITTLE_ENDIAN wire buffer — every u32/f32 word through them was
+  byte-swapped since the port's landing (byte-granular users unaffected;
+  caught by the recycler battery's word-level parity check); (c) the
+  Kotlin fan-out ring's VarHandle accessors boxed ~4.6 KB per claim via
+  `invokeWithArguments` — `FanoutVhBridge.java` (the javac
+  signature-polymorphic shim Kotlin cannot emit) makes the claim path
+  allocation-free. The drawing-loop audits now read ZERO bytes: R8
+  (100k-tick consumer loop) and C5 (100k-tick GovernedFanoutConsumer
+  tick, on a dedicated draw thread).

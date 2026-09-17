@@ -1,0 +1,60 @@
+# Series 7 — Deliverable 3: GovernedFanoutConsumer + render-thread integration
+# env: kotlinc-jvm 2.0.21 (JRE 21.0.12) + Dart SDK 3.13.2 + node 24, x86_64 sandbox
+# date: 2026-09-17T14:55:00Z
+
+== Kotlin/JVM (kotlinc + junit, single module — internal visibility) ==
+GovernedFanoutConsumerTest: 5/5 PASS
+  C1 PACED 30-on-120 end to end over the real ring: 398/400 presents
+     (the PC5 battery's exact count), synthesis exercised
+  C2 PC2 telescoping through the ring (LATEST_WINS + BURST, 10k volatile
+     ticks each): sum(coalesced) == lastPresentedSeq - presents EXACT
+  C3 ladder classes from real drop accounting: FastPath -> Skip(2) on a
+     4-burst (dropped=3) -> FastPath edge -> Reseed on dropped=40
+     (post-cooldown); actionChanged edges asserted
+  C4 dispose returns the raster slot to the pool (idempotent; pooled
+     identity reused)
+  C5 the C5 audit: consumer tick() across 3x100k-tick windows on a
+     dedicated draw thread == at least one EXACTLY-ZERO window
+     (steady-state zero; documented tiered-compilation re-measure).
+     This audit caught the FanoutVh invokeWithArguments boxing
+     (4.6 KB/claim — fixed in the bridge commit; 458 MB -> 0).
+Full suite in one jar: 49/49 (FanoutTest 12 + GovernorTest 22 +
+RecyclerTest 8 + ConsumerTest 5 + WeftTest 2... net 49), 5x stable.
+
+== Dart VM (plain-dart expect shim; flutter-packages CI is the SDK cover) ==
+governed_consumer_test.dart: 4/4 PASS (C1..C4 — the Kotlin twin;
+single-isolate ring). All three Dart batteries: governor 21 + recycler 7
++ consumer 4 = 32/32 PASS. dart analyze: No issues found.
+
+== Swift (source-only, declared — no swiftc in the sandbox) ==
+GovernedConsumerTests.swift: the C1..C4 twin over the Swift ring;
+compiled + run by apple-packages CI (the same honesty wall as the
+governor/recycler batteries).
+
+== React Native (vitest, runnable — the DI pattern) ==
+governed-ui-thread.test.ts: 5/5 PASS
+  - THE PARITY GATE: the flattened worklet machines (ladderStep /
+    cadenceStep — plain-object state, 'worklet' directives, no class
+    captures) are byte-identical to @weft/core's reference classes on
+    the canonical xorshift32 trace, ALL THREE policies (10k steps each,
+    packed 3 bytes/tick).
+  - createGovernedUiThread wiring over SharedValue-shaped objects.
+  - Ladder cooldown honored worklet-side (suppressed Reseed -> Snapshot).
+  - Closed-set guard (unknown kind throws).
+  - PC2 telescoping across the flattened BURST machine.
+
+== Render-thread adapters (source-only; CI legs cover) ==
+- Compose: Modifier.weftGovernedDraw — one tick() per draw pass,
+  onDraw ONLY on present ticks; DrawScope receives (raster, decision,
+  action). AGSL/RenderEffect-friendly packed-u32-LE raster.
+- Flutter: WeftGovernedPainter — one tick() per paint pass, onPaint only
+  on present; Impeller-safe stable-identity pooled raster; exported from
+  the barrel.
+- RN: createGovernedUiThread — ladder + policy as worklets; JS thread
+  writes latestSeq/framesBehind SharedValues (or a native event source);
+  UI thread decides with zero bridge hops; honest JS fallback per the
+  weft-rn.ts stance; workletSources distribution requirement documented.
+
+== Binding parity ==
+23/23 byte pairs green (governed_consumer.dart + GovernedFanoutConsumer.kt
++ FanoutVhBridge.java pairs registered).

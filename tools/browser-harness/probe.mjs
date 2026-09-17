@@ -1,8 +1,22 @@
 // probe.mjs — Playwright chromium leg: load the harness page in a REAL
 // browser, wait for the report to be POSTed, exit 0 iff the server-side
 // gate passed. The probe asserts nothing itself — the report's contents
-// are the contract; the browser is only the environment under test.
-import { chromium } from 'playwright-core';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+let chromium;
+try {
+  ({ chromium } = await import('playwright-core'));
+} catch {
+  const p = require.resolve('playwright-core', {
+    paths: [
+      process.env.NODE_PATH,
+      new URL('../../ci/browser-tmp/node_modules', import.meta.url).pathname,
+      process.cwd(),
+    ].filter(Boolean),
+  });
+  ({ chromium } = await import(p));
+}
 
 const PORT = Number(process.argv[2] || 8123);
 

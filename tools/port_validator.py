@@ -489,7 +489,9 @@ def prove_kotlin():
     with tempfile.TemporaryDirectory(prefix='weft-kt-') as td:
         srcs = [str(ROOT / 'core' / 'kotlin' / f)
                 for f in ('Fanout.kt', 'FanoutCompat.kt', 'FrameCursor.kt',
-                          'Weft.kt', 'TriadNative.kt', 'Verified.kt')]
+                          'Weft.kt', 'TriadNative.kt', 'Verified.kt',
+                          'Governor.kt', 'Recycler.kt', 'GovernedFanoutConsumer.kt',
+                          'FanoutVhBridge.java')]
         srcs = [s for s in srcs if Path(s).exists()]
         build = subprocess.run([kotlinc] + srcs + ['-d', td], capture_output=True,
                                text=True, timeout=600)

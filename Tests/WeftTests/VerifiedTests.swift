@@ -127,7 +127,7 @@ final class VerifiedTests: XCTestCase {
         let signer = VwSigner(authKey: key)
         var envelope = Data()
         vwEnvelopeEncodeV1(dst: &envelope, seq: 7, payloadLen: 64)
-        let payload = Data((0..<64).map { UInt8($0 * 13) })
+        let payload = Data((0..<64).map { UInt8(($0 * 13) & 0xff) })
         let tag = signer.sign(envelope: envelope, payload: payload)
         var rec = Data(count: 16 + 64 + 32)
         _ = vwRecordEncode(envelope: envelope, payload: payload, tag: tag, dst: &rec)

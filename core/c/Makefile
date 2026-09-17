@@ -111,6 +111,25 @@ verified-runner: sha256.c sha256_hw.c hmac.c verified.c verified_runner.c weft.c
 verified-runner-asan: sha256.c sha256_hw.c hmac.c verified.c verified_runner.c weft.c weft.h sha256.h hmac.h verified.h
 	$(CC) $(CFLAGS_ASAN) $(VW_CFLAGS) -o verified-runner-asan $(VW_SRC) verified_runner.c
 
+# ---- Inter-process shared-memory rings (RFC-0011 draft) -------------------
+# shm_ring.{h,c}: POSIX named/anonymous + Windows-gated session protocol over
+# the RFC-0004 fan-out ring. S-series conformance (fork torture included)
+# + the IPC torture/xlang runner. Linux link note: shm_open lives in librt
+# on glibc < 2.17 and in libc since; -lrt is accepted and harmless either way.
+SHM_SRC = shm_ring.c fanout.c weft.c
+
+shm-test: shm_ring.c shm_ring.h shm_test.c $(SHM_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS) -o shm-test $(SHM_SRC) shm_test.c -lrt -lpthread
+
+shm-test-asan: shm_ring.c shm_ring.h shm_test.c $(SHM_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o shm-test-asan $(SHM_SRC) shm_test.c -lrt -lpthread
+
+shm-runner: shm_ring.c shm_ring.h shm_runner.c $(SHM_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS) -o shm-runner $(SHM_SRC) shm_runner.c -lrt -lpthread
+
+shm-runner-asan: shm_ring.c shm_ring.h shm_runner.c $(SHM_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o shm-runner-asan $(SHM_SRC) shm_runner.c -lrt -lpthread
+
 governor-test: governor.c governor_test.c governor.h
 	$(CC) $(CFLAGS) -o governor-test governor.c governor_test.c
 
@@ -121,6 +140,7 @@ clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
 	      verified-test verified-test-asan verified-runner verified-runner-asan \
-	      verified-mb-test verified-mb-test-asan
+	      verified-mb-test verified-mb-test-asan \
+	      shm-test shm-test-asan shm-runner shm-runner-asan
 
 .PHONY: all clean

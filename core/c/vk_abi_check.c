@@ -1,0 +1,118 @@
+// vk_abi_check.c — RFC-0013 ABI audit gate (Series 8).
+//
+// Compiles ONLY when the real Khronos Vulkan headers are installed (the CI
+// gpu-native shard installs libvulkan-dev). Every constant vk_min.h declares
+// and every struct size it asserts is checked against the OFFICIAL header at
+// COMPILE TIME — the pre-Series-8 defect classes (wrong sType values, wrong
+// enum numbers, short struct views) can never silently return.
+//
+// Without the headers the Makefile target self-skips (declared); vk_min.h
+// documents the hand-verification against r362.
+
+#include <stdio.h>
+
+#if defined(HAVE_VULKAN_HEADERS)
+
+#include <vulkan/vulkan_core.h>
+#include "vk_min.h"
+
+#define CHECK(expr) _Static_assert((expr), #expr)
+#define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+
+// sTypes
+CHECKEQ(VK_STRUCTURE_TYPE_APPLICATION_INFO_, VK_STRUCTURE_TYPE_APPLICATION_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO_, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO_, VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO_, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_SUBMIT_INFO_, VK_STRUCTURE_TYPE_SUBMIT_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO_, VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO_, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO_, VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO_, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO_, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO_, VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO_, VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO_, VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO_, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO_, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO_, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO_, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_, VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET);
+CHECKEQ(VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO_, VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO_, VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO_, VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_, VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER);
+CHECKEQ(VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_, VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO);
+CHECKEQ(VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR_, VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR);
+CHECKEQ(VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR_, VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR);
+
+// enums / flags
+CHECKEQ(VK_QUEUE_COMPUTE_BIT_, VK_QUEUE_COMPUTE_BIT);
+CHECKEQ(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT_, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+CHECKEQ(VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT_, VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT);
+CHECKEQ(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT_, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT);
+CHECKEQ(VK_IMAGE_USAGE_STORAGE_BIT_, VK_IMAGE_USAGE_STORAGE_BIT);
+CHECKEQ(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT_, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+CHECKEQ(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT_, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+CHECKEQ(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+CHECKEQ(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE_, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+CHECKEQ(VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER_, VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER);
+CHECKEQ(VK_SHADER_STAGE_COMPUTE_BIT_, VK_SHADER_STAGE_COMPUTE_BIT);
+CHECKEQ(VK_PIPELINE_BIND_POINT_COMPUTE_, VK_PIPELINE_BIND_POINT_COMPUTE);
+CHECKEQ(VK_IMAGE_TYPE_2D_, VK_IMAGE_TYPE_2D);
+CHECKEQ(VK_FORMAT_R32_UINT_, VK_FORMAT_R32_UINT);
+CHECKEQ(VK_IMAGE_LAYOUT_GENERAL_, VK_IMAGE_LAYOUT_GENERAL);
+CHECKEQ(VK_IMAGE_LAYOUT_UNDEFINED_, VK_IMAGE_LAYOUT_UNDEFINED);
+CHECKEQ(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT_, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+CHECKEQ(VK_ACCESS_SHADER_WRITE_BIT_, VK_ACCESS_SHADER_WRITE_BIT);
+CHECKEQ(VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT_, VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT);
+CHECKEQ(VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT_, VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT);
+
+// struct sizes
+CHECKEQ(sizeof(VkApplicationInfo_), sizeof(VkApplicationInfo));
+CHECKEQ(sizeof(VkInstanceCreateInfo_), sizeof(VkInstanceCreateInfo));
+CHECKEQ(sizeof(VkDeviceQueueCreateInfo_), sizeof(VkDeviceQueueCreateInfo));
+CHECKEQ(sizeof(VkDeviceCreateInfo_), sizeof(VkDeviceCreateInfo));
+CHECKEQ(sizeof(VkSubmitInfo_), sizeof(VkSubmitInfo));
+CHECKEQ(sizeof(VkMemoryAllocateInfo_), sizeof(VkMemoryAllocateInfo));
+CHECKEQ(sizeof(VkBufferCreateInfo_), sizeof(VkBufferCreateInfo));
+CHECKEQ(sizeof(VkBufferViewCreateInfo_), sizeof(VkBufferViewCreateInfo));
+CHECKEQ(sizeof(VkImageCreateInfo_), sizeof(VkImageCreateInfo));
+CHECKEQ(sizeof(VkImageViewCreateInfo_), sizeof(VkImageViewCreateInfo));
+CHECKEQ(sizeof(VkShaderModuleCreateInfo_), sizeof(VkShaderModuleCreateInfo));
+CHECKEQ(sizeof(VkPipelineShaderStageCreateInfo_), sizeof(VkPipelineShaderStageCreateInfo));
+CHECKEQ(sizeof(VkComputePipelineCreateInfo_), sizeof(VkComputePipelineCreateInfo));
+CHECKEQ(sizeof(VkPipelineLayoutCreateInfo_), sizeof(VkPipelineLayoutCreateInfo));
+CHECKEQ(sizeof(VkDescriptorSetLayoutCreateInfo_), sizeof(VkDescriptorSetLayoutCreateInfo));
+CHECKEQ(sizeof(VkDescriptorPoolCreateInfo_), sizeof(VkDescriptorPoolCreateInfo));
+CHECKEQ(sizeof(VkDescriptorSetAllocateInfo_), sizeof(VkDescriptorSetAllocateInfo));
+CHECKEQ(sizeof(VkWriteDescriptorSet_), sizeof(VkWriteDescriptorSet));
+CHECKEQ(sizeof(VkDescriptorBufferInfo_), sizeof(VkDescriptorBufferInfo));
+CHECKEQ(sizeof(VkDescriptorImageInfo_), sizeof(VkDescriptorImageInfo));
+CHECKEQ(sizeof(VkCommandPoolCreateInfo_), sizeof(VkCommandPoolCreateInfo));
+CHECKEQ(sizeof(VkCommandBufferAllocateInfo_), sizeof(VkCommandBufferAllocateInfo));
+CHECKEQ(sizeof(VkCommandBufferBeginInfo_), sizeof(VkCommandBufferBeginInfo));
+CHECKEQ(sizeof(VkImageMemoryBarrier_), sizeof(VkImageMemoryBarrier));
+CHECKEQ(sizeof(VkPhysicalDeviceProperties_), sizeof(VkPhysicalDeviceProperties));
+CHECKEQ(sizeof(VkPhysicalDeviceMemoryProperties_), sizeof(VkPhysicalDeviceMemoryProperties));
+CHECKEQ(sizeof(VkQueueFamilyProperties_), sizeof(VkQueueFamilyProperties));
+CHECKEQ(sizeof(VkMemoryRequirements_), sizeof(VkMemoryRequirements));
+CHECKEQ(sizeof(VkExtensionProperties_), sizeof(VkExtensionProperties));
+CHECKEQ(sizeof(VkExportMemoryAllocateInfo_), sizeof(VkExportMemoryAllocateInfo));
+CHECKEQ(sizeof(VkImportMemoryFdInfoKHR_), sizeof(VkImportMemoryFdInfoKHR));
+CHECKEQ(sizeof(VkMemoryGetFdInfoKHR_), sizeof(VkMemoryGetFdInfoKHR));
+
+int main(void) {
+    printf("vk-abi-check: every vk_min constant and struct verified against "
+           "the installed Khronos headers — PASS (compile-time)\n");
+    return 0;
+}
+
+#else  // !HAVE_VULKAN_HEADERS
+
+int main(void) {
+    printf("vk-abi-check: Khronos headers not installed — SKIPPED (declared)\n");
+    return 0;
+}
+
+#endif

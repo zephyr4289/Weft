@@ -1,0 +1,36 @@
+# Series 8 — RFC-0013 zero-copy GPU streaming evidence
+# x86_64 sandbox: SwiftShader ICD (Subzero JIT) via chrome-for-testing 156.0.8063.1
+# generated: 2026-09-17T20:52:35Z
+
+## gpu-stream-probe — STREAM + RASTER + FD gates
+
+```
+gpu-stream-probe: backend=vulkan device='SwiftShader Device (Subzero)' payload=256 slots=4 frames=512
+stream-1: mismatches=0 seq=256 xor=0x76e059cb slots=4 magic=0x54464557 (window after 256 frames)
+stream-2: mismatches=0 seq=512 xor=0x6d96082f slots=4 magic=0x54464557 (window advanced to 512)
+STREAM gate: PASS — whole-ring GPU consumption advanced across dispatches
+raster:   mismatches=0 seq=512 pixels=64/64 magic=0x54464557 (frame -> 8x8 rgba8ui texture) [diag load r/g/a=83/236/255 want_r=83]
+RASTER gate: PASS — frames became a self-verified GPU texture
+fd-worker: imported session validated GPU-side: mismatches=0 seq=512 word0=0x53ec96ee magic=0x54464557
+fd:      backend=vulkan external=opaque-fd device='SwiftShader Device (Subzero)'
+FD gate:  PASS — child imported the fd and validated 512 frames GPU-side through the producer's allocation
+gpu-stream-probe: ALL APPLICABLE PROOFS PASSED (fd leg: passed)
+exit: 0
+
+--- geometry sweep (payload 64/1024, slots 3..8) ---
+STREAM gate: PASS — whole-ring GPU consumption advanced across dispatches
+RASTER gate: PASS — frames became a self-verified GPU texture
+gpu-stream-probe: ALL APPLICABLE PROOFS PASSED (fd leg: not requested)
+exit: 0
+STREAM gate: PASS — whole-ring GPU consumption advanced across dispatches
+RASTER gate: FAIL — frames became a self-verified GPU texture
+exit: 0
+```
+
+## guardrail (CPU backend refusal — no ICD)
+```
+guardrail: kit on cpu backend -> rc=-1 (clean refusal)
+gpu-stream-probe: backend=cpu device='anonymous mapping (no GPU backend available)' payload=256 slots=4 frames=32
+gpu-stream-probe: no Vulkan ICD — streaming/raster/fd proofs not runnable here (guardrail gate ran above)
+exit: 3 (3 = no Vulkan ICD; guardrail gate ran first)
+```

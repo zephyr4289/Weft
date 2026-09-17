@@ -142,14 +142,40 @@ shm-runner-asan: shm_ring.c shm_ring.h shm_runner.c $(SHM_SRC) fanout.h weft.h
 # glslangValidator rebuilds it when present (CI installs glslang-tools).
 GPU_SRC = gpu_ring.c fanout.c weft.c
 SPV = ../../probes/compute/validate_frame.spv
+SPV_STREAM = ../../probes/compute/stream_frames.spv
+SPV_RASTER = ../../probes/compute/rasterize_frame.spv
 
 $(SPV): ../../probes/compute/validate_frame.comp
 	if command -v glslangValidator >/dev/null 2>&1; then \
 	glslangValidator -V $$< -o $$@; \
 	else echo "glslangValidator not found — using committed $$@"; touch $$@; fi
 
+$(SPV_STREAM): ../../probes/compute/stream_frames.comp
+	if command -v glslangValidator >/dev/null 2>&1; then \
+	glslangValidator -V $$< -o $$@; \
+	else echo "glslangValidator not found — using committed $$@"; touch $$@; fi
+
+$(SPV_RASTER): ../../probes/compute/rasterize_frame.comp
+	if command -v glslangValidator >/dev/null 2>&1; then \
+	glslangValidator -V $$< -o $$@; \
+	else echo "glslangValidator not found — using committed $$@"; touch $$@; fi
+
 gpu-probe: gpu_ring.c gpu_ring.h vk_min.h gpu_probe.c $(GPU_SRC) fanout.h weft.h $(SPV)
 	$(CC) $(CFLAGS) -o gpu-probe $(GPU_SRC) gpu_probe.c -lrt -lpthread -ldl
+
+gpu-stream-probe: gpu_ring.c gpu_ring.h gpu_stream.c gpu_stream.h gpu_stream_probe.c vk_min.h $(GPU_SRC) fanout.h weft.h $(SPV) $(SPV_STREAM) $(SPV_RASTER)
+	$(CC) $(CFLAGS) -o gpu-stream-probe $(GPU_SRC) gpu_stream.c gpu_stream_probe.c -lrt -lpthread -ldl
+
+# RFC-0013 ABI audit gate: when the REAL Khronos headers are installed
+# (libvulkan-dev), static-assert every vk_min constant/size against them.
+# Without the headers the gate self-skips (declared) — vk_min.h documents
+# the hand-verification against r362.
+vk-abi-check: vk_abi_check.c vk_min.h
+	@if echo '#include <vulkan/vulkan_core.h>' | gcc -fsyntax-only -x c - 2>/dev/null; then \
+	$(CC) $(CFLAGS) -DHAVE_VULKAN_HEADERS=1 -o vk-abi-check vk_abi_check.c; \
+else \
+	echo "vk-abi-check: Khronos headers absent — SKIPPED (declared; vk_min.h hand-verified against r362)"; \
+fi
 
 gpu-ring-test: gpu_ring.c gpu_ring.h gpu_ring_test.c $(GPU_SRC) fanout.h weft.h
 	$(CC) $(CFLAGS) -o gpu-ring-test $(GPU_SRC) gpu_ring_test.c -lrt -lpthread -ldl
@@ -249,7 +275,7 @@ clean:
 	      verified-test verified-test-asan verified-runner verified-runner-asan \
 	      verified-mb-test verified-mb-test-asan mb-bench \
 	      shm-test shm-test-asan shm-runner shm-runner-asan \
-	      gpu-probe gpu-ring-test gpu-ring-test-asan \
+	      gpu-probe gpu-stream-probe vk-abi-check gpu-ring-test gpu-ring-test-asan \
 	      turbo-test turbo-test-asan turbo-test-tsan turbo-test-seq \
 	      uring-test uring-test-asan uring-test-tsan \
 	      turbo-runner turbo-runner-sys bench \

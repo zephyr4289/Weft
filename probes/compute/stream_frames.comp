@@ -1,0 +1,99 @@
+#version 450
+// stream_frames.comp — RFC-0013 whole-ring streaming consumer (GPU side).
+//
+// WHERE validate_frame.comp validates the LATEST frame, this shader consumes
+// the ENTIRE resident ring window: every slot with a non-zero stamp is
+// validated against the 04-LITMUS mixer family, in parallel, one invocation
+// per slot (WEFT_FANOUT_MAX_SLOTS = 64 caps the workgroup). Consecutive
+// dispatches observe ADVANCING windows of the live ring — the "compute
+// shaders stream frames" claim, sustained rather than single-shot.
+//
+// BOUND AT descriptor set 0:
+//   binding 0 (storage, readonly):  the weft_gpu session span as u32 words
+//         (WFSH header words[0..16), ring per gpu_ring.h's consumer contract)
+//   binding 1 (storage, writeonly): result[8] u32 words
+// PUSH CONSTANTS: slots (u32), words (u32)
+//
+// REPORTS:
+//   result[0] = total mismatches (stamps, payload words, hi words, window
+//               consistency: max valid stamp must equal latestSeq)
+//   result[1] = latestSeq lo word — the publication point the GPU saw
+//   result[2] = XOR of every validated slot's payload word 0 — the window
+//               fingerprint; MUST advance between dispatches as the ring
+//               streams (the probe cross-checks against CPU arithmetic)
+//   result[3] = number of validated slots (the window width)
+//   result[4] = 0x54464557 ("WEFT" LE) — the "GPU ran this" magic
+//
+// Determinism: same wrapping u32 mixer as every port; no atomics needed
+// (shared-memory reduction, same shape as validate_frame.comp).
+
+layout(local_size_x = 64) in;
+
+layout(std430, binding = 0) readonly buffer RingBuf { uint r[]; };
+layout(std430, binding = 1) writeonly buffer OutBuf { uint o[]; };
+
+layout(push_constant) uniform Params {
+    uint slots;
+    uint words;
+} p;
+
+shared uint mism[64];
+shared uint xors[64];
+shared uint cnts[64];
+
+uint mix32(uint x) {
+    x ^= x >> 16;
+    x *= 0x7feb352du;
+    x ^= x >> 15;
+    x *= 0x846ca68bu;
+    x ^= x >> 16;
+    return x;
+}
+
+void main() {
+    uint li = gl_LocalInvocationID.x;
+
+    uint magic = r[0];
+    uint seq = r[16];          // latestSeq lo
+    uint seq_hi = r[17];       // latestSeq hi
+
+    uint count = 0u;
+    uint xf = 0u;
+    uint nvalid = 0u;
+    if (li < p.slots) {
+        uint k = li;
+        uint stamp_lo = r[20u + 2u * k];
+        uint stamp_hi = r[21u + 2u * k];
+        if (stamp_lo != 0u || stamp_hi != 0u) {
+            nvalid = 1u;
+            if (stamp_hi != 0u) count += 1u;          // 32-bit window contract
+            if (stamp_lo > seq) count += 1u;          // stamp ran past latestSeq
+            uint base = 20u + 2u * p.slots + k * p.words;
+            for (uint i = 0u; i < p.words; i++) {
+                uint expect = mix32(stamp_lo * 2654435761u + i);
+                if (r[base + i] != expect) count += 1u;
+            }
+            xf = r[base];                              // validated word 0
+        }
+    }
+    mism[li] = count;
+    xors[li] = xf;
+    cnts[li] = nvalid;
+    barrier();
+
+    if (li == 0u) {
+        uint total = 0u, xorv = 0u, nslot = 0u;
+        for (uint i = 0u; i < 64u; i++) {
+            total += mism[i];
+            xorv ^= xors[i];
+            nslot += cnts[i];
+        }
+        if (magic != 0x48534657u) total += 1u;   // session magic wrong
+        if (seq_hi != 0u) total += 1u;           // latestSeq outside 32 bits
+        o[0] = total;
+        o[1] = seq;
+        o[2] = xorv;
+        o[3] = nslot;
+        o[4] = 0x54464557u;                      // "WEFT" LE — GPU ran this
+    }
+}

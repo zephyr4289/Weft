@@ -1,0 +1,114 @@
+# Series 7 — inter-process SHM ring evidence (x86_64 sandbox, gcc 14.2.0, -O2)
+# generated: 2026-09-17T13:14:22Z
+
+## S-series conformance (O2)
+```
+    reader: fresh=51010 drops=148990 last=200000 torn_exhausted=0 skipped=0 -> OK
+    reader: fresh=6 drops=199994 last=200000 torn_exhausted=0 skipped=0 -> OK
+    reader: fresh=106048 drops=93952 last=200000 torn_exhausted=0 skipped=0 -> OK
+    reader: fresh=4213 drops=195787 last=200000 torn_exhausted=0 skipped=0 -> OK
+    reader: fresh=35740 drops=164260 last=200000 torn_exhausted=0 skipped=0 -> OK
+    reader: fresh=3 drops=199997 last=200000 torn_exhausted=0 skipped=0 -> OK
+Weft S-series (inter-process shared-memory rings) — C driver layer
+S1: create named — header + ring invariants
+  PASS create ok
+  PASS geometry readable from header
+  PASS ring_bytes identity (RFC 0004)
+  PASS ring follows the header
+  PASS mapping size exact
+  PASS ctrl zero-initialized (fresh-ring invariants)
+  PASS creator destroy unlinks (attach fails after)
+S2: attach named — validation and read-only mapping
+  PASS fanout binding create ok
+  PASS rw attach ok
+  PASS same object, same geometry (second mapping)
+  PASS reader over the second mapping
+  PASS frame visible across mappings (publish over A, claim over B)
+  PASS read-only attach ok
+  PASS reader over PROT_READ mapping
+  PASS read-only reader claims frame 1
+  PASS payload bit-exact through the read-only mapping
+  PASS garbage object refused (bad magic/size)
+  PASS zeroed right-size object refused (no header)
+S3: O_EXCL create semantics + stale replacement
+  PASS first create ok
+  PASS second create refused (O_EXCL)
+  PASS destroy NULL-safe
+  PASS recreate after unlink ok
+  PASS unlink absent ok (ENOENT)
+S4: anonymous + fork — inherited mapping, 3 readers
+  PASS anon create ok
+  PASS writer attach ok
+  PASS 3 forked readers x 200000 frames: integrity + telescoping, zero torn
+S5: named + fork — attach-by-name children, 3 readers
+  PASS named create ok
+  PASS writer attach ok
+  PASS 3 forked readers x 200000 frames: integrity + telescoping, zero torn
+S6: producer handoff — stamp monotonicity across processes
+  PASS creator writer ok
+  PASS successor writer attaches
+  PASS frame numbering continues from latestSeq
+  PASS reader attaches
+  PASS handoff frame claims clean
+  PASS 1000 unseen frames accounted as drops (no phantom loss)
+  PASS handoff payload bit-exact
+S7: fd-passing attach — foreign files refused
+  PASS session created
+  PASS fd attach ok
+  PASS fd attach: same object, same geometry
+  PASS cross-mapping visibility (publish over map A, claim over map B)
+  PASS garbage fd refused
+S8: crashed producer — ring persists, reader reads the tail
+  PASS producer exited (no cleanup)
+  PASS reader attaches to the orphaned ring
+  PASS last consistent frame readable
+  PASS frame-500 payload bit-exact
+S9: fan-out bindings — create/publish/claim round trip
+  PASS binding create
+  PASS binding reader
+  PASS 5000 frames round-trip, sampled claims bit-exact
+
+verdict: PASS
+exit: 0
+```
+
+## S-series under ASAN
+```
+48
+checks passed (see verdict)
+verdict: PASS
+```
+
+## Multi-process torture (named+attach, 4 readers x 100k frames)
+```
+    reader pid=4144: fresh=16247 drops=83753 last=100000 torn_exhausted=0
+    reader pid=4143: fresh=3 drops=99997 last=100000 torn_exhausted=0
+    reader pid=4145: fresh=12770 drops=87230 last=100000 torn_exhausted=0
+    reader pid=4142: fresh=48218 drops=51782 last=100000 torn_exhausted=0
+torture: named+attach road, 4 readers x 100000 frames, 64 B x 4 slots
+torture: writer 0.031 s (3214762 frames/s); readers all OK; verdict PASS
+```
+
+## Multi-process torture (anonymous+fork)
+```
+    reader pid=4150: fresh=19094 drops=80906 last=100000 torn_exhausted=0
+    reader pid=4149: fresh=5 drops=99995 last=100000 torn_exhausted=0
+    reader pid=4148: fresh=4 drops=99996 last=100000 torn_exhausted=0
+    reader pid=4147: fresh=65462 drops=34538 last=100000 torn_exhausted=0
+torture: anonymous+fork road, 4 readers x 100000 frames, 64 B x 4 slots
+torture: writer 0.078 s (1285809 frames/s); readers all OK; verdict PASS
+```
+
+## Zero-syscall data path: strace -f (ALL syscalls traced), 50000 publishes + 1 claim between markers
+```
+strace-proof: 50000 frames published + 1 claim; between the markers only the marker writes appear -> OK
+4154  write(2, "MARKER-PUBLISH-START\n", 21) = 21
+4154  write(2, "MARKER-PUBLISH-END\n", 19) = 19
+non-marker syscalls between markers: 0
+```
+
+## Cross-process session visibility (xlang validation road)
+```
+{"name":"weft-dump-demo","payload_bytes":64,"slot_count":4,"ring_bytes":304,"latest_seq":100,"publishes":100}
+validate-session: latest=100 (expect 100) payload bit-exact -> PASS
+```

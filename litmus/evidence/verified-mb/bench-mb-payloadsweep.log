@@ -1,0 +1,68 @@
+# Series 7 — SIMD batch acceleration evidence (x86_64 sandbox, gcc 14.2.0, -O2)
+# CPU flags: avx2 sha_ni (see /proc/cpuinfo); single-stream regime: SHA-NI
+# generated: 2026-09-17T11:54:04Z
+
+=== bench-mb 20000 frames, payload 16B ===
+bench-mb: 20000 frames, 16 B payload, 64 B records
+    single-stream: x86-sha-ni
+    multi-buffer:  x86-avx2 (8 lanes)
+
+    batch path                     us/frame   frames/s
+    serial (Series-6 auto/HW)         0.407    2457304
+    multi-buffer (SIMD)               0.192    5221073
+    speedup: 2.12x
+
+    magic scan (64 MB)                   ms       GB/s
+    scalar                             25.8       2.60
+    weft_vw_scan_magic                 10.2       6.56
+
+    verdict: serial=0 mb=0 n=20000/20000 consumed=1280000/1280000 needles=262144/262144 -> OK
+
+=== bench-mb 20000 frames, payload 64B ===
+bench-mb: 20000 frames, 64 B payload, 112 B records
+    single-stream: x86-sha-ni
+    multi-buffer:  x86-avx2 (8 lanes)
+
+    batch path                     us/frame   frames/s
+    serial (Series-6 auto/HW)         0.516    1936874
+    multi-buffer (SIMD)               0.249    4013683
+    speedup: 2.07x
+
+    magic scan (64 MB)                   ms       GB/s
+    scalar                             25.2       2.66
+    weft_vw_scan_magic                  9.5       7.05
+
+    verdict: serial=0 mb=0 n=20000/20000 consumed=2240000/2240000 needles=262144/262144 -> OK
+
+=== bench-mb 20000 frames, payload 256B ===
+bench-mb: 20000 frames, 256 B payload, 304 B records
+    single-stream: x86-sha-ni
+    multi-buffer:  x86-avx2 (8 lanes)
+
+    batch path                     us/frame   frames/s
+    serial (Series-6 auto/HW)         0.637    1569276
+    multi-buffer (SIMD)               0.435    2298883
+    speedup: 1.46x
+
+    magic scan (64 MB)                   ms       GB/s
+    scalar                             25.1       2.68
+    weft_vw_scan_magic                  9.1       7.37
+
+    verdict: serial=0 mb=0 n=20000/20000 consumed=6080000/6080000 needles=262144/262144 -> OK
+
+=== bench-mb 20000 frames, payload 1024B ===
+bench-mb: 20000 frames, 1024 B payload, 1072 B records
+    single-stream: x86-sha-ni
+    multi-buffer:  x86-avx2 (8 lanes)
+
+    batch path                     us/frame   frames/s
+    serial (Series-6 auto/HW)         1.118     894210
+    multi-buffer (SIMD)               1.153     867176
+    speedup: 0.97x
+
+    magic scan (64 MB)                   ms       GB/s
+    scalar                             26.2       2.57
+    weft_vw_scan_magic                  9.7       6.90
+
+    verdict: serial=0 mb=0 n=20000/20000 consumed=21440000/21440000 needles=262144/262144 -> OK
+

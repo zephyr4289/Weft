@@ -67,6 +67,7 @@
 #define _GNU_SOURCE
 #endif
 #include "fanout.h"
+#include "shm_ring.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -449,44 +450,49 @@ static FILE* open_v2(const char* path, uint32_t* frame_count) {
 }
 
 // ---------------------------------------------------------------------------
-// Shared-memory ring helpers — the real-producer road
+// Shared-memory session helpers — the real-producer road (Series 7)
+//
+// The tool now maps rings through the CORE session module (core/c/shm_ring):
+// shm objects carry the 64-byte WFSH session header, attach validates the
+// full header contract (magic/version/geometry/exact size) instead of a
+// bare size check, and creators unlink on destroy. DECLARED FORMAT CHANGE
+// (tools/FORMATS.md §3): producers speaking to this recorder must create
+// sessions via the module (weft_fanout_shm_create / weft_shm_create_named)
+// — a bare RFC-0004 ring without the header is refused with guidance.
 // ---------------------------------------------------------------------------
 
-/// Map an EXISTING shm ring (capture: read-only; replay drains via its own
-/// writer) — the producer must have created it with the RFC-0004 layout and
-/// exactly ring_bytes size.
-static uint8_t* shm_map_existing(const char* name, size_t ring_bytes, int writable) {
-    int fd = shm_open(name, writable ? O_RDWR : O_RDONLY, 0);
-    if (fd < 0) {
-        fprintf(stderr, "weft_fanout_rec: shm_open(/%s): %s — is the producer running?\n",
+/// Attach an existing session; `want_payload`/`want_slots` are validated
+/// against the session header (the old size-check semantics, strengthened).
+static weft_shm_map_t shm_attach_or_die(const char* name, int read_only,
+                                        size_t want_payload, unsigned want_slots) {
+    weft_shm_map_t m;
+    if (weft_shm_attach_named(name, &m, read_only) != 0) {
+        fprintf(stderr, "weft_fanout_rec: attach /%s failed (%s) — is the producer "
+                "running, and does it create a WFSH session (core/c/shm_ring)?\n",
                 name, strerror(errno));
         exit(2);
     }
-    struct stat st;
-    if (fstat(fd, &st) != 0) die_errno("fstat(shm)");
-    if ((size_t)st.st_size != ring_bytes) {
-        fprintf(stderr, "weft_fanout_rec: shm /%s is %zu bytes, expected ring_bytes=%zu "
-                "(geometry mismatch)\n", name, (size_t)st.st_size, ring_bytes);
+    if (weft_shm_payload_bytes(&m) != want_payload ||
+        weft_shm_slot_count(&m) != want_slots) {
+        fprintf(stderr, "weft_fanout_rec: shm /%s session geometry is %zu x %u, "
+                "expected %zu x %u (geometry mismatch)\n",
+                name, weft_shm_payload_bytes(&m), weft_shm_slot_count(&m),
+                want_payload, want_slots);
+        weft_shm_destroy(&m);
         exit(2);
     }
-    void* p = mmap(NULL, ring_bytes, writable ? (PROT_READ | PROT_WRITE) : PROT_READ,
-                   MAP_SHARED, fd, 0);
-    if (p == MAP_FAILED) die_errno("mmap(shm)");
-    close(fd);
-    return (uint8_t*)p;
+    return m;
 }
 
-/// Create a FRESH shm ring (unlink stale, then O_EXCL) — the replay road.
-static uint8_t* shm_create(const char* name, size_t ring_bytes) {
-    shm_unlink(name); // ignore ENOENT: replace any stale session
-    int fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0600);
-    if (fd < 0) die_errno("shm_open(create)");
-    if (ftruncate(fd, (off_t)ring_bytes) != 0) die_errno("ftruncate(shm)");
-    void* p = mmap(NULL, ring_bytes, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (p == MAP_FAILED) die_errno("mmap(shm create)");
-    memset(p, 0, ring_bytes); // fresh ctrl: latestSeq=0, all slots invalidated
-    close(fd);
-    return (uint8_t*)p;
+/// Create a FRESH session (unlink stale, then O_EXCL) — the replay road.
+static weft_shm_map_t shm_create_or_die(const char* name, size_t payload_bytes,
+                                        unsigned slot_count) {
+    weft_shm_map_t m;
+    weft_shm_unlink(name);
+    if (weft_shm_create_named(name, payload_bytes, slot_count, &m) != 0) {
+        die_errno("shm session create");
+    }
+    return m;
 }
 
 // ---------------------------------------------------------------------------
@@ -499,7 +505,8 @@ static int cmd_capture(const char* path, const char* shm_name, size_t payload_by
     const size_t rb = weft_fanout_ring_bytes(payload_bytes, slot_count);
     if (rb == 0) die("bad geometry (--payload must be a positive multiple of 4, "
                      "--slots in [2,64])");
-    uint8_t* ring = shm_map_existing(shm_name, rb, 0);
+    weft_shm_map_t sm = shm_attach_or_die(shm_name, 1, payload_bytes, slot_count);
+    uint8_t* ring = sm.ring;
 
     weft_fanout_reader_t r;
     if (weft_fanout_reader_init(&r, ring, rb, payload_bytes, slot_count) != 0)
@@ -554,7 +561,7 @@ static int cmd_capture(const char* path, const char* shm_name, size_t payload_by
     else write_header(fp, (uint32_t)n_records);
     if (fclose(fp) != 0) die_errno("fclose(capture)");
     weft_fanout_reader_destroy(&r);
-    munmap(ring, rb);
+    weft_shm_destroy(&sm);  // attacher: never unlinks
 
     printf("capture: %s — %" PRIu64 " claims, %" PRIu64 " dropped frames accounted "
            "(the honest capture; telemetry advisory)\n", path, n_records, n_dropped);
@@ -695,7 +702,8 @@ static int cmd_replay(const char* path, const char* shm_name, size_t payload_byt
     uint32_t frame_count = 0;
     FILE* fp = open_weftrec(path, &frame_count, &version);
 
-    uint8_t* ring = shm_create(shm_name, rb);
+    weft_shm_map_t sm = shm_create_or_die(shm_name, payload_bytes, slot_count);
+    uint8_t* ring = sm.ring;
     weft_fanout_t f = {0};
     if (weft_fanout_attach_writer(&f, ring, rb, payload_bytes, slot_count) != 0)
         die("replay: writer attach failed (fresh ring must be zeroed)");
@@ -703,8 +711,9 @@ static int cmd_replay(const char* path, const char* shm_name, size_t payload_byt
     uint64_t n = 0;
     replay_core(fp, &f, payload_bytes, hz, version, &n);
     fclose(fp);
-    // The shm ring persists in /dev/shm until unlinked: any port's reader
-    // attaches by name and consumes the replayed session.
+    // The shm SESSION persists in /dev/shm until unlinked: any port's reader
+    // attaches by name and consumes the replayed session. (The creator map is
+    // deliberately NOT destroyed — a creator destroy would unlink it.)
     printf("replay: %s -> shm /%s — %llu frames republished (content-faithful; "
            "seqs renumbered 1..%" PRIu64 " — declared boundary)\n",
            path, shm_name, (unsigned long long)n, n);
@@ -848,8 +857,9 @@ static int cmd_selftest(uint64_t frames, uint64_t words) {
     const char* shm_a = "weft_fanout_rec_selftest_a";
     const char* shm_b = "weft_fanout_rec_selftest_b";
 
-    // Ring A: fresh shm; the writer thread publishes mixer frames.
-    uint8_t* ring_a = shm_create(shm_a, rb);
+    // Ring A: fresh shm session; the writer thread publishes mixer frames.
+    weft_shm_map_t sm_a = shm_create_or_die(shm_a, payload_bytes, slots);
+    uint8_t* ring_a = sm_a.ring;
     _Atomic int writer_done = 0;
     _Atomic uint64_t writer_n = 0;
     selftest_writer_t w = {
@@ -905,10 +915,11 @@ static int cmd_selftest(uint64_t frames, uint64_t words) {
     if (cmd_validate("selftest_a.weftrec", 1, 0) != 0)
         die("selftest: capture file failed validation");
 
-    // Ring B: fresh shm. The replay thread republishes file A into it while
-    // the main thread recaptures CONCURRENTLY (the symmetric picture: the
-    // recapture is just another fan-out consumer of the replayed stream).
-    uint8_t* ring_b = shm_create(shm_b, rb);
+    // Ring B: fresh shm session. The replay thread republishes file A into it
+    // while the main thread recaptures CONCURRENTLY (the symmetric picture:
+    // the recapture is just another fan-out consumer of the replayed stream).
+    weft_shm_map_t sm_b = shm_create_or_die(shm_b, payload_bytes, slots);
+    uint8_t* ring_b = sm_b.ring;
     weft_fanout_t fb = {0};
     if (weft_fanout_attach_writer(&fb, ring_b, rb, payload_bytes, slots) != 0)
         die("selftest: replay writer attach failed");
@@ -965,8 +976,9 @@ static int cmd_selftest(uint64_t frames, uint64_t words) {
 
     unlink("selftest_a.weftrec");
     unlink("selftest_b.weftrec");
-    shm_unlink(shm_a);
-    shm_unlink(shm_b);
+    weft_shm_unlink(shm_a);
+    weft_shm_unlink(shm_b);
+    (void)sm_a; (void)sm_b;  // mappings die with the process; objects unlinked above
     printf("selftest: PASS — capture -> validate(mixer) -> replay -> recapture -> "
            "compare, all green (%" PRIu64 " frames published, %llu-word payload)\n",
            frames, (unsigned long long)words);
@@ -994,7 +1006,8 @@ static int cmd_daemon(const char* path, const char* shm_name, size_t payload_byt
     const size_t rb = weft_fanout_ring_bytes(payload_bytes, slot_count);
     if (rb == 0) die("bad geometry (--payload must be a positive multiple of 4, "
                      "--slots in [2,64])");
-    uint8_t* ring = shm_map_existing(shm_name, rb, 0);
+    weft_shm_map_t sm = shm_attach_or_die(shm_name, 1, payload_bytes, slot_count);
+    uint8_t* ring = sm.ring;
 
     weft_fanout_reader_t r;
     if (weft_fanout_reader_init(&r, ring, rb, payload_bytes, slot_count) != 0)
@@ -1075,7 +1088,7 @@ static int cmd_daemon(const char* path, const char* shm_name, size_t payload_byt
     else write_header(fp, (uint32_t)n_records);
     if (fclose(fp) != 0) die_errno("fclose(daemon)");
     weft_fanout_reader_destroy(&r);
-    munmap(ring, rb);
+    weft_shm_destroy(&sm);  // attacher: never unlinks
 
     fprintf(stderr, "weft-fanout-rec daemon: stopped (%s) — %" PRIu64 " claims, "
             "%" PRIu64 " dropped frames accounted (the honest capture; "
@@ -1100,7 +1113,8 @@ static int cmd_produce(const char* shm_name, size_t payload_bytes,
         die("--family must be mixer or wave");
     const size_t rb = weft_fanout_ring_bytes(payload_bytes, slot_count);
     if (rb == 0) die("bad geometry");
-    uint8_t* ring = shm_create(shm_name, rb);
+    weft_shm_map_t sm = shm_create_or_die(shm_name, payload_bytes, slot_count);
+    uint8_t* ring = sm.ring;
     weft_fanout_t f = {0};
     if (weft_fanout_attach_writer(&f, ring, rb, payload_bytes, slot_count) != 0)
         die("producer attach failed");
@@ -1124,8 +1138,11 @@ static int cmd_produce(const char* shm_name, size_t payload_bytes,
         }
     }
     free(buf);
-    munmap(ring, rb);
-    printf("produce: %s family, %llu frames -> shm /%s (ring left in place for "
+    // Unmap WITHOUT unlinking: the SESSION stays in /dev/shm for
+    // capture/daemon to attach by name (the mode's whole point).
+    sm.creator = 0;
+    weft_shm_destroy(&sm);
+    printf("produce: %s family, %llu frames -> shm /%s (session left in place for "
            "capture/daemon; producer exits — latestSeq holds)\n",
            family, (unsigned long long)frames, shm_name);
     return 0;

@@ -1,0 +1,111 @@
+# VMB-series conformance (x86_64 sandbox, -O2)
+# generated: 2026-09-17T11:54:17Z
+
+VerifiedWeft VMB-series (multi-buffer SIMD batch) — C driver layer
+VMB1: multi-buffer transform bit-identity
+  backend: x86-avx2 (lanes=8)
+  PASS 64 randomized staggered-lane trials bit-identical
+  PASS scalar lane loop 1..8 lanes bit-identical (128 trials)
+VMB2: multi-buffer HMAC == serial HMAC (chain to RFC 4231 via V1)
+  PASS 64 serial-signed records verify in lanes
+  PASS bytes_consumed exact
+  PASS first tampered record stops the batch (20)
+  PASS prefix end exact
+VMB3: batch-API equivalence sweep (serial vs multi-buffer)
+  PASS 149 generated streams: code/counters/views identical
+VMB4: corruption matrix — identical codes and counters
+  PASS magic byte 0 -> X
+  PASS magic byte 3 -> X
+  PASS header_size -> 15
+  PASS payload_len overflow
+  PASS payload tamper
+  PASS tag tamper
+  PASS envelope seq tamper
+  PASS all corruption classes agree (code, prefix, consumed)
+VMB5: duplicate lanes + snapshot isolation
+  PASS duplicate-lane call succeeds
+  PASS identical message in every lane -> identical snapshots
+  PASS staggered-lane call succeeds
+  PASS staggered finishes: each lane's snapshot exact, undisturbed
+VMB6: scan_magic exhaustive (window seams included)
+  PASS needle at every offset 0..508: vector == scalar first-find
+  PASS multi-match enumeration identical (5 needles incl. seams)
+  PASS near-misses skipped; real needle at 41 found
+  PASS from past last match -> 0
+  PASS from > len -> 0
+  PASS empty buffer -> 0
+VMB7: crash-tolerant resync after corruption
+  PASS 39 of 40 records verified across one corruption (drop counted)
+  PASS exactly one resync
+  PASS stream walked to the end
+  PASS prefix batch: 5 good records
+  PASS scan lands exactly on record 6's magic
+  PASS post-resync batch: remaining 34 records
+  PASS resumed stream starts at seq 7 (dropped seq 6)
+VMB8: SIMD payload-cap boundary (4095/4096/4097/5000)
+  PASS mixed cap-boundary stream: both paths verify all 7
+  PASS bytes_consumed identical (full stream)
+  PASS cap-boundary tamper: identical stop (prefix 5)
+  PASS prefix end exact at the oversized seam
+
+verdict: PASS
+
+# exit: 0
+
+# VMB-series under ASAN (-O1 -fsanitize=address)
+
+VerifiedWeft VMB-series (multi-buffer SIMD batch) — C driver layer
+VMB1: multi-buffer transform bit-identity
+  backend: x86-avx2 (lanes=8)
+  PASS 64 randomized staggered-lane trials bit-identical
+  PASS scalar lane loop 1..8 lanes bit-identical (128 trials)
+VMB2: multi-buffer HMAC == serial HMAC (chain to RFC 4231 via V1)
+  PASS 64 serial-signed records verify in lanes
+  PASS bytes_consumed exact
+  PASS first tampered record stops the batch (20)
+  PASS prefix end exact
+VMB3: batch-API equivalence sweep (serial vs multi-buffer)
+  PASS 149 generated streams: code/counters/views identical
+VMB4: corruption matrix — identical codes and counters
+  PASS magic byte 0 -> X
+  PASS magic byte 3 -> X
+  PASS header_size -> 15
+  PASS payload_len overflow
+  PASS payload tamper
+  PASS tag tamper
+  PASS envelope seq tamper
+  PASS all corruption classes agree (code, prefix, consumed)
+VMB5: duplicate lanes + snapshot isolation
+  PASS duplicate-lane call succeeds
+  PASS identical message in every lane -> identical snapshots
+  PASS staggered-lane call succeeds
+  PASS staggered finishes: each lane's snapshot exact, undisturbed
+VMB6: scan_magic exhaustive (window seams included)
+  PASS needle at every offset 0..508: vector == scalar first-find
+  PASS multi-match enumeration identical (5 needles incl. seams)
+  PASS near-misses skipped; real needle at 41 found
+  PASS from past last match -> 0
+  PASS from > len -> 0
+  PASS empty buffer -> 0
+VMB7: crash-tolerant resync after corruption
+  PASS 39 of 40 records verified across one corruption (drop counted)
+  PASS exactly one resync
+  PASS stream walked to the end
+  PASS prefix batch: 5 good records
+  PASS scan lands exactly on record 6's magic
+  PASS post-resync batch: remaining 34 records
+  PASS resumed stream starts at seq 7 (dropped seq 6)
+VMB8: SIMD payload-cap boundary (4095/4096/4097/5000)
+  PASS mixed cap-boundary stream: both paths verify all 7
+  PASS bytes_consumed identical (full stream)
+  PASS cap-boundary tamper: identical stop (prefix 5)
+  PASS prefix end exact at the oversized seam
+
+verdict: PASS
+
+# exit: 0
+
+# V-series regression (Series-6 suite, unchanged semantics)
+
+/bin/bash: line 1: ./verified-test: No such file or directory
+# exit: 0

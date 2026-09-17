@@ -78,8 +78,11 @@ wire-probe: wire_probe.c fanout.c frame_cursor.c weft.c fanout.h frame_cursor.h 
 # attribute — no flag changes; aarch64 CE needs +crypto, see below) +
 # hmac.{h,c} + verified.{h,c} — pure C, zero dependencies.
 # V-series conformance + xlang sign/verify runner. weft.c/weft.h untouched.
+# Series 7 (SIMD batch): sha256_mb.{h,c} (8-way AVX2 / 4-way NEON
+# multi-buffer transform) + verified_mb.{h,c} (lane-batched HMAC verify +
+# vectorized magic scan) + the VMB conformance series.
 
-VW_SRC = sha256.c sha256_hw.c hmac.c verified.c weft.c
+VW_SRC = sha256.c sha256_hw.c hmac.c verified.c verified_mb.c sha256_mb.c weft.c
 
 # aarch64: compile the CE transform with the crypto extension enabled
 # (mbedTLS-style); execution stays gated on the runtime HWCAP probe, so the
@@ -96,11 +99,59 @@ verified-test: sha256.c sha256_hw.c hmac.c verified.c verified_test.c weft.c wef
 verified-test-asan: sha256.c sha256_hw.c hmac.c verified.c verified_test.c weft.c weft.h sha256.h hmac.h verified.h
 	$(CC) $(CFLAGS_ASAN) $(VW_CFLAGS) -o verified-test-asan $(VW_SRC) verified_test.c
 
+verified-mb-test: sha256_mb.c sha256_mb.h verified_mb.c verified_mb.h verified_mb_test.c $(VW_SRC) weft.h
+	$(CC) $(CFLAGS) $(VW_CFLAGS) -o verified-mb-test $(VW_SRC) verified_mb_test.c
+
+verified-mb-test-asan: sha256_mb.c sha256_mb.h verified_mb.c verified_mb.h verified_mb_test.c $(VW_SRC) weft.h
+	$(CC) $(CFLAGS_ASAN) $(VW_CFLAGS) -o verified-mb-test-asan $(VW_SRC) verified_mb_test.c
+
 verified-runner: sha256.c sha256_hw.c hmac.c verified.c verified_runner.c weft.c weft.h sha256.h hmac.h verified.h
 	$(CC) $(CFLAGS) $(VW_CFLAGS) -o verified-runner $(VW_SRC) verified_runner.c
 
 verified-runner-asan: sha256.c sha256_hw.c hmac.c verified.c verified_runner.c weft.c weft.h sha256.h hmac.h verified.h
 	$(CC) $(CFLAGS_ASAN) $(VW_CFLAGS) -o verified-runner-asan $(VW_SRC) verified_runner.c
+
+# ---- Inter-process shared-memory rings (RFC-0011 draft) -------------------
+# shm_ring.{h,c}: POSIX named/anonymous + Windows-gated session protocol over
+# the RFC-0004 fan-out ring. S-series conformance (fork torture included)
+# + the IPC torture/xlang runner. Linux link note: shm_open lives in librt
+# on glibc < 2.17 and in libc since; -lrt is accepted and harmless either way.
+SHM_SRC = shm_ring.c fanout.c weft.c
+
+shm-test: shm_ring.c shm_ring.h shm_test.c $(SHM_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS) -o shm-test $(SHM_SRC) shm_test.c -lrt -lpthread
+
+shm-test-asan: shm_ring.c shm_ring.h shm_test.c $(SHM_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o shm-test-asan $(SHM_SRC) shm_test.c -lrt -lpthread
+
+shm-runner: shm_ring.c shm_ring.h shm_runner.c $(SHM_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS) -o shm-runner $(SHM_SRC) shm_runner.c -lrt -lpthread
+
+shm-runner-asan: shm_ring.c shm_ring.h shm_runner.c $(SHM_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o shm-runner-asan $(SHM_SRC) shm_runner.c -lrt -lpthread
+
+# ---- GPU-resident rings (RFC-0003 Triad-2 spike, Series 7) ------------------
+# gpu_ring.{h,c}: Vulkan HOST_VISIBLE zero-copy session (dlopen'd loader —
+# no link-time dep), Metal compile-gated, CPU fallback; vk_min.h is the
+# shared INTERNAL minimal Vulkan ABI. gpu-probe: the zero-copy consumer
+# proof (compute shader validates live ring words). The .spv is committed;
+# glslangValidator rebuilds it when present (CI installs glslang-tools).
+GPU_SRC = gpu_ring.c fanout.c weft.c
+SPV = ../../probes/compute/validate_frame.spv
+
+$(SPV): ../../probes/compute/validate_frame.comp
+	if command -v glslangValidator >/dev/null 2>&1; then \
+	glslangValidator -V $$< -o $$@; \
+	else echo "glslangValidator not found — using committed $$@"; touch $$@; fi
+
+gpu-probe: gpu_ring.c gpu_ring.h vk_min.h gpu_probe.c $(GPU_SRC) fanout.h weft.h $(SPV)
+	$(CC) $(CFLAGS) -o gpu-probe $(GPU_SRC) gpu_probe.c -lrt -lpthread -ldl
+
+gpu-ring-test: gpu_ring.c gpu_ring.h gpu_ring_test.c $(GPU_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS) -o gpu-ring-test $(GPU_SRC) gpu_ring_test.c -lrt -lpthread -ldl
+
+gpu-ring-test-asan: gpu_ring.c gpu_ring.h gpu_ring_test.c $(GPU_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o gpu-ring-test-asan $(GPU_SRC) gpu_ring_test.c -lrt -lpthread -ldl
 
 governor-test: governor.c governor_test.c governor.h
 	$(CC) $(CFLAGS) -o governor-test governor.c governor_test.c
@@ -111,6 +162,9 @@ governor-test-asan: governor.c governor_test.c governor.h
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
-	      verified-test verified-test-asan verified-runner verified-runner-asan
+	      verified-test verified-test-asan verified-runner verified-runner-asan \
+	      verified-mb-test verified-mb-test-asan \
+	      shm-test shm-test-asan shm-runner shm-runner-asan \
+	      gpu-probe gpu-ring-test gpu-ring-test-asan
 
 .PHONY: all clean

@@ -315,7 +315,9 @@ describe('RFC-0009 §cadence — cross-policy gates', () => {
     // The byte-level cross-language comparison is fixtures/xlang-cadence's
     // job; here we pin the PACKING itself (the protocol): 6 bytes per tick
     // — LATEST, PACED, BURST in kind order; b1 = present<<7 | interp<<6 |
-    // (alphaQ12>>6), b2 = min(coalesced,255).
+    // (alphaQ12>>7) (the alpha's top 5 bits, 0..32 — a 6-bit field; >>6
+    // would let a saturated 4096 collide with the interp bit), b2 =
+    // min(coalesced,255).
     const policies = [
       new CadencePolicy({ policy: CadencePolicyKind.LATEST_WINS }),
       new CadencePolicy({ policy: CadencePolicyKind.PACED_INTERPOLATE }),
@@ -332,7 +334,7 @@ describe('RFC-0009 §cadence — cross-policy gates', () => {
         bytes.push(
           ((a.present ? 1 : 0) << 7) |
             ((a.interp ? 1 : 0) << 6) |
-            (a.alphaQ12 >> 6)
+            (a.alphaQ12 >> 7)
         );
         bytes.push(Math.min(a.coalesced, 255));
       }
@@ -355,7 +357,7 @@ describe('RFC-0009 §cadence — cross-policy gates', () => {
         bytes2.push(
           ((a.present ? 1 : 0) << 7) |
             ((a.interp ? 1 : 0) << 6) |
-            (a.alphaQ12 >> 6)
+            (a.alphaQ12 >> 7)
         );
         bytes2.push(Math.min(a.coalesced, 255));
       }

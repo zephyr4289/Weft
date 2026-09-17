@@ -1,0 +1,15 @@
+# Series 7 — RFC-0009 governor + cadence policies, Kotlin/JVM (G-series + PC-series)
+# env: kotlinc-jvm 2.0.21 (JRE 21.0.12), x86_64 sandbox
+# date: 2026-09-17T12:03:30Z
+# compile: kotlinc core/kotlin/Governor.kt android/.../GovernorTest.kt -cp junit4
+
+JUnit version 4.13.2
+......................
+Time: 0.082
+
+OK (22 tests)
+
+
+=== xlang: Kotlin ladder/cadence emitters vs TS reference (byte-compare) ===
+governor ladder trace (10000 steps, seed 0x00C0FFEE): IDENTICAL (20001 bytes)
+cadence policy trace (10000 steps, seed 0x00C0FFEE): IDENTICAL (120001 bytes)

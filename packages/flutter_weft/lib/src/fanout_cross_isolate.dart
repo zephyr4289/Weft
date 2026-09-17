@@ -125,15 +125,21 @@ class CrossIsolateReaderStats {
 
 /// One spawned reader isolate. Lifetime stays with the session (destroy
 /// happens in the owning isolate AFTER this isolate has stopped).
+///
+/// NOTE: the session never holds the child's [Isolate] handle — Isolate
+/// objects are NOT sendable across SendPorts (dart:isolate message rules),
+/// so the child is never passed by handle. Termination is cooperative:
+/// [stop] asks the child to drain, the child replies 'stopped' and then
+/// returns from its entry point, exiting when its event loop drains (its
+/// control port is closed, no timers remain). Nothing to kill, nothing
+/// that can be freed twice.
 class ReaderIsolate {
   final int id;
-  final Isolate isolate;
   final SendPort _control;
   final CrossIsolateFanoutSession _session;
   Future<CrossIsolateReaderStats>? _stopped;
 
-  ReaderIsolate._(
-      this.id, this.isolate, this._control, this._session);
+  ReaderIsolate._(this.id, this._control, this._session);
 
   /// Request a mid-flight stats snapshot; resolves when the isolate
   /// replies. Useful for eval rigs and observability dashboards.
@@ -226,8 +232,7 @@ class CrossIsolateFanoutSession {
         if (waiter != null) {
           final control = msg['control'] as SendPort;
           _controls[id] = control;
-          final ri = ReaderIsolate._(
-              id, msg['isolate'] as Isolate, control, this);
+          final ri = ReaderIsolate._(id, control, this);
           _readers[id] = ri;
           waiter.complete(ri);
         }
@@ -243,7 +248,12 @@ class CrossIsolateFanoutSession {
   }
 
   /// Drain every reader isolate, destroy their handles HERE (lifetime
-  /// discipline), and kill the isolates. Returns final stats per id.
+  /// discipline), and release the session. Returns final stats per id.
+  ///
+  /// Each child terminates ITSELF after confirming 'stopped' (it returns
+  /// from its entry point with all ports closed, so its event loop drains
+  /// and the VM reclaims it) — the session never kills, because it never
+  /// holds an Isolate handle (unsendable across SendPorts).
   Future<Map<int, CrossIsolateReaderStats>> stopAll() async {
     final finals = <int, CrossIsolateReaderStats>{};
     for (final entry in _readers.entries) {
@@ -253,9 +263,6 @@ class CrossIsolateFanoutSession {
       h.destroy();
     }
     _handles.clear();
-    for (final r in _readers.values) {
-      r.isolate.kill(priority: Isolate.beforeNextEvent);
-    }
     _readers.clear();
     _disposed = true;
     _events.close();
@@ -294,14 +301,15 @@ class _IsoConfig {
 
 void _readerIsolateMain(_IsoConfig cfg) async {
   final control = ReceivePort();
-  // Announce readiness: the control port AND the current Isolate handle
-  // (so the session never races its own spawn future against this
-  // message). Lifetime stays with the session — we only ever claim.
+  // Announce readiness with SENDABLE values only (SendPort + primitives).
+  // Isolate handles (including Isolate.current) can never cross a SendPort
+  // — attempting it throws inside the child and the session's 'ready'
+  // future hangs until the test times out. The session tracks this reader
+  // by id; termination is cooperative (see stopAll), never by handle.
   cfg.events.send({
     'event': 'ready',
     'id': cfg.id,
     'control': control.sendPort,
-    'isolate': Isolate.current,
   });
 
   var running = true;
@@ -402,6 +410,10 @@ void _readerIsolateMain(_IsoConfig cfg) async {
 
   cfg.events.send({'event': 'stopped', 'id': cfg.id, ...snapshot().toMap()});
   control.close();
+  // Return: with the control port closed and no timers pending, the event
+  // loop drains and this isolate terminates on its own. The session's
+  // stopAll() does NOT kill it (it holds no handle) — it only destroys the
+  // native reader handle in the OWNING isolate after 'stopped' lands.
 }
 
 // The canonical payload pattern (04-LITMUS §0.1) — independent Dart

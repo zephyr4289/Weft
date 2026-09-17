@@ -36,6 +36,14 @@ import Foundation
 import CoreVideo
 import WeftCore
 
+#if canImport(QuartzCore)
+import QuartzCore // CACurrentMediaTime for frame timestamps
+#endif
+#if canImport(Metal)
+import Metal // MTLCreateSystemDefaultDevice (MetalKit re-exports it on
+             // most SDKs, but the defining module is the honest import)
+#endif
+
 #if canImport(MetalKit) && !os(watchOS)
 import MetalKit
 

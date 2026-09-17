@@ -45,6 +45,18 @@ jobs:
           channel: 'stable'
           cache: true
 
+      # Windows git-bash has no C compiler on PATH (command -v gcc/clang/cc
+      # all miss), so the per-OS kernel compile below fails in seconds.
+      # MinGW-w64 via msys2 is the documented runner-native toolchain; the
+      # action prepends mingw64/bin to PATH for all later steps.
+      - name: Set up MinGW (Windows only)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-gcc
+          update: false
+
       - name: Compile Native C Kernel (per-OS)
         run: |
           set -o pipefail  # tee must not swallow the compile exit code

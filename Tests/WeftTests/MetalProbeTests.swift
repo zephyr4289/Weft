@@ -24,6 +24,13 @@ import WeftCore
 import WeftSwiftUI
 
 #if canImport(MetalKit) && !os(watchOS)
+import MetalKit // MTKView; also re-exports Metal symbols on Apple SDKs
+#endif
+#if canImport(Metal) && !os(watchOS)
+import Metal // MTLCreateSystemDefaultDevice (defining module, not transitive)
+#endif
+
+#if canImport(MetalKit) && !os(watchOS)
 final class MetalProbeTests: XCTestCase {
 
     /// P1: end-to-end probe with a live kernel stream.

@@ -86,16 +86,30 @@ jobs:
               2>&1 | tee /tmp/emulator_stage.log
             grep -q "OK (1 test)" /tmp/emulator_stage.log
 
-            PID=$(adb shell pidof dev.weft.sample || true)
+            # Process-liveness probe with an API-26-safe fallback (pidof is
+            # toybox on modern images but absent on some API-26 builds; ps
+            # carries the same signal). Same gate, no weakening.
+            pkg_pid() {
+              adb shell pidof dev.weft.sample 2>/dev/null || \
+                adb shell ps 2>/dev/null | grep 'dev.weft.sample' | awk '{print $2}' || true
+            }
+            PID=$(pkg_pid)
             echo "pre-kill pid: $PID"
             adb shell am kill dev.weft.sample || true
-            sleep 3
-            if [ -n "$(adb shell pidof dev.weft.sample || true)" ]; then
+            # API 26 (x86_64, swiftshader) settles slowly: poll until the
+            # package is actually gone (up to 30s) instead of a fixed sleep,
+            # so the verify phase can never attach to the dying process.
+            # The assertions below are unchanged — only the wait is patient.
+            for i in $(seq 1 10); do
               sleep 3
-              adb shell am kill dev.weft.sample || true
-              sleep 3
-            fi
-            echo "post-kill pid: $(adb shell pidof dev.weft.sample || true)"
+              if [ -z "$(pkg_pid)" ]; then break; fi
+              if [ "$i" -eq 10 ]; then
+                echo "process still alive after kill — retrying am kill once"
+                adb shell am kill dev.weft.sample || true
+                sleep 5
+              fi
+            done
+            echo "post-kill pid: $(pkg_pid)"
 
             adb shell am instrument -w \
               -e class dev.weft.sample.LmkReattachTest#verify_cleanReallocateAfterProcessDeath \

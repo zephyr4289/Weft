@@ -318,6 +318,13 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm --filter @weft/core build
 
+      - name: Set up pnpm + build @weft/core dist (browser-sab leg)
+        if: matrix.shard == 'browser-sab'
+        run: |
+          npm i -g pnpm@9
+          pnpm install --frozen-lockfile
+          pnpm --filter @weft/core build
+
       - name: Set up pnpm (verifiedweft TS + xlang legs)
         if: matrix.shard == 'verifiedweft'
         run: |

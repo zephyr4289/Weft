@@ -1,0 +1,10 @@
+# ING-uring — negotiated RING rung vs forced SYSCALL leg — 2026-09-17T20:42:50Z
+# (RING on kernel 5.10 depth-1: structural proof, NOT a throughput
+#  win — enter() is heavier than recv() here; syscall-free rungs are
+#  FIXED/multishot/SQPOLL on >= 5.19: PREDICTED, labeled)
+{"bench":"ING-uring","lang":"c","mode":"ring","frames":100000,"seconds":0.148,"frames_per_s":674710,"mb_per_s":164.7,"p50":1116,"p90":1538,"p99":4218,"p999":6952,"max":24478324,"enters":100000,"syscalls":0,"aborted":0,"clock_overhead_ns":23}
+{"bench":"ING-uring","lang":"c","mode":"syscall","frames":100000,"seconds":0.157,"frames_per_s":636793,"mb_per_s":155.5,"p50":952,"p90":1319,"p99":4181,"p999":6847,"max":28024,"enters":0,"syscalls":100000,"aborted":0,"clock_overhead_ns":23}
+{"bench":"ING-uring","lang":"c","mode":"ring","frames":100000,"seconds":0.147,"frames_per_s":679435,"mb_per_s":165.9,"p50":1100,"p90":1554,"p99":4661,"p999":7593,"max":30685,"enters":100000,"syscalls":0,"aborted":0,"clock_overhead_ns":23}
+{"bench":"ING-uring","lang":"c","mode":"syscall","frames":100000,"seconds":0.152,"frames_per_s":658287,"mb_per_s":160.7,"p50":946,"p90":1297,"p99":3825,"p999":6662,"max":83259,"enters":0,"syscalls":100000,"aborted":0,"clock_overhead_ns":23}
+{"bench":"ING-uring","lang":"c","mode":"ring","frames":100000,"seconds":0.175,"frames_per_s":572587,"mb_per_s":139.8,"p50":1114,"p90":1569,"p99":4608,"p999":7318,"max":21482599,"enters":100000,"syscalls":0,"aborted":0,"clock_overhead_ns":23}
+{"bench":"ING-uring","lang":"c","mode":"syscall","frames":100000,"seconds":0.132,"frames_per_s":758269,"mb_per_s":185.1,"p50":956,"p90":1349,"p99":4349,"p999":6869,"max":59111,"enters":0,"syscalls":100000,"aborted":0,"clock_overhead_ns":23}

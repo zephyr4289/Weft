@@ -173,6 +173,22 @@ turbo-test-tsan: turbo.c turbo.h turbo_test.c $(TURBO_SRC) fanout.h frame_cursor
 turbo-test-seq: turbo.c turbo.h turbo_test.c $(TURBO_SRC) fanout.h frame_cursor.h weft.h
 	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 -o turbo-test-seq $(TURBO_SRC) turbo_test.c
 
+# ---- RFC 0012 kernel-bypass ingestion (uring_rx) ----------------------------
+# uring_rx.{h,c}: datagram->frame ingestion under the FI1 bracket; capability
+# ladder NONE/SYSCALL/RING/FIXED probed at runtime (no liburing dependency).
+# U-series conformance + concurrent torture.
+
+URING_SRC = uring_rx.c fanout.c weft.c
+
+uring-test: uring_rx.c uring_rx.h uring_test.c $(URING_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS) -o uring-test $(URING_SRC) uring_test.c
+
+uring-test-asan: uring_rx.c uring_rx.h uring_test.c $(URING_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o uring-test-asan $(URING_SRC) uring_test.c
+
+uring-test-tsan: uring_rx.c uring_rx.h uring_test.c $(URING_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS_DBG) -o uring-test-tsan $(URING_SRC) uring_test.c
+
 governor-test: governor.c governor_test.c governor.h
 	$(CC) $(CFLAGS) -o governor-test governor.c governor_test.c
 

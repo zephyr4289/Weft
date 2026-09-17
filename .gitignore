@@ -8,6 +8,9 @@ core/c/turbo-test
 core/c/turbo-test-asan
 core/c/turbo-test-tsan
 core/c/turbo-test-seq
+core/c/uring-test
+core/c/uring-test-asan
+core/c/uring-test-tsan
 core/c/bench-asan
 core/c/libweft.so
 core/c/fanout-test

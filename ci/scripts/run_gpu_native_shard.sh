@@ -63,8 +63,10 @@ make -C core/c gpu-ring-test-asan 2>&1 | tee -a "$LOG" || fail=1
 # --- 2: the zero-copy consumer proof (FULL dispatch or allocation proof) -------
 step "gpu-probe: zero-copy consumer proof (compute dispatch validates live ring words)"
 make -C core/c gpu-probe 2>&1 | tee -a "$LOG" || fail=1
+set +e
 ./core/c/gpu-probe --frames 1000 --payload 256 --slots 4 2>&1 | tee -a "$LOG"
 rc=${PIPESTATUS[0]}
+set -e
 if [ "$rc" -ne 0 ] && [ "$rc" -ne 4 ]; then
   echo "gpu-probe exit=$rc (expected 0 or 4: zero-copy allocation/dispatch proof)" | tee -a "$LOG"
   fail=1
@@ -74,8 +76,10 @@ fi
 step "gpu-probe geometry sweep"
 for geo in "64 4" "1024 8" "16 3"; do
   set -- $geo
+  set +e
   ./core/c/gpu-probe --frames 500 --payload "$1" --slots "$2" 2>&1 | tee -a "$LOG"
   rc=${PIPESTATUS[0]}
+  set -e
   if [ "$rc" -ne 0 ] && [ "$rc" -ne 4 ]; then fail=1; fi
 done
 

@@ -4,6 +4,34 @@
 
 ```ts
 
+// @public (undocumented)
+export interface ChaosConfig {
+    // (undocumented)
+    chaosRate: number;
+    // (undocumented)
+    frames: number;
+    // (undocumented)
+    readers: number;
+    // (undocumented)
+    seed: number;
+    // (undocumented)
+    slots: number;
+    // (undocumented)
+    steps: number;
+    // (undocumented)
+    words: number;
+}
+
+// @public (undocumented)
+export interface ChaosVerdict {
+    // (undocumented)
+    engine: string;
+    // (undocumented)
+    json: string;
+    // (undocumented)
+    pass: boolean;
+}
+
 // @public
 export function ctEq(a: Uint8Array, b: Uint8Array): boolean;
 
@@ -173,6 +201,12 @@ export const PubResult: {
 
 // @public (undocumented)
 export type PubResult = (typeof PubResult)[keyof typeof PubResult];
+
+// @public (undocumented)
+export function runSteppedChaos(cfg: ChaosConfig): ChaosVerdict;
+
+// @public (undocumented)
+export function selftest(): boolean;
 
 // @public
 export class Sha256 {

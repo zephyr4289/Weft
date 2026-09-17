@@ -47,7 +47,7 @@ public struct ChaosVerdict: Sendable {
 // The chaos contract: PRNG + pattern (mirror of core/c/fanout_chaos.c)
 // ---------------------------------------------------------------------------
 
-func mix32(_ x0: UInt32) -> UInt32 {
+fileprivate func mix32(_ x0: UInt32) -> UInt32 {
     var x = x0
     x ^= x >> 16
     x = x &* 0x7FEB352D

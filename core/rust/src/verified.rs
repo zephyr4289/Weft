@@ -213,7 +213,7 @@ fn transform_dispatch() -> TransformFn {
         }
         #[cfg(target_arch = "aarch64")]
         {
-            if std::is_aarch64_feature_detected!("sha2") {
+            if std::arch::is_aarch64_feature_detected!("sha2") {
                 return transform_arm_ce;
             }
         }
@@ -231,7 +231,7 @@ pub fn sha256_active_impl() -> Sha256Impl {
     }
     #[cfg(target_arch = "aarch64")]
     {
-        if std::is_aarch64_feature_detected!("sha2") {
+        if std::arch::is_aarch64_feature_detected!("sha2") {
             return Sha256Impl::ArmCe;
         }
     }
@@ -491,20 +491,29 @@ mod hw_arm {
                 } else {
                     // su0/su1 extend the rotating schedule vector in place
                     // (same index math as the C port, see sha256_hw.c).
-                    let m = i % 4;
-                    let cur = match m { 0 => &mut w0, 1 => &mut w1, 2 => &mut w2, _ => &mut w3 };
-                    let wnext;
-                    let wback2;
-                    let wback1;
-                    match m {
-                        0 => { wnext = &mut w1; wback2 = &mut w2; wback1 = &mut w3; }
-                        1 => { wnext = &mut w2; wback2 = &mut w3; wback1 = &mut w0; }
-                        2 => { wnext = &mut w3; wback2 = &mut w0; wback1 = &mut w1; }
-                        _ => { wnext = &mut w0; wback2 = &mut w1; wback1 = &mut w2; }
-                    }
-                    *cur = unsafe { vsha256su0q_u32(*cur, *wnext) };
-                    *cur = unsafe { vsha256su1q_u32(*cur, *wback2, *wback1) };
-                    wk = unsafe { vaddq_u32(*cur, vld1q_u32(K.as_ptr().add(4 * i))) };
+                    let cur = match i % 4 {
+                        0 => {
+                            let s0 = unsafe { vsha256su0q_u32(w0, w1) };
+                            w0 = unsafe { vsha256su1q_u32(s0, w2, w3) };
+                            w0
+                        }
+                        1 => {
+                            let s0 = unsafe { vsha256su0q_u32(w1, w2) };
+                            w1 = unsafe { vsha256su1q_u32(s0, w3, w0) };
+                            w1
+                        }
+                        2 => {
+                            let s0 = unsafe { vsha256su0q_u32(w2, w3) };
+                            w2 = unsafe { vsha256su1q_u32(s0, w0, w1) };
+                            w2
+                        }
+                        _ => {
+                            let s0 = unsafe { vsha256su0q_u32(w3, w0) };
+                            w3 = unsafe { vsha256su1q_u32(s0, w1, w2) };
+                            w3
+                        }
+                    };
+                    wk = unsafe { vaddq_u32(cur, vld1q_u32(K.as_ptr().add(4 * i))) };
                 }
                 let tmp = state0;
                 state0 = unsafe { vsha256hq_u32(state0, state1, wk) };

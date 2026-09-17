@@ -388,3 +388,98 @@ jobs:
           git add "$RUN_DIR" nightly-latest.log nightly-latest-summary.json
           git commit -m "test(ci-nightly): ${{ github.run_number }} [skip ci]" || true
           git push origin ci-report || true
+
+  # ===========================================================================
+  # RFC 0011 — the 10,000,000-frame chaos tier + bound-3 loom sweep + TLC
+  # ===========================================================================
+  chaos-10m:
+    name: Chaos free-running (10,000,000 frames, seed-deterministic faults)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the chaos engine
+        run: |
+          set -euo pipefail
+          make -C core/c fanout-chaos fanout-chaos-seq
+      - name: Chaos 10M — fenced acq/rel regime
+        run: |
+          set -euo pipefail
+          mkdir -p ci/run-artifacts
+          ./core/c/fanout-chaos free 10000000 4 16 3 30 31415926 | tee ci/run-artifacts/chaos-10m-fenced.json
+      - name: Chaos 10M — all-seq_cst regime
+        run: |
+          set -euo pipefail
+          ./core/c/fanout-chaos-seq free 10000000 4 16 3 30 31415926 | tee ci/run-artifacts/chaos-10m-seqcst.json
+      - name: Chaos 10M — 8-slot wide ring, 4 readers
+        run: |
+          set -euo pipefail
+          ./core/c/fanout-chaos free 10000000 8 8 4 30 271828 | tee ci/run-artifacts/chaos-10m-wide.json
+      - name: Upload chaos-10m artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-chaos-10m
+          path: ci/run-artifacts/
+
+  loom-bound3:
+    name: Loom preemption-bound-3 exhaustive sweep (RFC 0011 deep-model)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            core/rust/target
+          key: loom-bound3-${{ runner.os }}-${{ hashFiles('core/rust/Cargo.lock') }}
+      - name: Run the ignored bound-3 model (minutes by design)
+        run: |
+          set -euo pipefail
+          cd core/rust
+          cargo test --release --test loom_fanout -- --ignored --nocapture 2>&1 | tee ../../ci/run-artifacts/loom-bound3.log
+      - name: Upload loom evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-loom-bound3
+          path: ci/run-artifacts/
+
+  formal-deep:
+    name: TLA+ deeper bounds (3 readers / 4 frames)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Fetch pinned TLC
+        run: |
+          set -euo pipefail
+          mkdir -p .tlc-cache
+          curl -sSLf -o .tlc-cache/tla2tools-1.8.0.jar https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar
+          echo "9d36716ffb5e49d1ba8fae4651eba59f3189887e12eb90e204a42d2e6e993fef  .tlc-cache/tla2tools-1.8.0.jar" | sha256sum -c -
+      - name: FanoutSeqlock — wider model (3 readers, 4 frames)
+        run: |
+          set -euo pipefail
+          cd formal/fanout
+          sed -e 's/READERS = 2/READERS = 3/' -e 's/FRAMES = 3/FRAMES = 4/' FanoutSeqlock.cfg > FanoutSeqlock-nightly.cfg
+          java -XX:+UseParallelGC -cp ../../.tlc-cache/tla2tools-1.8.0.jar tlc2.TLC -config FanoutSeqlock-nightly.cfg FanoutSeqlock.tla 2>&1 | tee ../../ci/run-artifacts/formal-nightly-fanout.log
+          grep -q "Model checking completed. No error has been found." ../../ci/run-artifacts/formal-nightly-fanout.log
+      - name: ReattachPolicy — deeper model (3 deaths, 4 frames)
+        run: |
+          set -euo pipefail
+          cd formal/reattach
+          sed -e 's/DEATHS = 2/DEATHS = 3/' -e 's/FRAMES = 3/FRAMES = 4/' ReattachPolicy.cfg > ReattachPolicy-nightly.cfg
+          java -XX:+UseParallelGC -cp ../../.tlc-cache/tla2tools-1.8.0.jar tlc2.TLC -config ReattachPolicy-nightly.cfg ReattachPolicy.tla 2>&1 | tee ../../ci/run-artifacts/formal-nightly-reattach.log
+          grep -q "Model checking completed. No error has been found." ../../ci/run-artifacts/formal-nightly-reattach.log
+      - name: Upload formal evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-formal-deep
+          path: ci/run-artifacts/

@@ -1,0 +1,6 @@
+{
+  "shard": "selftest-fake-shard",
+  "status": "FAILED",
+  "note": "Guardian selftest fixture — a shard that went red must be flagged by the crash watch.",
+  "legs": [ { "name": "fake-leg", "pass": false } ]
+}

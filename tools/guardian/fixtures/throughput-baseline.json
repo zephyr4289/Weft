@@ -1,0 +1,8 @@
+{
+  "v": 1,
+  "note": "Guardian selftest baseline (synthetic numbers, wired to the bench matrix metric names).",
+  "entries": {
+    "c/B1-pub-throughput": { "metric": "ops_per_s", "value": 2916757 },
+    "c/B2-contended":      { "metric": "publishes_per_s", "value": 1002408 }
+  }
+}

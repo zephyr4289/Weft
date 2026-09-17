@@ -66,47 +66,42 @@ jobs:
           gradle wrapper --gradle-version 8.11.1
           chmod +x gradlew
 
-      - name: Assemble + install sample app (debug, x86_64)
-        run: |
-          set -o pipefail
-          cd android
-          ./gradlew :sample-app:installDebug --stacktrace 2>&1 | tee /tmp/emulator_build.log
+      - name: Run instrumentation tests on Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            set -o pipefail
+            cd android
+            ./gradlew :sample-app:installDebug --stacktrace 2>&1 | tee /tmp/emulator_build.log
 
-      - name: RFC-0006 phase 1 — stage pre-death state (instrumented)
-        run: |
-          set -o pipefail
-          adb shell am instrument -w \
-            -e class dev.weft.sample.LmkReattachTest#stage_preDeathState \
-            dev.weft.sample.test/androidx.test.runner.AndroidJUnitRunner \
-            2>&1 | tee /tmp/emulator_stage.log
-          grep -q "OK (1 test)" /tmp/emulator_stage.log
+            adb shell am instrument -w \
+              -e class dev.weft.sample.LmkReattachTest#stage_preDeathState \
+              dev.weft.sample.test/androidx.test.runner.AndroidJUnitRunner \
+              2>&1 | tee /tmp/emulator_stage.log
+            grep -q "OK (1 test)" /tmp/emulator_stage.log
 
-      - name: RFC-0006 kill — deterministic background-process death
-        run: |
-          set -o pipefail
-          PID=$(adb shell pidof dev.weft.sample || true)
-          echo "pre-kill pid: $PID"
-          adb shell am kill dev.weft.sample || true
-          sleep 3
-          # The kill is real: no live process may remain (retry once).
-          if [ -n "$(adb shell pidof dev.weft.sample || true)" ]; then
-            sleep 3
+            PID=$(adb shell pidof dev.weft.sample || true)
+            echo "pre-kill pid: $PID"
             adb shell am kill dev.weft.sample || true
             sleep 3
-          fi
-          echo "post-kill pid: $(adb shell pidof dev.weft.sample || true)"
+            if [ -n "$(adb shell pidof dev.weft.sample || true)" ]; then
+              sleep 3
+              adb shell am kill dev.weft.sample || true
+              sleep 3
+            fi
+            echo "post-kill pid: $(adb shell pidof dev.weft.sample || true)"
 
-      - name: RFC-0006 phase 2 — verify CLEAN_REALLOCATE in a fresh process
-        run: |
-          set -o pipefail
-          adb shell am instrument -w \
-            -e class dev.weft.sample.LmkReattachTest#verify_cleanReallocateAfterProcessDeath \
-            dev.weft.sample.test/androidx.test.runner.AndroidJUnitRunner \
-            2>&1 | tee /tmp/emulator_verify.log
-          grep -q "OK (1 test)" /tmp/emulator_verify.log
-          # Regime note: on API < 33 the FanoutCompat SC-stamp regime is the
-          # ring regime this runtime exercises; on 33+ it is VarHandle. The
-          # unit matrix (FanoutCompatTest) pins BOTH either way.
+            adb shell am instrument -w \
+              -e class dev.weft.sample.LmkReattachTest#verify_cleanReallocateAfterProcessDeath \
+              dev.weft.sample.test/androidx.test.runner.AndroidJUnitRunner \
+              2>&1 | tee /tmp/emulator_verify.log
+            grep -q "OK (1 test)" /tmp/emulator_verify.log
 
       - name: Archive emulator logs
         if: always()

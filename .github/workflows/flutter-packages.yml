@@ -2,9 +2,9 @@ name: Flutter Packages CI
 
 on:
   push:
-    branches: ain, develop]
+    branches: [main, develop]
   pull_request:
-    branches: ain]
+    branches: [main]
   workflow_dispatch:
 
 permissions:

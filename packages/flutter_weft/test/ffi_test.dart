@@ -14,24 +14,31 @@ void main() {
       // AND windows runners — the kernel is compiled per-OS by the workflow).
       final soPaths = [
         'libweft.so',
+        './libweft.so',
         'build/libweft.so',
+        'packages/flutter_weft/libweft.so',
         '/tmp/libweft.so',
         '../../build/libweft.so',
         if (Platform.isMacOS) ...[
           'libweft.dylib',
+          './libweft.dylib',
           'build/libweft.dylib',
+          'packages/flutter_weft/libweft.dylib',
           '/tmp/libweft.dylib',
         ],
         if (Platform.isWindows) ...[
           'weft.dll',
+          r'.\weft.dll',
           r'build\weft.dll',
+          r'packages\flutter_weft\weft.dll',
           r'C:\tmp\weft.dll',
+          r'/tmp/weft.dll',
         ],
       ];
       String? foundPath;
       for (final p in soPaths) {
         if (File(p).existsSync()) {
-          foundPath = p;
+          foundPath = File(p).absolute.path;
           break;
         }
       }

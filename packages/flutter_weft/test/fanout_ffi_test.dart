@@ -474,26 +474,33 @@ DynamicLibrary _openLib() {
   // windows runners — the native kernel is compiled per-OS by the workflow).
   final base = <String>[
     'libweft.so',
+    './libweft.so',
     'build/libweft.so',
     'packages/flutter_weft/libweft.so',
     '/tmp/libweft.so',
     '../../build/libweft.so',
     if (Platform.isMacOS) ...[
       'libweft.dylib',
+      './libweft.dylib',
       'build/libweft.dylib',
       'packages/flutter_weft/libweft.dylib',
+      '/tmp/libweft.dylib',
     ],
     if (Platform.isWindows) ...[
       'weft.dll',
-      'build\weft.dll',
+      r'.\weft.dll',
+      r'build\weft.dll',
       r'packages\flutter_weft\weft.dll',
-      'packages\flutter_weft\libweft.dll',
+      r'packages\flutter_weft\libweft.dll',
+      r'C:\tmp\weft.dll',
+      r'/tmp/weft.dll',
     ],
   ];
   for (final p in base) {
     if (File(p).existsSync()) {
-      _soPath = p;
-      return DynamicLibrary.open(p);
+      final abs = File(p).absolute.path;
+      _soPath = abs;
+      return DynamicLibrary.open(abs);
     }
   }
   // CI builds the kernel next to the package; the workflow copies it to

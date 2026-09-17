@@ -237,18 +237,6 @@ def check_fanout(target):
     print(json.dumps(result))
     return all_pass
 
-<<<<<<< HEAD
-def check_verified(target):
-    """Validate a port's RFC-0005 VerifiedWeft module (Series 6 rule pack).
-    Same JSON result shape as check_fanout."""
-    path = VERIFIED_FILES[target]
-    checks = []
-    if not path.exists():
-        checks.append({'file': str(path.relative_to(ROOT)), 'check': 'file_exists',
-                       'pass': False, 'detail': 'verified module not found'})
-        result = {'target': f'verified-{target}', 'pass': False, 'checks': checks}
-=======
-
 # ---------------------------------------------------------------------------
 # Ordering-site proofs (Series 7 — the substring -> site upgrade)
 # ---------------------------------------------------------------------------
@@ -604,17 +592,15 @@ def prove_torture():
         return _emit_proof('torture-f10', ok,
                            f'100k-frame 3-reader torture {"PASS" if ok else "FAILED"} {rate}')
 
-def check_fanout_compat(target):
-    """Validate a port's API<33 compat fan-out regime (Series-7 rule pack).
-    Same output shape as check_fanout so the CI aggregator consumes both."""
-    spec = FANOUT_COMPAT_FILES[target]
-    path = spec['path']
+def check_verified(target):
+    """Validate a port's RFC-0005 VerifiedWeft module (Series 6 rule pack).
+    Same JSON result shape as check_fanout."""
+    path = VERIFIED_FILES[target]
     checks = []
     if not path.exists():
         checks.append({'file': str(path.relative_to(ROOT)), 'check': 'file_exists',
-                       'pass': False, 'detail': 'fan-out compat module not found'})
-        result = {'target': f'fanout-compat-{target}', 'pass': False, 'checks': checks}
->>>>>>> 4611ef0 (feat(validator): substring -> PROOF — compile-and-load, ordering-site proofs, torture)
+                       'pass': False, 'detail': 'verified module not found'})
+        result = {'target': f'verified-{target}', 'pass': False, 'checks': checks}
         print(json.dumps(result))
         return False
     header_ok, header_detail = check_file_header(path, target)
@@ -622,7 +608,6 @@ def check_fanout_compat(target):
                    'pass': header_ok, 'detail': header_detail})
     with open(path) as f:
         src = f.read()
-<<<<<<< HEAD
     # Port naming conventions differ (VW_ENVELOPE_LEN / vwEnvelopeLen /
     # vwEnvelopeLen): compare case- and underscore-insensitively so the rule
     # checks the SYMBOL, not the spelling.
@@ -642,7 +627,23 @@ def check_fanout_compat(target):
     print(json.dumps(result))
     return all_pass
 
-=======
+def check_fanout_compat(target):
+    """Validate a port's API<33 compat fan-out regime (Series-7 rule pack).
+    Same output shape as check_fanout so the CI aggregator consumes both."""
+    spec = FANOUT_COMPAT_FILES[target]
+    path = spec['path']
+    checks = []
+    if not path.exists():
+        checks.append({'file': str(path.relative_to(ROOT)), 'check': 'file_exists',
+                       'pass': False, 'detail': 'fan-out compat module not found'})
+        result = {'target': f'fanout-compat-{target}', 'pass': False, 'checks': checks}
+        print(json.dumps(result))
+        return False
+    header_ok, header_detail = check_file_header(path, target)
+    checks.append({'file': str(path.relative_to(ROOT)), 'check': 'header',
+                   'pass': header_ok, 'detail': header_detail})
+    with open(path) as f:
+        src = f.read()
     for m in spec['markers']:
         checks.append({'file': str(path.relative_to(ROOT)), 'check': f'fanout_compat_marker_{m}',
                        'pass': m in src,
@@ -651,9 +652,6 @@ def check_fanout_compat(target):
     result = {'target': f'fanout-compat-{target}', 'pass': all_pass, 'checks': checks}
     print(json.dumps(result))
     return all_pass
-
-
->>>>>>> 4611ef0 (feat(validator): substring -> PROOF — compile-and-load, ordering-site proofs, torture)
 def validate_target(target, files):
     """Validate all files for a target language.
     Only the kernel file is checked for full API surface.

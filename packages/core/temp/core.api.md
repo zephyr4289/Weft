@@ -88,6 +88,7 @@ export interface ChaosVerdict {
     // (undocumented)
     pass: boolean;
 }
+
 // @public
 export function ctEq(a: Uint8Array, b: Uint8Array): boolean;
 

@@ -167,6 +167,11 @@ int main(int argc, char **argv) {
             for (size_t ai = 0; ai < sizeof(ALPHAS) / sizeof(ALPHAS[0]); ai++) {
                 const size_t words = DS[si];
                 const unsigned alpha = ALPHAS[ai];
+                /* Per-row reseed: every fixture row must be replayable
+                 * from (size, alpha) alone — the ports re-seed 0x5EEDBEEF
+                 * exactly here. Cross-row state chains would make the
+                 * CSV unreproducible (the first gate run caught this). */
+                state = 0x5EEDBEEF;
                 fill_random(words, &state);
                 weft_blend_q12_scalar(prev_buf, new_buf, ref_buf, words, alpha);
                 printf("%zu,%u,%016llx\n", words, alpha,

@@ -136,7 +136,9 @@ class GovernedFanoutConsumer(
                 val alpha = d.alphaQ12
                 val inv = CADENCE_ALPHA_ONE_Q12 - alpha
                 for (i in 0 until words) {
-                    val packed = blendQ12(prevWords[i], newWords[i], alpha, inv)
+                    // BlendQ12 = the single spec'd raster op (Series 8;
+                    // bit-exact to the C SIMD kernel via the xlang gate).
+                    val packed = BlendQ12.blendPacked(prevWords[i], newWords[i], alpha)
                     raster[4 * i] = packed.toByte()
                     raster[4 * i + 1] = (packed ushr 8).toByte()
                     raster[4 * i + 2] = (packed ushr 16).toByte()
@@ -169,12 +171,4 @@ class GovernedFanoutConsumer(
         myPool?.release(r)
     }
 
-    /** Per-channel u32 blend in Q12 — the raster op (zero alloc). */
-    private fun blendQ12(a: Int, b: Int, alpha: Int, inv: Int): Int {
-        val r = ((a and 0xff) * inv + (b and 0xff) * alpha) ushr 12
-        val g = ((a ushr 8 and 0xff) * inv + (b ushr 8 and 0xff) * alpha) ushr 12
-        val bl = ((a ushr 16 and 0xff) * inv + (b ushr 16 and 0xff) * alpha) ushr 12
-        val al = ((a ushr 24 and 0xff) * inv + (b ushr 24 and 0xff) * alpha) ushr 12
-        return r or (g shl 8) or (bl shl 16) or (al shl 24)
-    }
 }

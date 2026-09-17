@@ -30,6 +30,21 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    // SERIES 7 — the memory-pressure backstop wiring (RFC-0009 work order):
+    // ONE registration point forwards Android's trim/low-memory events to
+    // every Weft recycler (FREE slots drop; LIVE slots are never touched —
+    // a raster mid-blend cannot lose its buffer; the next acquire lazily
+    // reallocates and counts it, per AXIOM T).
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        dev.weft.WeftRecyclerCenter.onTrimMemory(level)
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        dev.weft.WeftRecyclerCenter.onLowMemory()
+    }
 }
 
 @Composable

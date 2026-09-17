@@ -25,11 +25,12 @@ final class RecyclerTests: XCTestCase {
         XCTAssertEqual(pool.pooledNow, 0)
         XCTAssertEqual(pool.liveNow, 0)
 
-        let a = pool.acquire()
+        var a = pool.acquire()
         XCTAssertEqual(a.count, 256)
         XCTAssertEqual(pool.liveNow, 1)
         XCTAssertEqual(pool.pooledNow, 0)
         XCTAssertEqual(pool.reallocs, 0) // first fill is not a realloc
+        a[0] = 0x5A
 
         XCTAssertTrue(pool.release(a))
         XCTAssertEqual(pool.liveNow, 0)
@@ -37,7 +38,8 @@ final class RecyclerTests: XCTestCase {
 
         // Reuse: the SAME slot identity comes back (zero allocation).
         let b = pool.acquire()
-        XCTAssertTrue(a === b, "pooled slot identity reused")
+        XCTAssertEqual(b.count, 256)
+        XCTAssertEqual(b[0], 0x5A, "pooled slot contents reused")
         XCTAssertEqual(pool.acquires, 2)
         XCTAssertEqual(pool.releases, 1)
         XCTAssertEqual(pool.reallocs, 0)
@@ -50,7 +52,7 @@ final class RecyclerTests: XCTestCase {
         let x = pool.acquire(); let y = pool.acquire(); let z = pool.acquire()
         XCTAssertTrue(pool.release(x))
         XCTAssertTrue(pool.release(y))
-        XCTAssertFalse("pool full — z drops", pool.release(z))
+        XCTAssertFalse(pool.release(z), "pool full — z drops")
         XCTAssertEqual(pool.pooledNow, 2)
         XCTAssertEqual(pool.liveNow, 0)
     }
@@ -59,14 +61,15 @@ final class RecyclerTests: XCTestCase {
 
     func testR3TrimDropsOnlyFreeSlotsLiveSurvivesAndNextAcquireReallocates() {
         let pool = WeftBufferRecycler(slotBytes: 128, maxFreeSlots: 2)
-        let live = pool.acquire()          // LIVE: mid-frame raster buffer
-        let free1 = pool.acquire()          // two DISTINCT slots pool up
+        var live = pool.acquire()          // LIVE: mid-frame raster buffer
+        var free1 = pool.acquire()          // two DISTINCT slots pool up
         let free2 = pool.acquire()
+        free1[0] = 0x7E
         pool.release(free1)
         pool.release(free2)
         XCTAssertEqual(pool.pooledNow, 2)
 
-        pool.trim(keepFree: 0)
+        pool.trim(0)
         XCTAssertEqual(pool.pooledNow, 0)
         XCTAssertEqual(pool.trimmedSlots, 2)
         XCTAssertEqual(pool.trims, 1)
@@ -78,7 +81,8 @@ final class RecyclerTests: XCTestCase {
 
         // Next acquire: fresh allocation, COUNTED (pressure's visible cost).
         let fresh = pool.acquire()
-        XCTAssertFalse(free1 === fresh)
+        XCTAssertEqual(fresh.count, 128)
+        XCTAssertEqual(fresh[0], 0)
         XCTAssertEqual(pool.reallocs, 1)
     }
 

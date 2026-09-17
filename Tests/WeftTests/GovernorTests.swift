@@ -98,7 +98,7 @@ final class GovernorTests: XCTestCase {
                 reseeds += 1
                 if lastReseedAt >= 0 {
                     XCTAssertTrue(
-                        i - lastReseedAt >= governorDefaults.reseedCooldownMs,
+                        Int64(i) - lastReseedAt >= governorDefaults.reseedCooldownMs,
                         "G3 cooldown spacing at i=\(i)"
                     )
                 }

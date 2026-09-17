@@ -482,7 +482,7 @@ class GovernorTest {
     }
 }
 
-internal object HotspotAllocAudit {
+private object HotspotAllocAudit {
     private val pair by lazy {
         try {
             val factoryClass = Class.forName("java.lang.management.ManagementFactory")

@@ -1,0 +1,11 @@
+workflow: android-emulator
+job:      Emulator API 34 — LMK reattach + regime
+api:      34
+target:   google_apis
+arch:     x86_64
+status:   failure
+sha:      4638446523e0581f923b496244d64b45639b51bd
+event:    pull_request
+run:      11
+date:     Thu Sep 17 09:18:21 UTC 2026
+ref:      refs/pull/11/merge

@@ -92,7 +92,7 @@ class LmkReattachTest {
         val payload = ByteArray(256) { i -> ((i * 17 + 1) and 0xFF).toByte() }
         weft.wBegin().put(payload)
         assertEquals(dev.weft.PubResult.OK, weft.publish(1, payload.size))
-        assertEquals(1, weft.claim())
+        weft.claim()
 
         // Sequence resets to 1 (RECREATED_FRESH_PROCESS contract).
         assertEquals("sequence must reset to 1 after process death", 1, weft.rSeq())

@@ -42,10 +42,10 @@ jobs:
             target: default
             arch: x86_64
           - api: 33
-            target: google_apis
+            target: default
             arch: x86_64
           - api: 34
-            target: google_apis
+            target: default
             arch: x86_64
 
     steps:

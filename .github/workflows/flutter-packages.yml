@@ -129,6 +129,7 @@ jobs:
             packages/flutter_weft/libweft.so
             packages/flutter_weft/libweft.dylib
             packages/flutter_weft/weft.dll
+          if-no-files-found: ignore
 
       - name: Publish CI Result Branch
         if: always() && runner.os == 'Linux' && github.event_name != 'pull_request'

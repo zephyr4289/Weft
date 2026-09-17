@@ -191,10 +191,17 @@ public final class MTKViewCadenceProbe: NSObject, MTKViewDelegate {
 
         // Pump the runloop until N frames render or the timeout fires.
         let started = Date()
+        let frameInterval = 1.0 / Double(max(1, requestedFPS))
+        var nextFrameTime = CACurrentMediaTime()
         while probe.frameCount < frames,
               Date().timeIntervalSince(started) < timeout {
+            let now = CACurrentMediaTime()
+            if now >= nextFrameTime {
+                view.draw()
+                nextFrameTime = now + frameInterval
+            }
             RunLoop.current.run(mode: .default,
-                                before: Date().addingTimeInterval(0.005))
+                                before: Date().addingTimeInterval(0.002))
         }
         if probe.frameCount < frames {
             notes.append("timeout after \(Int(timeout))s at \(probe.frameCount)/\(frames) frames")

@@ -1,0 +1,8 @@
+workflow: apple-packages
+job:      Swift SPM & macOS Tests
+status:   success
+sha:      6a9a4dbd53c2861745914b1fffe45838f0f8e4d6
+event:    push
+run:      88
+date:     Thu Sep 17 16:01:52 UTC 2026
+ref:      refs/heads/main

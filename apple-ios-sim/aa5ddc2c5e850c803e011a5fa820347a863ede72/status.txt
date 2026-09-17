@@ -1,0 +1,8 @@
+workflow: apple-packages
+job:      iOS Simulator — SPM tests + cadence probe
+status:   success
+sha:      aa5ddc2c5e850c803e011a5fa820347a863ede72
+event:    pull_request
+run:      75
+date:     Thu Sep 17 14:11:02 UTC 2026
+ref:      refs/pull/12/merge

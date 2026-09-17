@@ -208,20 +208,40 @@ class WeftNativeBindings {
 
   static DynamicLibrary openLibrary([String? path]) {
     if (path != null) return DynamicLibrary.open(path);
-    if (Platform.isLinux || Platform.isAndroid) {
-      try {
-        return DynamicLibrary.open('libweft.so');
-      } catch (_) {
-        return DynamicLibrary.open('libweft_core.so');
+    final candidates = <String>[
+      if (Platform.isLinux || Platform.isAndroid) ...[
+        './libweft.so',
+        'libweft.so',
+        'build/libweft.so',
+        '/tmp/libweft.so',
+        'libweft_core.so',
+      ],
+      if (Platform.isMacOS || Platform.isIOS) ...[
+        './libweft.dylib',
+        'libweft.dylib',
+        'build/libweft.dylib',
+        '/tmp/libweft.dylib',
+      ],
+      if (Platform.isWindows) ...[
+        'weft.dll',
+        r'.\weft.dll',
+        r'build\weft.dll',
+        r'packages\flutter_weft\weft.dll',
+        r'C:\tmp\weft.dll',
+        r'/tmp/weft.dll',
+      ],
+    ];
+    for (final c in candidates) {
+      if (File(c).existsSync()) {
+        try {
+          return DynamicLibrary.open(File(c).absolute.path);
+        } catch (_) {}
       }
-    } else if (Platform.isMacOS || Platform.isIOS) {
+    }
+    for (final c in candidates) {
       try {
-        return DynamicLibrary.open('libweft.dylib');
-      } catch (_) {
-        return DynamicLibrary.process();
-      }
-    } else if (Platform.isWindows) {
-      return DynamicLibrary.open('weft.dll');
+        return DynamicLibrary.open(c);
+      } catch (_) {}
     }
     return DynamicLibrary.process();
   }

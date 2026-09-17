@@ -83,6 +83,7 @@ static void test_vmb1_transform(void) {
     printf("  backend: %s (lanes=%d)\n",
            weft_sha256_mb_active_impl() == WEFT_SHA256_MB_X86_AVX2 ? "x86-avx2"
            : weft_sha256_mb_active_impl() == WEFT_SHA256_MB_ARM_NEON ? "arm-neon"
+           : weft_sha256_mb_active_impl() == WEFT_SHA256_MB_X86_AVX512 ? "x86-avx512"
            : "scalar",
            impl_lanes);
 
@@ -130,25 +131,25 @@ static void test_vmb1_transform(void) {
                "scalar lane loop covered below)\n");
     }
 
-    // Scalar lane loop: lane counts 1..8, fully scalar (Series-6 pin too).
+    // Scalar lane loop: lane counts 1..16, fully scalar (Series-6 pin too).
     weft_sha256_force_scalar();
     weft_sha256_mb_force_scalar();
     int sm = 0;
-    for (int lanes = 1; lanes <= 8; lanes++) {
+    for (int lanes = 1; lanes <= WEFT_SHA256_MB_MAX_LANES; lanes++) {
         for (int trial = 0; trial < 16; trial++) {
-            uint8_t data[8][8 * SHA256_BLOCK_LEN];
-            size_t nb[8] = {0};
+            uint8_t data[WEFT_SHA256_MB_MAX_LANES][8 * SHA256_BLOCK_LEN];
+            size_t nb[WEFT_SHA256_MB_MAX_LANES] = {0};
             for (int j = 0; j < lanes; j++) {
                 for (size_t b = 0; b < sizeof(data[j]); b++) {
                     data[j][b] = (uint8_t)xs32(&seed);
                 }
                 nb[j] = xs32(&seed) % 9;  // 0..8 blocks
             }
-            uint32_t st_in[8][8], st_out[8][8];
+            uint32_t st_in[WEFT_SHA256_MB_MAX_LANES][8], st_out[WEFT_SHA256_MB_MAX_LANES][8];
             for (int j = 0; j < lanes; j++) {
                 for (int i = 0; i < 8; i++) st_in[j][i] = xs32(&seed);
             }
-            const uint8_t* msg[8];
+            const uint8_t* msg[WEFT_SHA256_MB_MAX_LANES];
             for (int j = 0; j < lanes; j++) msg[j] = data[j];
             if (weft_sha256_mb(st_out, (const uint32_t(*)[8])st_in, msg, nb, lanes) != 0) {
                 sm++;
@@ -167,7 +168,7 @@ static void test_vmb1_transform(void) {
             }
         }
     }
-    check(sm == 0, "scalar lane loop 1..8 lanes bit-identical (128 trials)");
+    check(sm == 0, "scalar lane loop 1..16 lanes bit-identical (256 trials)");
     weft_sha256_mb_force_auto();
     weft_sha256_force_auto();
 }
@@ -381,12 +382,16 @@ static void test_vmb5_snapshot(void) {
     check(same, "identical message in every lane -> identical snapshots");
 
     // Staggered: lane finishes early; later groups must not disturb it.
+    // (16 entries — one per AVX-512 lane; shorter backends read the prefix.)
     size_t nb2[WEFT_SHA256_MB_MAX_LANES] = {0};
     const uint8_t* msg2[WEFT_SHA256_MB_MAX_LANES];
-    const size_t stagger[8] = {5, 1, 3, 0, 7, 2, 1, 4};
+    const size_t stagger[WEFT_SHA256_MB_MAX_LANES] =
+        {5, 1, 3, 0, 7, 2, 1, 4, 6, 0, 2, 5, 3, 1, 7, 0};
     for (int j = 0; j < lanes; j++) {
         msg2[j] = data;
-        nb2[j] = (lanes == 8) ? stagger[j] : stagger[j] % 5 + 1;
+        nb2[j] = (lanes == 8) ? stagger[j]
+                  : (lanes == 16) ? (stagger[j] == 0 ? 0 : stagger[j] % 5 + 1)
+                  : stagger[j] % 5 + 1;
     }
     check(weft_sha256_mb(st_out, (const uint32_t(*)[8])st_in, msg2, nb2, lanes) == 0,
           "staggered-lane call succeeds");
@@ -587,6 +592,91 @@ static void test_vmb8_cap(void) {
     free(payload);
 }
 
+// --- VMB9: cross-impl bit-identity (Series 8 — RFC-0012) -------------------------
+
+// Every multi-buffer backend compiled in AND offered by this CPU must produce
+// BIT-IDENTICAL lane snapshots for the same inputs — the multi-kernel form of
+// V8's HW-dispatch equivalence. The scalar lane loop (16 lanes) is the
+// reference; AVX2 (8 lanes) and AVX-512 (16 lanes) are compared lane-by-lane
+// against it, staggered block counts included so snapshot semantics are
+// exercised in every regime.
+static void test_vmb9_cross_impl(void) {
+    printf("VMB9: cross-impl bit-identity (every available kernel vs scalar)\n");
+
+    uint8_t data[WEFT_SHA256_MB_MAX_LANES][10 * SHA256_BLOCK_LEN];
+    size_t nb[WEFT_SHA256_MB_MAX_LANES] = {0};
+    uint32_t st_in[WEFT_SHA256_MB_MAX_LANES][8];
+    const uint8_t* msg[WEFT_SHA256_MB_MAX_LANES];
+
+    uint32_t seed = 0x58BADF00u;  // Series-8 seed
+    for (int j = 0; j < WEFT_SHA256_MB_MAX_LANES; j++) {
+        for (size_t b = 0; b < sizeof(data[j]); b++) {
+            data[j][b] = (uint8_t)xs32(&seed);
+        }
+        nb[j] = xs32(&seed) % 11;  // 0..10 blocks
+        for (int i = 0; i < 8; i++) st_in[j][i] = xs32(&seed);
+        msg[j] = data[j];
+    }
+
+    // Reference: fully scalar lane loop over all 16 lanes.
+    weft_sha256_force_scalar();
+    weft_sha256_mb_force_scalar();
+    uint32_t ref[WEFT_SHA256_MB_MAX_LANES][8];
+    if (weft_sha256_mb(ref, (const uint32_t(*)[8])st_in, msg, nb,
+                       WEFT_SHA256_MB_MAX_LANES) != 0) {
+        check(0, "scalar reference call failed");
+        weft_sha256_mb_force_auto();
+        weft_sha256_force_auto();
+        return;
+    }
+
+    // AVX-512 leg: 16 lanes, staggered counts, vs the reference.
+    if (weft_sha256_mb_available(WEFT_SHA256_MB_X86_AVX512)) {
+        weft_sha256_mb_force_impl(WEFT_SHA256_MB_X86_AVX512);
+        uint32_t out[WEFT_SHA256_MB_MAX_LANES][8];
+        const int rc = weft_sha256_mb(out, (const uint32_t(*)[8])st_in, msg, nb,
+                                      WEFT_SHA256_MB_MAX_LANES);
+        int same = (rc == 0);
+        for (int j = 0; same && j < WEFT_SHA256_MB_MAX_LANES; j++) {
+            if (nb[j] == 0) {
+                same = memcmp(st_in[j], out[j], 32) == 0;
+            } else {
+                same = memcmp(ref[j], out[j], 32) == 0;
+            }
+        }
+        check(same, "avx512 16-lane snapshots bit-identical to scalar (staggered)");
+    } else {
+        printf("  (avx512 not offered by this CPU — leg skipped, declared)\n");
+    }
+
+    // AVX2 leg: first 8 lanes vs the reference's first 8.
+    if (weft_sha256_mb_available(WEFT_SHA256_MB_X86_AVX2)) {
+        weft_sha256_mb_force_impl(WEFT_SHA256_MB_X86_AVX2);
+        uint32_t out[8][8];
+        size_t nb8[8];
+        const uint8_t* msg8[8];
+        for (int j = 0; j < 8; j++) {
+            nb8[j] = nb[j];
+            msg8[j] = msg[j];
+        }
+        const int rc = weft_sha256_mb(out, (const uint32_t(*)[8])st_in, msg8, nb8, 8);
+        int same = (rc == 0);
+        for (int j = 0; same && j < 8; j++) {
+            if (nb[j] == 0) {
+                same = memcmp(st_in[j], out[j], 32) == 0;
+            } else {
+                same = memcmp(ref[j], out[j], 32) == 0;
+            }
+        }
+        check(same, "avx2 8-lane snapshots bit-identical to scalar (staggered)");
+    } else {
+        printf("  (avx2 not offered by this CPU — leg skipped, declared)\n");
+    }
+
+    weft_sha256_mb_force_auto();
+    weft_sha256_force_auto();
+}
+
 int main(void) {
     printf("VerifiedWeft VMB-series (multi-buffer SIMD batch) — C driver layer\n");
     test_vmb1_transform();
@@ -597,6 +687,7 @@ int main(void) {
     test_vmb6_scan();
     test_vmb7_resync();
     test_vmb8_cap();
+    test_vmb9_cross_impl();
     printf("\nverdict: %s\n", g_fail == 0 ? "PASS" : "FAIL");
     return g_fail == 0 ? 0 : 1;
 }

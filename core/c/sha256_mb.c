@@ -222,7 +222,168 @@ static void sha256_mb8_avx2(uint32_t state_out[8][8], const uint32_t state_in[8]
     }
 }
 
-#endif  // __x86_64__
+// ---------------------------------------------------------------------------
+// x86-64: 16-way AVX-512 (Series 8 — RFC-0012)
+// ---------------------------------------------------------------------------
+// Same structure as the AVX2 kernel above — transpose, W[64] stack, 64
+// rounds, feed-forward, snapshot — but the AVX-512 ISA collapses SHA-256's
+// round algebra into single instructions where AVX2 spends three to five:
+//   Ch       vpternlogd imm 0xCA   (AVX2: and + andnot + xor = 3 ops)
+//   Maj      vpternlogd imm 0xE8   (AVX2: 3 ands + 2 xors = 5 ops)
+//   Sigma0/1 vprord per term +    (AVX2: srli+slli+or per rotate = 2 ops
+//              vpternlogd 0x96 for  per term, plus 2 xors to fold three)
+//              the three-term XOR
+// On top of the halved instruction count per round, the register file carries
+// 16 lanes instead of 8 — 1 KiB of message compressed per group. The ternary
+// immediates are derived from the truth tables (Ch: f(a,b,c)=(a&b)|(~a&c);
+// Maj: majority; XOR3: parity), not copied from vendor code; the round and
+// schedule equations remain FIPS 180-4 §6.2.2, re-derived against sha256.c.
+// ---------------------------------------------------------------------------
+
+// (Still inside the x86-64 guard opened above — immintrin.h already included.)
+
+// Truth tables for vpternlogd (bit index = (A<<2)|(B<<1)|C):
+//   Ch(a,b,c) = (a & b) | (~a & c):
+//     000:0 001:1 010:0 011:1 100:0 101:0 110:1 111:1  -> 0b11001010 = 0xCA
+//   Maj(a,b,c) = (a & b) | (a & c) | (b & c):
+//     000:0 001:0 010:0 011:1 100:0 101:1 110:1 111:1  -> 0b11101000 = 0xE8
+//   XOR3(a,b,c) = a ^ b ^ c (parity):
+//     000:0 001:1 010:1 011:0 100:1 101:0 110:0 111:1  -> 0b10010110 = 0x96
+#define WEFT_TL_CH   0xCAu
+#define WEFT_TL_MAJ  0xE8u
+#define WEFT_TL_XOR3 0x96u
+
+__attribute__((target("avx512f")))
+static void sha256_mb16_avx512(uint32_t state_out[16][8],
+                               const uint32_t state_in[16][8],
+                               const uint8_t* const msg[16],
+                               const size_t nblocks[16]) {
+    const uint8_t* cur[16];
+    size_t rem[16];
+    size_t maxblocks = 0;
+    for (int j = 0; j < 16; j++) {
+        cur[j] = msg[j];
+        rem[j] = nblocks[j];
+        if (nblocks[j] > maxblocks) maxblocks = nblocks[j];
+        if (nblocks[j] == 0) {
+            memcpy(state_out[j], state_in[j], 8 * sizeof(uint32_t));
+        }
+    }
+
+    // State word i of lane j -> dword j of register i (the NEON path's
+    // transpose-through-memory shape, widened: s[i][j] gathers lane j's
+    // word i, then one load per register).
+    uint32_t s[8][16] __attribute__((aligned(64)));
+    for (int j = 0; j < 16; j++) {
+        for (int i = 0; i < 8; i++) s[i][j] = state_in[j][i];
+    }
+    __m512i A = _mm512_load_si512((const __m512i*)&s[0][0]);
+    __m512i B = _mm512_load_si512((const __m512i*)&s[1][0]);
+    __m512i C = _mm512_load_si512((const __m512i*)&s[2][0]);
+    __m512i D = _mm512_load_si512((const __m512i*)&s[3][0]);
+    __m512i E = _mm512_load_si512((const __m512i*)&s[4][0]);
+    __m512i F = _mm512_load_si512((const __m512i*)&s[5][0]);
+    __m512i G = _mm512_load_si512((const __m512i*)&s[6][0]);
+    __m512i H = _mm512_load_si512((const __m512i*)&s[7][0]);
+
+    // cols[k][j] = lane j's schedule dword k; w[64] = 4 KiB, L1-resident
+    // (the same review-symmetry trade the AVX2 kernel makes — see header).
+    uint32_t cols[16][16] __attribute__((aligned(64)));
+    __m512i w[64] __attribute__((aligned(64)));
+
+    for (size_t g = 0; g < maxblocks; g++) {
+        for (int k = 0; k < 16; k++) {
+            for (int j = 0; j < 16; j++) {
+                cols[k][j] = (rem[j] > 0) ? load_be32(cur[j] + 4 * k) : 0;
+            }
+        }
+
+        for (int k = 0; k < 16; k++) {
+            w[k] = _mm512_load_si512((const __m512i*)&cols[k][0]);
+        }
+        for (int k = 16; k < 64; k++) {
+            const __m512i m15 = w[k - 15];
+            const __m512i m2 = w[k - 2];
+            // sigma0(x) = rotr(x,7) ^ rotr(x,18) ^ shr(x,3)
+            const __m512i s0 = _mm512_ternarylogic_epi32(
+                _mm512_ror_epi32(m15, 7), _mm512_ror_epi32(m15, 18),
+                _mm512_srli_epi32(m15, 3), WEFT_TL_XOR3);
+            // sigma1(x) = rotr(x,17) ^ rotr(x,19) ^ shr(x,10)
+            const __m512i s1 = _mm512_ternarylogic_epi32(
+                _mm512_ror_epi32(m2, 17), _mm512_ror_epi32(m2, 19),
+                _mm512_srli_epi32(m2, 10), WEFT_TL_XOR3);
+            w[k] = _mm512_add_epi32(
+                _mm512_add_epi32(w[k - 16], s0),
+                _mm512_add_epi32(w[k - 7], s1));
+        }
+
+        const __m512i save[8] = {A, B, C, D, E, F, G, H};
+
+        for (int i = 0; i < 64; i++) {
+            // Sigma1(e) = rotr(e,6) ^ rotr(e,11) ^ rotr(e,25)
+            const __m512i S1 = _mm512_ternarylogic_epi32(
+                _mm512_ror_epi32(E, 6), _mm512_ror_epi32(E, 11),
+                _mm512_ror_epi32(E, 25), WEFT_TL_XOR3);
+            const __m512i ch = _mm512_ternarylogic_epi32(E, F, G, WEFT_TL_CH);
+            const __m512i t1 = _mm512_add_epi32(
+                _mm512_add_epi32(_mm512_add_epi32(H, S1), ch),
+                _mm512_add_epi32(_mm512_set1_epi32((int)K[i]), w[i]));
+            // Sigma0(a) = rotr(a,2) ^ rotr(a,13) ^ rotr(a,22)
+            const __m512i S0 = _mm512_ternarylogic_epi32(
+                _mm512_ror_epi32(A, 2), _mm512_ror_epi32(A, 13),
+                _mm512_ror_epi32(A, 22), WEFT_TL_XOR3);
+            const __m512i maj = _mm512_ternarylogic_epi32(A, B, C, WEFT_TL_MAJ);
+            const __m512i t2 = _mm512_add_epi32(S0, maj);
+
+            H = G; G = F; F = E;
+            E = _mm512_add_epi32(D, t1);
+            D = C; C = B; B = A;
+            A = _mm512_add_epi32(t1, t2);
+        }
+
+        A = _mm512_add_epi32(A, save[0]);
+        B = _mm512_add_epi32(B, save[1]);
+        C = _mm512_add_epi32(C, save[2]);
+        D = _mm512_add_epi32(D, save[3]);
+        E = _mm512_add_epi32(E, save[4]);
+        F = _mm512_add_epi32(F, save[5]);
+        G = _mm512_add_epi32(G, save[6]);
+        H = _mm512_add_epi32(H, save[7]);
+
+        // Advance active lanes; store-based snapshot on the group where some
+        // lane finishes (the AVX2 kernel's discipline — scalar reads of vector
+        // objects are the TBAA hazard; stores into uint32_t rows are the
+        // documented direction).
+        int any_snap = 0;
+        for (int j = 0; j < 16; j++) {
+            if (rem[j] > 0) {
+                cur[j] += SHA256_BLOCK_LEN;
+                rem[j]--;
+                if (nblocks[j] == g + 1) any_snap = 1;
+            }
+        }
+        if (any_snap) {
+            uint32_t st32[8][16] __attribute__((aligned(64)));
+            _mm512_storeu_si512((__m512i*)&st32[0][0], A);
+            _mm512_storeu_si512((__m512i*)&st32[1][0], B);
+            _mm512_storeu_si512((__m512i*)&st32[2][0], C);
+            _mm512_storeu_si512((__m512i*)&st32[3][0], D);
+            _mm512_storeu_si512((__m512i*)&st32[4][0], E);
+            _mm512_storeu_si512((__m512i*)&st32[5][0], F);
+            _mm512_storeu_si512((__m512i*)&st32[6][0], G);
+            _mm512_storeu_si512((__m512i*)&st32[7][0], H);
+            for (int j = 0; j < 16; j++) {
+                if (nblocks[j] == g + 1) {
+                    for (int i = 0; i < 8; i++) {
+                        state_out[j][i] = st32[i][j];
+                    }
+                }
+            }
+        }
+    }
+}
+
+#endif  // __x86_64__ (AVX2 + AVX-512 legs)
 
 // ---------------------------------------------------------------------------
 // aarch64: 4-way NEON (compile-guarded; NOT executable-tested on x86_64)
@@ -367,6 +528,14 @@ static weft_sha256_mb_impl_t mb_probe(void) {
 #if defined(__x86_64__) || defined(_M_X64)
 #if defined(__GNUC__)
     __builtin_cpu_init();
+    // AVX-512 first: 16 lanes + ternarylogic + vprord dominate the 8-lane
+    // kernel on every AVX-512 part measured (RFC-0012 evidence). gcc's
+    // cpu_supports includes the XCR0 OS-support check (libgcc
+    // __cpu_indicator_init), so a hypervisor masking ZMM state degrades to
+    // AVX2 rather than faulting.
+    if (__builtin_cpu_supports("avx512f")) {
+        return WEFT_SHA256_MB_X86_AVX512;
+    }
     if (__builtin_cpu_supports("avx2")) {
         return WEFT_SHA256_MB_X86_AVX2;
     }
@@ -376,6 +545,31 @@ static weft_sha256_mb_impl_t mb_probe(void) {
     return WEFT_SHA256_MB_ARM_NEON;  // NEON is architectural on aarch64
 #else
     return WEFT_SHA256_MB_NONE;
+#endif
+}
+
+int weft_sha256_mb_available(weft_sha256_mb_impl_t impl) {
+    if (impl == WEFT_SHA256_MB_NONE) return 1;  // scalar lane loop: always
+#if defined(__x86_64__) || defined(_M_X64)
+#if defined(__GNUC__)
+    if (impl == WEFT_SHA256_MB_X86_AVX2) {
+        __builtin_cpu_init();
+        return __builtin_cpu_supports("avx2");
+    }
+    if (impl == WEFT_SHA256_MB_X86_AVX512) {
+        __builtin_cpu_init();
+        return __builtin_cpu_supports("avx512f");
+    }
+#else
+    if (impl == WEFT_SHA256_MB_X86_AVX2 || impl == WEFT_SHA256_MB_X86_AVX512) {
+        return 0;  // non-GNUC x86: kernels not compiled
+    }
+#endif
+    return 0;
+#elif defined(__aarch64__)
+    return impl == WEFT_SHA256_MB_ARM_NEON;
+#else
+    return 0;
 #endif
 }
 
@@ -401,6 +595,7 @@ weft_sha256_mb_impl_t weft_sha256_mb_active_impl(void) {
 
 int weft_sha256_mb_lanes(void) {
     switch (mb_resolve()) {
+        case WEFT_SHA256_MB_X86_AVX512: return 16;
         case WEFT_SHA256_MB_X86_AVX2: return 8;
         case WEFT_SHA256_MB_ARM_NEON: return 4;
         default: return 0;
@@ -411,6 +606,28 @@ void weft_sha256_mb_force_scalar(void) {
     atomic_store_explicit(&g_mb_forced_scalar, 1, memory_order_relaxed);
     atomic_store_explicit(&g_mb_impl, WEFT_SHA256_MB_NONE, memory_order_relaxed);
     atomic_store_explicit(&g_mb_resolved, 1, memory_order_relaxed);
+}
+
+int weft_sha256_mb_force_impl(weft_sha256_mb_impl_t impl) {
+    // Compile-in check only — execution safety is the caller's
+    // weft_sha256_mb_available() gate (documented contract, test/bench only).
+#if defined(__x86_64__) || defined(_M_X64)
+    if (impl == WEFT_SHA256_MB_X86_AVX2 || impl == WEFT_SHA256_MB_X86_AVX512) {
+        atomic_store_explicit(&g_mb_forced_scalar, 0, memory_order_relaxed);
+        atomic_store_explicit(&g_mb_impl, impl, memory_order_relaxed);
+        atomic_store_explicit(&g_mb_resolved, 1, memory_order_relaxed);
+        return 0;
+    }
+#elif defined(__aarch64__)
+    if (impl == WEFT_SHA256_MB_ARM_NEON) {
+        atomic_store_explicit(&g_mb_forced_scalar, 0, memory_order_relaxed);
+        atomic_store_explicit(&g_mb_impl, impl, memory_order_relaxed);
+        atomic_store_explicit(&g_mb_resolved, 1, memory_order_relaxed);
+        return 0;
+    }
+#endif
+    (void)impl;
+    return -1;
 }
 
 void weft_sha256_mb_force_auto(void) {
@@ -442,6 +659,13 @@ int weft_sha256_mb(uint32_t state_out[/*lanes*/][8],
                    int lanes) {
     const weft_sha256_mb_impl_t impl = mb_resolve();
 
+    if (impl == WEFT_SHA256_MB_X86_AVX512) {
+        if (lanes != 16) return -1;
+#if defined(__x86_64__) || defined(_M_X64)
+        sha256_mb16_avx512(state_out, state_in, msg, nblocks);
+        return 0;
+#endif
+    }
     if (impl == WEFT_SHA256_MB_X86_AVX2) {
         if (lanes != 8) return -1;
 #if defined(__x86_64__) || defined(_M_X64)

@@ -105,6 +105,10 @@ verified-mb-test: sha256_mb.c sha256_mb.h verified_mb.c verified_mb.h verified_m
 verified-mb-test-asan: sha256_mb.c sha256_mb.h verified_mb.c verified_mb.h verified_mb_test.c $(VW_SRC) weft.h
 	$(CC) $(CFLAGS_ASAN) $(VW_CFLAGS) -o verified-mb-test-asan $(VW_SRC) verified_mb_test.c
 
+# Series 8 (RFC-0012): AVX-512 16-lane multi-buffer + per-impl pinning bench.
+mb-bench: sha256_mb.c sha256_mb.h sha256_mb_bench.c verified_mb.c verified_mb.h $(VW_SRC) weft.h
+	$(CC) $(CFLAGS) $(VW_CFLAGS) -o mb-bench $(VW_SRC) sha256_mb_bench.c
+
 verified-runner: sha256.c sha256_hw.c hmac.c verified.c verified_runner.c weft.c weft.h sha256.h hmac.h verified.h
 	$(CC) $(CFLAGS) $(VW_CFLAGS) -o verified-runner $(VW_SRC) verified_runner.c
 
@@ -243,7 +247,7 @@ clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
 	      verified-test verified-test-asan verified-runner verified-runner-asan \
-	      verified-mb-test verified-mb-test-asan \
+	      verified-mb-test verified-mb-test-asan mb-bench \
 	      shm-test shm-test-asan shm-runner shm-runner-asan \
 	      gpu-probe gpu-ring-test gpu-ring-test-asan \
 	      turbo-test turbo-test-asan turbo-test-tsan turbo-test-seq \

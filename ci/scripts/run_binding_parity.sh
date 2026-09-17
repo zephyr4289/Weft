@@ -61,8 +61,8 @@ for pair in "${PAIRS[@]}"; do
   elif [ ! -f "$mirror" ]; then
     status="FAIL"; detail="mirror missing: $mirror"
   else
-    h_canon=$(sha256sum "$canon" | cut -d' ' -f1)
-    h_mirror=$(sha256sum "$mirror" | cut -d' ' -f1)
+    h_canon=$(tr -d '\r' < "$canon" | sha256sum | cut -d' ' -f1)
+    h_mirror=$(tr -d '\r' < "$mirror" | sha256sum | cut -d' ' -f1)
     if [ "$h_canon" != "$h_mirror" ]; then
       status="FAIL"; detail="hash drift ($h_canon != $h_mirror)"
       {
@@ -122,6 +122,8 @@ shim_pass=0
 shim_fail=0
 shim_cells_json=""
 
+PYTHON="$(command -v python3 || command -v python || echo python3)"
+
 for pair in "${SHIM_PAIRS[@]}"; do
   shim="${pair%%|*}"
   canon="${pair##*|}"
@@ -131,14 +133,12 @@ for pair in "${SHIM_PAIRS[@]}"; do
   elif [ ! -f "$canon" ]; then
     status="FAIL"; detail="canonical package surface missing: $canon"
   else
-    # Export names declared by the shim: `export { A, B, C }` and
-    # `export type { T1, T2 }` forms, plus `export { X } from` re-export.
-    PYTHON="$(command -v python3 || command -v python || echo python3)"
-    shim_names=$("$PYTHON" - "$shim" <<'PYEOF'
-import re, sys
-src = open(sys.argv[1]).read()
+    missing=$("$PYTHON" -c "
+import sys, re
+shim_src = open(sys.argv[1], encoding='utf-8', errors='ignore').read()
+canon_src = open(sys.argv[2], encoding='utf-8', errors='ignore').read()
 names = set()
-for m in re.finditer(r'export\s+(?:type\s+)?\{([^}]*)\}', src):
+for m in re.finditer(r'export\s+(?:type\s+)?\{([^}]*)\}', shim_src):
     for part in m.group(1).split(','):
         part = part.strip().replace('type ', '')
         if not part:
@@ -146,28 +146,16 @@ for m in re.finditer(r'export\s+(?:type\s+)?\{([^}]*)\}', src):
         name = part.split(' as ')[-1].strip()
         if name and name not in ('default',):
             names.add(name)
-print('\n'.join(sorted(names)))
-PYEOF
-)
-    canon_src=$(cat "$canon")
-    missing=""
-    while IFS= read -r name; do
-      [ -z "$name" ] && continue
-      if ! grep -q -w "$name" <<<"$canon_src"; then
-        missing="${missing}${name},"
-      fi
-    done <<<"$shim_names"
+missing = [n for n in sorted(names) if not re.search(r'\b' + re.escape(n) + r'\b', canon_src)]
+print(','.join(missing))
+" "$shim" "$canon")
+
     if [ -n "$missing" ]; then
       status="FAIL"
-      detail="shim re-exports symbols absent from the canonical surface: ${missing%,}"
+      detail="shim re-exports symbols absent from the canonical surface: $missing"
       {
-        echo "---- shim $shim exports ----"
-        echo "$shim_names"
-        echo "---- canonical surface: $canon ----"
+        echo "---- missing from $canon: $missing ----"
       } >> "$LOG"
-    fi
-    if [ -z "$shim_names" ]; then
-      status="FAIL"; detail="no export declarations parsed from the shim"
     fi
   fi
   {

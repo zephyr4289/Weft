@@ -31,18 +31,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Initialize Log
+        run: |
+          mkdir -p "${RUNNER_TEMP:-/tmp}" /tmp 2>/dev/null || true
+          echo "=== Starting Flutter CI (${{ matrix.os }}) ===" > "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
+          cp "${RUNNER_TEMP:-/tmp}/flutter_build_output.log" /tmp/flutter_build_output.log 2>/dev/null || true
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Binding parity guard (core/dart <-> flutter reference)
-        run: bash ci/scripts/run_binding_parity.sh
-
-      - name: Initialize Log
         run: |
-          mkdir -p /tmp 2>/dev/null || true
-          echo "=== Starting Flutter CI (${{ matrix.os }}) ===" >> /tmp/flutter_build_output.log
+          set -o pipefail
+          bash ci/scripts/run_binding_parity.sh 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
 
       - name: Set up Flutter SDK
         uses: subosito/flutter-action@v2
@@ -171,8 +174,10 @@ jobs:
             echo "ref:      ${{ github.ref }}"
           } > "$LOG_DIR/status.txt"
 
-          [ -f /tmp/flutter_build_output.log ] \
-            && cp /tmp/flutter_build_output.log "$LOG_DIR/build.log" \
+          LOG_SRC="${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
+          [ ! -f "$LOG_SRC" ] && LOG_SRC="/tmp/flutter_build_output.log"
+          [ -f "$LOG_SRC" ] \
+            && cp "$LOG_SRC" "$LOG_DIR/build.log" \
             || echo "(no log)" > "$LOG_DIR/build.log"
 
           git add -f "$LOG_DIR/"

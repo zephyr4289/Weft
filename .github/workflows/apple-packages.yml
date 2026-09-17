@@ -121,14 +121,20 @@ jobs:
       - name: Build for iOS Simulator (pipefail-guarded)
         run: |
           set -o pipefail  # tee must not swallow the build exit code
-          xcodebuild build -scheme Weft \
+          SCHEME=$(xcodebuild -list 2>/dev/null | grep -E "Weft-Package|WeftPackageTests|WeftTests" | head -n1 | tr -d ' ')
+          [ -z "$SCHEME" ] && SCHEME="Weft-Package"
+          echo "Using scheme: $SCHEME"
+          xcodebuild build -scheme "$SCHEME" \
             -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
             2>&1 | tee /tmp/ios_sim_build.log
 
       - name: Run SPM tests on iOS Simulator (F-series + cadence + Metal probe)
         run: |
           set -o pipefail  # tee must not swallow the test exit code
-          xcodebuild test -scheme Weft \
+          SCHEME=$(xcodebuild -list 2>/dev/null | grep -E "Weft-Package|WeftPackageTests|WeftTests" | head -n1 | tr -d ' ')
+          [ -z "$SCHEME" ] && SCHEME="Weft-Package"
+          echo "Using scheme: $SCHEME"
+          xcodebuild test -scheme "$SCHEME" \
             -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
             2>&1 | tee /tmp/ios_sim_test.log
 

@@ -327,7 +327,7 @@ void main() {
     try {
       final r0 = await session.spawnReader(
           config: const CrossIsolateReaderConfig(tickEvery: 1));
-      final r1 = await session.spawnReader(
+      await session.spawnReader(
           config: const CrossIsolateReaderConfig(
               tickEvery: 4, verifyStride: 4));
 
@@ -370,7 +370,7 @@ void main() {
     final b = WeftFanoutFFI.allocate(bindings, payloadBytes, 4);
     final session = CrossIsolateFanoutSession(broadcaster: b, soPath: soPath);
     try {
-      final paced = await session.spawnReader(
+      await session.spawnReader(
           config: const CrossIsolateReaderConfig(
               paceMs: 1, verifyStride: 8));
       final sw = Stopwatch()..start();

@@ -201,3 +201,261 @@ fn loom_fanout_ring_no_torn_claims_exhaustive() {
         }
     });
 }
+
+// ===========================================================================
+// RFC 0011 deep-models — the "Exhaustive State-Space Proofs" branch extends
+// the loom surface in four directions. Each new test narrows the gap between
+// "the schedule the OS happens to produce" and "every schedule the memory
+// model allows":
+//
+//   1. REORDER FILL — the writer's payload words are stored in REVERSED
+//      order. The tear source the FI1 bracket exists to close must stay
+//      closed when the fill order changes (out-of-order execution analog).
+//   2. THREE READERS — the fan-out contract is N readers; the original
+//      model proves 2. This one widens the surface (still preemption
+//      bound 2 to keep `cargo test` fast).
+//   3. READER REJOIN — a reader that stops claiming (the ring-level analog
+//      of process-death reattach, RFC 0006) and comes back after the ring
+//      has wrapped MULTIPLE times must resynchronize with zero torn frames
+//      and an exact telescoping identity measured from the rejoin point.
+//   4. PREEMPTION BOUND 3 — the bound-3 exhaustive run is recorded as
+//      #[ignore] (minutes, not seconds); the nightly chaos leg runs it with
+//      `cargo test -- --ignored` so the deeper space is swept continuously.
+// ===========================================================================
+
+/// Writer frame with REVERSED word order (RFC 0011 deep-model 1).
+fn writer_frame_reversed(ring: &ModelRing, seq: u64) {
+    let k = ((seq - 1) as usize) % M;
+    ring.slot_seq[k].store(0, Ordering::SeqCst);
+    fence(Ordering::SeqCst);
+    for w in (0..WORDS).rev() {
+        ring.payload[k][w].store(tword(seq, w), Ordering::Relaxed);
+    }
+    ring.slot_seq[k].store(seq, Ordering::Release);
+    ring.latest.store(seq, Ordering::Release);
+    ring.publishes.fetch_add(1, Ordering::Relaxed);
+}
+
+#[test]
+fn loom_fanout_ring_reorder_fill_exhaustive() {
+    // Same bound/shape as the canonical model, but the writer stores the
+    // frame's payload words in reversed order. NO TORN FRAME ACCEPTED must
+    // survive: the stamp bracket orders the fill as a whole, not its
+    // individual words' order.
+    let mut builder = loom::model::Builder::new();
+    if builder.preemption_bound.is_none() {
+        builder.preemption_bound = Some(2);
+    }
+    builder.check(|| {
+        let ring = Arc::new(ModelRing::new());
+
+        let ring_w = Arc::clone(&ring);
+        let writer = thread::spawn(move || {
+            for seq in 1..=FRAMES {
+                writer_frame_reversed(&ring_w, seq);
+            }
+        });
+
+        let ring_r = Arc::clone(&ring);
+        let reader = thread::spawn(move || {
+            let mut last_seq: u64 = 0;
+            let mut target = [0u32; WORDS];
+            let mut sum_dropped: u64 = 0;
+            let mut fresh_claims: u64 = 0;
+            for _ in 0..CLAIMS_PER_READER {
+                let (fresh, seq, dropped) = model_claim(&ring_r, &mut last_seq, &mut target);
+                if fresh {
+                    fresh_claims += 1;
+                    sum_dropped += dropped;
+                    for w in 0..WORDS {
+                        assert_eq!(
+                            target[w], tword(seq, w),
+                            "loom fanout reorder-fill: torn frame accepted — word {w} of frame {seq}"
+                        );
+                    }
+                }
+            }
+            (sum_dropped, last_seq, fresh_claims)
+        });
+
+        writer.join().unwrap();
+        let (sum_dropped, last_seq, fresh_claims) = reader.join().unwrap();
+        assert_eq!(
+            sum_dropped, last_seq - fresh_claims,
+            "loom fanout reorder-fill: telescoping identity violated"
+        );
+        assert_eq!(ring.publishes.load(Ordering::Acquire), FRAMES);
+    });
+}
+
+#[test]
+fn loom_fanout_ring_three_readers() {
+    // RFC 0011 deep-model 2: widen to 3 readers. Frames/claims trimmed one
+    // notch so the bound-2 space stays in `cargo test` territory.
+    const FRAMES3: u64 = 2;
+    const CLAIMS3: usize = 2;
+
+    let mut builder = loom::model::Builder::new();
+    if builder.preemption_bound.is_none() {
+        builder.preemption_bound = Some(2);
+    }
+    builder.check(|| {
+        let ring = Arc::new(ModelRing::new());
+
+        let ring_w = Arc::clone(&ring);
+        let writer = thread::spawn(move || {
+            for seq in 1..=FRAMES3 {
+                writer_frame(&ring_w, seq);
+            }
+        });
+
+        let mut readers = Vec::new();
+        for _ in 0..3 {
+            let ring_r = Arc::clone(&ring);
+            readers.push(thread::spawn(move || {
+                let mut last_seq: u64 = 0;
+                let mut target = [0u32; WORDS];
+                let mut sum_dropped: u64 = 0;
+                let mut fresh_claims: u64 = 0;
+                for _ in 0..CLAIMS3 {
+                    let (fresh, seq, dropped) = model_claim(&ring_r, &mut last_seq, &mut target);
+                    if fresh {
+                        fresh_claims += 1;
+                        sum_dropped += dropped;
+                        for w in 0..WORDS {
+                            assert_eq!(
+                                target[w], tword(seq, w),
+                                "loom fanout 3-readers: torn frame accepted — word {w} of frame {seq}"
+                            );
+                        }
+                        assert!(seq <= FRAMES3, "loom fanout 3-readers: future violation");
+                    }
+                }
+                (sum_dropped, last_seq, fresh_claims)
+            }));
+        }
+
+        writer.join().unwrap();
+        let states: Vec<_> = readers.into_iter().map(|r| r.join().unwrap()).collect();
+        assert_eq!(ring.publishes.load(Ordering::Acquire), FRAMES3);
+        for (sum_dropped, last_seq, fresh_claims) in states {
+            assert_eq!(sum_dropped, last_seq - fresh_claims, "telescoping per reader");
+        }
+    });
+}
+
+#[test]
+fn loom_fanout_reader_rejoin_after_wrap() {
+    // RFC 0011 deep-model 3: the reattach analog at the ring level. Reader
+    // claims once, DETACHES (stops claiming), the writer wraps the M=2 ring
+    // three more times, and the reader REATTACHES (a fresh session: its
+    // last_seq is whatever it ended at — here we model the RFC 0006
+    // CLEAN_REALLOCATE semantics where the consumer state is gone, so
+    // last_seq resets to 0). The rejoin must produce zero torn frames and
+    // the telescoping identity must hold over the rejoin session.
+    let mut builder = loom::model::Builder::new();
+    if builder.preemption_bound.is_none() {
+        builder.preemption_bound = Some(2);
+    }
+    builder.check(|| {
+        let ring = Arc::new(ModelRing::new());
+
+        let ring_w = Arc::clone(&ring);
+        let writer = thread::spawn(move || {
+            for seq in 1..=5u64 {
+                writer_frame(&ring_w, seq);
+            }
+        });
+
+        let ring_r = Arc::clone(&ring);
+        let reader = thread::spawn(move || {
+            let mut last_seq: u64 = 0;
+            let mut target = [0u32; WORDS];
+
+            // --- session 1: claim once, then detach ---
+            let (fresh, seq, dropped) = model_claim(&ring_r, &mut last_seq, &mut target);
+            if fresh {
+                for w in 0..WORDS {
+                    assert_eq!(target[w], tword(seq, w));
+                }
+                assert_eq!(dropped, seq - 1);
+            }
+
+            // --- detach: the ring wraps underneath (writer keeps going) ---
+            // (the writer thread runs concurrently; the detach is modeled by
+            // this thread doing NOTHING until the writer is far ahead —
+            // which, under loom, is every interleaving, including none.)
+
+            // --- reattach: fresh session, last_seq reset (RFC 0006
+            //     CLEAN_REALLOCATE — the consumer's state is gone; the ring
+            //     is authoritative) ---
+            last_seq = 0;
+            let mut rejoin_fresh = 0;
+            let mut rejoin_dropped = 0;
+            for _ in 0..CLAIMS_PER_READER {
+                let (fresh, seq, dropped) = model_claim(&ring_r, &mut last_seq, &mut target);
+                if fresh {
+                    rejoin_fresh += 1;
+                    rejoin_dropped += dropped;
+                    for w in 0..WORDS {
+                        assert_eq!(
+                            target[w], tword(seq, w),
+                            "loom fanout rejoin: torn frame accepted — word {w} of frame {seq}"
+                        );
+                    }
+                    assert!(seq <= 5u64, "loom fanout rejoin: future violation");
+                }
+            }
+            // Telescoping over the REJOIN session (from 0 to wherever the
+            // reader ended): dropped == last_seq - freshClaims.
+            assert_eq!(
+                rejoin_dropped, last_seq - rejoin_fresh,
+                "loom fanout rejoin: telescoping violated over the rejoin session"
+            );
+        });
+
+        writer.join().unwrap();
+        reader.join().unwrap();
+        assert_eq!(ring.publishes.load(Ordering::Acquire), 5u64);
+    });
+}
+
+#[test]
+#[ignore = "RFC 0011 bound-3 exhaustive sweep — minutes, run by the nightly chaos leg (`cargo test -- --ignored`)"]
+fn loom_fanout_ring_preemption_bound3_evidence() {
+    // The canonical model at preemption bound 3: one notch deeper into the
+    // space the memory model allows. Committed as the nightly evidence leg
+    // so the depth grows with every "Exhaustive State-Space" wave.
+    let mut builder = loom::model::Builder::new();
+    if builder.preemption_bound.is_none() {
+        builder.preemption_bound = Some(3);
+    }
+    builder.check(|| {
+        let ring = Arc::new(ModelRing::new());
+
+        let ring_w = Arc::clone(&ring);
+        let writer = thread::spawn(move || {
+            for seq in 1..=FRAMES {
+                writer_frame(&ring_w, seq);
+            }
+        });
+
+        let ring_r = Arc::clone(&ring);
+        let reader = thread::spawn(move || {
+            let mut last_seq: u64 = 0;
+            let mut target = [0u32; WORDS];
+            for _ in 0..CLAIMS_PER_READER {
+                let (fresh, seq, _) = model_claim(&ring_r, &mut last_seq, &mut target);
+                if fresh {
+                    for w in 0..WORDS {
+                        assert_eq!(target[w], tword(seq, w));
+                    }
+                }
+            }
+        });
+
+        writer.join().unwrap();
+        reader.join().unwrap();
+        assert_eq!(ring.publishes.load(Ordering::Acquire), FRAMES);
+    });
+}

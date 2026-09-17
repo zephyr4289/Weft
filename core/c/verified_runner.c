@@ -11,6 +11,11 @@
 //   tamper <in.bin> <out.bin> <byte_offset>
 //       Flip one bit at byte_offset — the negative leg of the xlang gate:
 //       the peer's validate MUST reject the file.
+//   bench-mb <frames> <payload_len> <secret_hex>       (Series 7)
+//       Batch decode-verify A/B: serial (Series-6 pre-keyed, auto/HW) vs
+//       the multi-buffer SIMD path (8-way AVX2 / 4-way NEON when present),
+//       plus the vectorized envelope-magic scan throughput. Both paths must
+//       verify the same stream — divergence is a hard exit 1.
 //
 // Build: make -C core/c verified-runner
 
@@ -19,7 +24,9 @@
 #include <string.h>
 #include <time.h>
 
+#include "sha256_mb.h"
 #include "verified.h"
+#include "verified_mb.h"
 #include "weft.h"
 
 static double now_ms_runner(void) {
@@ -353,6 +360,122 @@ static int mode_batch_validate(const char* path, long frames, long payload_len,
     return 0;
 }
 
+
+// ---------------------------------------------------------------------------
+// bench-mb — Series 7: serial vs multi-buffer batch decode-verify A/B,
+// plus the SIMD magic-scan throughput. Same stream, same verdict, two paths.
+// ---------------------------------------------------------------------------
+
+static const char* mb_impl_name(weft_sha256_mb_impl_t impl) {
+    switch (impl) {
+        case WEFT_SHA256_MB_X86_AVX2: return "x86-avx2 (8 lanes)";
+        case WEFT_SHA256_MB_ARM_NEON: return "arm-neon (4 lanes)";
+        default: return "scalar lane loop";
+    }
+}
+
+static int mode_bench_mb(long frames, long payload_len, const char* secret_hex) {
+    const size_t plen = (size_t)payload_len;
+    if (plen == 0 || plen > WEFT_VW_MB_MAX_PAYLOAD) {
+        fprintf(stderr, "bench-mb: payload_len must be in [1, %d]\n", WEFT_VW_MB_MAX_PAYLOAD);
+        return 2;
+    }
+    uint8_t key[WEFT_VW_KEY_LEN];
+    weft_vw_derive_key((const uint8_t*)secret_hex, strlen(secret_hex), key);
+
+    // Build the record stream once (signed via the serial path, auto/HW).
+    weft_vw_signer_t s;
+    weft_vw_signer_init(&s, key);
+    const size_t rec_len = 16 + plen + 32;
+    uint8_t* stream = malloc((size_t)frames * rec_len);
+    uint8_t envelope[16];
+    uint8_t* payload = malloc(plen);
+    for (size_t j = 0; j < plen; j++) payload[j] = (uint8_t)(j * 131 + 17);
+    for (long i = 0; i < frames; i++) {
+        weft_envelope_encode_v1(envelope, (uint32_t)(i + 1), (uint32_t)plen);
+        uint8_t tag[WEFT_VW_TAG_LEN];
+        weft_vw_sign(&s, envelope, payload, plen, tag);
+        weft_vw_record_encode(envelope, payload, plen, tag,
+                              stream + (size_t)i * rec_len, rec_len);
+    }
+
+    printf("bench-mb: %ld frames, %zu B payload, %zu B records\n",
+           frames, plen, rec_len);
+    printf("    single-stream: %s\n", impl_name(weft_sha256_active_impl()));
+    printf("    multi-buffer:  %s\n", mb_impl_name(weft_sha256_mb_active_impl()));
+
+    // -- serial batch (Series 6, auto/HW) --
+    size_t n1 = 0, c1 = 0;
+    double t0 = now_ms_runner();
+    const weft_vw_result_t r1 = weft_vw_batch_decode_verify(
+        key, stream, (size_t)frames * rec_len, NULL, 0, &n1, &c1);
+    const double serial_ms = now_ms_runner() - t0;
+
+    // -- multi-buffer batch (Series 7) --
+    size_t n2 = 0, c2 = 0;
+    t0 = now_ms_runner();
+    const weft_vw_result_t r2 = weft_vw_batch_decode_verify_mb(
+        key, stream, (size_t)frames * rec_len, NULL, 0, &n2, &c2);
+    const double mb_ms = now_ms_runner() - t0;
+
+    // -- magic scan throughput: needles every 256 B in a 64 MB haystack --
+    const size_t hay_len = 64u * 1024u * 1024u;
+    uint8_t* hay = malloc(hay_len);
+    memset(hay, 0xA5, hay_len);
+    const size_t needle_stride = 256;
+    for (size_t o = 0; o + 4 <= hay_len; o += needle_stride) {
+        memcpy(hay + o, "WEFT", 4);
+    }
+    size_t found_v = 0;
+    t0 = now_ms_runner();
+    for (size_t from = 0;;) {
+        size_t o = 0;
+        if (!weft_vw_scan_magic(hay, hay_len, from, &o)) break;
+        found_v++;
+        from = o + 1;
+    }
+    const double scan_v_ms = now_ms_runner() - t0;
+    // Scalar reference scan (inline — the honest A/B leg).
+    size_t found_s = 0;
+    t0 = now_ms_runner();
+    for (size_t from = 0;;) {
+        size_t o = from;
+        for (; o + 4 <= hay_len; o++) {
+            if (hay[o] == 'W' && hay[o + 1] == 'E' && hay[o + 2] == 'F' && hay[o + 3] == 'T') break;
+        }
+        if (o + 4 > hay_len) break;
+        found_s++;
+        from = o + 1;
+    }
+    const double scan_s_ms = now_ms_runner() - t0;
+
+    printf("\n    %-28s %10s %10s\n", "batch path", "us/frame", "frames/s");
+    printf("    %-28s %10.3f %10.0f\n", "serial (Series-6 auto/HW)",
+           serial_ms * 1000.0 / (double)n1, n1 / (serial_ms / 1000.0));
+    printf("    %-28s %10.3f %10.0f\n", "multi-buffer (SIMD)",
+           mb_ms * 1000.0 / (double)n2, n2 / (mb_ms / 1000.0));
+    if (serial_ms > 0 && mb_ms > 0) {
+        printf("    speedup: %.2fx\n", serial_ms / mb_ms);
+    }
+    printf("\n    %-28s %10s %10s\n", "magic scan (64 MB)", "ms", "GB/s");
+    printf("    %-28s %10.1f %10.2f\n", "scalar", scan_s_ms,
+           hay_len / 1e9 / (scan_s_ms / 1000.0));
+    printf("    %-28s %10.1f %10.2f\n", "weft_vw_scan_magic", scan_v_ms,
+           hay_len / 1e9 / (scan_v_ms / 1000.0));
+
+    const int verdict_ok = (r1 == WEFT_VW_OK) && (r2 == WEFT_VW_OK) &&
+                           (n1 == n2) && (n1 == (size_t)frames) && (c1 == c2) &&
+                           (found_v == found_s) && (found_v == hay_len / needle_stride);
+    printf("\n    verdict: serial=%d mb=%d n=%zu/%zu consumed=%zu/%zu "
+           "needles=%zu/%zu -> %s\n",
+           r1, r2, n1, n2, c1, c2, found_v, found_s, verdict_ok ? "OK" : "MISMATCH");
+
+    free(stream);
+    free(payload);
+    free(hay);
+    return verdict_ok ? 0 : 1;
+}
+
 int main(int argc, char** argv) {
     if (argc < 2) {
         fprintf(stderr,
@@ -361,6 +484,7 @@ int main(int argc, char** argv) {
                 "  verified-runner validate <in.bin> <frames> <payload_len> <secret_hex>\n"
                 "  verified-runner tamper <in.bin> <out.bin> <byte_offset>\n"
                 "  verified-runner bench <frames> <payload_len> <secret_hex>\n"
+                "  verified-runner bench-mb <frames> <payload_len> <secret_hex>\n"
                 "  verified-runner batch-validate <in.bin> <frames> <payload_len> <secret_hex>\n");
         return 2;
     }
@@ -376,6 +500,9 @@ int main(int argc, char** argv) {
     }
     if (strcmp(argv[1], "bench") == 0 && argc == 5) {
         return mode_bench(atol(argv[2]), atol(argv[3]), argv[4]);
+    }
+    if (strcmp(argv[1], "bench-mb") == 0 && argc == 5) {
+        return mode_bench_mb(atol(argv[2]), atol(argv[3]), argv[4]);
     }
     if (strcmp(argv[1], "batch-validate") == 0 && argc == 6) {
         return mode_batch_validate(argv[2], atol(argv[3]), atol(argv[4]), argv[5]);

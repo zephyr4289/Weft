@@ -78,8 +78,11 @@ wire-probe: wire_probe.c fanout.c frame_cursor.c weft.c fanout.h frame_cursor.h 
 # attribute — no flag changes; aarch64 CE needs +crypto, see below) +
 # hmac.{h,c} + verified.{h,c} — pure C, zero dependencies.
 # V-series conformance + xlang sign/verify runner. weft.c/weft.h untouched.
+# Series 7 (SIMD batch): sha256_mb.{h,c} (8-way AVX2 / 4-way NEON
+# multi-buffer transform) + verified_mb.{h,c} (lane-batched HMAC verify +
+# vectorized magic scan) + the VMB conformance series.
 
-VW_SRC = sha256.c sha256_hw.c hmac.c verified.c weft.c
+VW_SRC = sha256.c sha256_hw.c hmac.c verified.c verified_mb.c sha256_mb.c weft.c
 
 # aarch64: compile the CE transform with the crypto extension enabled
 # (mbedTLS-style); execution stays gated on the runtime HWCAP probe, so the
@@ -96,6 +99,12 @@ verified-test: sha256.c sha256_hw.c hmac.c verified.c verified_test.c weft.c wef
 verified-test-asan: sha256.c sha256_hw.c hmac.c verified.c verified_test.c weft.c weft.h sha256.h hmac.h verified.h
 	$(CC) $(CFLAGS_ASAN) $(VW_CFLAGS) -o verified-test-asan $(VW_SRC) verified_test.c
 
+verified-mb-test: sha256_mb.c sha256_mb.h verified_mb.c verified_mb.h verified_mb_test.c $(VW_SRC) weft.h
+	$(CC) $(CFLAGS) $(VW_CFLAGS) -o verified-mb-test $(VW_SRC) verified_mb_test.c
+
+verified-mb-test-asan: sha256_mb.c sha256_mb.h verified_mb.c verified_mb.h verified_mb_test.c $(VW_SRC) weft.h
+	$(CC) $(CFLAGS_ASAN) $(VW_CFLAGS) -o verified-mb-test-asan $(VW_SRC) verified_mb_test.c
+
 verified-runner: sha256.c sha256_hw.c hmac.c verified.c verified_runner.c weft.c weft.h sha256.h hmac.h verified.h
 	$(CC) $(CFLAGS) $(VW_CFLAGS) -o verified-runner $(VW_SRC) verified_runner.c
 
@@ -111,6 +120,7 @@ governor-test-asan: governor.c governor_test.c governor.h
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
-	      verified-test verified-test-asan verified-runner verified-runner-asan
+	      verified-test verified-test-asan verified-runner verified-runner-asan \
+	      verified-mb-test verified-mb-test-asan
 
 .PHONY: all clean

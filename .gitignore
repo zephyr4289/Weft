@@ -23,6 +23,8 @@ core/c/verified-test
 core/c/verified-test-asan
 core/c/verified-runner
 core/c/verified-runner-asan
+core/c/verified-mb-test
+core/c/verified-mb-test-asan
 tools/weft-probe/weft_probe
 tools/weft-record/weft_record
 tools/weft-fanout-rec/weft-fanout-rec

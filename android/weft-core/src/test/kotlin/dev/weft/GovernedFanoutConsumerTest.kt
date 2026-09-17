@@ -13,7 +13,6 @@
 
 package dev.weft
 
-import java.lang.management.ManagementFactory
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import org.junit.Assert.assertEquals
@@ -153,8 +152,7 @@ class GovernedFanoutConsumerTest {
 
     @Test
     fun c5ConsumerTickZeroAllocationJvmAudit() {
-        val bean = ManagementFactory.getThreadMXBean()
-        if (bean !is com.sun.management.ThreadMXBean || !bean.isThreadAllocatedMemorySupported) {
+        if (!HotspotAllocAudit.isAvailable) {
             println("C5 alloc audit SKIPPED (no com.sun.management.ThreadMXBean allocation counter)")
             return
         }
@@ -192,13 +190,13 @@ class GovernedFanoutConsumerTest {
             while (i < total) {
                 i++
                 while (seqFlag.get() < i) { /* spin */ }
-                if (i == 1) bean.getThreadAllocatedBytes(tid) // warm the counter call
+                if (i == 1) HotspotAllocAudit.getThreadAllocatedBytes(tid) // warm the counter call
                 if (i == warmup + measured * w + 1) {
-                    before = bean.getThreadAllocatedBytes(tid) // window opens
+                    before = HotspotAllocAudit.getThreadAllocatedBytes(tid) // window opens
                 }
                 if (consumer.tick().present) p++
                 if (i == warmup + measured * (w + 1)) {
-                    deltasOut.set(w, bean.getThreadAllocatedBytes(tid) - before)
+                    deltasOut.set(w, HotspotAllocAudit.getThreadAllocatedBytes(tid) - before)
                     w++
                 }
                 doneFlag.set(i)
@@ -234,5 +232,29 @@ class GovernedFanoutConsumerTest {
         val r1 = consumer.raster
         consumer.tick()
         assertTrue("C5: raster identity stable", consumer.raster === r1)
+    }
+}
+
+internal object HotspotAllocAudit {
+    private val pair by lazy {
+        try {
+            val factoryClass = Class.forName("java.lang.management.ManagementFactory")
+            val getBeanMethod = factoryClass.getMethod("getThreadMXBean")
+            val bean = getBeanMethod.invoke(null)
+            val isSupportedMethod = bean.javaClass.getMethod("isThreadAllocatedMemorySupported")
+            if (isSupportedMethod.invoke(bean) == true) {
+                val allocMethod = bean.javaClass.getMethod("getThreadAllocatedBytes", Long::class.javaPrimitiveType)
+                Pair(bean, allocMethod)
+            } else null
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
+    val isAvailable: Boolean get() = pair != null
+
+    fun getThreadAllocatedBytes(threadId: Long): Long {
+        val p = pair ?: return -1L
+        return p.second.invoke(p.first, threadId) as Long
     }
 }

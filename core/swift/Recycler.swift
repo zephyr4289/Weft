@@ -130,7 +130,7 @@ public final class WeftBufferRecycler: WeftMemoryPressureListening {
 
     /// The memory-pressure backstop: drop FREE slots down to `keepFree`
     /// (default 0 — drop all). LIVE slots are never touched.
-    public func trim(keepFree: Int = 0) {
+    public func trim(_ keepFree: Int = 0) {
         trims += 1
         var dropped = 0
         while free.count > keepFree {

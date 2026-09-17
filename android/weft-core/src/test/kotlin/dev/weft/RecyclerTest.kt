@@ -15,7 +15,6 @@
 
 package dev.weft
 
-import java.lang.management.ManagementFactory
 import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -205,8 +204,7 @@ class RecyclerTest {
 
     @Test
     fun r8DrawingLoopZeroAllocationJvmAudit() {
-        val bean = ManagementFactory.getThreadMXBean()
-        if (bean !is com.sun.management.ThreadMXBean || !bean.isThreadAllocatedMemorySupported) {
+        if (!HotspotAllocAudit.isAvailable) {
             println("R8 alloc audit SKIPPED (no com.sun.management.ThreadMXBean allocation counter)")
             return
         }
@@ -310,14 +308,14 @@ class RecyclerTest {
                     // Warm the per-thread allocation counter's first call
                     // ON THIS THREAD (its own first-use allocation must
                     // land outside any window).
-                    bean.getThreadAllocatedBytes(tid)
+                    HotspotAllocAudit.getThreadAllocatedBytes(tid)
                 }
                 if (i == warmup + measured * w + 1) {
-                    before = bean.getThreadAllocatedBytes(tid) // window opens
+                    before = HotspotAllocAudit.getThreadAllocatedBytes(tid) // window opens
                 }
                 if (consume()) p++
                 if (i == warmup + measured * (w + 1)) {
-                    deltasOut.set(w, bean.getThreadAllocatedBytes(tid) - before)
+                    deltasOut.set(w, HotspotAllocAudit.getThreadAllocatedBytes(tid) - before)
                     w++
                 }
                 doneFlag.set(i)
@@ -361,5 +359,29 @@ class RecyclerTest {
         val bl = ((a ushr 16 and 0xff) * inv + (b ushr 16 and 0xff) * alpha) ushr 12
         val al = ((a ushr 24 and 0xff) * inv + (b ushr 24 and 0xff) * alpha) ushr 12
         return r or (g shl 8) or (bl shl 16) or (al shl 24)
+    }
+}
+
+internal object HotspotAllocAudit {
+    private val pair by lazy {
+        try {
+            val factoryClass = Class.forName("java.lang.management.ManagementFactory")
+            val getBeanMethod = factoryClass.getMethod("getThreadMXBean")
+            val bean = getBeanMethod.invoke(null)
+            val isSupportedMethod = bean.javaClass.getMethod("isThreadAllocatedMemorySupported")
+            if (isSupportedMethod.invoke(bean) == true) {
+                val allocMethod = bean.javaClass.getMethod("getThreadAllocatedBytes", Long::class.javaPrimitiveType)
+                Pair(bean, allocMethod)
+            } else null
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
+    val isAvailable: Boolean get() = pair != null
+
+    fun getThreadAllocatedBytes(threadId: Long): Long {
+        val p = pair ?: return -1L
+        return p.second.invoke(p.first, threadId) as Long
     }
 }

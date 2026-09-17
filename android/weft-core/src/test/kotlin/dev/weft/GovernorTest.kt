@@ -22,7 +22,6 @@
 
 package dev.weft
 
-import java.lang.management.ManagementFactory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -150,8 +149,7 @@ class GovernorTest {
         // must show a ZERO-byte delta across 100k mixed ladder+policy steps
         // (after warmup). Guarded — the identity checks above pin the
         // contract on every JVM; this audit pins it on HotSpot.
-        val bean = ManagementFactory.getThreadMXBean()
-        if (bean !is com.sun.management.ThreadMXBean || !bean.isThreadAllocatedMemorySupported) {
+        if (!HotspotAllocAudit.isAvailable) {
             println("G4 alloc audit SKIPPED (no com.sun.management.ThreadMXBean allocation counter)")
             return
         }
@@ -172,7 +170,7 @@ class GovernorTest {
             polBurst.step(latest)
         }
         val tid = Thread.currentThread().id
-        val before = bean.getThreadAllocatedBytes(tid)
+        val before = HotspotAllocAudit.getThreadAllocatedBytes(tid)
         for (i in 0 until 100_000) {
             state = xorshift32(state)
             latest += state % 5
@@ -181,7 +179,7 @@ class GovernorTest {
             polPaced.step(latest)
             polBurst.step(latest)
         }
-        val after = bean.getThreadAllocatedBytes(tid)
+        val after = HotspotAllocAudit.getThreadAllocatedBytes(tid)
         assertEquals("G4/PC4 zero allocation (bytes allocated over 100k steps)", 0L, after - before)
     }
 
@@ -481,5 +479,29 @@ class GovernorTest {
             }
         }
         assertEquals("PC3 local trace hash (TS reference pin)", 0x6f654c298cbcc9f4L, fnv1a64(bytes))
+    }
+}
+
+internal object HotspotAllocAudit {
+    private val pair by lazy {
+        try {
+            val factoryClass = Class.forName("java.lang.management.ManagementFactory")
+            val getBeanMethod = factoryClass.getMethod("getThreadMXBean")
+            val bean = getBeanMethod.invoke(null)
+            val isSupportedMethod = bean.javaClass.getMethod("isThreadAllocatedMemorySupported")
+            if (isSupportedMethod.invoke(bean) == true) {
+                val allocMethod = bean.javaClass.getMethod("getThreadAllocatedBytes", Long::class.javaPrimitiveType)
+                Pair(bean, allocMethod)
+            } else null
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
+    val isAvailable: Boolean get() = pair != null
+
+    fun getThreadAllocatedBytes(threadId: Long): Long {
+        val p = pair ?: return -1L
+        return p.second.invoke(p.first, threadId) as Long
     }
 }

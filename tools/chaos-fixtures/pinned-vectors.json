@@ -1,0 +1,16 @@
+{
+  "engine": "weft-chaos-stepped",
+  "v": 1,
+  "note": "RFC 0011 chaos contract pinning vectors. Every port (C/TS/JVM/Dart/Swift) asserts these EXACT values in its selftest; a drift means a different PRNG or pattern than the C reference oracle.",
+  "prng": "Marsaglia xorshift128, four u32 words (a,b,c,d); t=d;s=a;d=c;c=b;b=s;t^=t<<11;t^=t>>>8;a=t^s^(s>>>10)",
+  "seed_derivation": "a=mix32(seed^0xA341316C); b=mix32(seed^0xC8013EA4); c=a^0x9E3779B9; d=b^0x85EBCA6B",
+  "mix32": "x^=x>>16; x*=0x7FEB352D; x^=x>>15; x*=0x846CA68B; x^=x>>16 (u32 wrap)",
+  "tword": "mix32(seq*2654435761 + w) (u32 wrap)",
+  "vectors": {
+    "mix32_DEADBEEF": 3861431939,
+    "tword_1_0": 1834104592,
+    "tword_7_3": 2500287888,
+    "tword_100_15": 4197121613,
+    "seed42_first8_draws": [1034221180, 2302191726, 1921777443, 3822789115, 4193179225, 3051818586, 2559959645, 2724063783]
+  }
+}

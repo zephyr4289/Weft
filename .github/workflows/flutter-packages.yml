@@ -82,7 +82,7 @@ jobs:
             echo "compiler: $CC"
             # mingw-gcc on the windows runner; -static-libgcc keeps the DLL
             # self-contained. Named weft.dll — the loader's windows name.
-            "$CC" -shared -O3 -static-libgcc -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
+            "$CC" -shared -O3 -static-libgcc -include packages/flutter_weft/win_compat.h -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
               -o packages/flutter_weft/weft.dll 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
             cp packages/flutter_weft/weft.dll "${RUNNER_TEMP:-/tmp}/weft.dll" || true
           elif [[ "$RUNNER_OS" == "macOS" ]]; then

@@ -55,6 +55,24 @@ fanout-runner-tsan: fanout.c frame_cursor.c fanout_runner.c fanout.h frame_curso
 fanout-runner-seq: fanout.c frame_cursor.c fanout_runner.c fanout.h frame_cursor.h weft.h
 	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 -o fanout-runner-seq $(FANOUT_SRC) fanout_runner.c
 
+# ---- RFC 0011 chaos engine ------------------------------------------------
+# fanout-chaos: stepped (deterministic scheduler -- the parity oracle) +
+#               free (real threads, seed-deterministic fault sequence).
+#               -seq builds the all-seq_cst A/B regime, as with the torture
+#               gates; -asan builds the sanitizer leg.
+
+fanout-chaos: fanout.c frame_cursor.c fanout_chaos.c fanout_chaos_runner.c fanout_chaos.h fanout.h frame_cursor.h weft.h
+	$(CC) $(CFLAGS) -DWEFT_FANOUT_CHAOS_FREE_MODE=1 -o fanout-chaos $(FANOUT_SRC) fanout_chaos.c fanout_chaos_runner.c
+
+fanout-chaos-asan: fanout.c frame_cursor.c fanout_chaos.c fanout_chaos_runner.c fanout_chaos.h fanout.h frame_cursor.h weft.h
+	$(CC) $(CFLAGS_ASAN) -DWEFT_FANOUT_CHAOS_FREE_MODE=1 -o fanout-chaos-asan $(FANOUT_SRC) fanout_chaos.c fanout_chaos_runner.c
+
+fanout-chaos-seq: fanout.c frame_cursor.c fanout_chaos.c fanout_chaos_runner.c fanout_chaos.h fanout.h frame_cursor.h weft.h
+	$(CC) $(CFLAGS) -DWEFT_FANOUT_CHAOS_FREE_MODE=1 -DWEFT_FANOUT_SEQ_CST=1 -o fanout-chaos-seq $(FANOUT_SRC) fanout_chaos.c fanout_chaos_runner.c
+
+wire-probe: wire_probe.c fanout.c frame_cursor.c weft.c fanout.h frame_cursor.h weft.h
+	$(CC) $(CFLAGS) -o wire-probe wire_probe.c fanout.c frame_cursor.c weft.c
+
 # ---- VerifiedWeft driver layer (RFC 0005) --------------------------------
 # sha256.{h,c} + sha256_hw.c (Series 6 HW dispatch: x86 SHA-NI via target
 # attribute — no flag changes; aarch64 CE needs +crypto, see below) +

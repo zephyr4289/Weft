@@ -1,0 +1,48 @@
+=== Starting Flutter CI (windows-latest) ===
+[PASS] core/kotlin/FrameCursor.kt  <->  android/weft-core/src/main/kotlin/dev/weft/FrameCursor.kt
+[PASS] core/kotlin/Fanout.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Fanout.kt
+[PASS] core/kotlin/FanoutCompat.kt  <->  android/weft-core/src/main/kotlin/dev/weft/FanoutCompat.kt
+[PASS] core/kotlin/Steward.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Steward.kt
+[PASS] core/kotlin/TriadNative.kt  <->  android/weft-core/src/main/kotlin/dev/weft/TriadNative.kt
+[PASS] core/kotlin/Weft.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Weft.kt
+[PASS] core/dart/frame_cursor.dart  <->  packages/flutter_weft/lib/src/reference/frame_cursor.dart
+[PASS] core/dart/fanout.dart  <->  packages/flutter_weft/lib/src/reference/fanout.dart
+[PASS] core/dart/heddle.dart  <->  packages/flutter_weft/lib/src/reference/heddle.dart
+[PASS] core/dart/steward.dart  <->  packages/flutter_weft/lib/src/reference/steward.dart
+[PASS] core/dart/weft.dart  <->  packages/flutter_weft/lib/src/reference/weft.dart
+[PASS] core/ts/weft.ts  <->  packages/core/src/weft.ts
+[PASS] core/ts/fanout.ts  <->  packages/core/src/fanout.ts
+[PASS] core/ts/verified.ts  <->  packages/core/src/verified.ts
+[PASS] core/kotlin/Verified.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Verified.kt
+[PASS] core/dart/verified.dart  <->  packages/flutter_weft/lib/src/reference/verified.dart
+{"shard":"binding-parity","passed":16,"failed":0,"total":16,"cells":{"core/kotlin/FrameCursor.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Fanout.kt":{"status":"PASS","detail":"identical"},"core/kotlin/FanoutCompat.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Steward.kt":{"status":"PASS","detail":"identical"},"core/kotlin/TriadNative.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Weft.kt":{"status":"PASS","detail":"identical"},"core/dart/frame_cursor.dart":{"status":"PASS","detail":"identical"},"core/dart/fanout.dart":{"status":"PASS","detail":"identical"},"core/dart/heddle.dart":{"status":"PASS","detail":"identical"},"core/dart/steward.dart":{"status":"PASS","detail":"identical"},"core/dart/weft.dart":{"status":"PASS","detail":"identical"},"core/ts/weft.ts":{"status":"PASS","detail":"identical"},"core/ts/fanout.ts":{"status":"PASS","detail":"identical"},"core/ts/verified.ts":{"status":"PASS","detail":"identical"},"core/kotlin/Verified.kt":{"status":"PASS","detail":"identical"},"core/dart/verified.dart":{"status":"PASS","detail":"identical"}}}
+✅ Binding parity: 16/16 pairs byte-identical
+
+=== heddles <-> packages surface parity (shim re-exports) ===
+[PASS] heddles/react/WeftCanvas.tsx  ->  packages/react/src/index.ts
+[PASS] heddles/vue/useWeft.ts  ->  packages/vue/src/index.ts
+[PASS] heddles/svelte/weft-action.ts  ->  packages/svelte/src/index.ts
+[PASS] heddles/react-native/weft-rn.ts  ->  packages/react-native/src/index.ts
+✅ Heddles surface parity: 4/4 shims aligned
+{"shard":"binding-parity","byte_pairs":{"passed":16,"failed":0,"total":16},"shim_pairs":{"passed":4,"failed":0,"total":4,"cells":{"heddles/react/WeftCanvas.tsx":{"status":"PASS","detail":"surface parity"},"heddles/vue/useWeft.ts":{"status":"PASS","detail":"surface parity"},"heddles/svelte/weft-action.ts":{"status":"PASS","detail":"surface parity"},"heddles/react-native/weft-rn.ts":{"status":"PASS","detail":"surface parity"}}}}
+core/c/weft.c: In function 'weft_init':
+core/c/weft.c:53:13: error: implicit declaration of function 'posix_memalign' [-Wimplicit-function-declaration]
+   53 |         if (posix_memalign(&p, 64, w->buf_size) != 0 || p == NULL) {
+      |             ^~~~~~~~~~~~~~
+core/c/weft.c:53:32: warning: 'posix_memalign' argument 2 type is 'int' where 'long long unsigned int' is expected in a call to built-in function declared without prototype [-Wbuiltin-declaration-mismatch]
+   53 |         if (posix_memalign(&p, 64, w->buf_size) != 0 || p == NULL) {
+      |                                ^~
+<built-in>: note: built-in 'posix_memalign' declared here
+core/c/fanout.c: In function 'weft_fanout_init':
+core/c/fanout.c:65:9: error: implicit declaration of function 'posix_memalign' [-Wimplicit-function-declaration]
+   65 |     if (posix_memalign(&ring, 64, bytes) != 0) return -1;
+      |         ^~~~~~~~~~~~~~
+core/c/fanout.c:65:31: warning: 'posix_memalign' argument 2 type is 'int' where 'long long unsigned int' is expected in a call to built-in function declared without prototype [-Wbuiltin-declaration-mismatch]
+   65 |     if (posix_memalign(&ring, 64, bytes) != 0) return -1;
+      |                               ^~
+<built-in>: note: built-in 'posix_memalign' declared here
+core/c/fanout.c: In function 'weft_fanout_reader_init':
+core/c/fanout.c:190:33: warning: 'posix_memalign' argument 2 type is 'int' where 'long long unsigned int' is expected in a call to built-in function declared without prototype [-Wbuiltin-declaration-mismatch]
+  190 |     if (posix_memalign(&target, 64, payload_bytes) != 0) return -1;
+      |                                 ^~
+<built-in>: note: built-in 'posix_memalign' declared here

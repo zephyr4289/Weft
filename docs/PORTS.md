@@ -172,3 +172,54 @@ CI: `run_verifiedweft_shard.sh` now carries seven gates (C ×2 regimes,
 Rust, TS, xlang, Kotlin-when-kotlinc, Swift/Dart declared to their package
 workflows) — the shard's declared-skip discipline matches the repo's
 per-port honesty culture.
+
+## 9. VM-port governor + cadence policies + 0-GC consumers (RFC 0009 — Series 7: `core/kotlin/Governor.kt`, `core/swift/Governor.swift`, `core/dart/governor.dart`, `core/kotlin/Recycler.kt`, `core/swift/Recycler.swift`, `core/dart/recycler.dart`, `core/{kotlin,swift,dart}/GovernedFanoutConsumer.*`)
+
+RFC 0009 shipped the staleness ladder to C/Rust/TS (PR #9, §7 above).
+Series 7 — the "deterministic cadence, 0-GC memory pooling & mobile
+lifecycle" work order — completes the RFC on the VM ports: BOTH halves
+(the ladder + the §cadence presentation policies LATEST_WINS /
+PACED_INTERPOLATE / BURST_COALESCE), the Series-7 buffer recyclers with
+memory-pressure backstops, and the composed display consumer with
+render-thread adapters.
+
+| Port | Ladder + policies | Recycler + backstop | Batteries (evidence: `litmus/evidence/governor-vm/`) |
+|---|---|---|---|
+| Kotlin/JVM | `core/kotlin/Governor.kt` (android mirror; binding-parity pair) — Long/Int arithmetic, non-negative division split, identity-stable records | `core/kotlin/Recycler.kt`: `WeftBufferRecycler` + `OnLowMemoryListener` + `WeftRecyclerCenter` (ComponentCallbacks2 level mapping); sample app wires `onTrimMemory`/`onLowMemory` | GovernorTest.kt 22/22 (incl. the HotSpot allocated-bytes audit == 0 and the G5/PC3 FNV-1a-64 trace-hash pins), RecyclerTest.kt 8/8 (R8: 100k-tick drawing-loop audit == 0), GovernedFanoutConsumerTest.kt 5/5 (C5: zero-window audit) — kotlinc 2.0.21 + junit, 5x stable; android-packages gradle CI is the cover |
+| Swift | `core/swift/Governor.swift` (WeftCore target — pure Foundation, no swift-atomics, so the emitters build standalone) | `core/swift/Recycler.swift`: `WeftBufferRecycler` + `WeftMemoryPressureCenter` (`handleMemoryWarning()` <- `didReceiveMemoryWarning`); the example app's MemoryPressureBridge wires the notification | GovernorTests.swift, RecyclerTests.swift, GovernedConsumerTests.swift (XCTest — apple-packages CI). SOURCE-ONLY in the Linux sandbox (no swift toolchain — declared); the trace-hash pins fail the battery the moment a toolchain runs it |
+| Dart/Flutter | `core/dart/governor.dart` (flutter mirror + barrel) — int-only, `~/` truncation, `identical()` audits | `core/dart/recycler.dart` + flutter-only `memory_backstop.dart` (`WeftMemoryPressureBackstop` — WidgetsBindingObserver -> `didHaveMemoryPressure`) | governor_test.dart 21/21, recycler_test.dart 7/7, governed_consumer_test.dart 4/4 — Dart 3.13 VM via the plain-dart expect() shim (flutter-packages CI is the flutter_test cover); emitters byte-IDENTICAL to TS (20001 / 120001 bytes) |
+
+Cross-language gates (the G5/PC3 discipline, extended):
+`fixtures/xlang-governor/run.sh` now byte-compares the ladder trace
+across TS + C + Rust + the three VM emitters (best-effort per toolchain,
+declared skips); `fixtures/xlang-cadence/` (NEW) does the same for the
+cadence decision trace across TS + Kotlin + Swift + Dart, plus a
+policy-coverage sanity (all three policies must actually present). Both
+are wired into `ci/scripts/run_fanout_native_shard.sh` (gates 5 + 5b).
+
+The composed consumer (RFC-0009's two open questions, resolved
+"composed"): `GovernedFanoutConsumer` = fan-out reader + governor +
+policy + two-frame history over the recyclers; one `tick()` per display
+tick; the raster is a pooled slot LIVE for the consumer's lifetime (the
+backstop never touches live slots — zero frame drops by construction).
+Render-thread adapters: `Modifier.weftGovernedDraw` (Compose DrawScope),
+`WeftGovernedPainter` (Flutter CustomPainter, Impeller-safe packed-u32
+raster), and `createGovernedUiThread` (RN — the ladder + policies as
+Reanimated worklets over plain-object state, zero bridge hops per
+frame; the flattening byte-pinned to `@weft/core` in vitest).
+
+Series-7 allocation findings (the audits working):
+- `Weft.rLiveBuf()` allocates 2 ByteBuffer wrappers per call —
+  documented cold path; the per-frame API is `rLiveWords()` (zero
+  allocation, R8-proven).
+- **Wire-order bug fixed**: Java `ByteBuffer.slice()` does not inherit
+  LITTLE_ENDIAN — `wBegin()`/`rLiveBuf()` returned BIG_ENDIAN slices
+  over the little-endian wire buffer, silently byte-swapping every
+  u32/f32 word through them (byte-granular users unaffected — the old
+  roundtrip test swapped both ends and passed). Caught by R7's
+  word-level parity check.
+- **invokeWithArguments boxing fixed**: the Kotlin fanout ring's
+  VarHandle calls boxed ~4.6 KB per claim since Series 5 (measured
+  458 MB / 100k claims by the C5 audit) — `FanoutVhBridge.java` (the
+  javac signature-polymorphic shim Kotlin cannot emit, KT-20871) makes
+  the claim path allocation-free; the F-series battery re-pinned.

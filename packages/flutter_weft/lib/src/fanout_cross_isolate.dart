@@ -408,6 +408,27 @@ void _readerIsolateMain(_IsoConfig cfg) async {
     }
   }
 
+  // Drain: final claim if ring advanced before reporting stopped
+  final finalRec = claim(handle);
+  if (finalRec.ref.fresh != 0) {
+    claims++;
+    final seq = finalRec.ref.seq;
+    if (cfg.verifyStride > 0) {
+      final v = view(handle);
+      for (var i = 0; i < cfg.payloadBytes; i += cfg.verifyStride) {
+        if (v[i] != _pat(seq, i)) {
+          tornAccepted++;
+          violations.add('torn/corrupt frame accepted at seq $seq');
+          break;
+        }
+      }
+    }
+    if (lastSeq > 0 && seq <= lastSeq) {
+      violations.add('non-monotonic seq $seq after $lastSeq');
+    }
+    lastSeq = seq;
+  }
+
   cfg.events.send({'event': 'stopped', 'id': cfg.id, ...snapshot().toMap()});
   control.close();
   // Return: with the control port closed and no timers pending, the event

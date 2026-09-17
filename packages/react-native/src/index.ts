@@ -156,3 +156,27 @@ export function useWeftFanoutDraw(
 // ---------------------------------------------------------------------------
 export { createUiThreadFrameSource, uiThreadClaim, useWeftUiThread } from './ui-thread';
 export type { UiThreadFrameSource } from './ui-thread';
+
+// ---------------------------------------------------------------------------
+// Series 7 (RFC-0009): the governor ladder + cadence policies AS WORKLETS
+// on the UI thread (src/governed-ui-thread.ts) — pure integer state
+// machines over plain-object state (no class captures — the honesty
+// contract above holds), decisions published into SharedValues with zero
+// bridge hops per frame. Parity-pinned against @weft/core on the canonical
+// xorshift32 trace (test/governed-ui-thread.test.ts).
+// ---------------------------------------------------------------------------
+export {
+  createGovernedUiThread,
+  createLadderState,
+  createCadenceState,
+  createDecision,
+  ladderStep,
+  cadenceStep,
+  referenceTickTrace,
+} from './governed-ui-thread';
+export type {
+  SharedNum,
+  LadderState,
+  CadenceState,
+  GovernedDecision,
+} from './governed-ui-thread';

@@ -84,7 +84,17 @@ class Weft(val payloadMax: Int) {
     /// relative to the payload: put(0, x) writes payload byte 0. The envelope
     /// is written by publish() and is unreachable through this cursor's
     /// intended window — never write the envelope yourself (02 §2).
-    fun wBegin(): ByteBuffer = buffers[wWork].duplicate().apply { position(16) }.slice()
+    ///
+    /// SERIES-7 FIX (wire-order): Java's ByteBuffer.slice() does NOT inherit
+    /// the source's byte order — the slice came back BIG_ENDIAN over the
+    /// LITTLE_ENDIAN wire buffer, silently byte-swapping every u32/f32 the
+    /// cursor touched (byte-granular users were unaffected; word-granular
+    /// users got swapped words — caught by rLiveWords' word-level parity
+    /// check, RecyclerTest R7). The order is now pinned explicitly: words
+    /// through this cursor match the C kernel's little-endian wire format.
+    fun wBegin(): ByteBuffer =
+        buffers[wWork].duplicate().apply { position(16) }
+            .slice().order(ByteOrder.LITTLE_ENDIAN)
 
     /// Publish: write envelope + canary, then exchange latest.
     /// Per 02 §2 + §6: revoked checked FIRST; exchange is THE atomic.
@@ -143,11 +153,43 @@ class Weft(val payloadMax: Int) {
     /// violation (it is the writer's scratch buffer — torn reads by design).
     /// Parity: C weft_r_live_ptr / Swift rLivePtr take absolute offsets;
     /// this takes a payload-relative offset (0 = start of payload).
+    ///
+    /// LAW 2 (Series 7 hardening): this method allocates TWO ByteBuffer
+    /// wrappers per call (duplicate + slice) — fine for setup and demos,
+    /// NOT for a 60-120 Hz drawing loop. Per-frame consumers MUST use
+    /// [rLiveWords] (zero allocation: absolute reads into the caller's
+    /// pooled slot) or the fan-out reader's view().
     fun rLiveBuf(payloadOffset: Int = 0): ByteBuffer {
         require(payloadOffset >= 0 && payloadOffset < payloadMax) {
             "payloadOffset out of range: $payloadOffset"
         }
-        return buffers[rWork].duplicate().apply { position(16 + payloadOffset) }.slice()
+        // SERIES-7 FIX (wire-order): slice() does not inherit LITTLE_ENDIAN —
+        // pinned explicitly (see wBegin's note).
+        return buffers[rWork].duplicate().apply { position(16 + payloadOffset) }
+            .slice().order(ByteOrder.LITTLE_ENDIAN)
+    }
+
+    /// ZERO-ALLOCATION bulk read of the reader-held payload (Series 7): the
+    /// drawing-loop API. Copies at most [dst].size payload words (u32,
+    /// little-endian) starting at payload word [offsetWords] into the
+    /// CALLER-OWNED destination — a pooled slot from WeftBufferRecycler, a
+    /// preallocated IntArray, anything stable; no ByteBuffer wrapper, no
+    /// boxing, no temporary arrays (Law 2 — the JVM battery audits bytes).
+    /// A3 discipline unchanged: reads the LIVE reader-held buffer at call
+    /// time, after claim(). Returns the number of words read.
+    fun rLiveWords(dst: IntArray, offsetWords: Int = 0): Int {
+        val maxWords = payloadMax / 4
+        require(offsetWords >= 0 && offsetWords <= maxWords) {
+            "offsetWords out of range: $offsetWords"
+        }
+        val n = minOf(dst.size, maxWords - offsetWords)
+        val buf = buffers[rWork]
+        var p = 16 + 4 * offsetWords
+        for (i in 0 until n) {
+            dst[i] = buf.getInt(p)
+            p += 4
+        }
+        return n
     }
 
     // --- I6 handshake ---

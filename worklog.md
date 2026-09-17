@@ -438,3 +438,64 @@ RFC (0010: .weftrec v3 compression + e2e demo).
   attach = 1 claim + honest drop accounting), replay throttle for the
   recapture leg, subsequence compare. FORMATS.md §1.6; fanout-native
   shard gate 6; selftest x2 regimes + ASAN green (regressions).
+
+## Series 7 (deterministic cadence, 0-GC pooling, mobile lifecycle) — implementation record
+
+Scope (lead's assignment, branch `Weft` theme): RFC-0009 to the VM ports —
+the Adaptive Freshness Governor ladder + the §cadence presentation
+policies (LATEST_WINS / PACED_INTERPOLATE / BURST_COALESCE) across
+Kotlin/Swift/Dart/TS; zero-GC allocation stripping + buffer recyclers +
+memory-pressure backstops; native worklet / render-thread integration
+(RN Reanimated, Compose DrawScope, Flutter Impeller).
+
+- **TS reference (7921b08 + 2086c2d)**: RFC-0009 §cadence spec section +
+  packages/core/src/cadence.ts (the closed policy set, Q12 integer
+  arithmetic, identity-stable decision record) + cadence.test.ts (PC1-PC6
+  exact-count regimes) + cadence_bench.ts evidence + api-extractor surface.
+- **Kotlin (97b6316)**: Governor.kt (ladder + policies, PROTOCOL kinds,
+  injected nowMs, Law-4 counters) + GovernorTest.kt 22/22 — the JVM
+  allocated-bytes audit (G4/PC4 == 0 across 100k steps) and the LOCAL
+  FNV-1a-64 trace-hash pins (ladder 0x3c33156204c7cfdf, cadence
+  0x6f654c298cbcc9f4 from gen_trace_refs.mjs) + the xlang emitters,
+  byte-IDENTICAL to TS.
+- **Swift (52d2c94)**: Governor.swift + GovernorTests.swift + emitters —
+  source-only on the Linux sandbox (declared; hash pins keep it honest
+  the moment apple CI runs).
+- **Dart (0e0ee57)**: governor.dart + flutter mirror + governor_test.dart
+  21/21 on the plain-dart expect shim + emitters byte-IDENTICAL.
+- **xlang gates (608bb66)**: fixtures/xlang-cadence/ (NEW PC3 gate: TS +
+  every VM emitter present, byte-compared, policy-coverage sanity) +
+  xlang-governor/run.sh extended G5-VM (TS/C/Rust + VM emitters,
+  best-effort per toolchain); fanout-native shard gates 5 + 5b.
+- **D2 recyclers (8abb063)**: WeftBufferRecycler trio (0-GC pool; trim
+  drops FREE slots only — LIVE rasters survive pressure by construction;
+  reallocs counts pressure's cost) + OnLowMemoryListener /
+  WeftRecyclerCenter / WeftMemoryPressureCenter / WeftMemoryPressureBackstop
+  + platform wiring (MainActivity, WeftExampleApp bridge, Flutter
+  observer) + RecyclerTest 8/8 with the R8 100k-tick drawing-loop audit
+  == ZERO bytes + **wire-order bug fixed** (Java slice() does not inherit
+  LITTLE_ENDIAN — wBegin/rLiveBuf were silently byte-swapping u32/f32
+  words; caught by R7's word-level parity) + rLiveWords() zero-alloc
+  bulk read.
+- **FanoutVhBridge (4099674)**: the C5 audit caught the Kotlin ring's
+  VarHandle accessors boxing ~4.6 KB/claim via invokeWithArguments (since
+  Series 5!) — the javac signature-polymorphic shim (Kotlin cannot emit
+  invokeExact, KT-20871) makes claim allocation-free; F-series re-pinned
+  (49/49 across five batteries, 5x stable).
+- **D3 consumers (3d74921)**: GovernedFanoutConsumer trio (reader +
+  governor + policy + two-frame history over the recyclers; PACED
+  continuity by construction; raster LIVE for the consumer's lifetime) +
+  WeftGovernedDraw (Compose) + WeftGovernedPainter (Flutter, Impeller-
+  safe) + governed-ui-thread.ts (RN: ladder + policies as Reanimated
+  worklets over plain-object state, zero bridge hops; flattening
+  byte-pinned to @weft/core in vitest 5/5) + consumer batteries (Kotlin
+  5/5 incl. the C5 zero-window audit, Dart 4/4, Swift twin).
+
+Gates at wave close: TS vitest 24/24 (governor+cadence) + RN 5/5;
+Kotlin 49/49 (Fanout 12 + Governor 22 + Recycler 8 + Consumer 5 + Weft 2)
+across five batteries, 5x stable; Dart 32/32 (governor 21 + recycler 7 +
+consumer 4) + analyze clean; binding parity 23/23 byte pairs; G5 ladder
+trace TS=C=Kotlin=Dart (20001 bytes); PC3 cadence trace TS=Kotlin=Dart
+(120001 bytes); Swift source-only declared to apple CI. Docs: PORTS.md §9,
+RFC-0009 implementation record extended with the xlang evidence + the
+three allocation findings.

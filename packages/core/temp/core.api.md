@@ -5,6 +5,63 @@
 ```ts
 
 // @public (undocumented)
+export const CADENCE_ALPHA_ONE_Q12 = 4096;
+
+// @public (undocumented)
+export const CADENCE_DEFAULTS: Readonly<Omit<CadenceConfig, 'policy'>>;
+
+// @public (undocumented)
+export const CADENCE_K_MAX = 64;
+
+// @public (undocumented)
+export const CADENCE_K_MIN = 1;
+
+// @public (undocumented)
+export interface CadenceConfig {
+    // (undocumented)
+    policy: CadencePolicyKind;
+    // (undocumented)
+    reassessTicks: number;
+}
+
+// @public (undocumented)
+export class CadencePolicy {
+    constructor(config: Partial<CadenceConfig> & {
+        policy: CadencePolicyKind;
+    });
+    // (undocumented)
+    readonly act: PresentDecision;
+    // (undocumented)
+    arrivalTicks: number;
+    // (undocumented)
+    coalescedByDecision: number;
+    // (undocumented)
+    get config(): Readonly<CadenceConfig>;
+    // (undocumented)
+    elided: number;
+    // (undocumented)
+    interpFrames: number;
+    // (undocumented)
+    missedPresentTicks: number;
+    // (undocumented)
+    presents: number;
+    // (undocumented)
+    reset(policy?: CadencePolicyKind): void;
+    // (undocumented)
+    step(latestSeq: number): PresentDecision;
+}
+
+// @public (undocumented)
+export const CadencePolicyKind: {
+    readonly LATEST_WINS: 0;
+    readonly PACED_INTERPOLATE: 1;
+    readonly BURST_COALESCE: 2;
+};
+
+// @public (undocumented)
+export type CadencePolicyKind = (typeof CadencePolicyKind)[keyof typeof CadencePolicyKind];
+
+// @public (undocumented)
 export interface ChaosConfig {
     // (undocumented)
     chaosRate: number;
@@ -192,6 +249,16 @@ export function negotiate(writerVersion: number, readerVersions: number[]): numb
 
 // @public (undocumented)
 export function pat(seq: number, i: number): number;
+
+// @public (undocumented)
+export interface PresentDecision {
+    alphaQ12: number;
+    coalesced: number;
+    interp: boolean;
+    k: number;
+    present: boolean;
+    presentSeq: number;
+}
 
 // @public (undocumented)
 export const PubResult: {

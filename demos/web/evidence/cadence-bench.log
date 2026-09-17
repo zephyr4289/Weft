@@ -1,0 +1,39 @@
+# cadence_bench — RFC-0009 §cadence PC5: present-rate steadiness
+# env: node v24.19.0, x64 sandbox, 2026-09-17T11:39:31.196Z
+# ticker: 120 Hz busy-wait; writer: worker broadcaster, deadline-paced;
+# 30 Hz rows carry ±20% xorshift32 jitter (the volatile feed).
+# window: 1.2 s measure after 0.4 s warmup
+
+| feed | policy | presents | ticks | present% | meanGap(t) | maxGap(t) | coalesced | conv(delta) |
+|---|---|---|---|---|---|---|---|---|
+| 30 Hz±20% | naive | 113 | 113 | 100.0% | 1.00 | 1 | 0 | 0 |
+| 30 Hz±20% | LATEST_WINS | 44 | 113 | 38.9% | 2.56 | 5 | 17 | 1 |
+| 30 Hz±20% | PACED_INTERPOLATE | 100 | 109 | 91.7% | 1.09 | 2 | 16 | 0 |
+| 30 Hz±20% | BURST_COALESCE | 36 | 110 | 32.7% | 3.11 | 6 | 25 | 0 |
+
+  gate2 OK: PACED_INTERPOLATE 93.8% of ticks at 30 Hz feed (>= 80%)
+| 60 Hz | naive | 112 | 112 | 100.0% | 1.00 | 1 | 0 | 0 |
+| 60 Hz | LATEST_WINS | 61 | 112 | 54.5% | 1.85 | 2 | 36 | 2 |
+| 60 Hz | PACED_INTERPOLATE | 114 | 117 | 97.4% | 1.03 | 2 | 36 | 0 |
+| 60 Hz | BURST_COALESCE | 58 | 115 | 50.4% | 2.00 | 2 | 39 | 0 |
+
+  gate2 OK: PACED_INTERPOLATE 100.0% of ticks at 60 Hz feed (>= 97%)
+| 240 Hz | naive | 113 | 113 | 100.0% | 1.00 | 1 | 0 | 2 |
+| 240 Hz | LATEST_WINS | 112 | 112 | 100.0% | 1.00 | 1 | 208 | 2 |
+| 240 Hz | PACED_INTERPOLATE | 112 | 112 | 100.0% | 1.00 | 1 | 212 | 2 |
+| 240 Hz | BURST_COALESCE | 111 | 111 | 100.0% | 1.00 | 1 | 208 | 2 |
+
+  gate2 OK: PACED_INTERPOLATE 100.0% of ticks at 240 Hz feed (>= 97%)
+| 960 Hz | naive | 113 | 113 | 100.0% | 1.00 | 1 | 0 | 8 |
+| 960 Hz | LATEST_WINS | 110 | 110 | 100.0% | 1.00 | 1 | 1104 | 8 |
+| 960 Hz | PACED_INTERPOLATE | 112 | 112 | 100.0% | 1.00 | 1 | 1078 | 8 |
+| 960 Hz | BURST_COALESCE | 112 | 112 | 100.0% | 1.00 | 1 | 1086 | 8 |
+
+  gate2 OK: PACED_INTERPOLATE 100.0% of ticks at 960 Hz feed (>= 97%)
+Gates: (1) <=1 present/tick all policies; (2) PACED >= 97% of ticks on steady feeds,
+       >= 80% and >= 2x LATEST on the volatile feed (saturation elides are honest);
+       (3) LATEST_WINS converges (delta <= ceil(hz/120)+2); (4) telescoping pinned in
+       the PC batteries; (5) naive-waste = naive presents - policy presents (elided rasters).
+Honest notes: BURST_COALESCE intentionally presents LESS than the display rate at sub-rate
+feeds (the power-saving contract); its gates are the K-lock regimes of the PC battery.
+RESULT: PASS — steady-cadence contract holds across the feed matrix

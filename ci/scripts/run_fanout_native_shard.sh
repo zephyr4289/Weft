@@ -75,7 +75,7 @@ step "governor G-series (C)"
 make -C core/c governor-test 2>&1 | tee -a "$LOG" || fail=1
 ./core/c/governor-test 2>&1 | tee -a "$LOG" || fail=1
 
-step "governor G-series (Rust) + G5 trace parity (TS/C/Rust)"
+step "governor G-series (Rust) + G5 trace parity (TS/C/Rust + VM emitters)"
 if command -v cargo >/dev/null 2>&1; then
   (cd core/rust && cargo test --release --test governor_test) 2>&1 | tee -a "$LOG" || fail=1
   (cd core/rust && cargo build --release --bin governor_xlang) 2>&1 | tee -a "$LOG" || fail=1
@@ -87,6 +87,22 @@ if command -v cargo >/dev/null 2>&1; then
   fi
 else
   echo "cargo not found — governor rust gates SKIPPED (declared)" | tee -a "$LOG"
+  if [ -f packages/core/dist/index.js ] && [ -x core/c/governor-test ]; then
+    # cargo absent but the C ladder + TS/VM emitters are runnable: the G5
+    # gate best-efforts the rust leg as a declared skip.
+    bash fixtures/xlang-governor/run.sh 2>&1 | tee -a "$LOG" || fail=1
+  fi
+fi
+
+# Gate 5b (Series 7): RFC-0009 §cadence PC3 trace parity — the TS
+# reference plus every VM emitter whose toolchain this runner has
+# (kotlinc on android-packages legs; dart/swiftc on their workflows).
+step "cadence PC3 trace parity (TS + VM emitters present)"
+if [ -f packages/core/dist/index.js ]; then
+  bash fixtures/xlang-cadence/run.sh 2>&1 | tee -a "$LOG" || fail=1
+else
+  echo "packages/core/dist not built — PC3 SKIPPED (build with: pnpm --filter @weft/core build)" | tee -a "$LOG"
+  if [ -n "${CI:-}" ]; then fail=1; fi
 fi
 
 # --- 6: fan-out flight recorder (.weftrec v2, FORMATS.md §1.5) ---
@@ -154,5 +170,5 @@ if [ "$fail" -ne 0 ]; then
   echo '{"shard":"fanout-native","status":"FAILED"}' > ci/run-artifacts/shard-fanout-native-results.json
   exit 1
 fi
-echo '{"shard":"fanout-native","status":"PASSED","gates":"C F-series+torture x2 regimes + rust suite + loom(bound 2) + xlang TS<->C + jni-harness JVM + flight-rec selftest x2 regimes + governor G-series C/Rust + G5 trace parity + v3-compression e2e + shm S-series + shm torture x2 roads + shm rust + shm zero-syscall strace + shm produce->daemon + F10 cross-port parity"}' > ci/run-artifacts/shard-fanout-native-results.json
+echo '{"shard":"fanout-native","status":"PASSED","gates":"C F-series+torture x2 regimes + rust suite + loom(bound 2) + xlang TS<->C + jni-harness JVM + flight-rec selftest x2 regimes + governor G-series C/Rust + G5 trace parity (TS/C/Rust + VM) + cadence PC3 trace parity (TS + VM) + v3-compression e2e + shm S-series + shm torture x2 roads + shm rust + shm zero-syscall strace + shm produce->daemon + F10 cross-port parity"}' > ci/run-artifacts/shard-fanout-native-results.json
 echo "✅ fanout-native shard PASSED" | tee -a "$LOG"

@@ -1,0 +1,65 @@
+# Series 7 — Deliverable 2: 0-GC buffer recyclers + memory-pressure backstops
+# env: kotlinc-jvm 2.0.21 (JRE 21.0.12) + Dart SDK 3.13.2, x86_64 sandbox
+# date: 2026-09-17T14:35:00Z
+
+== Kotlin/JVM (kotlinc + junit, the GovernorTest pattern) ==
+RecyclerTest: 8/8 PASS (3x consecutive runs — stable)
+  R1 pool reuse identity + counters
+  R2 maxFreeSlots bounds steady state
+  R3 trim drops only free slots; live survives; next acquire reallocates
+  R4 realloc accounting (first fill != realloc; keep-all trims inert)
+  R5 level mapping (COMPLETE/CRITICAL->0, MODERATE/BACKGROUND/LOW->half,
+     UI_HIDDEN/RUNNING_MODERATE/unknown->all)
+  R6 center fan-out + unregister
+  R7 rLiveWords bulk read parity (word-level, offset+clamp semantics)
+  R8 THE FLAGSHIP: per-thread allocated-bytes audit across 100k drawing-
+     loop ticks (claim -> rSeq high-water clamp -> rLiveWords -> cadence
+     step -> Q12 blend into pooled raster slot -> pool round-trip, 30 Hz
+     feed on a 120 Hz ticker) == ZERO bytes. Presents>10k, synthesis
+     exercised, pool reallocs == 0.
+Regression in the same jar: GovernorTest 22/22 + WeftTest 3/3 (33 total OK).
+
+== Dart VM (plain-dart expect shim; flutter-packages CI is the SDK cover) ==
+recycler_test.dart: 7/7 PASS
+  R1..R6 (the Kotlin twin suite) + R7 drawing-loop churn over the fan-out
+  reader: pool slot identity stable across 12k ticks (identical()), pool
+  reallocs == 0, PACED presents > 9000, synthesis exercised, PC2
+  telescoping exact.
+governor_test.dart regression: 21/21 PASS (28 total).
+dart analyze core/dart/recycler.dart: No issues found.
+
+== Swift (source-only, declared — no swiftc in the sandbox) ==
+RecyclerTests.swift: the R1..R6 twin + identity audits (===); compiled +
+run by apple-packages CI. Evidence file: governor-vm/swift-source-only.md
+(the same honesty wall as the governor battery).
+
+== Wire-order bug found and fixed (the audit working as designed) ==
+Weft.kt wBegin()/rLiveBuf(): Java ByteBuffer.slice() does NOT inherit the
+source's LITTLE_ENDIAN order — the payload slices came back BIG_ENDIAN
+over the little-endian wire buffer, silently byte-swapping every u32/f32
+word written/read through them (byte-granular users unaffected — which is
+why the roundtrip test never caught it: it swapped BOTH ends). Caught by
+R7's word-level parity check; both slices now pin the order explicitly;
+WeftTest roundtrip re-verified green.
+
+== Drawing-loop allocation stripping (the audit's findings) ==
+- Kotlin Weft.rLiveBuf(): 2 ByteBuffer wrappers per call (duplicate +
+  slice) — documented as the cold-path API; the per-frame consumer API is
+  now rLiveWords() (zero allocation, R8-proven).
+- Kotlin fanout view(), Swift rLivePtr(), Dart claim()/view(): already
+  zero-alloc (verified — no strip needed).
+- The producer-side wBegin() wrapper cost is a WRITER-thread concern,
+  declared out of the drawing-loop audit's scope (R8 is per-thread).
+
+== Binding parity ==
+20/20 byte pairs green (Weft.kt, Recycler.kt, governor.dart, recycler.dart
+pairs all registered).
+
+== Platform wiring (source-only; CI legs cover) ==
+- Android: MainActivity.onTrimMemory/onLowMemory -> WeftRecyclerCenter
+  (the OnLowMemoryListener hook the work order named).
+- iOS: WeftExampleApp MemoryPressureBridge ->
+  WeftMemoryPressureCenter.handleMemoryWarning()
+  (didReceiveMemoryWarning).
+- Flutter: WeftMemoryPressureBackstop (WidgetsBindingObserver ->
+  didHaveMemoryPressure -> center), exported from the barrel.

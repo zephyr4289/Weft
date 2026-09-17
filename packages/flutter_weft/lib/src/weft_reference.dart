@@ -13,3 +13,6 @@ export 'reference/heddle.dart';
 export 'reference/frame_cursor.dart';
 export 'reference/fanout.dart';
 export 'reference/verified.dart';
+export 'reference/governor.dart';
+export 'reference/recycler.dart';
+export 'reference/governed_consumer.dart';

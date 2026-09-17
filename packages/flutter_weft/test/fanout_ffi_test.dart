@@ -327,7 +327,7 @@ void main() {
     try {
       final r0 = await session.spawnReader(
           config: const CrossIsolateReaderConfig(tickEvery: 1));
-      await session.spawnReader(
+      final r1 = await session.spawnReader(
           config: const CrossIsolateReaderConfig(
               tickEvery: 4, verifyStride: 4));
 
@@ -343,6 +343,14 @@ void main() {
       // Mid-flight snapshot proves the observability channel works.
       final midStats = await r0.requestStats();
       expect(midStats.reads, greaterThan(0));
+
+      // Converge: allow reader isolates to observe the final published frame.
+      for (var attempt = 0; attempt < 100; attempt++) {
+        final s0 = await r0.requestStats();
+        final s1 = await r1.requestStats();
+        if (s0.lastSeq == frames && s1.lastSeq == frames) break;
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
 
       // Drain: final stats per reader, then session-owned destroy.
       final finals = await session.stopAll();

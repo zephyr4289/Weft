@@ -11,6 +11,8 @@ core/c/turbo-test-seq
 core/c/uring-test
 core/c/uring-test-asan
 core/c/uring-test-tsan
+core/c/turbo-runner
+core/c/turbo-runner-sys
 core/c/bench-asan
 core/c/libweft.so
 core/c/fanout-test

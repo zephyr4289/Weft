@@ -258,6 +258,11 @@ jobs:
             script: "ci/scripts/run_fanout_native_shard.sh"
             args: ""
             needs_rust: true
+          - shard: "turbo-native"
+            description: "RFC-0012 TLEL: T/U-series x sanitizers + seq_cst, T-bench smoke, zero-regression guardrail"
+            script: "ci/scripts/run_turbo_native_shard.sh"
+            args: ""
+            needs_rust: false
 
           # --- RFC 0003 GPU-resident rings (Vulkan zero-copy + compute proof) ---
           - shard: "gpu-native"

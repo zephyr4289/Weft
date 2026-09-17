@@ -189,6 +189,19 @@ uring-test-asan: uring_rx.c uring_rx.h uring_test.c $(URING_SRC) fanout.h weft.h
 uring-test-tsan: uring_rx.c uring_rx.h uring_test.c $(URING_SRC) fanout.h weft.h
 	$(CC) $(CFLAGS_DBG) -o uring-test-tsan $(URING_SRC) uring_test.c
 
+# ---- RFC 0012 T-bench evidence runner ---------------------------------------
+# turbo_runner.c: caps / TL-writer / TL-reader / TL-ring / ING-uring modes;
+# one JSON line per variant (bench_runner.c methodology). -sys builds the
+# forced-SYSCALL ingestion A/B leg (-DWEFT_URING_FORCE_SYSCALL, bench-only).
+
+TRUNNER_SRC = turbo.c uring_rx.c fanout.c weft.c
+
+turbo-runner: turbo_runner.c $(TRUNNER_SRC) turbo.h uring_rx.h fanout.h weft.h
+	$(CC) $(CFLAGS) -o turbo-runner $(TRUNNER_SRC) turbo_runner.c
+
+turbo-runner-sys: turbo_runner.c $(TRUNNER_SRC) turbo.h uring_rx.h fanout.h weft.h
+	$(CC) $(CFLAGS) -DWEFT_URING_FORCE_SYSCALL=1 -o turbo-runner-sys $(TRUNNER_SRC) turbo_runner.c
+
 governor-test: governor.c governor_test.c governor.h
 	$(CC) $(CFLAGS) -o governor-test governor.c governor_test.c
 

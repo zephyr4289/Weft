@@ -190,6 +190,15 @@ public final class MTKViewCadenceProbe: NSObject, MTKViewDelegate {
         }
 
         // Pump the runloop until N frames render or the timeout fires.
+        //
+        // WHY direct delegate call: on macOS CI runners (Apple Paravirtual
+        // device, no attached display), MTKView.draw() silently skips the
+        // delegate because there is no valid Metal drawable/framebuffer for
+        // the off-screen layer. Our draw(in:) only records a CACurrentMediaTime
+        // timestamp and performs kernel ops (claim/rSeq) — it does not require
+        // an actual render pass. Calling probe.draw(in: view) directly honours
+        // the same contract as a real display-link tick: one delegate call per
+        // "frame", paced at requestedFPS.
         let started = Date()
         let frameInterval = 1.0 / Double(max(1, requestedFPS))
         var nextFrameTime = CACurrentMediaTime()
@@ -197,7 +206,7 @@ public final class MTKViewCadenceProbe: NSObject, MTKViewDelegate {
               Date().timeIntervalSince(started) < timeout {
             let now = CACurrentMediaTime()
             if now >= nextFrameTime {
-                view.draw()
+                probe.draw(in: view) // direct call; view.draw() is a no-op headless
                 nextFrameTime = now + frameInterval
             }
             RunLoop.current.run(mode: .default,

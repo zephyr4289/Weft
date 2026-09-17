@@ -11,7 +11,7 @@
 //
 //     ticker ──tick + latestSeq──> CADENCE POLICY ──{present? interp? alphaQ12 coalesced}──> draw loop
 //
-// THE POLICIES (closed set — a fourth is a new RFC):
+// THE POLICIES (closed set — a fourth is a new RFC; RFC-0012 is it):
 //   LATEST_WINS (0)      present iff latestSeq advanced; jumped frames are
 //                        coalesced BY DECISION (Law 4). At most one
 //                        present per tick, never a stale re-raster.
@@ -35,6 +35,23 @@
 //                        feeds pace at one present per burst. No queueing
 //                        (the RFC-0009 alternative rejection): bursts
 //                        absorb latest-wins, only the present pace adapts.
+//   PREDICTIVE_PACED (3) RFC-0012: the fractional-ratio display-rate
+//                        presenter. A Q16 phase accumulator advances alpha
+//                        by 65536^2/gapQ16 per tick — the FILTERED
+//                        fractional beat (Q16 EWMA gain 1/4 of arrival
+//                        gaps + a MAD jitter filter) — so non-integer
+//                        periods (30 Hz on 144 Hz = 2.4 ticks) ramp
+//                        smoothly instead of PACED's integer sawtooth
+//                        (the 3:2-pulldown judder), with zero cumulative
+//                        drift on stable beats (arrivals predicted on the
+//                        nose -> zero saturated holds). A relative-MAD
+//                        reactive gate (varQ16*4 > gapQ16) degrades the
+//                        tick to PACED's integer rule, counted
+//                        (reactiveTicks) — never silent. Warmup (first
+//                        two arrivals) and the gate reuse PACED's integer
+//                        rule verbatim. All RFC-0009 laws preserved:
+//                        never past newest (phase saturates = honest
+//                        hold), continuous at boundaries, Law-4 exact.
 //
 // DETERMINISM (PC3): step() is a pure function of the (latestSeq) tick
 // trace — ticks are counted internally, not read from a clock; all
@@ -57,11 +74,13 @@
 
 /// The closed policy set (plain const object, house style). Numeric values
 /// are PROTOCOL (PC3 packs them into the fixture's stream order; do not
-/// renumber).
+/// renumber). PREDICTIVE_PACED is RFC-0012's addition (kind 3, appended —
+/// the stream order 0,1,2,3 preserves every v1 byte at the same tick).
 export const CadencePolicyKind = {
   LATEST_WINS: 0,
   PACED_INTERPOLATE: 1,
   BURST_COALESCE: 2,
+  PREDICTIVE_PACED: 3,
 } as const;
 export type CadencePolicyKind =
   (typeof CadencePolicyKind)[keyof typeof CadencePolicyKind];
@@ -115,6 +134,16 @@ export const CADENCE_K_MAX = 64;
 const EMA_WEIGHT_Q12 = 1024;
 const EMA_ONE_Q12 = 4096;
 
+// --- PREDICTIVE_PACED (RFC-0012) constants ---
+/// Q16 one — the fractional window's saturation point; Q16 -> Q12 is the
+/// exact shift >> 4 (65536 >> 4 = 4096).
+export const CADENCE_ONE_Q16 = 65536;
+/// Reactive-gate threshold: relative MAD above 1/4 (varQ16 * 4 > gapQ16)
+/// marks the clock untrustworthy — the tick degrades to PACED's integer
+/// rule, counted (reactiveTicks). RFC-0012 §reference-level.
+const REACTIVE_NUM = 1;
+const REACTIVE_DEN = 4;
+
 export class CadencePolicy {
   private readonly cfg: CadenceConfig;
   /// Total step() calls — the tick counter (the policy's only clock).
@@ -144,6 +173,27 @@ export class CadencePolicy {
   private ticksSinceAssess = 0;
   private tickInCycle = 0;
   private lastSeenLatest = 0;
+
+  // --- PREDICTIVE_PACED state (RFC-0012; independent of BURST's filter —
+  //     different scale Q16, different init, different update order) ---
+  /// Q16 EWMA of inter-arrival gaps (ticks). 0 = unknown (warmup).
+  private gapQ16 = 0;
+  /// Q16 EWMA of |gap<<16 - gapQ16| — the mean absolute deviation (the
+  /// jitter magnitude; linear-time, no square roots, integer-exact).
+  private varQ16 = 0;
+  /// True after the SECOND arrival (the first has no gap to observe).
+  private predHaveGap = false;
+  /// Tick of the most recent arrival (the gap's anchor).
+  private predLastArrivalTick = 0;
+  /// Fractional window position, 0..CADENCE_ONE_Q16 (saturating — the
+  /// never-past-newest law). One Q16 unit = 1/65536 of a window.
+  private phaseQ16 = 0;
+  /// The phase advance's division-remainder carry (0..gapQ16−1) — full
+  /// precision without floats or 128-bit intermediates (RFC-0012 §step).
+  private phaseRem = 0;
+  /// Ticks the reactive gate fired (advisory, AXIOM T — the declared,
+  /// counted degradation to PACED's integer rule).
+  reactiveTicks = 0;
 
   // --- counters (advisory, AXIOM T; exact per PC2) ---
   /// Presents issued (real + interpolated).
@@ -262,6 +312,112 @@ export class CadencePolicy {
         return a;
       }
 
+      case CadencePolicyKind.PREDICTIVE_PACED: {
+        if (latestSeq > this.newestSeq) {
+          // ARRIVAL — the window boundary. Bookkeeping identical to
+          // PACED (coalesced count, window advance, alpha-0 continuity);
+          // the filters update in the RFC-0012 declared order:
+          // gapQ16 first, then dev against the UPDATED gapQ16, then
+          // varQ16 — every operand non-negative, every division split.
+          a.coalesced = latestSeq - this.newestSeq - 1;
+          this.coalescedByDecision += a.coalesced;
+          if (this.predHaveGap) {
+            const gap = this.ticks - this.predLastArrivalTick;
+            const target = gap * CADENCE_ONE_Q16;
+            const delta = target - this.gapQ16;
+            this.gapQ16 +=
+              delta >= 0
+                ? Math.trunc(delta / REACTIVE_DEN)
+                : -Math.trunc(-delta / REACTIVE_DEN);
+            const dev = Math.abs(target - this.gapQ16);
+            const d = dev - this.varQ16;
+            this.varQ16 +=
+              d >= 0
+                ? Math.trunc(d / REACTIVE_DEN)
+                : -Math.trunc(-d / REACTIVE_DEN);
+          } else {
+            this.predHaveGap = true; // first arrival: no gap observed yet
+          }
+          this.predLastArrivalTick = this.ticks;
+          this.arrivalTicks++;
+          this.prevSeq = this.newestSeq;
+          this.prevObsTick = this.newestObsTick;
+          this.newestSeq = latestSeq;
+          this.newestObsTick = this.ticks;
+          this.phaseQ16 = 0;
+          a.interp = true;
+          a.alphaQ12 = 0;
+          a.presentSeq = latestSeq;
+        } else {
+          // NO ARRIVAL — the presentation tick.
+          // Reactive gate: relative MAD above 1/4 = untrusted clock —
+          // degrade this tick to PACED's integer rule, counted.
+          const reactive =
+            this.predHaveGap &&
+            this.varQ16 * REACTIVE_DEN > this.gapQ16 * REACTIVE_NUM;
+          if (!this.predHaveGap || this.gapQ16 <= 0 || reactive) {
+            // Warmup (no gap yet) or gated: PACED's integer window rule
+            // verbatim — the documented degradation path. (The gate may
+            // also fire during the filter's own warmup transient — the
+            // first ~16 arrivals, while varQ16 still carries the initial
+            // deviation — bounded, counted, and it degrades to exactly
+            // what PACED would have done anyway.)
+            const period = Math.max(1, this.newestObsTick - this.prevObsTick);
+            const dt = this.ticks - this.newestObsTick;
+            a.alphaQ12 = Math.min(
+              CADENCE_ALPHA_ONE_Q12,
+              Math.trunc((dt * CADENCE_ALPHA_ONE_Q12) / period)
+            );
+            if (reactive) this.reactiveTicks++;
+          } else {
+            // The phase accumulator: advance by 1/gapQ16 of a window per
+            // tick in Q16, at FULL precision — quotient plus remainder
+            // carry (two integers, no allocation, no drift): truncating
+            // the per-tick increment alone loses fractional bits and
+            // breaks PC8's integer equivalence (g=6, j=3: 2047 vs
+            // PACED's 2048 — the carry is the fix).
+            const num = CADENCE_ONE_Q16 * CADENCE_ONE_Q16;
+            const step16 = Math.trunc(num / this.gapQ16);
+            this.phaseQ16 = Math.min(
+              CADENCE_ONE_Q16,
+              this.phaseQ16 + step16
+            );
+            this.phaseRem += num % this.gapQ16;
+            if (this.phaseRem >= this.gapQ16) {
+              const carry = Math.trunc(this.phaseRem / this.gapQ16);
+              this.phaseRem -= carry * this.gapQ16;
+              this.phaseQ16 = Math.min(CADENCE_ONE_Q16, this.phaseQ16 + carry);
+            }
+            a.alphaQ12 = this.phaseQ16 >> 4; // Q16 -> Q12, exact
+          }
+          a.interp = true;
+          a.presentSeq = this.newestSeq;
+        }
+        // Present iff the raster triple changed (the elision key —
+        // identical to PACED).
+        if (
+          this.lastBaseSeq !== this.prevSeq ||
+          this.lastTargetSeq !== this.newestSeq ||
+          this.lastAlpha !== a.alphaQ12
+        ) {
+          this.lastBaseSeq = this.prevSeq;
+          this.lastTargetSeq = this.newestSeq;
+          this.lastAlpha = a.alphaQ12;
+          this.presents++;
+          if (
+            this.prevSeq !== 0 &&
+            a.alphaQ12 > 0 &&
+            a.alphaQ12 < CADENCE_ALPHA_ONE_Q12
+          ) {
+            this.interpFrames++;
+          }
+          a.present = true;
+        } else {
+          this.elided++;
+        }
+        return a;
+      }
+
       case CadencePolicyKind.BURST_COALESCE: {
         // 1. Arrival detection (high-water clamp — the transport never
         //    regresses; a defensive input is absorbed, not believed).
@@ -347,6 +503,13 @@ export class CadencePolicy {
     this.ticksSinceAssess = 0;
     this.tickInCycle = 0;
     this.lastSeenLatest = 0;
+    this.gapQ16 = 0;
+    this.varQ16 = 0;
+    this.predHaveGap = false;
+    this.predLastArrivalTick = 0;
+    this.phaseQ16 = 0;
+    this.phaseRem = 0;
+    this.reactiveTicks = 0;
     this.presents = 0;
     this.coalescedByDecision = 0;
     this.interpFrames = 0;
@@ -360,4 +523,12 @@ export class CadencePolicy {
     this.act.presentSeq = 0;
     this.act.k = CADENCE_K_MIN;
   }
+
+  // Test-only observability for PC7/PC9: the filter and accumulator
+  // state the batteries need (internal — the battery lives in the same
+  // package; the ports mirror the accessors).
+  internal_gapQ16ForTest(): number { return this.gapQ16; }
+  internal_varQ16ForTest(): number { return this.varQ16; }
+  internal_phaseQ16ForTest(): number { return this.phaseQ16; }
+  internal_phaseRemForTest(): number { return this.phaseRem; }
 }

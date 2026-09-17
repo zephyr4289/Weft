@@ -1,0 +1,66 @@
+==================================================
+SHARD: silent-green-audit
+DESCRIPTION: pipefail in every shard + every workflow pipeline
+STATUS: PASSED ✅
+COMMIT: 4f938503512b59d63935351b09e7eb4cf5f33bd5
+RUN: 91
+==================================================
+
+=== ci/scripts/*.sh: set -euo pipefail required ===
+  [ok ] run_bench_shard.sh
+  [ok ] run_binding_parity.sh
+  [ok ] run_browser_sab_shard.sh
+  [ok ] run_canonical_audit_shard.sh
+  [ok ] run_clean_tree_deep.sh
+  [ok ] run_f10_parity.sh
+  [ok ] run_fanout_native_shard.sh
+  [ok ] run_fanout_shard.sh
+  [ok ] run_forensic_scan_shard.sh
+  [ok ] run_litmus_shard.sh
+  [ok ] run_litmus_stability.sh
+  [ok ] run_perf_regression_shard.sh
+  [ok ] run_ports_validate_shard.sh
+  [ok ] run_silentgreen_shard.sh
+  [ok ] run_site_determinism_shard.sh
+  [ok ] run_thermal_shard.sh
+  [ok ] run_tools_interop_shard.sh
+  [ok ] run_tsan_deep.sh
+  [ok ] run_verifiedweft_shard.sh
+  [ok ] run_wsuite_shard.sh
+=== .github/workflows/*.yml: pipeline run blocks need pipefail ===
+  [ok ] android-emulator.yml — 'Enable KVM (hardware acceleration for the emulator)' pipelines are pipefail-covered
+  [ok ] android-emulator.yml — 'Accept Android Licenses & Install SDK pieces' pipelines are pipefail-covered
+  [ok ] android-packages.yml — 'Run Unit Tests' pipelines are pipefail-covered
+  [ok ] android-packages.yml — 'Assemble Release (AAR + R8 minified APK across 3 ABIs)' pipelines are pipefail-covered
+  [ok ] apple-packages.yml — 'Build Swift Package' pipelines are pipefail-covered
+  [ok ] apple-packages.yml — 'Run Swift Unit Tests' pipelines are pipefail-covered
+  [ok ] apple-packages.yml — 'Build for iOS Simulator (pipefail-guarded)' pipelines are pipefail-covered
+  [ok ] apple-packages.yml — 'Run SPM tests on iOS Simulator (F-series + cadence + Metal probe)' pipelines are pipefail-covered
+  [ok ] demo-showcase.yml — 'Install dependencies & build monorepo' pipelines are pipefail-covered
+  [ok ] demo-showcase.yml — 'Run Demo Matrix Tests' pipelines are pipefail-covered
+  [ok ] demo-showcase.yml — 'Build Static Demo Assets' pipelines are pipefail-covered
+  [ok ] extreme-test.yml — 'Install tectonic + pandoc (for site + report scans)' pipelines are pipefail-covered
+  [ok ] extreme-test.yml — 'Build all three kernels' pipelines are pipefail-covered
+  [ok ] extreme-test.yml — 'Handle build failure — post comment + early-exit' pipelines are pipefail-covered
+  [ok ] extreme-test.yml — 'Install tectonic + pandoc (forensic-scan + site shards)' pipelines are pipefail-covered
+  [ok ] extreme-test.yml — 'Run shard' pipelines are pipefail-covered
+  [ok ] extreme-test.yml — 'Push to ci-report branch' pipelines are pipefail-covered
+  [ok ] flutter-packages.yml — 'Binding parity guard (core/dart <-> flutter reference)' pipelines are pipefail-covered
+  [ok ] flutter-packages.yml — 'Compile Native C Kernel (per-OS)' pipelines are pipefail-covered
+  [ok ] flutter-packages.yml — 'Install Dependencies' pipelines are pipefail-covered
+  [ok ] flutter-packages.yml — 'Dart Analyze' pipelines are pipefail-covered
+  [ok ] flutter-packages.yml — 'Run Tests' pipelines are pipefail-covered
+  [ok ] flutter-packages.yml — 'Publish Dry Run (linux only — pub publish checks are OS-free)' pipelines are pipefail-covered
+  [ok ] flutter-packages.yml — 'Publish logs → ci/logs branch' pipelines are pipefail-covered
+  [ok ] nightly-deep.yml — 'Run litmus × 5 iterations' pipelines are pipefail-covered
+  [ok ] nightly-deep.yml — 'Run long thermal (600s per backend × 4 backends)' pipelines are pipefail-covered
+  [ok ] nightly-deep.yml — 'Run TSAN litmus × 5 iterations' pipelines are pipefail-covered
+  [ok ] nightly-deep.yml — 'Install Python deps + tectonic + pandoc' pipelines are pipefail-covered
+  [ok ] nightly-deep.yml — 'Run clean-tree validation' pipelines are pipefail-covered
+  [ok ] nightly-deep.yml — 'Battery — kotlin (JVM + compat matrix)' pipelines are pipefail-covered
+  [ok ] nightly-deep.yml — 'Battery — swift (SPM, Metal probe included)' pipelines are pipefail-covered
+  [ok ] nightly-deep.yml — 'Battery — dart (FFI over the compiled C kernel)' pipelines are pipefail-covered
+  [ok ] nightly-deep.yml — 'Push to ci-report branch' pipelines are pipefail-covered
+
+✅ SILENT-GREEN AUDIT: every shard carries pipefail; every pipeline in every workflow run block is covered.
+✅ silent-green-audit shard PASSED

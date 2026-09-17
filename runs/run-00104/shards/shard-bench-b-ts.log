@@ -1,0 +1,23 @@
+==================================================
+SHARD: bench-b-ts
+DESCRIPTION: B1-B5 benchmarks, TS kernel
+STATUS: FAILED ❌
+COMMIT: 0693eef4e42c27ce2c9e1089a305db5653b78860
+RUN: 104
+==================================================
+
+# Loaded bench catalog: weft-bench v1
+  running ts B1-pub-throughput...
+    -> exit=0 elapsed=6.2s pass=True
+  running ts B2-contended...
+    -> exit=0 elapsed=3.1s pass=True
+  running ts B3-scaling-fingerprint...
+    -> exit=0 elapsed=0.7s pass=True
+  running ts B4-display-adversarial...
+    -> exit=0 elapsed=10.1s pass=True
+  running ts B5-memory-contract...
+    -> exit=1 elapsed=0.6s pass=False
+Wrote /home/runner/work/Weft/Weft/bench/REPORT.md
+Wrote /home/runner/work/Weft/Weft/bench/results.json (sha256: 4b4897fc7c83fd2d...)
+er/work/Weft/Weft/bench/REPORT.md
+Wrote /home/runner/work/Weft/Weft/bench/results.json (sha256: 4b4897fc7c83fd2d...)

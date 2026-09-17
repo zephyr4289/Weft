@@ -21,6 +21,8 @@
 #           (pnpm --filter @weft/core build).
 set -euo pipefail
 cd "$(dirname "$0")"
+TMPDIR_RUN=$(mktemp -d)
+trap 'rm -rf "$TMPDIR_RUN"' EXIT
 
 NODE=${NODE:-node}
 C_DUMP=${C_DUMP:-../../core/c/governor-test}
@@ -37,17 +39,17 @@ if [ ! -f ../../packages/core/dist/index.js ]; then
 fi
 
 echo "-- TS emitter --"
-$NODE gov_trace.mjs "$STEPS" "$SEED" > trace-ts.log
+$NODE gov_trace.mjs "$STEPS" "$SEED" > "$TMPDIR_RUN"/ts.log
 
 if [ -x "$C_DUMP" ] || command -v "$C_DUMP" >/dev/null 2>&1; then
   echo "-- C emitter --"
-  "$C_DUMP" xlang-dump "$STEPS" "$SEED" > trace-c.log
+  "$C_DUMP" xlang-dump "$STEPS" "$SEED" > "$TMPDIR_RUN"/c.log
   echo "-- byte-compare (TS vs C) --"
-  if cmp -s trace-ts.log trace-c.log; then
-    echo "   identical ($(wc -c < trace-ts.log) bytes)"
+  if cmp -s "$TMPDIR_RUN"/ts.log "$TMPDIR_RUN"/c.log; then
+    echo "   identical ($(wc -c < "$TMPDIR_RUN"/ts.log) bytes)"
   else
     echo "   MISMATCH:" >&2
-    cmp trace-ts.log trace-c.log >&2 || true
+    cmp "$TMPDIR_RUN"/ts.log "$TMPDIR_RUN"/c.log >&2 || true
     fail=1
   fi
 else
@@ -56,13 +58,13 @@ fi
 
 if [ -x "$RUST_DUMP" ]; then
   echo "-- Rust emitter --"
-  "$RUST_DUMP" "$STEPS" "$SEED" > trace-rust.log
+  "$RUST_DUMP" "$STEPS" "$SEED" > "$TMPDIR_RUN"/rust.log
   echo "-- byte-compare (TS vs Rust) --"
-  if cmp -s trace-ts.log trace-rust.log; then
-    echo "   identical ($(wc -c < trace-ts.log) bytes)"
+  if cmp -s "$TMPDIR_RUN"/ts.log "$TMPDIR_RUN"/rust.log; then
+    echo "   identical ($(wc -c < "$TMPDIR_RUN"/ts.log) bytes)"
   else
     echo "   MISMATCH:" >&2
-    cmp trace-ts.log trace-rust.log >&2 || true
+    cmp "$TMPDIR_RUN"/ts.log "$TMPDIR_RUN"/rust.log >&2 || true
     fail=1
   fi
 else
@@ -73,12 +75,12 @@ fi
 emit_compare_vm() { # $1 = label, $2.. = command words
   local label="$1"; shift
   echo "-- byte-compare (TS vs $label) --"
-  if "$@" > trace-vm.log 2>/dev/null; then
-    if cmp -s trace-ts.log trace-vm.log; then
-      echo "   identical ($(wc -c < trace-ts.log) bytes)"
+  if "$@" > "$TMPDIR_RUN"/vm.log 2>/dev/null; then
+    if cmp -s "$TMPDIR_RUN"/ts.log "$TMPDIR_RUN"/vm.log; then
+      echo "   identical ($(wc -c < "$TMPDIR_RUN"/ts.log) bytes)"
     else
       echo "   MISMATCH:" >&2
-      cmp trace-ts.log trace-vm.log >&2 || true
+      cmp "$TMPDIR_RUN"/ts.log "$TMPDIR_RUN"/vm.log >&2 || true
       fail=1
     fi
   else
@@ -121,7 +123,7 @@ fi
 # Sanity: the trace must actually exercise every action class (FastPath=0,
 # Skip=1, Snapshot=2, Reseed=3) — otherwise the comparison proves nothing.
 echo "-- action-class coverage --"
-HEX=$(head -c 200000 trace-ts.log)
+HEX=$(head -c 200000 "$TMPDIR_RUN"/ts.log)
 COV=$(node -e "
 const hex = process.argv[1];
 const seen = new Set();
@@ -134,8 +136,6 @@ if (missing.length) { console.error('missing classes: ' + missing.join(',')); pr
 console.log('all four action classes exercised');
 " "$HEX") || fail=1
 echo "   $COV"
-
-rm -f trace-ts.log trace-c.log trace-rust.log trace-vm.log
 
 if [ "$fail" -ne 0 ]; then
   echo "G5: FAIL" >&2

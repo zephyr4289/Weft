@@ -1,0 +1,8 @@
+workflow: apple-packages
+job:      Swift SPM & macOS Tests
+status:   failure
+sha:      cb486731c037ddf6381d7c9b6d8d93445ea6d1ad
+event:    pull_request
+run:      77
+date:     Thu Sep 17 14:56:19 UTC 2026
+ref:      refs/pull/13/merge

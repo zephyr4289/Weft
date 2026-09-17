@@ -1,0 +1,1 @@
+{"shard":"gpu-native","status":"PASSED","gates":"GPU-series vulkan+cpu+asan + gpu-probe full dispatch proof + geometry sweep + spv determinism"}

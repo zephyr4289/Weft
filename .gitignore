@@ -11,6 +11,11 @@ core/c/fanout-test-asan
 core/c/fanout-test-seq
 core/c/fanout-test-tsan
 core/c/fanout-runner
+core/c/fanout-chaos
+core/c/fanout-chaos-asan
+core/c/fanout-chaos-seq
+core/c/wire-probe
+ci/baselines/guardian-throughput-baseline.json
 core/c/fanout-runner-asan
 core/c/fanout-runner-seq
 core/c/fanout-runner-tsan
@@ -70,3 +75,5 @@ fixtures/jni-fanout/build/
 ci/browser-tmp/
 tools/stranger-repro/build/
 tools/stranger-repro/STRANGER-REPRO-REPORT.*
+.tlc-cache/
+formal/*/states/

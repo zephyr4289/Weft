@@ -1,0 +1,18 @@
+{
+  "matrix": {
+    "c/B1-pub-throughput": {
+      "bench": "B1-pub-throughput",
+      "lang": "c",
+      "metrics": {
+        "ops_per_s": 2916757
+      }
+    },
+    "c/B2-contended": {
+      "bench": "B2-contended",
+      "lang": "c",
+      "metrics": {
+        "publishes_per_s": 1002408
+      }
+    }
+  }
+}

@@ -294,6 +294,31 @@ jobs:
             args: ""
             needs_rust: false
 
+          # --- RFC 0011: Exhaustive State-Space Proofs & Chaos shards ---
+          - shard: "chaos"
+            description: "Deterministic chaos engine — stepped shapes x2 regimes + ASAN + free 2M"
+            script: "ci/scripts/run_chaos_shard.sh"
+            args: ""
+            needs_rust: false
+
+          - shard: "chaos-parity"
+            description: "Cross-language chaos parity — C==TS==JVM==Dart byte-identical verdicts"
+            script: "ci/scripts/run_chaos_parity.sh"
+            args: ""
+            needs_rust: false
+
+          - shard: "formal"
+            description: "TLA+ proofs — FanoutSeqlock + ReattachPolicy (TLC, pinned jar)"
+            script: "ci/scripts/run_formal_shard.sh"
+            args: ""
+            needs_rust: false
+
+          - shard: "guardian"
+            description: "Telemetry Guardian — must-bite selftest + wire probe + 3% throughput + crash audit"
+            script: "ci/scripts/run_guardian_shard.sh"
+            args: ""
+            needs_rust: false
+
     steps:
       - uses: actions/checkout@v4
 

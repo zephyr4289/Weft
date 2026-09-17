@@ -1,0 +1,80 @@
+{
+  "v": 1,
+  "fanout_ring": {
+    "latestSeq": {
+      "offset": 0,
+      "bytes": 8,
+      "observed_value": 1
+    },
+    "publishes": {
+      "offset": 9,
+      "bytes": 8,
+      "observed_value": 1
+    },
+    "slotSeq": {
+      "base": 16,
+      "stride": 8,
+      "bytes": 8,
+      "slot0_observed": 1,
+      "slot1_observed": 0
+    },
+    "payload": {
+      "base": 48,
+      "word0_ok": 1,
+      "word3_ok": 1
+    },
+    "invariants": {
+      "payload_bytes_multiple_of": 4,
+      "slot_count_min": 2,
+      "slot_count_max": 64,
+      "claim_attempts_max": 4
+    }
+  },
+  "triad_envelope": {
+    "magic": {
+      "offset": 0,
+      "bytes": 4,
+      "ok": 1
+    },
+    "version": {
+      "offset": 4,
+      "bytes": 2,
+      "value": 1,
+      "ok": 1
+    },
+    "header_size": {
+      "offset": 6,
+      "bytes": 2,
+      "value": 16,
+      "ok": 1
+    },
+    "seq": {
+      "offset": 8,
+      "bytes": 4,
+      "value": 7,
+      "ok": 1
+    },
+    "payload_len": {
+      "offset": 12,
+      "bytes": 4,
+      "value": 16,
+      "ok": 1
+    },
+    "canary": {
+      "bytes": 8,
+      "matches_seq": 1
+    }
+  },
+  "mixer": {
+    "vectors": {
+      "tword_1_0": 1834104592,
+      "tword_7_3": 2500287888,
+      "tword_100_15": 4197121613,
+      "ok": 1
+    }
+  },
+  "observed": {
+    "ring_bytes": 112,
+    "all_ok": 1
+  }
+}

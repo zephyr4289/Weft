@@ -1,0 +1,34 @@
+{
+  "manifest": "weft-wire-layout",
+  "v": 1,
+  "note": "RFC 0011 Telemetry Guardian — the canonical wire layout. ANY drift of ONE byte offset, ONE field size, or ONE magic byte across ANY platform is a red gate. Probes emit observed-layout JSON in this shape; the guardian diffs against this file byte-for-byte. Field offsets are in BYTES from the ring/buffer base unless stated.",
+  "fanout_ring": {
+    "contract": "RFC 0004 — byte-identical across ports (core/c/fanout.h, core/ts/fanout.ts, core/kotlin/Fanout.kt, core/swift/Fanout.swift, packages/flutter_weft/lib/src/reference/fanout.dart)",
+    "latestSeq":   { "offset": 0,    "bytes": 8, "type": "u64", "order": "native-atomic" },
+    "publishes":   { "offset": 8,    "bytes": 8, "type": "u64", "order": "native-atomic" },
+    "slotSeq":     { "base": 16,     "stride": 8, "bytes": 8, "type": "u64", "order": "native-atomic" },
+    "payload":     { "base_expr": "16 + 8 * slot_count", "stride_expr": "payload_bytes" },
+    "invariants": {
+      "payload_bytes_multiple_of": 4,
+      "slot_count_min": 2,
+      "slot_count_max": 64,
+      "claim_attempts_max": 4,
+      "max_slots_constant": "WEFT_FANOUT_MAX_SLOTS"
+    }
+  },
+  "triad_envelope": {
+    "contract": "03-ENVELOPE §1 — 16-byte little-endian header + tail canary",
+    "magic":       { "offset": 0,  "bytes": 4, "value_ascii": "WEFT" },
+    "version":     { "offset": 4,  "bytes": 2, "type": "u16le", "value": 1 },
+    "header_size": { "offset": 6,  "bytes": 2, "type": "u16le", "value": 16 },
+    "seq":         { "offset": 8,  "bytes": 4, "type": "u32le" },
+    "payload_len": { "offset": 12, "bytes": 4, "type": "u32le" },
+    "canary":      { "offset_expr": "buf_size - 8", "bytes": 8, "type": "u64le", "value_expr": "seq" }
+  },
+  "mixer": {
+    "contract": "04-LITMUS §0.1 — the deterministic payload pattern (pinned in tools/chaos-fixtures/pinned-vectors.json)",
+    "mix32": "x^=x>>16; x*=0x7FEB352D; x^=x>>15; x*=0x846CA68B; x^=x>>16 (u32 wrap)",
+    "tword": "mix32(seq*2654435761 + w)",
+    "vectors": { "tword_1_0": 1834104592, "tword_7_3": 2500287888, "tword_100_15": 4197121613 }
+  }
+}

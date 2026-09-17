@@ -70,7 +70,13 @@ Analyzing flutter_weft...
 No issues found!
 
 ::group::✅ Passing tests
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R1 pool reuse identity + counters
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R2 maxFreeSlots bounds steady state
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R3 trim drops only free slots; live survives; next acquire reallocates
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R4 realloc accounting (first fill != realloc; keep-all trims inert)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R5 level mapping
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout construction and geometry rejects bad geometry; ring_bytes formula has TS/C parity
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R6 center fan-out + unregister
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout construction and geometry initial state: no frame, nothing resident, zero telemetry
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout construction and geometry publish() before any begin() is a detectable no-op
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout writer + reader protocol one publish -> fresh claim, seq 1, dropped 0, payload intact
@@ -79,18 +85,11 @@ No issues found!
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout writer + reader protocol telescoping identity holds exactly across an interleaved run
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout tear discipline (graceful skip) a reader skips the tick when its target slot is mid-overwrite
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout tear discipline (graceful skip) abandoned begins are skip-observable, not silent
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R7 drawing-loop churn: pool stable, counters exact, no reallocs
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout canonical four-consumer scenario exact per-reader accounting over 10,000 frames at 120/60/30/15 Hz
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout zero-allocation contract (Law 2) claim() mutates one record; view() is one buffer — identity-stable
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout layout parity (the cross-port wire contract) raw ctrl bytes match the shared layout; foreign bytes attach
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout layout parity (the cross-port wire contract) wordToFloat round-trips a Float32 bit pattern
-✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R1 pool reuse identity + counters
-✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R2 maxFreeSlots bounds steady state
-✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R3 trim drops only free slots; live survives; next acquire reallocates
-✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R4 realloc accounting (first fill != realloc; keep-all trims inert)
-✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R5 level mapping
-✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R6 center fan-out + unregister
-✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R7 drawing-loop churn: pool stable, counters exact, no reallocs
-✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: F10: 100k-frame torture (cross-port parity gates) 100k frames, 3 cadence readers, mid-overwrite windows, zero torn
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DF1 geometry validation refuses bad pairs
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DF2 ring_bytes is the byte-layout interop contract
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DF3 roundtrip via the zero-copy begin cursor
@@ -124,21 +123,22 @@ No issues found!
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC4 cadence identity-stable record
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC6 policy switch mid-trace: monotone presentSeq
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC3 local cadence trace hash pin (TS reference)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: F10: 100k-frame torture (cross-port parity gates) 100k frames, 3 cadence readers, mid-overwrite windows, zero torn
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C1 PACED 30-on-120 presents 398/400 end to end
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C2 telescoping holds through the ring (LATEST_WINS + BURST)
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C3 ladder classes from real drop accounting
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C4 dispose returns the raster slot to the pool
-✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/ffi_test.dart: Weft FFI & Invariant Tests 10^6 Exchanges and Invariants Verification
-✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/ffi_test.dart: Weft FFI & Invariant Tests Revocation and Reclaim Invariants (I6)
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V1: HMAC fixture vectors (shared ground truth)
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V2: domain-separated derivation
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V3: record roundtrip (zero-copy views)
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V4: exhaustive byte-flip tamper rejection
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V5: wrong key / short / bad magic / hostile geometry
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/ffi_test.dart: Weft FFI & Invariant Tests 10^6 Exchanges and Invariants Verification
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V8: pre-keyed verifier == one-shot across a stream
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V9: batch decode-verify all OK, views, exact bytesConsumed
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V9: batch decode-verify tamper stop + resync offset
 ✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V9: batch decode-verify truncation policy + capped views
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/ffi_test.dart: Weft FFI & Invariant Tests Revocation and Reclaim Invariants (I6)
 ::endgroup::
 
 🎉 69 tests passed.

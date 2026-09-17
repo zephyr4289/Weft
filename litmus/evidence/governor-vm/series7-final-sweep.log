@@ -1,0 +1,63 @@
+# Series 7 — FINAL verification sweep (branch contrib/cadence-zerogc-lifecycle)
+# env: x86_64 Linux sandbox — node 24.19.0, kotlinc 2.0.21 (JRE 21.0.12),
+#      ecj 3.36 (bridge compile), Dart SDK 3.13.2, gcc (C gates).
+#      NOT present (declared): swiftc (apple CI covers), cargo (fanout-native
+#      shard covers), flutter/gradle emulators (package workflows cover).
+# date: 2026-09-17T15:05:00Z
+
+== TypeScript ==
+@weft/core vitest:      123/123 (7 files — governor, cadence, cursor, fanout,
+                        litmus, weft, verified) — G4 heap-noise gate hardened
+                        (bounded re-measurement), 4/4 stable.
+@weft/react-native:     20/20 (4 files — incl. governed-ui-thread 5/5: the
+                        worklet flattening byte-identical to @weft/core on
+                        the canonical xorshift32 trace, all three policies).
+demos/web vitest:        61/61 (5 files).
+typecheck + tsup dts + api-extractor: clean (surface committed, +138 lines).
+
+== Kotlin/JVM (kotlinc + junit, single module; bridge compiled with ecj -21) ==
+FanoutTest:              12/12 (F-series + 100k multi-thread torture + layout
+                         parity — the VarHandle bridge re-pinned)
+GovernorTest:            22/22 (G/PC series incl. JVM byte audit == 0)
+RecyclerTest:             8/8 (R8: 100k-tick drawing-loop audit, zero window)
+GovernedFanoutConsumerTest: 5/5 (C5: zero-window audit on a draw thread)
+WeftTest:                 2/2 (wire-order fix regression)
+TOTAL: 49/49 — 5x consecutive stable runs during the wave.
+
+== Dart VM (plain-dart expect shim; flutter-packages CI is the SDK cover) ==
+governor_test.dart:      21/21
+recycler_test.dart:       7/7
+governed_consumer_test.dart: 4/4
+TOTAL: 32/32; dart analyze clean (governor, recycler, consumer).
+
+== Swift (source-only, declared — no swiftc in the sandbox) ==
+GovernorTests, RecyclerTests, GovernedConsumerTests + the two emitters —
+compiled + run by apple-packages CI (WeftCore target); the FNV-1a-64
+trace-hash pins keep the arithmetic honest the moment a toolchain runs.
+
+== C ==
+governor G-series:       PASS (G1,G2,G3,G3b,G4,Law4,custom)
+fanout F-series:         PASS x2 regimes (default + all-seq_cst), 0 failures.
+
+== Cross-language gates ==
+G5 ladder trace:         TS = C = Kotlin = Dart — IDENTICAL (20001 bytes,
+                         all four action classes; rust binary not built —
+                         declared, the fanout-native shard builds it; swift
+                         declared to apple CI).
+PC3 cadence trace:       TS = Kotlin = Dart — IDENTICAL (120001 bytes; all
+                         three policies presented; ticks=10000,
+                         interpPacked=10000, coalescedPacked=36240).
+
+== Repo-level gates ==
+binding parity:          23/23 byte pairs + 4/4 shim pairs (governor,
+                         recycler, consumer, bridge pairs registered).
+port_validator:          11/11 targets pass, 0 fail.
+Evidence logs intact:    the G5 runner no longer deletes the committed
+                         trace-*.log files (runtime traces -> mktemp).
+
+== Not run here (honesty wall; CI legs cover) ==
+android gradle + emulator (android-packages workflow), swift test
+(apple-packages workflow), flutter test (flutter-packages workflow),
+cargo test (fanout-native shard), the full fanout-native shard (needs
+cargo for gates 3/5-rust; every locally-runnable gate it contains is
+green above).

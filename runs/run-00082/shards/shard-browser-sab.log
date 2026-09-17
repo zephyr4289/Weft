@@ -1,0 +1,13 @@
+==================================================
+SHARD: browser-sab
+DESCRIPTION: chromium: crossOriginIsolated + SAB kernel roundtrip + 1W/2R fanout
+STATUS: FAILED ❌
+COMMIT: 63de1d2e0a53856de86bdc4d0a83d7679c0f9783
+RUN: 82
+==================================================
+
+=== ensure @weft/core dist ===
+=== provision playwright (scratch project, git-ignored) ===
+tee: ci/run-artifacts/shard-browser-sab.log: No such file or directory
+
+added 1 package in 1s

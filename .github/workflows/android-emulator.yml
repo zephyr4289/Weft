@@ -43,10 +43,10 @@ jobs:
             target: default
             arch: x86_64
           - api: 33
-            target: google_apis
+            target: aosp_atd
             arch: x86_64
           - api: 34
-            target: google_apis
+            target: aosp_atd
             arch: x86_64
 
     steps:
@@ -54,6 +54,7 @@ jobs:
 
       - name: Enable KVM (hardware acceleration for the emulator)
         run: |
+          set -o pipefail
           mkdir -p /tmp
           {
             echo "=== KVM Setup ==="
@@ -153,6 +154,7 @@ jobs:
       - name: Publish logs → ci/logs branch
         if: always()
         run: |
+          set -o pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 

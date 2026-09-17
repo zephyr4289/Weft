@@ -64,6 +64,7 @@ jobs:
           msystem: MINGW64
           install: mingw-w64-x86_64-gcc
           update: false
+          path-type: inherit
 
       - name: Compile Native C Kernel (per-OS)
         run: |
@@ -72,9 +73,9 @@ jobs:
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             CC="$(command -v gcc || command -v clang || command -v cc || true)"
             if [ -z "$CC" ] || [ ! -x "$CC" ]; then
-              if [ -f /c/msys64/mingw64/bin/gcc ]; then
+              if [ -x /c/msys64/mingw64/bin/gcc ]; then
                 CC=/c/msys64/mingw64/bin/gcc
-              elif [ -f "C:/msys64/mingw64/bin/gcc.exe" ]; then
+              elif [ -x "C:/msys64/mingw64/bin/gcc.exe" ]; then
                 CC="C:/msys64/mingw64/bin/gcc.exe"
               fi
             fi
@@ -82,46 +83,46 @@ jobs:
             # mingw-gcc on the windows runner; -static-libgcc keeps the DLL
             # self-contained. Named weft.dll — the loader's windows name.
             "$CC" -shared -O3 -static-libgcc -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
-              -o packages/flutter_weft/weft.dll 2>&1 | tee -a /tmp/flutter_build_output.log
-            cp packages/flutter_weft/weft.dll /tmp/weft.dll || true
+              -o packages/flutter_weft/weft.dll 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
+            cp packages/flutter_weft/weft.dll "${RUNNER_TEMP:-/tmp}/weft.dll" || true
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             CC="$(command -v clang || command -v gcc || command -v cc)"
             echo "compiler: $CC"
             "$CC" -dynamiclib -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
-              -o packages/flutter_weft/libweft.dylib 2>&1 | tee -a /tmp/flutter_build_output.log
-            cp packages/flutter_weft/libweft.dylib /tmp/libweft.dylib || true
+              -o packages/flutter_weft/libweft.dylib 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
+            cp packages/flutter_weft/libweft.dylib "${RUNNER_TEMP:-/tmp}/libweft.dylib" || true
           else
             CC="$(command -v gcc || command -v clang || command -v cc)"
             echo "compiler: $CC"
             "$CC" -shared -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
-              -o packages/flutter_weft/libweft.so 2>&1 | tee -a /tmp/flutter_build_output.log
-            cp packages/flutter_weft/libweft.so /tmp/libweft.so || true
+              -o packages/flutter_weft/libweft.so 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
+            cp packages/flutter_weft/libweft.so "${RUNNER_TEMP:-/tmp}/libweft.so" || true
           fi
 
       - name: Install Dependencies
         run: |
           set -o pipefail
           cd packages/flutter_weft
-          flutter pub get 2>&1 | tee -a /tmp/flutter_build_output.log
+          flutter pub get 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
 
       - name: Dart Analyze
         run: |
           set -o pipefail
           cd packages/flutter_weft
-          dart analyze --fatal-infos 2>&1 | tee -a /tmp/flutter_build_output.log
+          dart analyze --fatal-infos 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
 
       - name: Run Tests
         run: |
           set -o pipefail
           cd packages/flutter_weft
-          flutter test 2>&1 | tee -a /tmp/flutter_build_output.log
+          flutter test 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
 
       - name: Publish Dry Run (linux only — pub publish checks are OS-free)
         if: runner.os == 'Linux'
         run: |
           set -o pipefail
           cd packages/flutter_weft
-          dart pub publish --dry-run 2>&1 | tee -a /tmp/flutter_build_output.log
+          dart pub publish --dry-run 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
 
       - name: Archive Artifacts
         if: always()
@@ -142,6 +143,7 @@ jobs:
       - name: Publish logs → ci/logs branch
         if: always()
         run: |
+          set -o pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 

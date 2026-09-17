@@ -62,8 +62,8 @@ struct ChaosRng {
         var t = d
         let s = a
         d = c; c = b; b = s
-        t = t &<< 11
-        t = t &>> 8
+        t ^= t &<< 11
+        t ^= t &>> 8
         a = t ^ s ^ (s >> 10)
         return a
     }

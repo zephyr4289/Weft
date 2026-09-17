@@ -1,0 +1,1 @@
+{"shard":"fanout-native","status":"PASSED","gates":"C F-series+torture x2 regimes + rust suite + loom(bound 2) + xlang TS<->C + jni-harness JVM + flight-rec selftest x2 regimes + governor G-series C/Rust + G5 trace parity (TS/C/Rust + VM) + cadence PC3 trace parity (TS + VM) + v3-compression e2e + F10 cross-port parity"}

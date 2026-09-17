@@ -1,0 +1,41 @@
+==================================================
+SHARD: browser-sab
+DESCRIPTION: chromium: crossOriginIsolated + SAB kernel roundtrip + 1W/2R fanout
+STATUS: FAILED ❌
+COMMIT: 6ed45611cc5addb7e97baa4725b2e54a0f059da4
+RUN: 84
+==================================================
+
+=== ensure @weft/core dist ===
+=== provision playwright (scratch project, git-ignored) ===
+
+added 1 package in 1s
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.3 MiB
+Chrome Headless Shell 153.0.8010.12 (playwright chromium-headless-shell v1243) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1243
+=== harness server (COOP/COEP) + chromium probe ===
+[browser-harness] listening on 8123 (COOP/COEP set)
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'playwright-core' imported from /home/runner/work/Weft/Weft/tools/browser-harness/probe.mjs
+Did you mean to import "playwright-core/index.js"?
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+    at packageResolve (node:internal/modules/esm/resolve:784:25)
+    at moduleResolve (node:internal/modules/esm/resolve:873:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1006:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:705:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:725:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:763:56)
+    at #resolve (node:internal/modules/esm/loader:687:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:607:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v24.20.0
+[browser-harness] TIMEOUT waiting for report
+❌ browser-sab shard FAILED

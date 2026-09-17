@@ -1,0 +1,387 @@
+==================================================
+SHARD: verifiedweft
+DESCRIPTION: RFC 0005: V-series x3 kernels + C<->TS interop + tamper rejection
+STATUS: PASSED ✅
+COMMIT: 6ed45611cc5addb7e97baa4725b2e54a0f059da4
+RUN: 84
+==================================================
+
+
+=== C build (verified-test + ASAN + verified-runner) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE  -o verified-test sha256.c sha256_hw.c hmac.c verified.c weft.c verified_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+verified_test.c: In function ‘test_v7_perf’:
+verified_test.c:334:40: warning: unused variable ‘tag’ [-Wunused-variable]
+  334 |     uint8_t envelope[16], payload[64], tag[WEFT_VW_TAG_LEN];
+      |                                        ^~~
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE  -o verified-test-asan sha256.c sha256_hw.c hmac.c verified.c weft.c verified_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+verified_test.c: In function ‘test_v7_perf’:
+verified_test.c:334:40: warning: unused variable ‘tag’ [-Wunused-variable]
+  334 |     uint8_t envelope[16], payload[64], tag[WEFT_VW_TAG_LEN];
+      |                                        ^~~
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE  -o verified-runner sha256.c sha256_hw.c hmac.c verified.c weft.c verified_runner.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+
+=== C V-series conformance ===
+VerifiedWeft V-series (RFC 0005) — C driver layer
+V1: HMAC-SHA256 fixture vectors (RFC 4231 + boundaries)
+  PASS rfc4231-tc1
+  PASS rfc4231-tc2
+  PASS rfc4231-tc3
+  PASS rfc4231-tc4
+  PASS rfc4231-tc6
+  PASS rfc4231-tc7
+  PASS weft-empty-payload
+  PASS weft-one-byte
+V2: domain-separated key derivation
+  PASS derivation is deterministic
+  PASS different secret -> different key
+  PASS key = HMAC(secret, domain) exactly
+V3: auth record roundtrip (zero-copy decode)
+  PASS encode -> decode+verify across payload sizes 0..300
+V4: exhaustive single-bit tamper detection
+  PASS all 768 single-bit flips rejected
+V5: wrong key, short record, bad magic
+  PASS wrong key rejected
+  PASS short record rejected
+  PASS bad magic rejected
+  PASS geometry overflow rejected
+V6: constant-time equality semantics
+  PASS equal buffers -> 1
+  PASS first-byte diff -> 0
+  PASS last-byte diff -> 0
+  PASS zero-length -> 1
+V7: per-frame cost vs RFC 0005 claims (2.10 us enc / 2.09 us dec / 4.19 us rtt)
+    measured: enc 0.67 us | dec 0.72 us | rtt 1.39 us | auth-throughput 720076 frames/s
+  PASS all verify calls OK during bench
+  PASS rtt < 10 us (soft gate vs RFC 4.19 us claim)
+V8: HW dispatch equivalence (scalar vs accelerated digests)
+    probe: x86-sha-ni
+  PASS force_scalar pins scalar
+    active: x86-sha-ni
+  PASS signer tag identical across regimes
+  PASS 512 random buffers (0..511 B) digest-identical
+  PASS cross-regime verify: scalar-signed tag verifies under HW
+V9: pre-keyed verifier == one-shot verifier semantics
+  PASS 1000 frames: pre-keyed == one-shot, all OK
+  PASS 1000 tampered tags rejected, state reusable
+  PASS verifier state stable after long stream
+V10: batch decode-verify (stream consumer path)
+  PASS 500-record stream all OK
+  PASS bytes_consumed exact (full stream)
+  PASS views zero-copy into src, seq decoded
+  PASS tampered record rejected (code 3)
+  PASS good prefix counted (137)
+  PASS bytes_consumed stops at the bad record
+  PASS cap-limited views still verify all
+  PASS truncated tail ignored (caller decides truncation policy)
+
+verdict: PASS
+
+=== C V-series conformance (ASAN) ===
+VerifiedWeft V-series (RFC 0005) — C driver layer
+V1: HMAC-SHA256 fixture vectors (RFC 4231 + boundaries)
+  PASS rfc4231-tc1
+  PASS rfc4231-tc2
+  PASS rfc4231-tc3
+  PASS rfc4231-tc4
+  PASS rfc4231-tc6
+  PASS rfc4231-tc7
+  PASS weft-empty-payload
+  PASS weft-one-byte
+V2: domain-separated key derivation
+  PASS derivation is deterministic
+  PASS different secret -> different key
+  PASS key = HMAC(secret, domain) exactly
+V3: auth record roundtrip (zero-copy decode)
+  PASS encode -> decode+verify across payload sizes 0..300
+V4: exhaustive single-bit tamper detection
+  PASS all 768 single-bit flips rejected
+V5: wrong key, short record, bad magic
+  PASS wrong key rejected
+  PASS short record rejected
+  PASS bad magic rejected
+  PASS geometry overflow rejected
+V6: constant-time equality semantics
+  PASS equal buffers -> 1
+  PASS first-byte diff -> 0
+  PASS last-byte diff -> 0
+  PASS zero-length -> 1
+V7: per-frame cost vs RFC 0005 claims (2.10 us enc / 2.09 us dec / 4.19 us rtt)
+    measured: enc 1.34 us | dec 1.67 us | rtt 3.02 us | auth-throughput 331579 frames/s
+  PASS all verify calls OK during bench
+  PASS rtt < 10 us (soft gate vs RFC 4.19 us claim)
+V8: HW dispatch equivalence (scalar vs accelerated digests)
+    probe: x86-sha-ni
+  PASS force_scalar pins scalar
+    active: x86-sha-ni
+  PASS signer tag identical across regimes
+  PASS 512 random buffers (0..511 B) digest-identical
+  PASS cross-regime verify: scalar-signed tag verifies under HW
+V9: pre-keyed verifier == one-shot verifier semantics
+  PASS 1000 frames: pre-keyed == one-shot, all OK
+  PASS 1000 tampered tags rejected, state reusable
+  PASS verifier state stable after long stream
+V10: batch decode-verify (stream consumer path)
+  PASS 500-record stream all OK
+  PASS bytes_consumed exact (full stream)
+  PASS views zero-copy into src, seq decoded
+  PASS tampered record rejected (code 3)
+  PASS good prefix counted (137)
+  PASS bytes_consumed stops at the bad record
+  PASS cap-limited views still verify all
+  PASS truncated tail ignored (caller decides truncation policy)
+
+verdict: PASS
+
+=== Rust V-series (release) ===
+[1m[92m    Updating[0m crates.io index
+[1m[92m   Compiling[0m rustversion v1.0.23
+[1m[92m   Compiling[0m once_cell v1.21.4
+[1m[92m   Compiling[0m shlex v2.0.1
+[1m[92m   Compiling[0m find-msvc-tools v0.1.12
+[1m[92m   Compiling[0m tracing-core v0.1.36
+[1m[92m   Compiling[0m cc v1.4.5
+[1m[92m   Compiling[0m regex-syntax v0.8.11
+[1m[92m   Compiling[0m cfg-if v1.0.4
+[1m[92m   Compiling[0m libc v0.2.189
+[1m[92m   Compiling[0m log v0.4.34
+[1m[92m   Compiling[0m pin-project-lite v0.2.17
+[1m[92m   Compiling[0m lazy_static v1.5.0
+[1m[92m   Compiling[0m sharded-slab v0.1.7
+[1m[92m   Compiling[0m tracing-log v0.2.0
+[1m[92m   Compiling[0m tracing v0.1.44
+[1m[92m   Compiling[0m thread_local v1.1.10
+[1m[92m   Compiling[0m generator v0.8.9
+[1m[92m   Compiling[0m regex-automata v0.4.18
+[1m[92m   Compiling[0m nu-ansi-term v0.50.3
+[1m[92m   Compiling[0m smallvec v1.16.0
+[1m[92m   Compiling[0m scoped-tls v1.0.1
+[1m[92m   Compiling[0m weft-core v0.1.0 (/home/runner/work/Weft/Weft/core/rust)
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/verified.rs:262:21
+    [1m[94m|[0m
+[1m[94m250[0m [1m[94m|[0m       unsafe {
+    [1m[94m|[0m       [1m[94m------[0m [1m[94mbecause it's nested under this `unsafe` block[0m
+[1m[94m...[0m
+[1m[94m262[0m [1m[94m|[0m             let d = unsafe { data.add(blk * 64) };
+    [1m[94m|[0m                     [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `#[warn(unused_unsafe)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m: `weft-core` (lib) generated 1 warning
+[1m[33mwarning[0m: `weft-core` (lib) generated 1 warning (1 duplicate)
+[1m[33mwarning[0m[1m: unused imports: `Duration` and `Instant`[0m
+ [1m[94m--> [0msrc/bin/probe.rs:3:17
+  [1m[94m|[0m
+[1m[94m3[0m [1m[94m|[0m use std::time::{Duration, Instant};
+  [1m[94m|[0m                 [1m[33m^^^^^^^^[0m  [1m[33m^^^^^^^[0m
+  [1m[94m|[0m
+  [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unused import: `PubResult`[0m
+ [1m[94m--> [0msrc/bin/probe.rs:4:22
+  [1m[94m|[0m
+[1m[94m4[0m [1m[94m|[0m use weft_core::{pat, PubResult, Weft, WeftDebugView};
+  [1m[94m|[0m                      [1m[33m^^^^^^^^^[0m
+
+[1m[92m   Compiling[0m matchers v0.2.0
+[1m[92m   Compiling[0m tracing-subscriber v0.3.23
+[1m[92m   Compiling[0m loom v0.7.2
+[1m[33mwarning[0m: `weft-core` (bin "probe") generated 2 warnings (run `cargo fix --bin "probe" -p weft-core` to apply 2 suggestions)
+[1m[33mwarning[0m[1m: unused import: `PubResult`[0m
+ [1m[94m--> [0msrc/bin/bench.rs:8:22
+  [1m[94m|[0m
+[1m[94m8[0m [1m[94m|[0m use weft_core::{pat, PubResult, Weft};
+  [1m[94m|[0m                      [1m[33m^^^^^^^^^[0m
+  [1m[94m|[0m
+  [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+  [1m[94m--> [0msrc/bin/bench.rs:89:9
+   [1m[94m|[0m
+[1m[94m89[0m [1m[94m|[0m         unsafe { fill_payload(&w, seq, payload_max as u32, &mut scratch); }
+   [1m[94m|[0m         [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(unused_unsafe)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/bin/bench.rs:244:13
+    [1m[94m|[0m
+[1m[94m244[0m [1m[94m|[0m             unsafe { fill_payload(&w2, seq, payload_max as u32, &mut scratch); }
+    [1m[94m|[0m             [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/bin/bench.rs:320:13
+    [1m[94m|[0m
+[1m[94m320[0m [1m[94m|[0m             unsafe { fill_payload(&w2, seq, payload_max as u32, &mut scratch); }
+    [1m[94m|[0m             [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+
+[1m[33mwarning[0m[1m: function `now_ns` is never used[0m
+  [1m[94m--> [0msrc/bin/bench.rs:10:4
+   [1m[94m|[0m
+[1m[94m10[0m [1m[94m|[0m fn now_ns() -> u64 {
+   [1m[94m|[0m    [1m[33m^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: function `now_ns_abs` is never used[0m
+  [1m[94m--> [0msrc/bin/bench.rs:14:4
+   [1m[94m|[0m
+[1m[94m14[0m [1m[94m|[0m fn now_ns_abs() -> u64 {
+   [1m[94m|[0m    [1m[33m^^^^^^^^^^[0m
+
+[1m[33mwarning[0m: `weft-core` (bin "bench") generated 6 warnings (run `cargo fix --bin "bench" -p weft-core` to apply 1 suggestion)
+[1m[33mwarning[0m: `weft-core` (bin "probe" test) generated 2 warnings (2 duplicates)
+[1m[33mwarning[0m: `weft-core` (bin "bench" test) generated 6 warnings (6 duplicates)
+[1m[33mwarning[0m[1m: variable does not need to be mutable[0m
+   [1m[94m--> [0mtests/fanout_test.rs:175:9
+    [1m[94m|[0m
+[1m[94m175[0m [1m[94m|[0m     let mut readers: Vec<_> = (0..4).map(|_| f.create_reader()).collect();
+    [1m[94m|[0m         [1m[94m----[0m[1m[33m^^^^^^^[0m
+    [1m[94m|[0m         [1m[94m|[0m
+    [1m[94m|[0m         [1m[94mhelp: remove this `mut`[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m: `weft-core` (lib test) generated 1 warning (1 duplicate)
+[1m[33mwarning[0m: `weft-core` (test "fanout_test") generated 1 warning (run `cargo fix --test "fanout_test" -p weft-core` to apply 1 suggestion)
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 51.06s
+[1m[92m     Running[0m unittests src/lib.rs (target/release/deps/weft_core-b59d8ec68b487b8f)
+
+running 10 tests
+test verified::tests::v1_hmac_vectors ... ok
+test verified::tests::v2_derive_key ... ok
+test verified::tests::v3_record_roundtrip ... ok
+test verified::tests::v5_rejections ... ok
+test verified::tests::v6_ct_eq ... ok
+test verified::tests::v10_batch ... ok
+test verified::tests::v4_tamper ... ok
+test verified::tests::v8_hw_equivalence ... ok
+test verified::tests::v9_prekeyed_verifier ... ok
+test verified::tests::v7_perf_vs_claims ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+[1m[92m     Running[0m unittests src/bin/bench.rs (target/release/deps/bench-93a5ef9309cde51c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m unittests src/bin/governor_xlang.rs (target/release/deps/governor_xlang-7591375be0d5e5d1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m unittests src/bin/litmus.rs (target/release/deps/litmus-1383df2e07c16058)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m unittests src/bin/probe.rs (target/release/deps/probe-3f066521810cac38)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m unittests src/bin/record.rs (target/release/deps/record-1407ea70ac2cddd5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/fanout_test.rs (target/release/deps/fanout_test-68f40cbffdea150c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/frame_cursor_test.rs (target/release/deps/frame_cursor_test-6030bfbeba384511)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/governor_test.rs (target/release/deps/governor_test-574983c7fdb10aa3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/loom_fanout.rs (target/release/deps/loom_fanout-64dc2954cd7e5cfe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/loom_model.rs (target/release/deps/loom_model-685ad20208a7ecc2)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/writer_contract_test.rs (target/release/deps/writer_contract_test-f545f254b98ded76)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+
+=== TS V-series (vitest, @weft/core) ===
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/Weft/Weft/packages/core[39m
+
+ [32m✓[39m test/verified.test.ts [2m([22m[2m17 tests[22m[2m)[22m[90m 153[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m17 passed[39m[22m[90m (17)[39m
+[2m   Start at [22m 06:16:06
+[2m   Duration [22m 551ms[2m (transform 117ms, setup 0ms, collect 132ms, tests 153ms, environment 0ms, prepare 65ms)[22m
+
+
+=== xlang VerifiedWeft interop (C<->TS, tamper rejection) ===
+== xlang VerifiedWeft interop: env x86_64/Linux, node v24.20.0, frames=5000, payload=64 ==
+-- direction 1: C producer -> TS consumer --
+gen: 5000 authenticated records (112 B each) -> vw-c.bin
+reader: 5000/5000 records verified (tag + payload bit-exact)
+
+-- direction 2: TS producer -> C consumer --
+writer: 5000 authenticated records (112 B each) -> vw-ts.bin
+validate: 5000/5000 records verified (tag + payload bit-exact)
+
+-- direction 3: tamper MUST be rejected by both kernels --
+tamper: bit flipped at byte 40 -> vw-c-bad.bin
+C kernel rejected tampered file — OK
+TS kernel rejected tampered file — OK
+
+verdict: PASS
+
+=== Kotlin V-series (standalone kotlinc when present) ===
+junit-console/kotlin-stdlib/java not found — Kotlin V-series SKIPPED (declared; android-packages gradle CI covers)
+
+=== Swift V-series (apple-packages CI covers) ===
+swift not on this runner — Swift V-series SKIPPED (declared; apple-packages CI covers)
+
+=== Dart V-series (flutter-packages CI covers) ===
+dart/flutter not on this runner — Dart V-series SKIPPED (declared; flutter-packages CI covers)
+
+VerifiedWeft shard verdict: PASSED
+==
+dart/flutter not on this runner — Dart V-series SKIPPED (declared; flutter-packages CI covers)
+VerifiedWeft shard verdict: PASSED

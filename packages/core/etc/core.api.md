@@ -193,6 +193,20 @@ export const SHA256_BLOCK_LEN = 64;
 export const SHA256_DIGEST_LEN = 32;
 
 // @public
+export function verifiedWeftBatchDecodeVerify(authKey: Uint8Array, src: Uint8Array, maxViews?: number): VerifiedWeftBatchResult;
+
+// @public
+export interface VerifiedWeftBatchResult {
+    bytesConsumed: number;
+    code: number;
+    records: VerifiedWeftRecordView[];
+    verified: number;
+}
+
+// @public
+export function verifiedWeftBatchVerifyNative(authKey: Uint8Array, src: Uint8Array): Promise<VerifiedWeftBatchResult | null>;
+
+// @public
 export function verifiedWeftRecordDecodeVerify(authKey: Uint8Array, src: Uint8Array): {
     envelope: Uint8Array;
     payload: Uint8Array;
@@ -203,10 +217,23 @@ export function verifiedWeftRecordDecodeVerify(authKey: Uint8Array, src: Uint8Ar
 export function verifiedWeftRecordEncode(envelope: Uint8Array, payload: Uint8Array, tag: Uint8Array, dst: Uint8Array): number;
 
 // @public
+export interface VerifiedWeftRecordView {
+    envelope: Uint8Array;
+    payload: Uint8Array;
+    seq: number;
+}
+
+// @public
 export class VerifiedWeftSigner {
     constructor(key: Uint8Array);
     finalize(out: Uint8Array): void;
     update(data: Uint8Array, start?: number, end?: number): this;
+}
+
+// @public
+export class VerifiedWeftVerifier {
+    constructor(authKey: Uint8Array);
+    verify(envelope: Uint8Array, payload: Uint8Array, tag: Uint8Array): number;
 }
 
 // @public

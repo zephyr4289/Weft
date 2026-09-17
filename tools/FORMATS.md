@@ -92,6 +92,68 @@ offset  size  field         value / meaning
 
 ---
 
+### 1.6 `.weftrec` v3 — Compressed Fan-Out Captures (RFC-0010 draft)
+
+v3 extends v2 with per-record payload compression (RFC-0010). Per §1.3's
+versioning rule it is a NEW format version, not an in-place edit: v2-only
+tooling rejects v3 by the version gate (and by the flags contract — v2
+requires flags == FANOUT exactly), v3 tooling reads both v2 and v3
+(newer reader understands older writer), v1 stays in its own lane.
+
+**Header (32 bytes)** — v2 layout, these fields differ:
+
+```
+offset  size  field             value / meaning
+───
+4       2     format_version    3
+8       4     flags             FANOUT (0x1) | COMPRESSED (0x2); unknown
+                                    bits are a version violation (reject,
+                                    not skip — flags are header-level)
+```
+
+**Frame record** — v2 layout with two repurposed fields (v2's `reserved`):
+
+```
+offset  size  field         value / meaning
+───
+0       4     rec_len       total record length incl. this field and crc;
+                               BYTE-GRANULAR in v3 (codec streams have no
+                               word alignment; v2's rec_len%4==0 rule is
+                               dropped — the v3 divergence)
+4       2     kind          1 = fanout claim record
+6       2     codec         0 = stored (payload verbatim)
+                               1 = delta-zigzag-varint (dzv, below)
+8       8     seq           claimed frame seq (u64)
+16      8     dropped       per-claim drop accounting (unchanged)
+24      4     payload_len   ORIGINAL ring payload bytes (what the ring held;
+                               what validate/replay see post-decompression)
+28      4     stream_len    bytes of codec stream following
+32      N     stream        N = stream_len: the payload verbatim (codec 0)
+                               or the dzv stream (codec 1)
+32+N    4     crc32         CRC-32/zlib over bytes 4..32+N (kind..stream)
+```
+
+**Codec 1 — dzv (delta-zigzag-varint) over u32 words:**
+
+- Compress: `d[i] = w[i] - w[i-1]` (wrapping u32, `w[-1] = 0`), zigzag
+  (`z = (s << 1) ^ (s >> 31)` with the shift ARITHMETIC on the signed
+  view), LEB128 varint (7 bits/byte, high bit = continuation).
+- Decompress is the exact inverse; a stream that overruns, underruns, or
+  leaves trailing bytes is corruption (reject).
+- Payload must be u32-word shaped (payload_len % 4 == 0, > 0) for codec 1.
+- **Self-limiting rule (normative)**: a writer emits codec 1 only when
+  `stream_len < payload_len` — otherwise codec 0. The 04-LITMUS mixer
+  family is deliberately pseudorandom and lands entirely in codec 0; that
+  is the honest outcome, not a failure.
+
+**Rules carried over from v2:** strict seq increase, per-record gap
+accounting (`dropped_i == seq_i - seq_{i-1} - 1`), the exact telescoping
+identity, crash-tolerant `frame_count == 0 ⇒ scan-to-EOF`, `--expect-mixer`
+/ `--expect-wave` payload validation run on the DECOMPRESSED payloads
+(wire-identical to a v2 capture of the same session). Replay republishes
+decompressed payloads; the seq-renumbering boundary is unchanged.
+
+---
 ## 2. Probe Output Contract
 
 ### 2.1 Text output (default)

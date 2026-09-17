@@ -1,0 +1,18 @@
+# Series 6 — Dart VerifiedWeft (pure-Dart scalar reference, zero-dep)
+# env: Dart SDK version: 3.13.4 (stable) (Tue Sep 15 01:01:15 2026 -0700) on "linux_x64", x86_64 sandbox
+# date: 2026-09-16T17:10:27Z
+# NOTE: run through a standalone shim (same test body as the flutter_test
+# suite; flutter test is the CI-cover in flutter-packages.yml)
+
+V1 done
+V2 done
+V3 done
+V4 done
+V5 done
+V8 done
+V9 done
+RESULT: 59 passed, 0 failed
+
+=== dart analyze (reference module) ===
+Analyzing verified.dart...
+No issues found!

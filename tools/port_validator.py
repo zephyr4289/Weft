@@ -58,6 +58,21 @@ FANOUT_FILES = {
 # the ring-bytes helper is named per language but contains 'ringbytes').
 FANOUT_API = ['begin', 'publish', 'claim', 'view', 'stats', 'ringbytes']
 
+# Series 6 — RFC-0005 VerifiedWeft rule pack: every VM port must carry the
+# authenticated-frame module with the shared wire format, key schedule, and
+# batch stream API (PORTS.md §7). Same shape as the fan-out rule pack.
+VERIFIED_FILES = {
+    'kotlin': ROOT / 'core' / 'kotlin' / 'Verified.kt',
+    'swift': ROOT / 'core' / 'swift' / 'Verified.swift',
+    'dart': ROOT / 'core' / 'dart' / 'verified.dart',
+}
+VERIFIED_MARKERS = [
+    'Weft-VerifiedWeft-v1:key',   # domain-separated key schedule (shared)
+    'VW_ENVELOPE_LEN',            # 16-byte signed envelope prefix (v1)
+]
+VERIFIED_API = ['derivekey', 'signer', 'verifier', 'cteq', 'recordencode',
+                'batchdecodeverify', 'errtag']
+
 def check_file_header(filepath, lang):
     """Check that the file has a 'why exists' paragraph citing a spec section."""
     try:
@@ -188,6 +203,41 @@ def check_fanout(target):
     print(json.dumps(result))
     return all_pass
 
+def check_verified(target):
+    """Validate a port's RFC-0005 VerifiedWeft module (Series 6 rule pack).
+    Same JSON result shape as check_fanout."""
+    path = VERIFIED_FILES[target]
+    checks = []
+    if not path.exists():
+        checks.append({'file': str(path.relative_to(ROOT)), 'check': 'file_exists',
+                       'pass': False, 'detail': 'verified module not found'})
+        result = {'target': f'verified-{target}', 'pass': False, 'checks': checks}
+        print(json.dumps(result))
+        return False
+    header_ok, header_detail = check_file_header(path, target)
+    checks.append({'file': str(path.relative_to(ROOT)), 'check': 'header',
+                   'pass': header_ok, 'detail': header_detail})
+    with open(path) as f:
+        src = f.read()
+    # Port naming conventions differ (VW_ENVELOPE_LEN / vwEnvelopeLen /
+    # vwEnvelopeLen): compare case- and underscore-insensitively so the rule
+    # checks the SYMBOL, not the spelling.
+    norm = src.lower().replace('_', '')
+    for m in VERIFIED_MARKERS:
+        found = m in src or m.lower().replace('_', '') in norm
+        checks.append({'file': str(path.relative_to(ROOT)), 'check': f'verified_marker_{m}',
+                       'pass': found,
+                       'detail': f'{m} found' if found else f'MISSING {m}'})
+    for sym in VERIFIED_API:
+        found = sym.lower().replace('_', '') in norm
+        checks.append({'file': str(path.relative_to(ROOT)), 'check': f'verified_api_{sym}',
+                       'pass': found,
+                       'detail': f'{sym} found' if found else f'MISSING {sym}'})
+    all_pass = all(c.get('pass', False) for c in checks)
+    result = {'target': f'verified-{target}', 'pass': all_pass, 'checks': checks}
+    print(json.dumps(result))
+    return all_pass
+
 def validate_target(target, files):
     """Validate all files for a target language.
     Only the kernel file is checked for full API surface.
@@ -306,6 +356,10 @@ def main():
         # Fan-out rule pack: kotlin/swift/dart ports carry the Series-5 ring.
         if target in FANOUT_FILES:
             if not check_fanout(target):
+                all_pass = False
+        # Verified rule pack (Series 6): every VM port carries RFC-0005.
+        if target in VERIFIED_FILES:
+            if not check_verified(target):
                 all_pass = False
     
     return 0 if all_pass else 1

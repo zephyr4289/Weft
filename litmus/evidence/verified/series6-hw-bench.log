@@ -1,0 +1,86 @@
+# Series 6 — C VerifiedWeft HW acceleration + batch (RFC 0005 hardware deferral, realized)
+# env: x86_64, gcc (Debian 14.2.0-19) 14.2.0, Intel(R) Xeon(R) Processor
+# date: 2026-09-16T16:51:45Z
+
+VerifiedWeft V-series (RFC 0005) — C driver layer
+V1: HMAC-SHA256 fixture vectors (RFC 4231 + boundaries)
+  PASS rfc4231-tc1
+  PASS rfc4231-tc2
+  PASS rfc4231-tc3
+  PASS rfc4231-tc4
+  PASS rfc4231-tc6
+  PASS rfc4231-tc7
+  PASS weft-empty-payload
+  PASS weft-one-byte
+V2: domain-separated key derivation
+  PASS derivation is deterministic
+  PASS different secret -> different key
+  PASS key = HMAC(secret, domain) exactly
+V3: auth record roundtrip (zero-copy decode)
+  PASS encode -> decode+verify across payload sizes 0..300
+V4: exhaustive single-bit tamper detection
+  PASS all 768 single-bit flips rejected
+V5: wrong key, short record, bad magic
+  PASS wrong key rejected
+  PASS short record rejected
+  PASS bad magic rejected
+  PASS geometry overflow rejected
+V6: constant-time equality semantics
+  PASS equal buffers -> 1
+  PASS first-byte diff -> 0
+  PASS last-byte diff -> 0
+  PASS zero-length -> 1
+V7: per-frame cost vs RFC 0005 claims (2.10 us enc / 2.09 us dec / 4.19 us rtt)
+    measured: enc 0.52 us | dec 0.55 us | rtt 1.08 us | auth-throughput 928989 frames/s
+  PASS all verify calls OK during bench
+  PASS rtt < 10 us (soft gate vs RFC 4.19 us claim)
+V8: HW dispatch equivalence (scalar vs accelerated digests)
+    probe: x86-sha-ni
+  PASS force_scalar pins scalar
+    active: x86-sha-ni
+  PASS signer tag identical across regimes
+  PASS 512 random buffers (0..511 B) digest-identical
+  PASS cross-regime verify: scalar-signed tag verifies under HW
+V9: pre-keyed verifier == one-shot verifier semantics
+  PASS 1000 frames: pre-keyed == one-shot, all OK
+  PASS 1000 tampered tags rejected, state reusable
+  PASS verifier state stable after long stream
+V10: batch decode-verify (stream consumer path)
+  PASS 500-record stream all OK
+  PASS bytes_consumed exact (full stream)
+  PASS views zero-copy into src, seq decoded
+  PASS tampered record rejected (code 3)
+  PASS good prefix counted (137)
+  PASS bytes_consumed stops at the bad record
+  PASS cap-limited views still verify all
+  PASS truncated tail ignored (caller decides truncation policy)
+
+verdict: PASS
+
+=== verified-runner bench 200000 64 ===
+bench: 200000 frames, 64 B payload, 112 B records
+    cpu probe: x86-sha-ni
+    active:   x86-sha-ni
+
+    path                           us/frame   frames/s
+    sign (scalar)                     1.517     659009
+    sign (auto/HW)                    0.517    1933909
+    verify one-shot (scalar)          1.736     576102
+    verify pre-keyed (auto/HW)        0.517    1935402
+    batch decode-verify (auto/HW)      0.517    1935523
+    batch verdict: OK (200000 verified, 22400000 bytes)
+    all verifies OK: yes
+
+=== xlang gate (C<->TS tamper-both-red) ===
+reader: 5000/5000 records verified (tag + payload bit-exact)
+
+-- direction 2: TS producer -> C consumer --
+writer: 5000 authenticated records (112 B each) -> vw-ts.bin
+validate: 5000/5000 records verified (tag + payload bit-exact)
+
+-- direction 3: tamper MUST be rejected by both kernels --
+tamper: bit flipped at byte 40 -> vw-c-bad.bin
+C kernel rejected tampered file — OK
+TS kernel rejected tampered file — OK
+
+verdict: PASS

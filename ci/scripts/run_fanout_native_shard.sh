@@ -95,9 +95,15 @@ make -C tools/weft-fanout-rec weft-fanout-rec weft-fanout-rec-seq 2>&1 | tee -a 
 ./tools/weft-fanout-rec/weft-fanout-rec selftest --frames 20000 --words 64 2>&1 | tee -a "$LOG" || fail=1
 ./tools/weft-fanout-rec/weft-fanout-rec-seq selftest --frames 20000 --words 64 2>&1 | tee -a "$LOG" || fail=1
 
+# Gate 6 (Series 6): RFC-0010 v3 compression e2e — the capture -> validate
+# -> replay -> recapture loop under --compress, wave + mixer families,
+# version gates, measured ratio.
+step "flight-recorder e2e under v3 compression (RFC-0010)"
+bash tools/weft-fanout-rec/e2e.sh 2>&1 | tee -a "$LOG" || fail=1
+
 if [ "$fail" -ne 0 ]; then
   echo '{"shard":"fanout-native","status":"FAILED"}' > ci/run-artifacts/shard-fanout-native-results.json
   exit 1
 fi
-echo '{"shard":"fanout-native","status":"PASSED","gates":"C F-series+torture x2 regimes + rust suite + loom(bound 2) + xlang TS<->C + jni-harness JVM + flight-rec selftest x2 regimes + governor G-series C/Rust + G5 trace parity"}' > ci/run-artifacts/shard-fanout-native-results.json
+echo '{"shard":"fanout-native","status":"PASSED","gates":"C F-series+torture x2 regimes + rust suite + loom(bound 2) + xlang TS<->C + jni-harness JVM + flight-rec selftest x2 regimes + governor G-series C/Rust + G5 trace parity + v3-compression e2e"}' > ci/run-artifacts/shard-fanout-native-results.json
 echo "✅ fanout-native shard PASSED" | tee -a "$LOG"

@@ -386,3 +386,55 @@ Stage Summary:
 - Fan-out is now expressible natively in ALL SIX Weft ports, byte-compatible, each gated by a same-shape F-series battery; the RFC-0004 consumer story gains its flight recorder with a versioned, CRC'd, accounting-exact file format.
 - Kernel Freeze: PRESERVED (weft.{c,h}, lib.rs, all six kernels untouched — 0 diffs beyond driver-layer additions). Release checksums untouched.
 - Open: Swift/Dart batteries run in their package CI workflows (apple/flutter) — locally unverified (no toolchains in sandbox); declared, environment-tagged.
+
+---
+## Series 6 (trust + time-travel) — implementation record
+
+Scope (lead's assignment): HW VerifiedWeft (SHA-NI/ARMv8-CE + batch) across
+C/Rust/TS, VM-port Verified parity (Kotlin/Swift/Dart), flight-recorder
+productization (daemon, JS v2 parse, Inspector timeline), and one invented
+RFC (0010: .weftrec v3 compression + e2e demo).
+
+- **C (2c960bd)**: sha256_hw.c — x86 SHA-NI transform (schedule
+  independently re-derived from FIPS 180-4, cross-checked against the
+  public-domain Intel/Gulley/Walton layout, validated bit-exact vs the
+  scalar reference) + aarch64 CE (compile-guarded, HWCAP-probed, declared
+  not-executable-tested on the x86_64 sandbox). Runtime dispatch via
+  relaxed-atomic fn pointer; force_scalar/force_auto A/B pins. Pre-keyed
+  verifier + batch decode-verify. V8/V9/V10 gates. Bench: sign 659K->1934K
+  frames/s, verify 576K->1935K/s pre-keyed, batch 1936K/s — lead target
+  >1000K/s met both directions. rfcs/0005 table updated; hardware deferral
+  item realized.
+- **Rust (8057853)**: same SHA-NI transform in core::arch (execution-
+  validated on this CPU: v8 256-buffer sweep + direct 4-block transform
+  A/B), OnceLock dispatch, VwVerifier + batch_decode_verify; v8/v9/v10 —
+  10/10 on rustc 1.98.1 (installed via rustup for local verification).
+- **TS (f7b192d)**: VerifiedWeftVerifier, verifiedWeftBatchDecodeVerify,
+  optional WebCrypto native accelerator (platform HMAC = HW SHA; null when
+  absent; V10 requires bit-exact agreement when present). Mirror parity
+  13/13->15/15 with the new Kotlin/Dart pairs. 17/17 vitest.
+- **VM ports (46b069e)**: Kotlin (platform Mac road; range feed/finish;
+  unsigned-Long geometry decode after the hostile-plen overflow lesson),
+  Swift (CryptoKit; declared no-streaming-HMAC divergence; Apple-only CI),
+  Dart (pure-Dart scalar reference — the port's honesty wall; zero-dep).
+  Port-validated rule pack (normalized symbol match), PORTS.md §7,
+  shard gates 5-7 (kotlinc-when-present; Swift/Dart declared to package
+  workflows). Kotlin 8/8 (kotlinc 2.0.21 + junit-console), Dart 59/59
+  (Dart 3.13 SDK installed; fixed a transcription K[59] typo the fixture
+  gate caught, and a wrong private-field ref dart analyze caught).
+- **Productization (ec9e51c)**: daemon mode (signal-safe SIGINT/SIGTERM
+  close, SIGHUP stats, SIGPIPE ignore, crash-tolerant close) — e2e-verified
+  against a live 8 kHz producer (12175 claims + 2530 drops, telescoping
+  exact). JS parseWeftrecV2 + writeWeftrecV2 + fanoutTimeline; v1 parser
+  gained the missing §1.3 version gate. FanoutTimeline Inspector component
+  (telescoping badge). demos/web 53/53.
+- **RFC-0010 (this commit)**: .weftrec v3 per-record dzv compression
+  (self-limiting; byte-granular rec_len divergence declared in §1.6),
+  produce mode (mixer/wave families), e2e.sh (capture->validate->replay->
+  recapture under --compress; wave ratio 1.32x measured; mixer 0 dzv /
+  100% stored; version gates incl. a CRC-patched v2-shaped forgery).
+  Bugs the e2e caught and fixed: arithmetic-vs-logical zigzag shift (every
+  negative delta), v3 %4 rule drop, concurrent-session semantics (late
+  attach = 1 claim + honest drop accounting), replay throttle for the
+  recapture leg, subsequence compare. FORMATS.md §1.6; fanout-native
+  shard gate 6; selftest x2 regimes + ASAN green (regressions).

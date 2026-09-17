@@ -1,0 +1,39 @@
+# Series 6 — RFC-0010 .weftrec v3 compression + e2e demo
+# env: x86_64 sandbox, gcc 14
+# date: 2026-09-16T17:28:06Z
+
+== e2e (full run) ==
+== 1+2. concurrent session: produce wave -> ring A while capture --compress runs ==
+produce: wave family, 20000 frames -> shm /weft_e2e_ring_a (ring left in place for capture/daemon; producer exits — latestSeq holds)
+capture: /tmp/tmp.T4MDdez6ez/a.weftrec — 18923 claims, 1077 dropped frames accounted (the honest capture; telemetry advisory)
+== 3. validate: file A (wave bit-exact through decompression) ==
+validate: /tmp/tmp.T4MDdez6ez/a.weftrec — 18923 records, final seq 20000, sum(dropped)=1077 — telescoping exact, wave bit-exact (v3)
+== 4+5. replay (throttled) -> ring B while capture --compress recaptures ==
+replay: /tmp/tmp.T4MDdez6ez/a.weftrec -> shm /weft_e2e_ring_b — 18923 frames republished (content-faithful; seqs renumbered 1..18923 — declared boundary)
+capture: /tmp/tmp.T4MDdez6ez/b.weftrec — 17257 claims, 1666 dropped frames accounted (the honest capture; telemetry advisory)
+== 6. validate + compare: file B structural + payload-exact vs file A ==
+validate: /tmp/tmp.T4MDdez6ez/b.weftrec — 17257 records, final seq 18923, sum(dropped)=1666 — telescoping exact (v3)
+compare: 17257/17257 recaptured records are an ordered payload-exact subsequence of 18923 (content-faithful loop closed; 
+sizes: v3 file 4184839 B vs v2-equivalent 5525516 B -> ratio 1.32x (wave family, dzv)
+== 7. mixer leg: concurrent capture; the codec honestly declines ==
+produce: mixer family, 20000 frames -> shm /weft_e2e_ring_c (ring left in place for capture/daemon; producer exits — latestSeq holds)
+capture: /tmp/tmp.T4MDdez6ez/c.weftrec — 18917 claims, 1083 dropped frames accounted (the honest capture; telemetry advisory)
+validate: /tmp/tmp.T4MDdez6ez/c.weftrec — 18917 records, final seq 20000, sum(dropped)=1083 — telescoping exact, mixer bit-exact (v3)
+mixer capture under --compress: 0 dzv records, 18917 stored (self-limiting: pseudorandom payloads are emitted verbatim)
+== 8. version gates ==
+forged v2-shaped header (version 2 + compressed flags + patched CRC)
+v2 flags contract rejects v3-shaped flags — OK
+capture: /tmp/tmp.T4MDdez6ez/plain.weftrec — 1462 claims, 538 dropped frames accounted (the honest capture; telemetry advisory)
+validate: /tmp/tmp.T4MDdez6ez/plain.weftrec — 1462 records, final seq 2000, sum(dropped)=538 — telescoping exact, mixer bit-exact (v2)
+rings unlinked
+
+e2e: PASS — capture -> validate(wave, v3) -> replay -> recapture -> compare,
+      mixer stored-fallback measured, version gates enforced
+
+== regressions: selftest x2 + ASAN ==
+selftest: PASS — capture -> validate(mixer) -> replay -> recapture -> compare, all green (20000 frames published, 64-word payload)
+selftest: PASS — capture -> validate(mixer) -> replay -> recapture -> compare, all green (20000 frames published, 64-word payload)
+selftest: PASS — capture -> validate(mixer) -> replay -> recapture -> compare, all green (5000 frames published, 64-word payload)
+
+== JS: v2 parser rejects v3 (15/15) ==
+      Tests  15 passed (15)

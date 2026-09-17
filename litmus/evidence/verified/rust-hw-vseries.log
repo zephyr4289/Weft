@@ -1,0 +1,23 @@
+# Series 6 — Rust VerifiedWeft HW dispatch + pre-keyed verifier + batch
+# env: rustc 1.98.1 (48a229cea 2026-09-01), x86_64
+# date: 2026-09-16T16:57:32Z
+
+test verified::tests::v1_hmac_vectors ... ok
+test verified::tests::v2_derive_key ... ok
+test verified::tests::v3_record_roundtrip ... ok
+test verified::tests::v4_tamper ... ok
+test verified::tests::v5_rejections ... ok
+test verified::tests::v10_batch ... ok
+test verified::tests::v6_ct_eq ... ok
+test verified::tests::v8_hw_equivalence ... ok
+test verified::tests::v9_prekeyed_verifier ... ok
+test verified::tests::v7_perf_vs_claims ... ok
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s

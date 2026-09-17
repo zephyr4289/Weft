@@ -341,3 +341,217 @@ export function verifiedWeftRecordDecodeVerify(
     code: VW_OK,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Series 6: pre-keyed stream verifier + batch decode-verify + optional
+// native accelerator. Mirrors core/c/verified.{h,c} and
+// core/rust/src/verified.rs — same codes, same stop semantics, same Law 4
+// drop-and-count contract (a bad record is dropped and counted, never
+// consumed).
+// ---------------------------------------------------------------------------
+
+/** Pre-keyed verifier: one HMAC key schedule amortized across a stream. */
+export class VerifiedWeftVerifier {
+  private signer: VerifiedWeftSigner;
+  private expect = new Uint8Array(HMAC_TAG_LEN);
+
+  constructor(authKey: Uint8Array) {
+    this.signer = new VerifiedWeftSigner(authKey);
+  }
+
+  /** Verify one frame. Same codes as verifiedWeftVerify; ctEq compare. */
+  verify(envelope: Uint8Array, payload: Uint8Array, tag: Uint8Array): number {
+    this.signer.update(envelope, 0, VW_ENVELOPE_LEN);
+    this.signer.update(payload);
+    this.signer.finalize(this.expect);
+    if (!ctEq(this.expect, tag)) return VW_ERR_TAG;
+    return VW_OK;
+  }
+}
+
+/** Zero-copy view of one verified record inside a batch buffer. */
+export interface VerifiedWeftRecordView {
+  /** 16-byte envelope prefix (view into the batch buffer). */
+  envelope: Uint8Array;
+  /** Payload bytes (view into the batch buffer). */
+  payload: Uint8Array;
+  /** Envelope seq field, decoded little-endian. */
+  seq: number;
+}
+
+/** Stream-consumer batch result — mirrors the C/Rust batch APIs. */
+export interface VerifiedWeftBatchResult {
+  /** VW_OK, or the code of the FIRST bad record. */
+  code: number;
+  /** Count of verified records (the good prefix). */
+  verified: number;
+  /** End offset of the last VERIFIED record (resync point). */
+  bytesConsumed: number;
+  /** Zero-copy views of verified records (bounded by maxViews). */
+  records: VerifiedWeftRecordView[];
+}
+
+/**
+ * Walk a buffer of concatenated auth records, verifying each in order.
+ * Stops at the first bad record (code + good-prefix count + its offset);
+ * trailing bytes shorter than a record are ignored — the truncation policy
+ * belongs to the caller, same contract as C/Rust. maxViews bounds the
+ * returned views (verification itself always covers the whole prefix).
+ */
+export function verifiedWeftBatchDecodeVerify(
+  authKey: Uint8Array,
+  src: Uint8Array,
+  maxViews = Number.POSITIVE_INFINITY,
+): VerifiedWeftBatchResult {
+  const verifier = new VerifiedWeftVerifier(authKey);
+  const records: VerifiedWeftRecordView[] = [];
+  let verified = 0;
+  let off = 0;
+
+  while (off + VW_ENVELOPE_LEN + HMAC_TAG_LEN <= src.length) {
+    if (!(src[off] === 0x57 && src[off + 1] === 0x45 && src[off + 2] === 0x46 && src[off + 3] === 0x54)) {
+      return { code: VW_ERR_BAD_MAGIC, verified, bytesConsumed: off, records };
+    }
+    const headerSize = src[off + 6] | (src[off + 7] << 8);
+    const plen =
+      (src[off + 12] | (src[off + 13] << 8) | (src[off + 14] << 16) | (src[off + 15] << 24)) >>> 0;
+    if (headerSize < VW_ENVELOPE_LEN) {
+      return { code: VW_ERR_BAD_MAGIC, verified, bytesConsumed: off, records };
+    }
+    const body = headerSize + plen;
+    if (body > src.length - off - HMAC_TAG_LEN) {
+      return { code: VW_ERR_SHORT, verified, bytesConsumed: off, records };
+    }
+
+    const code = verifier.verify(
+      src.subarray(off, off + VW_ENVELOPE_LEN),
+      src.subarray(off + headerSize, off + body),
+      src.subarray(off + body, off + body + HMAC_TAG_LEN),
+    );
+    if (code !== VW_OK) {
+      return { code, verified, bytesConsumed: off, records };
+    }
+
+    if (verified < maxViews) {
+      records.push({
+        envelope: src.subarray(off, off + VW_ENVELOPE_LEN),
+        payload: src.subarray(off + headerSize, off + body),
+        seq: (src[off + 8] | (src[off + 9] << 8) | (src[off + 10] << 16) | (src[off + 11] << 24)) >>> 0,
+      });
+    }
+    verified++;
+    off += body + HMAC_TAG_LEN;
+  }
+
+  return { code: VW_OK, verified, bytesConsumed: off, records };
+}
+
+/**
+ * OPTIONAL native accelerator for bulk stream verification (Series 6).
+ *
+ * WHEN: browsers, Node >= 19, Deno, workers — anywhere globalThis.crypto
+ * exposes subtle. The platform's HMAC runs on hardware SHA (SHA-NI / ARMv8
+ * CE) — the same physical acceleration the C port dispatches to via
+ * intrinsics; JS has no intrinsics, so the platform is the honest road.
+ *
+ * WHAT IT IS NOT: not a replacement for the sync pure-TS reference above.
+ * The sync path stays normative; this path must agree with it bit-exactly
+ * (the test suite runs both when WebCrypto is available and compares).
+ * Returns null when WebCrypto is unavailable — callers fall back to
+ * verifiedWeftBatchDecodeVerify, never the other way around.
+ *
+ * Stop semantics: records are verified in parallel chunks, then the FIRST
+ * failure is reported in the same result shape (code/verified/
+ * bytesConsumed) — an accelerator for bulk ingestion, not a streaming API.
+ */
+export async function verifiedWeftBatchVerifyNative(
+  authKey: Uint8Array,
+  src: Uint8Array,
+): Promise<VerifiedWeftBatchResult | null> {
+  const subtle = (globalThis as { crypto?: { subtle?: SubtleCrypto } }).crypto?.subtle;
+  if (!subtle) return null;
+
+  // Geometry walk first (sync, cheap): record boundaries + contiguous
+  // envelope||payload views (header_size 16 is the v1 standard; other sizes
+  // get a one-off concat buffer).
+  interface Pending {
+    off: number;
+    body: number;
+    data: Uint8Array;
+    tag: Uint8Array;
+    headerSize: number;
+    plen: number;
+  }
+  const pending: Pending[] = [];
+  let off = 0;
+  while (off + VW_ENVELOPE_LEN + HMAC_TAG_LEN <= src.length) {
+    if (!(src[off] === 0x57 && src[off + 1] === 0x45 && src[off + 2] === 0x46 && src[off + 3] === 0x54)) {
+      return { code: VW_ERR_BAD_MAGIC, verified: 0, bytesConsumed: 0, records: [] };
+    }
+    const headerSize = src[off + 6] | (src[off + 7] << 8);
+    const plen =
+      (src[off + 12] | (src[off + 13] << 8) | (src[off + 14] << 16) | (src[off + 15] << 24)) >>> 0;
+    if (headerSize < VW_ENVELOPE_LEN) {
+      return { code: VW_ERR_BAD_MAGIC, verified: 0, bytesConsumed: 0, records: [] };
+    }
+    const body = headerSize + plen;
+    if (body > src.length - off - HMAC_TAG_LEN) {
+      return { code: VW_ERR_SHORT, verified: 0, bytesConsumed: 0, records: [] };
+    }
+    let data: Uint8Array;
+    if (headerSize === VW_ENVELOPE_LEN) {
+      data = src.subarray(off, off + body); // contiguous: zero-copy
+    } else {
+      data = new Uint8Array(body);
+      data.set(src.subarray(off, off + VW_ENVELOPE_LEN), 0);
+      data.set(src.subarray(off + headerSize, off + body), VW_ENVELOPE_LEN);
+    }
+    pending.push({
+      off,
+      body,
+      data,
+      tag: src.subarray(off + body, off + body + HMAC_TAG_LEN),
+      headerSize,
+      plen,
+    });
+    off += body + HMAC_TAG_LEN;
+  }
+
+  try {
+    const key = await subtle.importKey(
+      'raw',
+      authKey as unknown as BufferSource,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify'],
+    );
+    const CHUNK = 256;
+    for (let i = 0; i < pending.length; i += CHUNK) {
+      const chunk = pending.slice(i, i + CHUNK);
+      const oks = await Promise.all(
+        chunk.map((p) => subtle.verify({ name: 'HMAC' }, key, p.tag as unknown as BufferSource,
+                                        p.data as unknown as BufferSource)),
+      );
+      for (let j = 0; j < chunk.length; j++) {
+        if (!oks[j]) {
+          const firstBad = chunk[j];
+          return {
+            code: VW_ERR_TAG,
+            verified: i + j,
+            bytesConsumed: firstBad.off,
+            records: [],
+          };
+        }
+      }
+    }
+  } catch {
+    return null; // platform refused (e.g. non-extractable key material path)
+  }
+
+  return {
+    code: VW_OK,
+    verified: pending.length,
+    bytesConsumed: off,
+    records: [], // accelerator: no views; the sync path is the view API
+  };
+}

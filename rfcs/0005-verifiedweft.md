@@ -41,7 +41,7 @@ Adds ~2–4 µs CPU latency per frame in software; increases frame wire size by 
 - BLAKE3 acceleration on WebAssembly / SIMD-capable targets.
 
 ## Hardware Deferral List
-- Dedicated hardware cryptographic instruction set acceleration (ARMv8 CE / Intel SHA-NI) on bare metal devices is deferred.
+- ~~Dedicated hardware cryptographic instruction set acceleration (ARMv8 CE / Intel SHA-NI) on bare metal devices is deferred.~~ **Realized in Series 6** (SHA-NI + ARMv8 CE runtime dispatch, `core/c/sha256_hw.c`); BLAKE3 remains deferred.
 
 ## Staff Decision
 [EMPTY — implementation evidence attached; ratification pending]
@@ -80,6 +80,34 @@ authenticated frames/sec" is the ENCODE-only throughput (1 / 2.10 µs =
 implementations land in the claim's neighborhood on both readings; the
 report table above keeps the two numbers separate so the claim stays
 falsifiable.
+
+### Series 6 — hardware acceleration + batch verification (this tree)
+
+The Hardware Deferral List item below is now REALIZED for SHA-NI and
+ARMv8 CE: `core/c/sha256_hw.c` adds runtime-dispatched accelerated
+compression (x86 SHA extensions via `target("sha,sse4.1")` function
+attributes, aarch64 CE via `-march=armv8-a+crypto` + HWCAP probe), with the
+scalar path kept as the normative reference. `verified.{h,c}` add a
+pre-keyed verifier (`weft_vw_verifier_t`) and a stream batch API
+(`weft_vw_batch_decode_verify`). Measured on the same sandbox shape as the
+table above (x86_64, SHA-NI present, 64 B payload, 200k frames —
+`verified-runner bench`, evidence `litmus/evidence/verified/series6-hw-bench.log`):
+
+| Path | Series 5 (scalar) | Series 6 (SHA-NI) | Target > 1,000 K/s |
+|---|---|---|---|
+| Sign (encode) | 659 K/s (1.52 µs) | 1,934 K/s (0.52 µs) | met (2.9x) |
+| Verify one-shot (per-call key) | 576 K/s (1.74 µs) | — | superseded by the two below |
+| Verify pre-keyed (stream) | — | 1,935 K/s (0.52 µs) | met (3.4x vs one-shot) |
+| Batch decode-verify (one walk) | — | 1,936 K/s (0.52 µs) | met |
+
+Digest equivalence between regimes is GATED, not asserted: V8 sweeps the
+shared fixture vectors plus 512 randomized buffers under both
+`weft_sha256_force_scalar()` and runtime dispatch and requires
+byte-identical tags; the xlang C<->TS gate runs green under the accelerated
+regime. The aarch64 CE transform is compile-guarded and NOT
+executable-tested in the x86_64 sandbox — declared (ARM CI covers it).
+
+BLAKE3 remains deferred (open question unchanged).
 
 ### What gates the wire format (normative)
 

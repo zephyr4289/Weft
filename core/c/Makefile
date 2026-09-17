@@ -56,22 +56,33 @@ fanout-runner-seq: fanout.c frame_cursor.c fanout_runner.c fanout.h frame_cursor
 	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 -o fanout-runner-seq $(FANOUT_SRC) fanout_runner.c
 
 # ---- VerifiedWeft driver layer (RFC 0005) --------------------------------
-# sha256.{h,c} + hmac.{h,c} + verified.{h,c} — pure C, zero dependencies.
+# sha256.{h,c} + sha256_hw.c (Series 6 HW dispatch: x86 SHA-NI via target
+# attribute — no flag changes; aarch64 CE needs +crypto, see below) +
+# hmac.{h,c} + verified.{h,c} — pure C, zero dependencies.
 # V-series conformance + xlang sign/verify runner. weft.c/weft.h untouched.
 
-VW_SRC = sha256.c hmac.c verified.c weft.c
+VW_SRC = sha256.c sha256_hw.c hmac.c verified.c weft.c
 
-verified-test: sha256.c hmac.c verified.c verified_test.c weft.c weft.h sha256.h hmac.h verified.h
-	$(CC) $(CFLAGS) -o verified-test $(VW_SRC) verified_test.c
+# aarch64: compile the CE transform with the crypto extension enabled
+# (mbedTLS-style); execution stays gated on the runtime HWCAP probe, so the
+# binary remains safe on non-CE ARM hardware. x86-64 needs no extra flags.
+ifeq ($(shell $(CC) -dumpmachine 2>/dev/null | grep -c 'aarch64\|arm64'),1)
+  VW_CFLAGS := -march=armv8-a+crypto
+else
+  VW_CFLAGS :=
+endif
 
-verified-test-asan: sha256.c hmac.c verified.c verified_test.c weft.c weft.h sha256.h hmac.h verified.h
-	$(CC) $(CFLAGS_ASAN) -o verified-test-asan $(VW_SRC) verified_test.c
+verified-test: sha256.c sha256_hw.c hmac.c verified.c verified_test.c weft.c weft.h sha256.h hmac.h verified.h
+	$(CC) $(CFLAGS) $(VW_CFLAGS) -o verified-test $(VW_SRC) verified_test.c
 
-verified-runner: sha256.c hmac.c verified.c verified_runner.c weft.c weft.h sha256.h hmac.h verified.h
-	$(CC) $(CFLAGS) -o verified-runner $(VW_SRC) verified_runner.c
+verified-test-asan: sha256.c sha256_hw.c hmac.c verified.c verified_test.c weft.c weft.h sha256.h hmac.h verified.h
+	$(CC) $(CFLAGS_ASAN) $(VW_CFLAGS) -o verified-test-asan $(VW_SRC) verified_test.c
 
-verified-runner-asan: sha256.c hmac.c verified.c verified_runner.c weft.c weft.h sha256.h hmac.h verified.h
-	$(CC) $(CFLAGS_ASAN) -o verified-runner-asan $(VW_SRC) verified_runner.c
+verified-runner: sha256.c sha256_hw.c hmac.c verified.c verified_runner.c weft.c weft.h sha256.h hmac.h verified.h
+	$(CC) $(CFLAGS) $(VW_CFLAGS) -o verified-runner $(VW_SRC) verified_runner.c
+
+verified-runner-asan: sha256.c sha256_hw.c hmac.c verified.c verified_runner.c weft.c weft.h sha256.h hmac.h verified.h
+	$(CC) $(CFLAGS_ASAN) $(VW_CFLAGS) -o verified-runner-asan $(VW_SRC) verified_runner.c
 
 governor-test: governor.c governor_test.c governor.h
 	$(CC) $(CFLAGS) -o governor-test governor.c governor_test.c

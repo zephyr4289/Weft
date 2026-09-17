@@ -31,6 +31,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Binding parity guard (core/dart <-> flutter reference)
         run: bash ci/scripts/run_binding_parity.sh
 
@@ -61,19 +66,30 @@ jobs:
         run: |
           set -o pipefail  # tee must not swallow the compile exit code
           mkdir -p packages/flutter_weft/build
-          CC="$(command -v gcc || command -v clang || command -v cc)"
-          echo "compiler: $CC"
           if [[ "$RUNNER_OS" == "Windows" ]]; then
+            CC="$(command -v gcc || command -v clang || command -v cc || true)"
+            if [ -z "$CC" ] || [ ! -x "$CC" ]; then
+              if [ -f /c/msys64/mingw64/bin/gcc ]; then
+                CC=/c/msys64/mingw64/bin/gcc
+              elif [ -f "C:/msys64/mingw64/bin/gcc.exe" ]; then
+                CC="C:/msys64/mingw64/bin/gcc.exe"
+              fi
+            fi
+            echo "compiler: $CC"
             # mingw-gcc on the windows runner; -static-libgcc keeps the DLL
             # self-contained. Named weft.dll — the loader's windows name.
             "$CC" -shared -O3 -static-libgcc -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
               -o packages/flutter_weft/weft.dll 2>&1 | tee -a /tmp/flutter_build_output.log
             cp packages/flutter_weft/weft.dll /tmp/weft.dll || true
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            CC="$(command -v clang || command -v gcc || command -v cc)"
+            echo "compiler: $CC"
             "$CC" -dynamiclib -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
               -o packages/flutter_weft/libweft.dylib 2>&1 | tee -a /tmp/flutter_build_output.log
             cp packages/flutter_weft/libweft.dylib /tmp/libweft.dylib || true
           else
+            CC="$(command -v gcc || command -v clang || command -v cc)"
+            echo "compiler: $CC"
             "$CC" -shared -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
               -o packages/flutter_weft/libweft.so 2>&1 | tee -a /tmp/flutter_build_output.log
             cp packages/flutter_weft/libweft.so /tmp/libweft.so || true
@@ -115,7 +131,7 @@ jobs:
             packages/flutter_weft/weft.dll
 
       - name: Publish CI Result Branch
-        if: always() && runner.os == 'Linux'
+        if: always() && runner.os == 'Linux' && github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

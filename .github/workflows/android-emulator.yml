@@ -37,7 +37,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api: [26, 33, 34]
+        include:
+          - api: 26
+            target: default
+            arch: x86_64
+          - api: 33
+            target: google_apis
+            arch: x86_64
+          - api: 34
+            target: google_apis
+            arch: x86_64
 
     steps:
       - uses: actions/checkout@v4
@@ -55,7 +64,7 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
             "ndk;27.0.12077973" "cmake;3.22.1" "platforms;android-35" \
             "build-tools;35.0.0" "platform-tools" "emulator" \
-            "system-images;android-${{ matrix.api }};google_apis;x86_64"
+            "system-images;android-${{ matrix.api }};${{ matrix.target }};${{ matrix.arch }}"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -70,8 +79,8 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api }}
-          target: google_apis
-          arch: x86_64
+          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch }}
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
@@ -91,7 +100,7 @@ jobs:
             # carries the same signal). Same gate, no weakening.
             pkg_pid() {
               adb shell pidof dev.weft.sample 2>/dev/null || \
-                adb shell ps 2>/dev/null | grep 'dev.weft.sample' | awk '{print $2}' || true
+                adb shell ps 2>/dev/null | grep -w 'dev.weft.sample' | awk '{print $2}' || true
             }
             PID=$(pkg_pid)
             echo "pre-kill pid: $PID"

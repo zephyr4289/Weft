@@ -133,7 +133,8 @@ for pair in "${SHIM_PAIRS[@]}"; do
   else
     # Export names declared by the shim: `export { A, B, C }` and
     # `export type { T1, T2 }` forms, plus `export { X } from` re-export.
-    shim_names=$(python3 - "$shim" <<'PYEOF'
+    PYTHON="$(command -v python3 || command -v python || echo python3)"
+    shim_names=$("$PYTHON" - "$shim" <<'PYEOF'
 import re, sys
 src = open(sys.argv[1]).read()
 names = set()

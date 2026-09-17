@@ -477,8 +477,9 @@ def prove_c():
 
 def prove_kotlin():
     """Compile the standalone Kotlin files (kotlinc) when a compiler exists;
-    Heddle.kt requires Android Jetpack Compose and is compiled by the android
-    gradle leg which runs the full F-series for the same SHA."""
+    Steward.kt (AndroidX ViewModel) and Heddle.kt (Jetpack Compose) require the
+    Android SDK and are compiled by the android gradle leg which runs the full
+    F-series for the same SHA."""
     kotlinc = shutil.which('kotlinc')
     if kotlinc is None:
         return _emit_proof('kotlin-compile', True,
@@ -488,7 +489,8 @@ def prove_kotlin():
     with tempfile.TemporaryDirectory(prefix='weft-kt-') as td:
         srcs = [str(ROOT / 'core' / 'kotlin' / f)
                 for f in ('Fanout.kt', 'FanoutCompat.kt', 'FrameCursor.kt',
-                          'Steward.kt', 'Weft.kt', 'TriadNative.kt')]
+                          'Weft.kt', 'TriadNative.kt', 'Verified.kt')]
+        srcs = [s for s in srcs if Path(s).exists()]
         build = subprocess.run([kotlinc] + srcs + ['-d', td], capture_output=True,
                                text=True, timeout=600)
         if build.returncode != 0:

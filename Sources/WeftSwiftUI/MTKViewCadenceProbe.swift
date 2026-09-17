@@ -276,10 +276,11 @@ public final class MTKViewCadenceProbe: NSObject, MTKViewDelegate {
         // The FULL draw-phase contract, not a stub: claim, live read,
         // integrity-verify against the writer's pattern.
         if let w = weft {
-            let seq = w.claim()
+            _ = w.claim()
             lock.lock()
             claims += 1
             lock.unlock()
+            let seq = w.rSeq()
             if seq > 0, let ptr = w.rLivePtr(16) {
                 let len = Int(w.rPayloadLen())
                 var bad = false

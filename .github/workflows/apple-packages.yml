@@ -45,7 +45,7 @@ jobs:
             Package.resolved
 
       - name: Publish CI Result Branch
-        if: always()
+        if: always() && github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

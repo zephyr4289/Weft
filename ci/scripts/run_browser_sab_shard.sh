@@ -44,6 +44,7 @@ cd "$ROOT"
 
 # --- 3. Serve with COOP/COEP and probe in the browser ---
 step "harness server (COOP/COEP) + chromium probe"
+export NODE_PATH="$ROOT/ci/browser-tmp/node_modules"
 set +e
 node tools/browser-harness/server.mjs packages/core/dist 8123 2>&1 | tee -a "$LOG" &
 SERVER_PID=$!

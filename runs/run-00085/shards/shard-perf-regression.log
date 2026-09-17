@@ -1,0 +1,220 @@
+==================================================
+SHARD: perf-regression
+DESCRIPTION: W-suite P99 vs pinned baseline; >15% drop = FAIL
+STATUS: PASSED ✅
+COMMIT: 19cfcfcc02f26c329a5c29828577a9abecd9a999
+RUN: 85
+==================================================
+
+→ W1/A ... P99=108.9 alloc/frame=0.0 [PASS]
+→ W1/B ... P99=126.3 alloc/frame=0.0 [PASS]
+→ W1/C .../home/runner/work/Weft/Weft/core/c/weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+→ compiling Weft C kernel to /home/runner/work/Weft/Weft/core/c/libweft.so
+ P99=126.9 alloc/frame=0.0 [PASS]
+→ W1/D ... P99=82.2 alloc/frame=0.0 [PASS]
+→ W2/A ... P99=75.8 alloc/frame=0.0 [PASS]
+→ W2/B ... P99=104.1 alloc/frame=0.0 [PASS]
+→ W2/C ... P99=103.5 alloc/frame=0.0 [PASS]
+→ W2/D ... P99=44.5 alloc/frame=0.0 [PASS]
+→ W3/A ... P99=9.3 alloc/frame=0.0 [PASS]
+→ W3/B ... P99=10.9 alloc/frame=0.0 [PASS]
+→ W3/C ... P99=10.9 alloc/frame=0.0 [PASS]
+→ W3/D ... P99=6.0 alloc/frame=0.0 [PASS]
+→ W4/A ... P99=2830.5 alloc/frame=0.0 [PASS]
+→ W4/B ... P99=2972.6 alloc/frame=0.0 [PASS]
+→ W4/C ... P99=2841.2 alloc/frame=0.0 [PASS]
+→ W4/D ... P99=2809.8 alloc/frame=0.0 [PASS]
+→ W5/A ... P99=19.1 alloc/frame=0.0 [PASS]
+→ W5/B ... P99=23.0 alloc/frame=0.0 [PASS]
+→ W5/C ... P99=23.0 alloc/frame=0.0 [PASS]
+→ W5/D ... P99=11.4 alloc/frame=0.0 [PASS]
+
+✓ W-suite bundle: /home/runner/work/Weft/Weft/bench/results/wsuite-x86_64-sandbox.json
+  cells: 20 (target: 20 = 5 workloads × 4 backends)
+  pass: 20/20
+ P99=126.3 alloc/frame=0.0 [PASS]
+→ W1/C .../home/runner/work/Weft/Weft/core/c/weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+→ compiling Weft C kernel to /home/runner/work/Weft/Weft/core/c/libweft.so
+ P99=126.9 alloc/frame=0.0 [PASS]
+→ W1/D ... P99=82.2 alloc/frame=0.0 [PASS]
+→ W2/A ... P99=75.8 alloc/frame=0.0 [PASS]
+→ W2/B ... P99=104.1 alloc/frame=0.0 [PASS]
+→ W2/C ... P99=103.5 alloc/frame=0.0 [PASS]
+→ W2/D ... P99=44.5 alloc/frame=0.0 [PASS]
+→ W3/A ... P99=9.3 alloc/frame=0.0 [PASS]
+→ W3/B ... P99=10.9 alloc/frame=0.0 [PASS]
+→ W3/C ... P99=10.9 alloc/frame=0.0 [PASS]
+→ W3/D ... P99=6.0 alloc/frame=0.0 [PASS]
+→ W4/A ... P99=2830.5 alloc/frame=0.0 [PASS]
+→ W4/B ... P99=2972.6 alloc/frame=0.0 [PASS]
+→ W4/C ... P99=2841.2 alloc/frame=0.0 [PASS]
+→ W4/D ... P99=2809.8 alloc/frame=0.0 [PASS]
+→ W5/A ... P99=19.1 alloc/frame=0.0 [PASS]
+→ W5/B ... P99=23.0 alloc/frame=0.0 [PASS]
+→ W5/C ... P99=23.0 alloc/frame=0.0 [PASS]
+→ W5/D ... P99=11.4 alloc/frame=0.0 [PASS]
+
+✓ W-suite bundle: /home/runner/work/Weft/Weft/bench/results/wsuite-x86_64-sandbox.json
+  cells: 20 (target: 20 = 5 workloads × 4 backends)
+  pass: 20/20
+{
+  "shard": "perf-regression",
+  "status": "PASSED",
+  "threshold_pct": 15,
+  "regression_count": 0,
+  "improvement_count": 0,
+  "cells_compared": 20,
+  "regressions": [],
+  "improvements": [],
+  "all_compared": [
+    {
+      "workload": "W1",
+      "backend": "A",
+      "baseline_p99": 120.2,
+      "actual_p99": 108.9,
+      "delta_pct": -9.4
+    },
+    {
+      "workload": "W1",
+      "backend": "B",
+      "baseline_p99": 140.5,
+      "actual_p99": 126.3,
+      "delta_pct": -10.1
+    },
+    {
+      "workload": "W1",
+      "backend": "C",
+      "baseline_p99": 140.9,
+      "actual_p99": 126.9,
+      "delta_pct": -9.9
+    },
+    {
+      "workload": "W1",
+      "backend": "D",
+      "baseline_p99": 87.5,
+      "actual_p99": 82.2,
+      "delta_pct": -6.1
+    },
+    {
+      "workload": "W2",
+      "backend": "A",
+      "baseline_p99": 78.6,
+      "actual_p99": 75.8,
+      "delta_pct": -3.6
+    },
+    {
+      "workload": "W2",
+      "backend": "B",
+      "baseline_p99": 111.7,
+      "actual_p99": 104.1,
+      "delta_pct": -6.8
+    },
+    {
+      "workload": "W2",
+      "backend": "C",
+      "baseline_p99": 111.0,
+      "actual_p99": 103.5,
+      "delta_pct": -6.8
+    },
+    {
+      "workload": "W2",
+      "backend": "D",
+      "baseline_p99": 45.4,
+      "actual_p99": 44.5,
+      "delta_pct": -2.0
+    },
+    {
+      "workload": "W3",
+      "backend": "A",
+      "baseline_p99": 9.7,
+      "actual_p99": 9.3,
+      "delta_pct": -4.1
+    },
+    {
+      "workload": "W3",
+      "backend": "B",
+      "baseline_p99": 11.5,
+      "actual_p99": 10.9,
+      "delta_pct": -5.2
+    },
+    {
+      "workload": "W3",
+      "backend": "C",
+      "baseline_p99": 11.5,
+      "actual_p99": 10.9,
+      "delta_pct": -5.2
+    },
+    {
+      "workload": "W3",
+      "backend": "D",
+      "baseline_p99": 6.2,
+      "actual_p99": 6.0,
+      "delta_pct": -3.2
+    },
+    {
+      "workload": "W4",
+      "backend": "A",
+      "baseline_p99": 2838.8,
+      "actual_p99": 2830.5,
+      "delta_pct": -0.3
+    },
+    {
+      "workload": "W4",
+      "backend": "B",
+      "baseline_p99": 3008.8,
+      "actual_p99": 2972.6,
+      "delta_pct": -1.2
+    },
+    {
+      "workload": "W4",
+      "backend": "C",
+      "baseline_p99": 2847.4,
+      "actual_p99": 2841.2,
+      "delta_pct": -0.2
+    },
+    {
+      "workload": "W4",
+      "backend": "D",
+      "baseline_p99": 2828.5,
+      "actual_p99": 2809.8,
+      "delta_pct": -0.7
+    },
+    {
+      "workload": "W5",
+      "backend": "A",
+      "baseline_p99": 19.1,
+      "actual_p99": 19.1,
+      "delta_pct": 0.0
+    },
+    {
+      "workload": "W5",
+      "backend": "B",
+      "baseline_p99": 24.2,
+      "actual_p99": 23.0,
+      "delta_pct": -5.0
+    },
+    {
+      "workload": "W5",
+      "backend": "C",
+      "baseline_p99": 24.1,
+      "actual_p99": 23.0,
+      "delta_pct": -4.6
+    },
+    {
+      "workload": "W5",
+      "backend": "D",
+      "baseline_p99": 11.6,
+      "actual_p99": 11.4,
+      "delta_pct": -1.7
+    }
+  ]
+}
+
+=== Perf-regression status: PASSED ===
+✅ No performance regressions

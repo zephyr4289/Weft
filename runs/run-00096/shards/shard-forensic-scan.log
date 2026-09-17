@@ -1,0 +1,44 @@
+==================================================
+SHARD: forensic-scan
+DESCRIPTION: PAST-CROPBOX scan at 611.5pt, whole document
+STATUS: PASSED ✅
+COMMIT: 11121ef9d1ebc9ddb2d66388bd1134a09ff996e8
+RUN: 96
+==================================================
+
+=== Forensic overflow scan (threshold: 611.5 pt, scope: whole document per PDF) ===
+  reports/Weft-Whitepaper-v1.0.4.pdf: 0 flag(s)
+  reports/Weft-Phase5-Release-Report-v1.0.1.pdf: 0 flag(s)
+  reports/Weft-Phase5-C2-Soak-Evidence.pdf: 0 flag(s)
+  reports/Weft-Phase4-Errata.pdf: 0 flag(s)
+  reports/Weft-Phase4-Errata-R4-Correction-Slip.pdf: 0 flag(s)
+
+=== Total PAST-CROPBOX flags: 0 ===
+{
+  "shard": "forensic-scan",
+  "threshold_pt": 611.5,
+  "pdfs": [
+    {
+      "pdf": "reports/Weft-Whitepaper-v1.0.4.pdf",
+      "flags": 0
+    },
+    {
+      "pdf": "reports/Weft-Phase5-Release-Report-v1.0.1.pdf",
+      "flags": 0
+    },
+    {
+      "pdf": "reports/Weft-Phase5-C2-Soak-Evidence.pdf",
+      "flags": 0
+    },
+    {
+      "pdf": "reports/Weft-Phase4-Errata.pdf",
+      "flags": 0
+    },
+    {
+      "pdf": "reports/Weft-Phase4-Errata-R4-Correction-Slip.pdf",
+      "flags": 0
+    }
+  ],
+  "total_flags": 0,
+  "status": "PASSED"
+}

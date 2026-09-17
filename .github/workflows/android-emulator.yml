@@ -1,0 +1,205 @@
+name: Android Emulator (RFC-0006 process-death + API matrix)
+
+# Series 7 — "real-device legs": the API<33 fallback matrix gets a REAL
+# Android runtime. The emulator matrix spans the two fan-out/kernel regimes:
+#   API 26 — below the VarHandle 33 floor (the FanoutCompat regime runs)
+#   API 33/34 — VarHandle available (the primary regime runs)
+# and carries the RFC-0006 LMK/ReattachPolicy gate: a deterministic
+# background-process kill (`am kill` — the same ActivityManager kill path
+# memory pressure uses) between the two instrumentation phases proves
+# CLEAN_REALLOCATE: fresh Weft, sequence reset, zero stale-pointer
+# dereferences (a stale deref would SIGSEGV the process and fail the leg).
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'android/**'
+      - 'core/c/**'
+      - 'core/kotlin/**'
+      - '.github/workflows/android-emulator.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'core/c/**'
+      - 'core/kotlin/**'
+      - '.github/workflows/android-emulator.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  emulator-matrix:
+    name: Emulator API ${{ matrix.api }} — LMK reattach + regime
+    runs-on: macos-13
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - api: 26
+            target: default
+            arch: x86_64
+          - api: 33
+            target: aosp_atd
+            arch: x86_64
+          - api: 34
+            target: aosp_atd
+            arch: x86_64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable KVM (hardware acceleration for the emulator)
+        if: runner.os == 'Linux'
+        run: |
+          set -o pipefail
+          mkdir -p "${RUNNER_TEMP:-/tmp}"
+          {
+            echo "=== KVM Setup ==="
+            if [ -e /dev/kvm ]; then
+              echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules || true
+              sudo udevadm control --reload-rules || true
+              sudo udevadm trigger --name-match=kvm || true
+              ls -la /dev/kvm || true
+            else
+              echo "/dev/kvm not found on host, will use software emulation"
+            fi
+          } 2>&1 | tee "${RUNNER_TEMP:-/tmp}/emulator_setup.log"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Accept Android Licenses & Install SDK pieces
+        run: |
+          set -o pipefail  # no silent-green
+          mkdir -p "${RUNNER_TEMP:-/tmp}"
+          SDK_MGR="$(command -v sdkmanager || echo "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager")"
+          {
+            echo "=== Accept Android Licenses & Install SDK pieces ==="
+            yes | "$SDK_MGR" --licenses >/dev/null || true
+            "$SDK_MGR" --install \
+              "ndk;27.0.12077973" "cmake;3.22.1" "platforms;android-35" \
+              "build-tools;35.0.0" "platform-tools" "emulator" \
+              "system-images;android-${{ matrix.api }};${{ matrix.target }};${{ matrix.arch }}"
+          } 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/emulator_setup.log"
+
+      - name: Prepare Gradle Wrapper
+        run: chmod +x android/gradlew
+
+      - name: Run instrumentation tests on Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch }}
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            set -o pipefail
+            cd android
+            ./gradlew :sample-app:installDebug :sample-app:installDebugAndroidTest --stacktrace 2>&1 | tee "${RUNNER_TEMP:-/tmp}/emulator_build.log"
+
+            adb shell am instrument -w \
+              -e class dev.weft.sample.LmkReattachTest#stage_preDeathState \
+              dev.weft.sample.test/androidx.test.runner.AndroidJUnitRunner \
+              2>&1 | tee "${RUNNER_TEMP:-/tmp}/emulator_stage.log"
+            grep -q "OK (1 test)" "${RUNNER_TEMP:-/tmp}/emulator_stage.log"
+
+            # Process-liveness probe with an API-26-safe fallback (pidof is
+            # toybox on modern images but absent on some API-26 builds; ps
+            # carries the same signal). Same gate, no weakening.
+            pkg_pid() {
+              adb shell pidof -s dev.weft.sample 2>/dev/null || \
+                adb shell pidof dev.weft.sample 2>/dev/null || \
+                adb shell ps -A 2>/dev/null | grep -w 'dev.weft.sample' | awk '{print $2}' || \
+                adb shell ps 2>/dev/null | grep -w 'dev.weft.sample' | awk '{print $2}' || true
+            }
+            PID=$(pkg_pid)
+            echo "pre-kill pid: $PID"
+            adb shell am kill dev.weft.sample || true
+            # Settle / kill fallback: poll up to 15s; if still resident, terminate directly
+            for i in $(seq 1 5); do
+              sleep 2
+              P=$(pkg_pid)
+              if [ -z "$P" ]; then break; fi
+              if [ "$i" -ge 3 ]; then
+                adb shell kill -9 "$P" 2>/dev/null || true
+              fi
+            done
+            echo "post-kill pid: $(pkg_pid)"
+
+            adb shell am instrument -w \
+              -e class dev.weft.sample.LmkReattachTest#verify_cleanReallocateAfterProcessDeath \
+              dev.weft.sample.test/androidx.test.runner.AndroidJUnitRunner \
+              2>&1 | tee "${RUNNER_TEMP:-/tmp}/emulator_verify.log"
+            grep -q "OK (1 test)" "${RUNNER_TEMP:-/tmp}/emulator_verify.log"
+
+      - name: Archive emulator logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-emulator-api-${{ matrix.api }}-logs
+          path: |
+            ${{ runner.temp }}/emulator_*.log
+            /tmp/emulator_*.log
+
+      # -----------------------------------------------------------------------
+      # LOG PUBLISH — runs on every trigger (PR + push + dispatch), per API level.
+      # Branch: ci/logs   Path: android-emulator/api-{api}/{sha}/
+      # Full build + stage + verify logs — no more guessing.
+      # -----------------------------------------------------------------------
+      - name: Publish logs → ci/logs branch
+        if: always()
+        run: |
+          set -o pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          SHA="${{ github.sha }}"
+          EVENT="${{ github.event_name }}"
+          STATUS="${{ job.status }}"
+          API="${{ matrix.api }}"
+          LOG_DIR="android-emulator/api-${API}/${SHA}"
+
+          WORK=$(mktemp -d)
+          cp -r .git "$WORK/.git"
+          cd "$WORK"
+
+          git fetch origin ci/logs 2>/dev/null && git checkout ci/logs || {
+            git checkout --orphan ci/logs
+            git rm -rf . 2>/dev/null || true
+            git commit --allow-empty -m "chore(ci): init ci/logs branch" || true
+          }
+
+          mkdir -p "$LOG_DIR"
+
+          {
+            echo "workflow: android-emulator"
+            echo "job:      Emulator API ${{ matrix.api }} — LMK reattach + regime"
+            echo "api:      $API"
+            echo "target:   ${{ matrix.target }}"
+            echo "arch:     ${{ matrix.arch }}"
+            echo "status:   $STATUS"
+            echo "sha:      $SHA"
+            echo "event:    $EVENT"
+            echo "run:      ${{ github.run_number }}"
+            echo "date:     $(date -u)"
+            echo "ref:      ${{ github.ref }}"
+          } > "$LOG_DIR/status.txt"
+
+          LOG_SRC="${RUNNER_TEMP:-/tmp}"
+          [ -f "$LOG_SRC/emulator_setup.log" ]  && cp "$LOG_SRC/emulator_setup.log"  "$LOG_DIR/setup.log"  || { [ -f /tmp/emulator_setup.log ]  && cp /tmp/emulator_setup.log  "$LOG_DIR/setup.log"  || echo "(no setup log)"  > "$LOG_DIR/setup.log"; }
+          [ -f "$LOG_SRC/emulator_build.log" ]  && cp "$LOG_SRC/emulator_build.log"  "$LOG_DIR/build.log"  || { [ -f /tmp/emulator_build.log ]  && cp /tmp/emulator_build.log  "$LOG_DIR/build.log"  || echo "(no build log)"  > "$LOG_DIR/build.log"; }
+          [ -f "$LOG_SRC/emulator_stage.log" ]  && cp "$LOG_SRC/emulator_stage.log"  "$LOG_DIR/stage.log"  || { [ -f /tmp/emulator_stage.log ]  && cp /tmp/emulator_stage.log  "$LOG_DIR/stage.log"  || echo "(no stage log)"  > "$LOG_DIR/stage.log"; }
+          [ -f "$LOG_SRC/emulator_verify.log" ] && cp "$LOG_SRC/emulator_verify.log" "$LOG_DIR/verify.log" || { [ -f /tmp/emulator_verify.log ] && cp /tmp/emulator_verify.log "$LOG_DIR/verify.log" || echo "(no verify log)" > "$LOG_DIR/verify.log"; }
+
+          git add -f "$LOG_DIR/"
+          git commit -m "ci(emulator-api${API}): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
+          git push origin ci/logs || true

@@ -91,6 +91,7 @@ jobs:
 
       - name: Install tectonic + pandoc (for site + report scans)
         run: |
+          set -o pipefail  # no silent-green: a failed curl must fail the step
           curl -sSL https://drop-sh.fullyjustified.net | sh
           sudo mv tectonic /usr/local/bin/
           sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
@@ -108,6 +109,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -o pipefail  # the grep|tail diagnostic must not mask rc semantics
           ERROR_LOG=$(grep -A 2 -B 2 -iE "error|panic|fatal" ci/run-artifacts/build.log | tail -n 50 || echo "Could not extract errors.")
           BODY=$(printf "### ❌ Build failed (gatekeeper)\n\`\`\`text\n%s\n\`\`\`" "$ERROR_LOG")
           gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/comments" \
@@ -229,6 +231,20 @@ jobs:
             args: ""
             needs_rust: false
 
+          # --- No-silent-green audit (pipefail everywhere, Series 7) ---
+          - shard: "silent-green-audit"
+            description: "pipefail in every shard + every workflow pipeline"
+            script: "ci/scripts/run_silentgreen_shard.sh"
+            args: ""
+            needs_rust: false
+
+          # --- Real-browser SAB/COOP-COEP leg (Series 7) ---
+          - shard: "browser-sab"
+            description: "chromium: crossOriginIsolated + SAB kernel roundtrip + 1W/2R fanout"
+            script: "ci/scripts/run_browser_sab_shard.sh"
+            args: ""
+            needs_rust: false
+
           # --- RFC 0004 concurrent fan-out (true-parallelism gate) ---
           - shard: "fanout-concurrent"
             description: "1 writer + 4 reader workers, integrity-gated + daisy-chain"
@@ -302,6 +318,13 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm --filter @weft/core build
 
+      - name: Set up pnpm + build @weft/core dist (browser-sab leg)
+        if: matrix.shard == 'browser-sab'
+        run: |
+          npm i -g pnpm@9
+          pnpm install --frozen-lockfile
+          pnpm --filter @weft/core build
+
       - name: Set up pnpm (verifiedweft TS + xlang legs)
         if: matrix.shard == 'verifiedweft'
         run: |
@@ -320,6 +343,7 @@ jobs:
       - name: Install tectonic + pandoc (forensic-scan + site shards)
         if: matrix.shard == 'forensic-scan' || matrix.shard == 'site-determinism'
         run: |
+          set -o pipefail  # no silent-green: a failed curl must fail the step
           curl -sSL https://drop-sh.fullyjustified.net | sh
           sudo mv tectonic /usr/local/bin/
           sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
@@ -432,11 +456,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -o pipefail  # no silent-green in the ci-report bookkeeping
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Fetch or create ci-report branch
-          if git ls-remote --heads origin ci-report | grep -q ci-report; then
+          # Fetch or create ci-report branch (grep -q rc=1 = branch absent,
+          # the intended fallthrough — guarded explicitly below)
+          BRANCH_EXISTS=$(git ls-remote --heads origin ci-report | grep -c ci-report || true)
+          if [ "${BRANCH_EXISTS:-0}" != "0" ]; then
             git fetch origin ci-report
             git checkout ci-report
             git pull --rebase origin ci-report || true

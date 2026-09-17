@@ -12,9 +12,14 @@
 //    from the display probe (120 on ProMotion). Requires a `drawMetal`
 //    closure; without one the view honestly falls back to the Canvas path.
 //
-// HONESTY NOTICE: frame pacing claims remain device-deferred per the Owner
-// Binding Pivot — the Metal path is exercised on simulator at best in the
-// sandbox; no on-device 120 Hz measurement exists anywhere in the repo.
+// HONESTY NOTICE (updated when the probe landed): the Metal path is
+// MEASURED now — MTKViewCadenceProbe renders real MTKView frames with a
+// live kernel stream in CI (macOS runner + iOS-simulator legs,
+// MetalProbeTests.swift): draw-phase claims == frames rendered, zero torn
+// frames accepted, requested cadence plumbing proven. What remains
+// device-deferred is the ProMotion 120 Hz RATE itself (VMs and simulators
+// cap the display link; the report carries measured-vs-requested so the
+// gap is visible, never greenwashed). See Tests/WeftTests/MetalProbeTests.swift.
 
 import SwiftUI
 import WeftCore

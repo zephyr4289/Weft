@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-and-test:
@@ -21,13 +21,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Initialize Log
+        run: |
+          set -o pipefail
+          mkdir -p "${RUNNER_TEMP:-/tmp}"
+          echo "=== Starting npm Packages CI (Node ${{ matrix.node-version }}) ===" > "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
+
       - name: Binding parity guard (core/ts <-> packages/core)
-        run: bash ci/scripts/run_binding_parity.sh
+        run: |
+          set -o pipefail
+          bash ci/scripts/run_binding_parity.sh 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 12.4.2
+          version: 9.15.0
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -36,32 +44,103 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          set -o pipefail
+          pnpm install 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
 
       - name: Build all packages
-        run: pnpm -r build
+        run: |
+          set -o pipefail
+          pnpm -r build 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
 
       - name: Unit tests (package suites)
-        run: pnpm -r --filter "./packages/*" test
+        run: |
+          set -o pipefail
+          pnpm -r --filter "./packages/*" test 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
 
       - name: Check API drift
         run: |
-          npx api-extractor run --local --config packages/core/api-extractor.json
-          npx api-extractor run --local --config packages/react/api-extractor.json
-          npx api-extractor run --local --config packages/vue/api-extractor.json
-          npx api-extractor run --local --config packages/svelte/api-extractor.json
-          npx api-extractor run --local --config packages/react-native/api-extractor.json
-          git diff --exit-code packages/*/etc/*.api.md
+          set -o pipefail
+          pnpm exec api-extractor run --local --config packages/core/api-extractor.json 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
+          pnpm exec api-extractor run --local --config packages/react/api-extractor.json 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
+          pnpm exec api-extractor run --local --config packages/vue/api-extractor.json 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
+          pnpm exec api-extractor run --local --config packages/svelte/api-extractor.json 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
+          pnpm exec api-extractor run --local --config packages/react-native/api-extractor.json 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
+          git diff --exit-code packages/*/etc/*.api.md 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
 
       - name: Test Packaged Litmus
         run: |
-          pnpm --filter fixture-node-litmus build
-          node fixtures/node-litmus/dist/litmus-packaged.js L8-envelope
-          node fixtures/node-litmus/dist/litmus-packaged.js L7-revocation
-          node fixtures/node-litmus/dist/litmus-packaged.js L6-ownership
+          set -o pipefail
+          pnpm --filter fixture-node-litmus build 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
+          node fixtures/node-litmus/dist/litmus-packaged.js L8-envelope 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
+          node fixtures/node-litmus/dist/litmus-packaged.js L7-revocation 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
+          node fixtures/node-litmus/dist/litmus-packaged.js L6-ownership 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
 
       - name: Build Vite React fixture
-        run: pnpm --filter fixture-vite-react build
+        run: |
+          set -o pipefail
+          pnpm --filter fixture-vite-react build 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
 
       - name: Dry-run publish
-        run: pnpm -r --filter "./packages/*" publish --dry-run --no-git-checks
+        run: |
+          set -o pipefail
+          pnpm -r --filter "./packages/*" publish --dry-run --no-git-checks 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/npm_build_output.log"
+
+      - name: Archive Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-node-${{ matrix.node-version }}-logs
+          path: |
+            ${{ runner.temp }}/npm_build_output.log
+            /tmp/npm_build_output.log
+
+      - name: Publish logs → ci/logs branch
+        if: always()
+        run: |
+          set -o pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          SHA="${{ github.sha }}"
+          EVENT="${{ github.event_name }}"
+          STATUS="${{ job.status }}"
+          NODE_VER="${{ matrix.node-version }}"
+          LOG_DIR="npm/node-${NODE_VER}/${SHA}"
+
+          WORK=$(mktemp -d)
+          cp -r .git "$WORK/.git"
+          cd "$WORK"
+
+          git fetch origin ci/logs 2>/dev/null && git checkout ci/logs || {
+            git checkout --orphan ci/logs
+            git rm -rf . 2>/dev/null || true
+            git commit --allow-empty -m "chore(ci): init ci/logs branch" || true
+          }
+
+          mkdir -p "$LOG_DIR"
+
+          {
+            echo "workflow: npm-packages"
+            echo "job:      Node ${NODE_VER} Matrix"
+            echo "node:     ${NODE_VER}"
+            echo "status:   $STATUS"
+            echo "sha:      $SHA"
+            echo "event:    $EVENT"
+            echo "run:      ${{ github.run_number }}"
+            echo "date:     $(date -u)"
+            echo "ref:      ${{ github.ref }}"
+          } > "$LOG_DIR/status.txt"
+
+          LOG_FILE="${RUNNER_TEMP:-/tmp}/npm_build_output.log"
+          if [ -f "$LOG_FILE" ]; then
+            cp "$LOG_FILE" "$LOG_DIR/build.log"
+          elif [ -f "/tmp/npm_build_output.log" ]; then
+            cp "/tmp/npm_build_output.log" "$LOG_DIR/build.log"
+          else
+            echo "(no build log collected)" > "$LOG_DIR/build.log"
+          fi
+
+          git add -f "$LOG_DIR/"
+          git commit -m "ci(npm-node-${NODE_VER}): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
+          git push origin ci/logs || true

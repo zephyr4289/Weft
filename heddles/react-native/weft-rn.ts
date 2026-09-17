@@ -16,7 +16,13 @@
 // STATUS: SHIM — canonical implementation: @weft/react-native.
 
 import { useWeftDraw } from '@weft/react-native';
+import {
+  createUiThreadFrameSource,
+  uiThreadClaim,
+  useWeftUiThread,
+} from '@weft/react-native';
 import type { Weft } from '@weft/core';
+import type { UiThreadFrameSource } from '@weft/react-native';
 
-export { useWeftDraw };
-export type { Weft };
+export { useWeftDraw, createUiThreadFrameSource, uiThreadClaim, useWeftUiThread };
+export type { Weft, UiThreadFrameSource };

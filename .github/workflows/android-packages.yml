@@ -35,14 +35,8 @@ jobs:
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Generate and Setup Gradle Wrapper
-        run: |
-          cd android
-          gradle wrapper --gradle-version 8.11.1
-          chmod +x gradlew
+      - name: Prepare Gradle Wrapper
+        run: chmod +x android/gradlew
 
       - name: Run Unit Tests
         id: run_tests
@@ -110,7 +104,56 @@ jobs:
             android/*/build/reports/tests/
             android/*/build/test-results/
 
-      - name: Publish CI Result Branch
+      # -----------------------------------------------------------------------
+      # LOG PUBLISH — runs on every trigger (PR + push + dispatch).
+      # Branch: ci/logs   Path: android-packages/{sha}/build.log
+      # No more guessing what failed — the exact log is always committed.
+      # -----------------------------------------------------------------------
+      - name: Publish logs → ci/logs branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          SHA="${{ github.sha }}"
+          EVENT="${{ github.event_name }}"
+          STATUS="${{ job.status }}"
+          LOG_DIR="android-packages/${SHA}"
+
+          # Work in a temp dir so we don't dirty the workspace
+          WORK=$(mktemp -d)
+          cp -r .git "$WORK/.git"
+          cd "$WORK"
+
+          git fetch origin ci/logs 2>/dev/null && git checkout ci/logs || {
+            git checkout --orphan ci/logs
+            git rm -rf . 2>/dev/null || true
+            git commit --allow-empty -m "chore(ci): init ci/logs branch" || true
+          }
+
+          mkdir -p "$LOG_DIR"
+
+          # status envelope
+          {
+            echo "workflow: android-packages"
+            echo "job:      Android Gradle Matrix"
+            echo "status:   $STATUS"
+            echo "sha:      $SHA"
+            echo "event:    $EVENT"
+            echo "run:      ${{ github.run_number }}"
+            echo "date:     $(date -u)"
+            echo "ref:      ${{ github.ref }}"
+          } > "$LOG_DIR/status.txt"
+
+          # full build log
+          [ -f /tmp/gradle_test_output.log ] && cp /tmp/gradle_test_output.log "$LOG_DIR/build.log" || echo "(no log)" > "$LOG_DIR/build.log"
+
+          git add -f "$LOG_DIR/"
+          git commit -m "ci(android-packages): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
+          git push origin ci/logs || true
+
+      # Keep the legacy ci/android-status branch for backward compat
+      - name: Publish CI Result Branch (legacy)
         if: always()
         run: |
           git config user.name "github-actions[bot]"

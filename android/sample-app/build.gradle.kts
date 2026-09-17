@@ -59,4 +59,11 @@ dependencies {
     implementation("androidx.compose.ui:ui:1.7.6")
     implementation("androidx.compose.material3:material3:1.3.1")
     implementation("androidx.compose.foundation:foundation:1.7.6")
+
+    // RFC-0006 LMK/ReattachPolicy instrumented gate (android-emulator.yml):
+    // two-phase process-death protocol — ApplicationProvider +
+    // InstrumentationRegistry + AndroidJUnit4 runner.
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:core:1.6.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
 }

@@ -314,4 +314,100 @@ void main() {
       expect(r.wordToFloat(0xC0000000), -2.0);
     });
   });
+
+  group('F10: 100k-frame torture (cross-port parity gates)', () {
+    // F10-Dart — the Dart port's honest analog of the C/JVM/Swift 100k
+    // multi-thread torture (FanoutTest.kt f10MultiThreadTorture,
+    // FanoutTests.swift testF10MultiThreadTorture, core/c/fanout-runner
+    // `torture 100000 4 64 3`). Single-isolate schedule, but the REAL
+    // interleaving hazard is exercised, not skipped: every 16th frame
+    // splits begin() from fill/publish() across an event-loop yield (a
+    // legal Dart interleave per the header note), which opens a genuine
+    // mid-overwrite window for the tick-happy readers — the bracket
+    // discipline must hold under it.
+    //
+    // Gates (IDENTICAL to the other ports' F10 — this is the parity
+    // contract ci/scripts/run_f10_parity.sh enforces mechanically):
+    //   G1 torn/corrupt frames ACCEPTED == 0 (every fresh claim's every
+    //      word is mixer-validated);
+    //   G2 telescoping identity per reader: drops == frames - fresh
+    //      (exact, no tolerance);
+    //   G3 convergence: every reader reaches the final frame 100000;
+    //   G4 the writer's publishes telemetry == frames (counted, honest).
+    test('100k frames, 3 cadence readers, mid-overwrite windows, zero torn',
+        () async {
+      const frames = 100000;
+      const words = 64;
+      final b = WeftFanoutBroadcaster(words * 4, 4);
+      final r0 = b.createReader(); // every frame
+      final r1 = b.createReader(); // every 2nd frame
+      final r2 = b.createReader(); // every 3rd frame
+      final readers = [r0, r1, r2];
+      final divisors = [1, 2, 3];
+      var integrityFailures = 0;
+      var splitBegins = 0;
+      // One pre-allocated frame buffer, refilled in place (the Kotlin/Swift
+      // F10 pattern — the test's own allocation habits stay out of the way
+      // of the Law-2 contract under measurement).
+      final frame = Uint32List(words);
+
+      for (var t = 1; t <= frames; t++) {
+        final split = (t % 16 == 0);
+        final view = b.begin();
+        if (split) {
+          // Open the mid-overwrite window: the slot stamp is 0 while we
+          // yield. Readers scheduled on this yield must gracefully skip
+          // or chase — never accept a torn frame.
+          await Future<void>.delayed(Duration.zero);
+          splitBegins++;
+        }
+        for (var w = 0; w < words; w++) {
+          frame[w] = _tword(t, w);
+          view.setUint32(4 * w, frame[w], Endian.little);
+        }
+        b.publish();
+
+        for (var i = 0; i < readers.length; i++) {
+          if (t % divisors[i] != 0) continue;
+          final c = readers[i].claim();
+          if (c.fresh) {
+            if (c.dropped < 0) integrityFailures++;
+            if (!_expectFrame(readers[i].view(), c.seq, words)) {
+              integrityFailures++;
+            }
+          }
+        }
+      }
+
+      // Drain: every reader must converge on the final frame (G3). Bounded
+      // in single-isolate execution — the writer is done, so each claim
+      // either advances lastSeq or is already caught up.
+      for (final r in readers) {
+        var guard = 0;
+        while (r.claim().seq < frames) {
+          guard++;
+          if (guard > frames + 16) {
+            fail('reader failed to converge on frame $frames');
+          }
+        }
+      }
+
+      // G1: no torn or corrupt frame was ever accepted.
+      expect(integrityFailures, 0,
+          reason: 'torn/corrupt frame accepted under mid-overwrite windows');
+      // G2: telescoping identity, exact per reader.
+      for (final r in readers) {
+        final st = r.stats();
+        expect(st.drops, frames - st.fresh,
+            reason: 'telescoping identity violated (drops != frames - fresh)');
+        expect(st.fresh, greaterThan(0));
+      }
+      // G3: convergence (drain loop above reached seq == frames).
+      expect(r0.claim().seq, frames);
+      // G4: publishes telemetry counted every frame.
+      expect(b.debugStats().publishes, frames);
+      // The hazard was actually exercised, not optimized away.
+      expect(splitBegins, frames ~/ 16);
+    });
+  });
 }

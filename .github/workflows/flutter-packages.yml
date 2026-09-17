@@ -10,20 +10,42 @@ on:
 permissions:
   contents: write
 
+# Series 7 — "expand breadth": the FFI channel is PROVEN on all three
+# runner OSes, not just linux. Each OS compiles the same C kernel with its
+# own toolchain (gcc/clang) and runs the identical flutter test battery
+# (F-series + DF-series FFI + DC-series cross-isolate + F10-Dart torture).
+# The Dart loader is OS-aware (libweft.so / libweft.dylib / weft.dll).
+
 jobs:
   flutter-test:
-    name: Flutter & Dart FFI Tests
-    runs-on: ubuntu-latest
+    name: Flutter & Dart FFI (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash  # one script dialect across the three OSes
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Binding parity guard (core/dart <-> flutter reference)
-        run: bash ci/scripts/run_binding_parity.sh
-
       - name: Initialize Log
         run: |
-          touch /tmp/flutter_build_output.log
-          echo "=== Starting Flutter CI ===" >> /tmp/flutter_build_output.log
+          mkdir -p "${RUNNER_TEMP:-/tmp}" /tmp 2>/dev/null || true
+          echo "=== Starting Flutter CI (${{ matrix.os }}) ===" > "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
+          cp "${RUNNER_TEMP:-/tmp}/flutter_build_output.log" /tmp/flutter_build_output.log 2>/dev/null || true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Binding parity guard (core/dart <-> flutter reference)
+        run: |
+          set -o pipefail
+          bash ci/scripts/run_binding_parity.sh 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
 
       - name: Set up Flutter SDK
         uses: subosito/flutter-action@v2
@@ -31,49 +53,142 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Compile Native C Kernel (libweft.so)
+      # Windows git-bash has no C compiler on PATH (command -v gcc/clang/cc
+      # all miss), so the per-OS kernel compile below fails in seconds.
+      # MinGW-w64 via msys2 is the documented runner-native toolchain; the
+      # action prepends mingw64/bin to PATH for all later steps.
+      - name: Set up MinGW (Windows only)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-gcc
+          update: false
+          path-type: inherit
+
+      - name: Compile Native C Kernel (per-OS)
         run: |
-          set -o pipefail  # tee must not swallow the build exit code
+          set -o pipefail  # tee must not swallow the compile exit code
           mkdir -p packages/flutter_weft/build
-          gcc -shared -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c -o packages/flutter_weft/libweft.so 2>&1 | tee -a /tmp/flutter_build_output.log
-          cp packages/flutter_weft/libweft.so /tmp/libweft.so
-          sudo cp packages/flutter_weft/libweft.so /usr/local/lib/libweft.so
-          sudo ldconfig || true
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            CC="$(command -v gcc || command -v clang || command -v cc || true)"
+            if [ -z "$CC" ] || [ ! -x "$CC" ]; then
+              if [ -x /c/msys64/mingw64/bin/gcc ]; then
+                CC=/c/msys64/mingw64/bin/gcc
+              elif [ -x "C:/msys64/mingw64/bin/gcc.exe" ]; then
+                CC="C:/msys64/mingw64/bin/gcc.exe"
+              fi
+            fi
+            echo "compiler: $CC"
+            # mingw-gcc on the windows runner; -static-libgcc keeps the DLL
+            # self-contained. Named weft.dll — the loader's windows name.
+            "$CC" -shared -O3 -static-libgcc -include packages/flutter_weft/win_compat.h -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
+              -o packages/flutter_weft/weft.dll 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
+            cp packages/flutter_weft/weft.dll "${RUNNER_TEMP:-/tmp}/weft.dll" || true
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            CC="$(command -v clang || command -v gcc || command -v cc)"
+            echo "compiler: $CC"
+            "$CC" -dynamiclib -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
+              -o packages/flutter_weft/libweft.dylib 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
+            cp packages/flutter_weft/libweft.dylib "${RUNNER_TEMP:-/tmp}/libweft.dylib" || true
+          else
+            CC="$(command -v gcc || command -v clang || command -v cc)"
+            echo "compiler: $CC"
+            "$CC" -shared -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
+              -o packages/flutter_weft/libweft.so 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
+            cp packages/flutter_weft/libweft.so "${RUNNER_TEMP:-/tmp}/libweft.so" || true
+          fi
 
       - name: Install Dependencies
         run: |
-          set -o pipefail  # tee must not swallow the build exit code
+          set -o pipefail
           cd packages/flutter_weft
-          flutter pub get 2>&1 | tee -a /tmp/flutter_build_output.log
+          flutter pub get 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
 
       - name: Dart Analyze
         run: |
-          set -o pipefail  # tee must not swallow the build exit code
+          set -o pipefail
           cd packages/flutter_weft
-          dart analyze --fatal-infos 2>&1 | tee -a /tmp/flutter_build_output.log
+          dart analyze --fatal-infos 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
 
       - name: Run Tests
         run: |
-          set -o pipefail  # tee must not swallow the build exit code
+          set -o pipefail
           cd packages/flutter_weft
-          flutter test -v 2>&1 | tee -a /tmp/flutter_build_output.log
+          flutter test 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
 
-      - name: Publish Dry Run
+      - name: Publish Dry Run (linux only — pub publish checks are OS-free)
+        if: runner.os == 'Linux'
         run: |
-          set -o pipefail  # tee must not swallow the build exit code
+          set -o pipefail
           cd packages/flutter_weft
-          dart pub publish --dry-run 2>&1 | tee -a /tmp/flutter_build_output.log
+          dart pub publish --dry-run 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
 
       - name: Archive Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: flutter-weft-artifacts
+          name: flutter-weft-artifacts-${{ matrix.os }}
           path: |
             packages/flutter_weft/libweft.so
+            packages/flutter_weft/libweft.dylib
+            packages/flutter_weft/weft.dll
+          if-no-files-found: ignore
 
-      - name: Publish CI Result Branch
+      # -----------------------------------------------------------------------
+      # LOG PUBLISH — runs on every trigger (PR + push + dispatch), all 3 OSes.
+      # Branch: ci/logs   Path: flutter/{os}/{sha}/
+      # Now you can debug any OS failure without guessing from timing.
+      # -----------------------------------------------------------------------
+      - name: Publish logs → ci/logs branch
         if: always()
+        run: |
+          set -o pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          SHA="${{ github.sha }}"
+          EVENT="${{ github.event_name }}"
+          STATUS="${{ job.status }}"
+          OS_SLUG=$(echo "${{ matrix.os }}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+          LOG_DIR="flutter/${OS_SLUG}/${SHA}"
+
+          WORK=$(mktemp -d)
+          cp -r .git "$WORK/.git"
+          cd "$WORK"
+
+          git fetch origin ci/logs 2>/dev/null && git checkout ci/logs || {
+            git checkout --orphan ci/logs
+            git rm -rf . 2>/dev/null || true
+            git commit --allow-empty -m "chore(ci): init ci/logs branch" || true
+          }
+
+          mkdir -p "$LOG_DIR"
+
+          {
+            echo "workflow: flutter-packages"
+            echo "job:      Flutter & Dart FFI (${{ matrix.os }})"
+            echo "status:   $STATUS"
+            echo "sha:      $SHA"
+            echo "event:    $EVENT"
+            echo "run:      ${{ github.run_number }}"
+            echo "date:     $(date -u)"
+            echo "ref:      ${{ github.ref }}"
+          } > "$LOG_DIR/status.txt"
+
+          LOG_SRC="${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
+          [ ! -f "$LOG_SRC" ] && LOG_SRC="/tmp/flutter_build_output.log"
+          [ -f "$LOG_SRC" ] \
+            && cp "$LOG_SRC" "$LOG_DIR/build.log" \
+            || echo "(no log)" > "$LOG_DIR/build.log"
+
+          git add -f "$LOG_DIR/"
+          git commit -m "ci(flutter-${OS_SLUG}): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
+          git push origin ci/logs || true
+
+      # Keep the legacy ci/flutter-status branch (linux/push only)
+      - name: Publish CI Result Branch (legacy)
+        if: always() && runner.os == 'Linux' && github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -82,9 +197,6 @@ jobs:
           echo "CONCLUSION=${{ job.status }}" > .ci-status/status.txt
           echo "SHA=${{ github.sha }}" >> .ci-status/status.txt
           echo "DATE=$(date -u)" >> .ci-status/status.txt
-          if [ -f /tmp/flutter_build_output.log ]; then
-            cp /tmp/flutter_build_output.log .ci-status/flutter_build_output.log
-          fi
           git add -f .ci-status/
           git commit -m "ci: flutter status [${{ job.status }}] for ${{ github.sha }}" || true
           git push -f origin ci/flutter-status || true

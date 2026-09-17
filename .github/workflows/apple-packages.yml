@@ -44,8 +44,55 @@ jobs:
             .build/
             Package.resolved
 
-      - name: Publish CI Result Branch
+      # -----------------------------------------------------------------------
+      # LOG PUBLISH — runs on every trigger (PR + push + dispatch).
+      # Branch: ci/logs   Path: apple-macos/{sha}/build.log
+      # -----------------------------------------------------------------------
+      - name: Publish logs → ci/logs branch
         if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          SHA="${{ github.sha }}"
+          EVENT="${{ github.event_name }}"
+          STATUS="${{ job.status }}"
+          LOG_DIR="apple-macos/${SHA}"
+
+          WORK=$(mktemp -d)
+          cp -r .git "$WORK/.git"
+          cd "$WORK"
+
+          git fetch origin ci/logs 2>/dev/null && git checkout ci/logs || {
+            git checkout --orphan ci/logs
+            git rm -rf . 2>/dev/null || true
+            git commit --allow-empty -m "chore(ci): init ci/logs branch" || true
+          }
+
+          mkdir -p "$LOG_DIR"
+
+          {
+            echo "workflow: apple-packages"
+            echo "job:      Swift SPM & macOS Tests"
+            echo "status:   $STATUS"
+            echo "sha:      $SHA"
+            echo "event:    $EVENT"
+            echo "run:      ${{ github.run_number }}"
+            echo "date:     $(date -u)"
+            echo "ref:      ${{ github.ref }}"
+          } > "$LOG_DIR/status.txt"
+
+          [ -f /tmp/swift_build_output.log ] \
+            && cp /tmp/swift_build_output.log "$LOG_DIR/build.log" \
+            || echo "(no log)" > "$LOG_DIR/build.log"
+
+          git add -f "$LOG_DIR/"
+          git commit -m "ci(apple-macos): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
+          git push origin ci/logs || true
+
+      # Legacy branch kept for backward compat
+      - name: Publish CI Result Branch (legacy)
+        if: always() && github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -60,3 +107,105 @@ jobs:
           git add -f .ci-status/
           git commit -m "ci: apple status [${{ job.status }}] for ${{ github.sha }}" || true
           git push -f origin ci/apple-status || true
+
+  ios-simulator:
+    name: iOS Simulator — SPM tests + cadence probe
+    runs-on: macos-14
+    needs: build-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app || true
+
+      - name: Build for iOS Simulator (pipefail-guarded)
+        run: |
+          set -o pipefail  # tee must not swallow the build exit code
+          SCHEME=$(xcodebuild -list 2>/dev/null | grep -E "Weft-Package|WeftPackageTests|WeftTests" | head -n1 | tr -d ' ')
+          [ -z "$SCHEME" ] && SCHEME="Weft-Package"
+          echo "Using scheme: $SCHEME"
+          xcodebuild build -scheme "$SCHEME" \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            2>&1 | tee /tmp/ios_sim_build.log
+
+      - name: Run SPM tests on iOS Simulator (F-series + cadence + Metal probe)
+        run: |
+          set -o pipefail  # tee must not swallow the test exit code
+          SCHEME=$(xcodebuild -list 2>/dev/null | grep -E "Weft-Package|WeftPackageTests|WeftTests" | head -n1 | tr -d ' ')
+          [ -z "$SCHEME" ] && SCHEME="Weft-Package"
+          echo "Using scheme: $SCHEME"
+          xcodebuild test -scheme "$SCHEME" \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            2>&1 | tee /tmp/ios_sim_test.log
+
+      - name: Probe report — measured-vs-requested cadence (honesty extract)
+        if: always()
+        run: |
+          # The MetalProbeTests embed the CadenceProbeReport discipline:
+          # measured rate is recorded; the 120 Hz DEVICE rate stays deferred
+          # (simulators cap the display link — never greenwashed here).
+          {
+            echo "### iOS-simulator cadence leg"
+            echo "Environment: iOS Simulator (Metal host-simulated)"
+            echo "Gate: F-series + CadenceTests + MetalProbeTests (draw-phase claims == frames, torn == 0, 120 Hz path REQUESTED)"
+            echo "Device-rate banner: still deferred (Hardware Deferral List)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Archive iOS-sim results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-test-results
+          path: |
+            /tmp/ios_sim_build.log
+            /tmp/ios_sim_test.log
+
+      # -----------------------------------------------------------------------
+      # LOG PUBLISH — iOS Simulator job, every trigger including PRs
+      # Branch: ci/logs   Path: apple-ios-sim/{sha}/
+      # -----------------------------------------------------------------------
+      - name: Publish logs → ci/logs branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          SHA="${{ github.sha }}"
+          EVENT="${{ github.event_name }}"
+          STATUS="${{ job.status }}"
+          LOG_DIR="apple-ios-sim/${SHA}"
+
+          WORK=$(mktemp -d)
+          cp -r .git "$WORK/.git"
+          cd "$WORK"
+
+          git fetch origin ci/logs 2>/dev/null && git checkout ci/logs || {
+            git checkout --orphan ci/logs
+            git rm -rf . 2>/dev/null || true
+            git commit --allow-empty -m "chore(ci): init ci/logs branch" || true
+          }
+
+          mkdir -p "$LOG_DIR"
+
+          {
+            echo "workflow: apple-packages"
+            echo "job:      iOS Simulator — SPM tests + cadence probe"
+            echo "status:   $STATUS"
+            echo "sha:      $SHA"
+            echo "event:    $EVENT"
+            echo "run:      ${{ github.run_number }}"
+            echo "date:     $(date -u)"
+            echo "ref:      ${{ github.ref }}"
+          } > "$LOG_DIR/status.txt"
+
+          [ -f /tmp/ios_sim_build.log ] \
+            && cp /tmp/ios_sim_build.log "$LOG_DIR/build.log" \
+            || echo "(no build log)" > "$LOG_DIR/build.log"
+
+          [ -f /tmp/ios_sim_test.log ] \
+            && cp /tmp/ios_sim_test.log "$LOG_DIR/test.log" \
+            || echo "(no test log)" > "$LOG_DIR/test.log"
+
+          git add -f "$LOG_DIR/"
+          git commit -m "ci(apple-ios-sim): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
+          git push origin ci/logs || true

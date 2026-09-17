@@ -142,3 +142,17 @@ export function useWeftFanoutDraw(
   // contract as useWeftDraw — callers detect the absent frame clock first.
   return () => {};
 }
+
+// ---------------------------------------------------------------------------
+// Phase-7: the UI-thread reader port (src/ui-thread.ts).
+//
+// Reanimated worklets execute on the UI thread and can capture SENDABLE
+// values (primitives + SharedArrayBuffers) — never class instances. The
+// fan-out ring is an SAB with a byte-level protocol, so the UI-thread
+// reader is expressed as a frame-source descriptor plus a worklet function
+// performing the bounded claim protocol directly on Atomics. CI proves the
+// protocol (test/ui-thread.test.ts); device-side Reanimated timing stays
+// deferred per the module banner.
+// ---------------------------------------------------------------------------
+export { createUiThreadFrameSource, uiThreadClaim, useWeftUiThread } from './ui-thread';
+export type { UiThreadFrameSource } from './ui-thread';

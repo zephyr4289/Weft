@@ -1,0 +1,8 @@
+workflow: android-packages
+job:      Android Gradle Matrix
+status:   success
+sha:      37fea8cfbb681fa530abb8673dc23ad24b1bb782
+event:    pull_request
+run:      102
+date:     Thu Sep 17 15:46:55 UTC 2026
+ref:      refs/pull/13/merge

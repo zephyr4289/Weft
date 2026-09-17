@@ -1,0 +1,41 @@
+# Series 7 — RFC-0009 governor + cadence policies, Dart VM (G-series + PC-series)
+# env: Dart SDK 3.13.2 (stable) linux_x64, x86_64 sandbox
+# date: 2026-09-17T13:34:00Z
+# compile: dart --enable-asserts (plain-dart expect shim; flutter-packages CI
+#          runs the same committed battery with the real flutter_test SDK)
+
+== governor_test.dart (packages/flutter_weft/test) ==
+PASS: G1 ladder: every behind 0..64 maps to the documented action
+PASS: G2 monotone: larger behind never yields a fresher-class action
+PASS: G3 reseed flap: 10k spike trace, bound + spacing
+PASS: G3b suppressed Reseed degrades to Snapshot
+PASS: G4 identity-stable record + counters (no per-step allocation)
+PASS: Law 4: decidedDrops distinct from ring counters
+PASS: custom ladder + reset
+PASS: G5 local ladder trace hash pin (TS reference)
+PASS: PC1 LATEST_WINS presents iff seq advanced; jumps coalesced
+PASS: PC5 PACED 30-on-120 presents every tick after warmup (398/400)
+PASS: PC5 PACED 240-on-120 presents every tick, one period behind
+PASS: PC5 PACED stall saturates and elides, never extrapolates
+PASS: PC6 PACED alpha ladder is the period ladder
+PASS: PC5 BURST 30-on-120 locks K on the content beat (K=4)
+PASS: PC5 BURST 240-on-120 degrades to newest-wins (K=1)
+PASS: PC5 BURST feed paces one present per burst
+PASS: PC5 BURST stall freezes cadence; recovery immediate
+PASS: PC2 telescoping identities over volatile traces
+PASS: PC4 cadence identity-stable record
+PASS: PC6 policy switch mid-trace: monotone presentSeq
+PASS: PC3 local cadence trace hash pin (TS reference)
+21/21 PASS
+
+== xlang: Dart ladder/cadence emitters vs TS reference (byte-compare) ==
+governor ladder trace (10000 steps, seed 0x00C0FFEE): IDENTICAL (20001 bytes)
+cadence policy trace (10000 steps, seed 0x00C0FFEE): IDENTICAL (120001 bytes)
+
+== dart analyze ==
+core/dart/governor.dart: No issues found
+packages/flutter_weft analyze lib/src/reference/governor.dart: No issues found
+
+== binding parity ==
+governor.dart pair (core/dart <-> flutter_weft reference mirror): PASS
+(18/18 byte pairs, 4/4 shim pairs — ci/scripts/run_binding_parity.sh)

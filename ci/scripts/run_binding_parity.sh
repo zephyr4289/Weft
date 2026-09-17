@@ -36,6 +36,7 @@ PAIRS=(
   "core/kotlin/Steward.kt|android/weft-core/src/main/kotlin/dev/weft/Steward.kt"
   "core/kotlin/TriadNative.kt|android/weft-core/src/main/kotlin/dev/weft/TriadNative.kt"
   "core/kotlin/Weft.kt|android/weft-core/src/main/kotlin/dev/weft/Weft.kt"
+  "core/kotlin/Governor.kt|android/weft-core/src/main/kotlin/dev/weft/Governor.kt"
   "core/dart/frame_cursor.dart|packages/flutter_weft/lib/src/reference/frame_cursor.dart"
   "core/dart/fanout.dart|packages/flutter_weft/lib/src/reference/fanout.dart"
   "core/dart/heddle.dart|packages/flutter_weft/lib/src/reference/heddle.dart"
@@ -46,6 +47,7 @@ PAIRS=(
   "core/ts/verified.ts|packages/core/src/verified.ts"
   "core/kotlin/Verified.kt|android/weft-core/src/main/kotlin/dev/weft/Verified.kt"
   "core/dart/verified.dart|packages/flutter_weft/lib/src/reference/verified.dart"
+  "core/dart/governor.dart|packages/flutter_weft/lib/src/reference/governor.dart"
 )
 
 n_pass=0

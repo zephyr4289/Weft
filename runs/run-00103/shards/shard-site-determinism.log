@@ -1,0 +1,34 @@
+==================================================
+SHARD: site-determinism
+DESCRIPTION: make site double-render, byte-identical sha256 check
+STATUS: PASSED ✅
+COMMIT: 6f99e13b402320e2b6e57000dfa74f511c0aef06
+RUN: 103
+==================================================
+
+  → /home/runner/work/Weft/Weft/bench/site/index.html
+  → /home/runner/work/Weft/Weft/bench/site/b-suite.html
+  → /home/runner/work/Weft/Weft/bench/site/w-suite.html
+  → /home/runner/work/Weft/Weft/bench/site/reproducibility.html
+
+✓ Site generated at /home/runner/work/Weft/Weft/bench/site
+  pages: 4
+  timestamp-injected pages: 2 (target: 0 for deterministic render)
+First render sha256:  1b739e28657223685ace356a8d107c190d0260b2ef57de4e0ad4a64475f2c62b
+Second render sha256: 1b739e28657223685ace356a8d107c190d0260b2ef57de4e0ad4a64475f2c62b
+✅ Site regeneration: deterministic (byte-identical)
+Client-side JS hits: 0 (target: 0)
+{
+  "shard": "site-determinism",
+  "status": "PASSED",
+  "first_sha256": "1b739e28657223685ace356a8d107c190d0260b2ef57de4e0ad4a64475f2c62b",
+  "second_sha256": "1b739e28657223685ace356a8d107c190d0260b2ef57de4e0ad4a64475f2c62b",
+  "byte_identical": true,
+  "client_side_js_hits": 0,
+  "pages": [
+    "b-suite.html",
+    "index.html",
+    "reproducibility.html",
+    "w-suite.html"
+  ]
+}

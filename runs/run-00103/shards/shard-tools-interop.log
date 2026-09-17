@@ -1,0 +1,106 @@
+==================================================
+SHARD: tools-interop
+DESCRIPTION: C→C, C→Rust, Rust→Rust, Rust→C record/replay
+STATUS: PASSED ✅
+COMMIT: 6f99e13b402320e2b6e57000dfa74f511c0aef06
+RUN: 103
+==================================================
+
+→ building C record tool
+weft_record.c:5: warning: "_GNU_SOURCE" redefined
+    5 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft_record.c: In function ‘rec_writer’:
+weft_record.c:100:52: warning: unused variable ‘t0’ [-Wunused-variable]
+  100 |     uint64_t next = now_ns() + period_ns; uint64_t t0 = now_ns();
+      |                                                    ^~
+weft_record.c: In function ‘cmd_capture’:
+weft_record.c:234:5: warning: ignoring return value of ‘fread’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  234 |     fread(header, 1, 20, f);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+../../core/c/weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+→ building Rust record tool
+[1m[92m    Updating[0m crates.io index
+[1m[92m   Compiling[0m weft-core v0.1.0 (/home/runner/work/Weft/Weft/core/rust)
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/verified.rs:262:21
+    [1m[94m|[0m
+[1m[94m250[0m [1m[94m|[0m       unsafe {
+    [1m[94m|[0m       [1m[94m------[0m [1m[94mbecause it's nested under this `unsafe` block[0m
+[1m[94m...[0m
+[1m[94m262[0m [1m[94m|[0m             let d = unsafe { data.add(blk * 64) };
+    [1m[94m|[0m                     [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `#[warn(unused_unsafe)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m: `weft-core` (lib) generated 1 warning
+[1m[33mwarning[0m[1m: unused imports: `Duration` and `Instant`[0m
+ [1m[94m--> [0msrc/bin/probe.rs:3:17
+  [1m[94m|[0m
+[1m[94m3[0m [1m[94m|[0m use std::time::{Duration, Instant};
+  [1m[94m|[0m                 [1m[33m^^^^^^^^[0m  [1m[33m^^^^^^^[0m
+  [1m[94m|[0m
+  [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unused import: `PubResult`[0m
+ [1m[94m--> [0msrc/bin/probe.rs:4:22
+  [1m[94m|[0m
+[1m[94m4[0m [1m[94m|[0m use weft_core::{pat, PubResult, Weft, WeftDebugView};
+  [1m[94m|[0m                      [1m[33m^^^^^^^^^[0m
+
+[1m[33mwarning[0m: `weft-core` (bin "probe") generated 2 warnings (run `cargo fix --bin "probe" -p weft-core` to apply 2 suggestions)
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 11.92s
+
+=== c-to-c: capture via tools/weft-record/weft_record, replay via tools/weft-record/weft_record ===
+capture: 600 frames, 138636486 stale returns, writer_published=600 max_seq=600
+replay: header OK (fmt_ver=1, env_ver=1, frame_count=600)
+replay: 600 records validated, all CRCs OK
+✅ c-to-c: PASS
+
+=== c-to-rust: capture via tools/weft-record/weft_record, replay via core/rust/target/release/record ===
+capture: 600 frames, 138213075 stale returns, writer_published=600 max_seq=600
+replay: header OK (fmt_ver=1, frame_count=600)
+replay: 600 records validated, all CRCs OK
+✅ c-to-rust: PASS
+
+=== rust-to-rust: capture via core/rust/target/release/record, replay via core/rust/target/release/record ===
+capture: 600 frames, 150652911 stale returns, max_seq=600 (frame_count patched)
+replay: header OK (fmt_ver=1, frame_count=600)
+replay: 600 records validated, all CRCs OK
+✅ rust-to-rust: PASS
+
+=== rust-to-c: capture via core/rust/target/release/record, replay via tools/weft-record/weft_record ===
+capture: 600 frames, 151157850 stale returns, max_seq=600 (frame_count patched)
+replay: header OK (fmt_ver=1, env_ver=1, frame_count=600)
+replay: 600 records validated, all CRCs OK
+✅ rust-to-c: PASS
+{
+  "shard": "tools-interop",
+  "combos": [
+    {
+      "combo": "c-to-c",
+      "status": "PASSED"
+    },
+    {
+      "combo": "c-to-rust",
+      "status": "PASSED"
+    },
+    {
+      "combo": "rust-to-rust",
+      "status": "PASSED"
+    },
+    {
+      "combo": "rust-to-c",
+      "status": "PASSED"
+    }
+  ],
+  "status": "PASSED",
+  "combos_pass": 4,
+  "combos_total": 4
+}
+
+=== Interop summary: 4/4 PASS, 0/4 FAIL ===

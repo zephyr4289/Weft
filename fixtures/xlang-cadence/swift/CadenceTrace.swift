@@ -6,7 +6,8 @@
 //   state = SEED (default 0x00C0FFEE)
 //   for i in 0..N:
 //     state = xorshift32(state); arrivals = state % 5; latest += arrivals
-//     for policy in [LATEST_WINS, PACED_INTERPOLATE, BURST_COALESCE]:
+//     for policy in [LATEST_WINS, PACED_INTERPOLATE, BURST_COALESCE,
+//                    PREDICTIVE_PACED]:
 //       d = policy.step(latest)
 //       emit byte1 = (present<<7) | (interp<<6) | (alphaQ12 >> 7)
 //       emit byte2 = min(coalesced, 255)
@@ -46,6 +47,7 @@ struct CadenceTrace {
             CadencePolicy(policy: CadencePolicyKind.latestWins),
             CadencePolicy(policy: CadencePolicyKind.pacedInterpolate),
             CadencePolicy(policy: CadencePolicyKind.burstCoalesce),
+            CadencePolicy(policy: CadencePolicyKind.predictivePaced),
         ]
         var out = ""
         out.reserveCapacity(steps * 12)

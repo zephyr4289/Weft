@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# run.sh — PC3 cross-language cadence-policy parity gate (RFC-0009 §cadence).
+# run.sh — PC3 cross-language cadence-policy parity gate (RFC-0009 §cadence
+# + RFC-0012 §PREDICTIVE_PACED).
 #
 # The SAME deterministic arrival trace (xorshift32-seeded, the repo's
-# canonical 04-LITMUS §0.2 generator) is run through ALL THREE cadence
+# canonical 04-LITMUS §0.2 generator) is run through ALL FOUR cadence
 # policies in every VM port; each emitter emits the packed decision log
 # (per tick, per policy in kind order: b1 = present<<7 | interp<<6 |
 # alphaQ12>>7, b2 = min(coalesced,255); hex-encoded, one trailing

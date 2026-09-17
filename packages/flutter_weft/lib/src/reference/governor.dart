@@ -192,6 +192,8 @@ abstract final class CadencePolicyKind {
   static const int latestWins = 0;
   static const int pacedInterpolate = 1;
   static const int burstCoalesce = 2;
+  /// RFC-0012: the fractional-ratio presenter (Q16 phase accumulator).
+  static const int predictivePaced = 3;
 }
 
 /// Identity-stable decision record — mutated in place by step(), never
@@ -241,6 +243,14 @@ const int cadenceKMax = 64;
 
 const int _emaOneQ12 = 4096;
 
+// --- PREDICTIVE_PACED (RFC-0012) constants ---
+/// Q16 one — the fractional window's saturation point; Q16 -> Q12 is the
+/// exact shift >> 4 (65536 >> 4 = 4096).
+const int cadenceOneQ16 = 65536;
+
+const int _reactiveNum = 1;
+const int _reactiveDen = 4;
+
 /// One cadence policy instance. One step() per DISPLAY TICK; `latestSeq`
 /// is the newest seq observed at this tick (a fan-out reader's claim.seq,
 /// the cursor's latest) — monotonic by the ring contract; a regressed
@@ -276,6 +286,23 @@ class CadencePolicy {
   int _tickInCycle = 0;
   int _lastSeenLatest = 0;
 
+  // --- PREDICTIVE_PACED state (RFC-0012; independent of BURST's filter
+  //     — different scale Q16, different init, different update order) ---
+  /// Q16 EWMA of inter-arrival gaps (ticks). 0 = unknown (warmup).
+  int _gapQ16 = 0;
+  /// Q16 EWMA of |gap<<16 - gapQ16| — the mean absolute deviation.
+  int _varQ16 = 0;
+  /// True after the SECOND arrival (the first has no gap to observe).
+  bool _predHaveGap = false;
+  /// Tick of the most recent arrival (the gap's anchor).
+  int _predLastArrivalTick = 0;
+  /// Fractional window position, 0..cadenceOneQ16 (saturating — the
+  /// never-past-newest law). One Q16 unit = 1/65536 of a window.
+  int _phaseQ16 = 0;
+  /// The phase advance's division-remainder carry (0..gapQ16-1) — full
+  /// precision without floats or 128-bit intermediates (RFC-0012 §step).
+  int _phaseRem = 0;
+
   // --- counters (advisory, AXIOM T; exact per PC2) ---
   /// Presents issued (real + interpolated).
   int presents = 0;
@@ -289,6 +316,9 @@ class CadencePolicy {
   int elided = 0;
   /// BURST: present ticks that found nothing newer (counted, never silent).
   int missedPresentTicks = 0;
+  /// PREDICTIVE: ticks the reactive gate fired (advisory, AXIOM T — the
+  /// declared, counted degradation to PACED's integer rule).
+  int reactiveTicks = 0;
 
   /// The identity-stable decision record step() returns.
   final PresentDecision act = PresentDecision();
@@ -360,6 +390,102 @@ class CadencePolicy {
           // saturated, or the pre-history window prev==0) shows a REAL
           // frame — synthesis is the strictly-between mixture, and only
           // that is counted as invention (Law 4).
+          if (_prevSeq != 0 && a.alphaQ12 > 0 && a.alphaQ12 < cadenceAlphaOneQ12) {
+            interpFrames++;
+          }
+          a.present = true;
+        } else {
+          elided++;
+        }
+        return a;
+
+      case CadencePolicyKind.predictivePaced:
+        if (latestSeq > _newestSeq) {
+          // ARRIVAL — the window boundary. Bookkeeping identical to PACED
+          // (coalesced count, window advance, alpha-0 continuity); the
+          // filters update in the RFC-0012 declared order: gapQ16 first,
+          // then dev against the UPDATED gapQ16, then varQ16 — every
+          // operand non-negative, every division split.
+          a.coalesced = latestSeq - _newestSeq - 1;
+          coalescedByDecision += a.coalesced;
+          if (_predHaveGap) {
+            final gap = _ticks - _predLastArrivalTick;
+            final target = gap * cadenceOneQ16;
+            final delta = target - _gapQ16;
+            if (delta >= 0) {
+              _gapQ16 += delta ~/ _reactiveDen;
+            } else {
+              _gapQ16 -= (-delta) ~/ _reactiveDen;
+            }
+            var dev = target - _gapQ16;
+            if (dev < 0) dev = -dev;
+            final d = dev - _varQ16;
+            if (d >= 0) {
+              _varQ16 += d ~/ _reactiveDen;
+            } else {
+              _varQ16 -= (-d) ~/ _reactiveDen;
+            }
+          } else {
+            _predHaveGap = true; // first arrival: no gap observed yet
+          }
+          _predLastArrivalTick = _ticks;
+          arrivalTicks++;
+          _prevSeq = _newestSeq;
+          _prevObsTick = _newestObsTick;
+          _newestSeq = latestSeq;
+          _newestObsTick = _ticks;
+          _phaseQ16 = 0;
+          a.interp = true;
+          a.alphaQ12 = 0;
+          a.presentSeq = latestSeq;
+        } else {
+          // NO ARRIVAL — the presentation tick.
+          // Reactive gate: relative MAD above 1/4 = untrusted clock —
+          // degrade this tick to PACED's integer rule, counted.
+          final reactive = _predHaveGap &&
+              _varQ16 * _reactiveDen > _gapQ16 * _reactiveNum;
+          if (!_predHaveGap || _gapQ16 <= 0 || reactive) {
+            // Warmup (no gap KNOWN) or gated: PACED's integer window rule
+            // verbatim — the documented path. (The gate may also fire
+            // during the filter's own warmup transient — bounded, counted,
+            // and it degrades to exactly what PACED would have done
+            // anyway.)
+            var period = _newestObsTick - _prevObsTick;
+            if (period < 1) period = 1;
+            final dt = _ticks - _newestObsTick;
+            var alpha = (dt * cadenceAlphaOneQ12) ~/ period;
+            if (alpha > cadenceAlphaOneQ12) alpha = cadenceAlphaOneQ12;
+            a.alphaQ12 = alpha;
+            if (reactive) reactiveTicks++;
+          } else {
+            // The phase accumulator: advance by 1/gapQ16 of a window per
+            // tick in Q16, at FULL precision — quotient plus remainder
+            // carry (two integers, no allocation, no drift).
+            final num = cadenceOneQ16 * cadenceOneQ16;
+            final step16 = num ~/ _gapQ16;
+            _phaseQ16 += step16;
+            if (_phaseQ16 > cadenceOneQ16) _phaseQ16 = cadenceOneQ16;
+            _phaseRem += num % _gapQ16;
+            if (_phaseRem >= _gapQ16) {
+              final carry = _phaseRem ~/ _gapQ16;
+              _phaseRem -= carry * _gapQ16;
+              _phaseQ16 += carry;
+              if (_phaseQ16 > cadenceOneQ16) _phaseQ16 = cadenceOneQ16;
+            }
+            a.alphaQ12 = _phaseQ16 >> 4; // Q16 -> Q12, exact
+          }
+          a.interp = true;
+          a.presentSeq = _newestSeq;
+        }
+        // Present iff the raster triple changed (the elision key —
+        // identical to PACED).
+        if (_lastBaseSeq != _prevSeq ||
+            _lastTargetSeq != _newestSeq ||
+            _lastAlpha != a.alphaQ12) {
+          _lastBaseSeq = _prevSeq;
+          _lastTargetSeq = _newestSeq;
+          _lastAlpha = a.alphaQ12;
+          presents++;
           if (_prevSeq != 0 && a.alphaQ12 > 0 && a.alphaQ12 < cadenceAlphaOneQ12) {
             interpFrames++;
           }
@@ -442,6 +568,11 @@ class CadencePolicy {
   /// (@visibleForTesting semantics without the flutter import.)
   int lastPresentedSeqForTest() => _lastPresentedSeq;
   int newestSeqForTest() => _newestSeq;
+  // RFC-0012 PC7/PC9 observability (the ports mirror the accessors).
+  int gapQ16ForTest() => _gapQ16;
+  int varQ16ForTest() => _varQ16;
+  int phaseQ16ForTest() => _phaseQ16;
+  int phaseRemForTest() => _phaseRem;
 
   /// Reset to a freshly-constructed state for `policy` (counters and
   /// window included). Used by PC6 switch tests and consumer rebuilds.
@@ -464,6 +595,13 @@ class CadencePolicy {
     _ticksSinceAssess = 0;
     _tickInCycle = 0;
     _lastSeenLatest = 0;
+    _gapQ16 = 0;
+    _varQ16 = 0;
+    _predHaveGap = false;
+    _predLastArrivalTick = 0;
+    _phaseQ16 = 0;
+    _phaseRem = 0;
+    reactiveTicks = 0;
     presents = 0;
     coalescedByDecision = 0;
     interpFrames = 0;

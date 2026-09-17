@@ -1,7 +1,9 @@
-// gen_trace_refs.mjs — canonical RFC-0009 trace reference generator (Series 7).
-// Emits the packed byte streams + FNV-1a 64 hashes for the G5 ladder trace
-// and the PC3 cadence trace, so every port's battery can pin cross-language
-// parity locally (the xlang fixtures do the full byte-compare in CI).
+// gen_trace_refs.mjs — canonical RFC-0009/RFC-0012 trace reference generator
+// (Series 7 + Series 8). Emits the packed byte streams + FNV-1a 64 hashes
+// for the G5 ladder trace, the PC3 v2 cadence trace (four policies —
+// RFC-0012 added kind 3), and the PREDICTIVE-only trace, so every port's
+// battery can pin cross-language parity locally (the xlang fixtures do the
+// full byte-compare in CI).
 import { FreshnessGovernor, CadencePolicy, CadencePolicyKind } from '../packages/core/dist/index.js';
 
 function xorshift32(x) { x >>>= 0; x ^= (x << 13) >>> 0; x ^= x >>> 17; x ^= (x << 5) >>> 0; return x >>> 0; }
@@ -29,14 +31,14 @@ const STEPS = 10000, SEED = 0x00c0ffee;
 }
 // Cadence trace (PC3 shape — fixtures/xlang-cadence)
 {
-  const pols = [0, 1, 2].map((k) => new CadencePolicy({ policy: k }));
+  const pols = [0, 1, 2, 3].map((k) => new CadencePolicy({ policy: k }));
   const bytes = [];
   let state = SEED, latest = 0;
-  const presented = [false, false, false];
+  const presented = [false, false, false, false];
   for (let i = 0; i < STEPS; i++) {
     state = xorshift32(state);
     latest += state % 5;
-    for (let pi = 0; pi < 3; pi++) {
+    for (let pi = 0; pi < 4; pi++) {
       const a = pols[pi].step(latest);
       if (a.present) presented[pi] = true;
       bytes.push(((a.present ? 1 : 0) << 7) | ((a.interp ? 1 : 0) << 6) | (a.alphaQ12 >> 7));
@@ -44,4 +46,20 @@ const STEPS = 10000, SEED = 0x00c0ffee;
     }
   }
   console.log('CADENCE fnv1a64 = 0x' + fnv1a64(bytes).toString(16).padStart(16, '0'), ' bytes =', bytes.length, ' presentedAll =', presented.every(Boolean));
+}
+// PREDICTIVE-only trace (RFC-0012 — the kind-3 stream the batteries pin)
+{
+  const pol = new CadencePolicy({ policy: 3 });
+  const bytes = [];
+  let state = SEED, latest = 0;
+  let presented = false;
+  for (let i = 0; i < STEPS; i++) {
+    state = xorshift32(state);
+    latest += state % 5;
+    const a = pol.step(latest);
+    if (a.present) presented = true;
+    bytes.push(((a.present ? 1 : 0) << 7) | ((a.interp ? 1 : 0) << 6) | (a.alphaQ12 >> 7));
+    bytes.push(Math.min(a.coalesced, 255));
+  }
+  console.log('PREDICTIVE fnv1a64 = 0x' + fnv1a64(bytes).toString(16).padStart(16, '0'), ' bytes =', bytes.length, ' presented =', presented);
 }

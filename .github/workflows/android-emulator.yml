@@ -78,7 +78,7 @@ jobs:
           script: |
             set -o pipefail
             cd android
-            ./gradlew :sample-app:installDebug --stacktrace 2>&1 | tee /tmp/emulator_build.log
+            ./gradlew :sample-app:installDebug :sample-app:installDebugAndroidTest --stacktrace 2>&1 | tee /tmp/emulator_build.log
 
             adb shell am instrument -w \
               -e class dev.weft.sample.LmkReattachTest#stage_preDeathState \

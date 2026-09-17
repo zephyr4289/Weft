@@ -181,8 +181,8 @@ public final class MTKViewCadenceProbe: NSObject, MTKViewDelegate {
                     let bytes = payloadWords * 4
                     for i in 0..<bytes {
                         cursor.storeBytes(of: pat(seq: seq, i: UInt32(i)),
-                                          as: UInt8.self,
-                                          toByteOffset: i)
+                                          toByteOffset: i,
+                                          as: UInt8.self)
                     }
                     _ = w.publish(seq: seq, payloadLen: UInt32(bytes))
                 }

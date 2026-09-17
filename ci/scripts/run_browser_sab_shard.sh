@@ -18,7 +18,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 mkdir -p ci/run-artifacts
-LOG=ci/run-artifacts/shard-browser-sab.log
+LOG="$ROOT/ci/run-artifacts/shard-browser-sab.log"
 : > "$LOG"
 step() { echo "=== $1 ===" | tee -a "$LOG"; }
 

@@ -476,10 +476,9 @@ def prove_c():
 
 
 def prove_kotlin():
-    """Compile the canonical Kotlin port (kotlinc) when a compiler exists;
-    otherwise record the CI delegation (the android gradle leg compiles and
-    runs the full F-series for the same SHA). Delegation is declared in the
-    report, never silent."""
+    """Compile the standalone Kotlin files (kotlinc) when a compiler exists;
+    Heddle.kt requires Android Jetpack Compose and is compiled by the android
+    gradle leg which runs the full F-series for the same SHA."""
     kotlinc = shutil.which('kotlinc')
     if kotlinc is None:
         return _emit_proof('kotlin-compile', True,
@@ -489,7 +488,7 @@ def prove_kotlin():
     with tempfile.TemporaryDirectory(prefix='weft-kt-') as td:
         srcs = [str(ROOT / 'core' / 'kotlin' / f)
                 for f in ('Fanout.kt', 'FanoutCompat.kt', 'FrameCursor.kt',
-                          'Heddle.kt', 'Steward.kt', 'Weft.kt', 'TriadNative.kt')]
+                          'Steward.kt', 'Weft.kt', 'TriadNative.kt')]
         build = subprocess.run([kotlinc] + srcs + ['-d', td], capture_output=True,
                                text=True, timeout=600)
         if build.returncode != 0:
@@ -543,11 +542,9 @@ void main() {{
 
 
 def prove_swift():
-    """Typecheck-proof the canonical Swift port when swiftc exists; the full
-    F-series + Metal probe battery delegates to the apple leg. Fanout.swift
-    imports swift-atomics, which cannot resolve standalone — the typecheck
-    therefore covers the non-atomic kernel files and the atomic battery is
-    the apple leg's job (declared split, not a silent pass)."""
+    """Typecheck-proof the standalone Swift files when swiftc exists; Weft.swift
+    and Fanout.swift import swift-atomics which resolves via SPM/Xcode — the
+    full SPM package build and test is executed on the apple leg."""
     swiftc = shutil.which('swiftc')
     if swiftc is None:
         return _emit_proof('swift-typecheck', True,
@@ -555,7 +552,7 @@ def prove_swift():
                            'swift build + swift test (F-series + Metal probe) '
                            'for this SHA')
     srcs = [str(ROOT / 'core' / 'swift' / f)
-            for f in ('Weft.swift', 'FrameCursor.swift', 'Heddle.swift', 'Steward.swift')]
+            for f in ('FrameCursor.swift', 'Heddle.swift', 'Steward.swift')]
     srcs = [s for s in srcs if Path(s).exists()]
     build = subprocess.run([swiftc, '-typecheck', '-swift-version', '5'] + srcs,
                            capture_output=True, text=True, timeout=600)
@@ -563,7 +560,7 @@ def prove_swift():
         return _emit_proof('swift-typecheck', False,
                            f'swiftc -typecheck failed: {build.stderr[:400]}')
     return _emit_proof('swift-typecheck', True,
-                       'Swift kernel files typecheck clean (Fanout.swift battery '
+                       'Swift kernel files typecheck clean (SPM atomics battery '
                        'delegates to the apple leg — swift-atomics dep)')
 
 

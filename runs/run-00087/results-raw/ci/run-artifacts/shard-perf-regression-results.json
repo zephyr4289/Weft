@@ -1,0 +1,152 @@
+{
+  "shard": "perf-regression",
+  "status": "PASSED",
+  "threshold_pct": 15,
+  "regression_count": 0,
+  "improvement_count": 0,
+  "cells_compared": 20,
+  "regressions": [],
+  "improvements": [],
+  "all_compared": [
+    {
+      "workload": "W1",
+      "backend": "A",
+      "baseline_p99": 120.2,
+      "actual_p99": 106.2,
+      "delta_pct": -11.6
+    },
+    {
+      "workload": "W1",
+      "backend": "B",
+      "baseline_p99": 140.5,
+      "actual_p99": 123.6,
+      "delta_pct": -12.0
+    },
+    {
+      "workload": "W1",
+      "backend": "C",
+      "baseline_p99": 140.9,
+      "actual_p99": 121.9,
+      "delta_pct": -13.5
+    },
+    {
+      "workload": "W1",
+      "backend": "D",
+      "baseline_p99": 87.5,
+      "actual_p99": 77.4,
+      "delta_pct": -11.5
+    },
+    {
+      "workload": "W2",
+      "backend": "A",
+      "baseline_p99": 78.6,
+      "actual_p99": 70.0,
+      "delta_pct": -10.9
+    },
+    {
+      "workload": "W2",
+      "backend": "B",
+      "baseline_p99": 111.7,
+      "actual_p99": 97.9,
+      "delta_pct": -12.4
+    },
+    {
+      "workload": "W2",
+      "backend": "C",
+      "baseline_p99": 111.0,
+      "actual_p99": 97.2,
+      "delta_pct": -12.4
+    },
+    {
+      "workload": "W2",
+      "backend": "D",
+      "baseline_p99": 45.4,
+      "actual_p99": 40.3,
+      "delta_pct": -11.2
+    },
+    {
+      "workload": "W3",
+      "backend": "A",
+      "baseline_p99": 9.7,
+      "actual_p99": 8.5,
+      "delta_pct": -12.4
+    },
+    {
+      "workload": "W3",
+      "backend": "B",
+      "baseline_p99": 11.5,
+      "actual_p99": 9.9,
+      "delta_pct": -13.9
+    },
+    {
+      "workload": "W3",
+      "backend": "C",
+      "baseline_p99": 11.5,
+      "actual_p99": 9.9,
+      "delta_pct": -13.9
+    },
+    {
+      "workload": "W3",
+      "backend": "D",
+      "baseline_p99": 6.2,
+      "actual_p99": 5.5,
+      "delta_pct": -11.3
+    },
+    {
+      "workload": "W4",
+      "backend": "A",
+      "baseline_p99": 2838.8,
+      "actual_p99": 2487.9,
+      "delta_pct": -12.4
+    },
+    {
+      "workload": "W4",
+      "backend": "B",
+      "baseline_p99": 3008.8,
+      "actual_p99": 2613.6,
+      "delta_pct": -13.1
+    },
+    {
+      "workload": "W4",
+      "backend": "C",
+      "baseline_p99": 2847.4,
+      "actual_p99": 2477.1,
+      "delta_pct": -13.0
+    },
+    {
+      "workload": "W4",
+      "backend": "D",
+      "baseline_p99": 2828.5,
+      "actual_p99": 2460.6,
+      "delta_pct": -13.0
+    },
+    {
+      "workload": "W5",
+      "backend": "A",
+      "baseline_p99": 19.1,
+      "actual_p99": 17.3,
+      "delta_pct": -9.4
+    },
+    {
+      "workload": "W5",
+      "backend": "B",
+      "baseline_p99": 24.2,
+      "actual_p99": 21.4,
+      "delta_pct": -11.6
+    },
+    {
+      "workload": "W5",
+      "backend": "C",
+      "baseline_p99": 24.1,
+      "actual_p99": 21.3,
+      "delta_pct": -11.6
+    },
+    {
+      "workload": "W5",
+      "backend": "D",
+      "baseline_p99": 11.6,
+      "actual_p99": 10.4,
+      "delta_pct": -10.3
+    }
+  ]
+}

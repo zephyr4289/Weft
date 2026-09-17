@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "bench:feedgc": "node --expose-gc scripts/feed_gc_bench.ts",
-    "bench:governor": "node scripts/governor_bench.ts"
+    "bench:governor": "node scripts/governor_bench.ts",
+    "bench:cadence": "node scripts/cadence_bench.ts"
   },
   "dependencies": {
     "@weft/core": "workspace:*",

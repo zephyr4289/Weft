@@ -1,0 +1,16 @@
+Command line invocation:
+    /Applications/Xcode_15.4.app/Contents/Developer/usr/bin/xcodebuild test -scheme Weft -destination "platform=iOS Simulator,name=iPhone 15,OS=latest"
+
+User defaults from command line:
+    IDEPackageSupportUseBuiltinSCM = YES
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  Weft: /Users/runner/work/Weft/Weft
+  swift-atomics: https://github.com/apple/swift-atomics.git @ 1.3.1
+
+2026-09-17 08:56:25.768 xcodebuild[6317:21715] Writing error result bundle to /var/folders/s6/5hzmn6lx4dz5nxs7k_0slzph0000gn/T/ResultBundle_2026-17-09_08-56-0025.xcresult
+xcodebuild: error: Scheme Weft is not currently configured for the test action.
+

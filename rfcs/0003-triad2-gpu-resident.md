@@ -44,5 +44,53 @@ Requires GPU memory allocation for 3 full frame buffers up front; requires compu
 - Physical device thermal persistence on Mali/Adreno/Apple Silicon GPU is deferred.
 - WebGPU / Metal hardware driver backend measurements are deferred (simulation-only sandbox).
 
+
+## Hardware-backed spike (Series 7 — this tree)
+
+The Staff Decision bar was "pending hardware-backed spike / design
+exploration." The spike now exists, driver-layer shaped:
+
+- **`core/c/gpu_ring.{h,c}`** — the RFC-0004 fan-out ring allocated in
+  memory a GPU dereferences directly: Vulkan `HOST_VISIBLE|HOST_COHERENT`
+  device memory via a **dlopen'd loader** (no link-time dependency),
+  first compute-capable queue family, persistent `vkMapMemory`. The CPU
+  publishes through the ordinary fan-out API on the mapped pointer; the
+  GPU binds the SAME `VkBuffer` as a storage buffer — **no staging
+  buffer, no `vkCmdCopyBuffer`**, one allocation. Apple unified memory is
+  the compile-gated METAL backend (compiled by the apple CI leg; the MSL
+  binding story remains the open question below — declared, not claimed).
+  A CPU fallback keeps the module testable on GPU-less hosts, and the
+  backend tag travels with every claim (Law 4).
+- **`probes/compute/validate_frame.comp`** — the GPU-side consumer: a
+  compute shader that reads the LIVE ring words (latestSeq, slotSeq,
+  payload) and validates the frame against the 04-LITMUS mixer family
+  entirely on the GPU, reporting through a result buffer. This is the
+  "compute shaders directly consume live Weft memory" claim, executable.
+- **`core/c/gpu_probe.c`** — the proof harness: publish CPU-side, two
+  compute dispatches (after frame 1 and after frame N — the observed seq
+  must ADVANCE, proving the GPU reads live memory with no re-upload).
+
+Evidence (`litmus/evidence/gpu-ring/gpu-series.log`): the allocation leg —
+real Vulkan instance/device/buffer/memory, persistent map, live fan-out
+publishes — is executable-proven in the x86_64 sandbox against Mesa
+lavapipe 25.0.7 (a real Vulkan loader + driver stack executing in
+software). The dispatch leg is **CI-gated, not sandbox-claimed**: this
+sandbox caps a single mapping at ~126 GiB and llvmpipe's LLVM JIT reserves
+~94 TB for shader codegen, so `vkCreateShaderModule` returns
+`OUT_OF_HOST_MEMORY` (exit code 4 distinguishes exactly this). Standard
+kernels (the `gpu-native` CI shard: ubuntu-latest + mesa-vulkan-drivers +
+glslang-tools) allow the reservation and run the FULL dispatch proof,
+including a geometry sweep and a SPIR-V rebuild byte-identity gate. Per
+the round-7 F-2 precedent: no GPU performance numbers are claimed from
+software execution, and none are quoted — the spike removes the STRUCTURAL
+staging copy, which is what this RFC proposes.
+
+Relationship to the original design: Triad-2's "3 device-local GPUBuffer
+allocations rotated via index exchange" maps onto the existing RFC-0004
+ring slots (M=3 is the triad) with the slot stamps already providing the
+index protocol; the session header (`WFSH`, shared with RFC-0011's shm
+sessions) is the descriptor-side contract. The WebGPU staging-ring road
+(`GPUBufferUsage.MAP_READ`) remains browser-gated and is NOT claimed here.
+
 ## Staff Decision
 [NOT ACCEPTED pending hardware-backed spike / design exploration accepted]

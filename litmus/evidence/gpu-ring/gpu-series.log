@@ -1,0 +1,85 @@
+# Series 7 — GPU-resident zero-copy ring evidence (RFC-0003 spike)
+# x86_64 sandbox: gcc 14.2.0 -O2; Vulkan loader 1.4.309; ICD: Mesa lavapipe 25.0.7 (llvmpipe, LLVM 19.1.7 — SOFTWARE driver, real Vulkan stack)
+# generated: 2026-09-17T14:08:05Z
+
+## GPU-series conformance (CPU fallback leg — module contract everywhere)
+```
+  PASS create ok
+  backend=cpu device='anonymous mapping (no GPU backend available)'
+  PASS geometry from session
+  PASS span = header + ring_bytes (RFC-0004 identity)
+  PASS session bytes validate under the shared WFSH contract
+  PASS ctrl zero-initialized (fresh-ring invariants)
+  PASS destroy + NULL-destroy safe
+  PASS create ok
+  PASS writer attach over the mapping
+  PASS reader attach over the mapping
+  PASS 5000 frames, sampled claims bit-exact
+  PASS telescoping exact over the mapping
+  PASS create ok
+  PASS WFSH header identical in both modules' dialects
+  PASS word map: latestSeq at words[16..18)
+  PASS word map: publishes at words[18..20)
+  PASS word map: slotSeq[0] at words[20..22)
+  PASS word map: slot-0 payload word 0 at words[28] (20+2*4)
+  (backend=cpu — vulkan leg skipped, declared)
+  PASS non-vulkan backend: leg skipped honestly
+  PASS 8 create/publish/destroy cycles clean
+verdict: PASS
+```
+
+## GPU-series conformance (Vulkan leg — lavapipe ICD)
+```
+  PASS create ok
+  backend=vulkan device='llvmpipe (LLVM 19.1.7, 256 bits)'
+  PASS geometry from session
+  PASS span = header + ring_bytes (RFC-0004 identity)
+  PASS session bytes validate under the shared WFSH contract
+  PASS ctrl zero-initialized (fresh-ring invariants)
+  PASS destroy + NULL-destroy safe
+  PASS create ok
+  PASS writer attach over the mapping
+  PASS reader attach over the mapping
+  PASS 5000 frames, sampled claims bit-exact
+  PASS telescoping exact over the mapping
+  PASS create ok
+  PASS WFSH header identical in both modules' dialects
+  PASS word map: latestSeq at words[16..18)
+  PASS word map: publishes at words[18..20)
+  PASS word map: slotSeq[0] at words[20..22)
+  PASS word map: slot-0 payload word 0 at words[28] (20+2*4)
+  PASS session span IS the VkBuffer (one allocation, no staging buffer)
+  PASS device + compute queue family exported
+  PASS device-level proc resolution works
+  PASS writer over the persistent map
+  PASS 1000 live frames published through the Vulkan mapping
+  PASS 8 create/publish/destroy cycles clean
+verdict: PASS
+```
+
+## GPU-series under ASAN (CPU leg)
+```
+verdict: PASS
+```
+
+## gpu-probe: zero-copy consumer proof attempt (lavapipe)
+# HONESTY: this sandbox caps a single mmap at ~126 GiB; llvmpipe's LLVM JIT
+# reserves ~94 TB for shader codegen -> vkCreateShaderModule returns
+# OUT_OF_HOST_MEMORY. The ALLOCATION leg (real Vulkan HOST_VISIBLE device
+# memory, persistent map, live fan-out publishes through it) is PROVEN
+# below; the DISPATCH leg (compute shader validating live ring words) is
+# CI-gated (gpu-native shard, standard kernels allow the reservation).
+```
+gpu-probe: vkCreateShaderModule rc=-1 (OUT_OF_HOST_MEMORY — shader JIT address-space reservation refused by this kernel/sandbox)
+gpu-probe: backend=vulkan device='llvmpipe (LLVM 19.1.7, 256 bits)' payload=256 slots=4 frames=1000
+gpu-probe: allocation-leg PROVEN — vulkan device memory, persistent map, 100 live frames published through it (latestSeq=100, publishes=100)
+gpu-probe: dispatch-leg UNAVAILABLE in this environment (shader JIT address-space reservation) — the full dispatch proof runs in the CI gpu-native shard
+exit: 4 (4 = allocation proven, dispatch env-limited)
+```
+
+## gpu-probe without an ICD (CPU fallback posture)
+```
+gpu-probe: backend=cpu device='anonymous mapping (no GPU backend available)' payload=256 slots=4 frames=10
+gpu-probe: no Vulkan ICD — CPU fallback. The ring is functional (fan-out API over the session), but the zero-copy GPU claim is NOT proven on this host. Install an ICD (e.g. mesa-vulkan-drivers).
+exit: 3 (3 = no ICD, declared)
+```

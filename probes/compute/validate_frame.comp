@@ -1,0 +1,82 @@
+#version 450
+// validate_frame.comp — the RFC-0003 zero-copy consumer proof (GPU side).
+//
+// BOUND AT descriptor set 0:
+//   binding 0 (storage, readonly):  the weft_gpu session span as u32 words
+//         (header words[0..16), then the RFC-0004 ring — see gpu_ring.h's
+//         "GPU-side consumer contract").
+//   binding 1 (storage, writeonly): result[4] u32 words.
+// PUSH CONSTANTS: slots (u32), words (u32) — the ring geometry.
+//
+// WHAT IT PROVES: this shader reads the LIVE ring words the CPU producer
+// published — no staging copy, no vkCmdCopyBuffer, no barrier from the
+// host (HOST_COHERENT memory). It validates the latest frame's payload
+// against the 04-LITMUS §0.1 mixer family ENTIRELY on the GPU side and
+// reports:
+//   result[0] = 0 iff: session magic OK, slot stamp == latestSeq,
+//                      payload words all == mix32(seq*2654435761 + i),
+//                      seq fits 32 bits (hi word 0)
+//   result[1] = latestSeq (lo word) — the frame the GPU actually saw
+//   result[2] = payload word 0 of that slot (echo, CPU cross-checks)
+//   result[3] = 0x54464557 ("WEFT" LE) — the "GPU ran this" magic
+//
+// Determinism: mix32 uses the same wrapping u32 arithmetic as every port.
+
+layout(local_size_x = 64) in;
+
+layout(std430, binding = 0) readonly buffer RingBuf { uint r[]; };
+layout(std430, binding = 1) writeonly buffer OutBuf { uint o[]; };
+
+layout(push_constant) uniform Params {
+    uint slots;
+    uint words;
+} p;
+
+shared uint mism[64];
+
+uint mix32(uint x) {
+    x ^= x >> 16;
+    x *= 0x7feb352du;
+    x ^= x >> 15;
+    x *= 0x846ca68bu;
+    x ^= x >> 16;
+    return x;
+}
+
+void main() {
+    uint li = gl_LocalInvocationID.x;
+
+    // Uniform reads: every invocation sees the same values (same buffer).
+    uint magic = r[0];                       // WFSH magic lo word
+    uint seq = r[16];                        // latestSeq lo (u64 LE)
+    uint seq_hi = r[17];                     // latestSeq hi
+    uint valid = (seq != 0u && seq_hi == 0u) ? 1u : 0u;
+
+    uint count = 0u;
+    if (valid == 1u) {
+        uint k = (seq - 1u) % p.slots;
+        uint stamp_lo = r[20u + 2u * k];
+        uint stamp_hi = r[21u + 2u * k];
+        uint base = 20u + 2u * p.slots + k * p.words;
+        if (stamp_lo != seq || stamp_hi != 0u) count += 1u;  // slot not consistent
+        for (uint i = li; i < p.words; i += 64u) {
+            uint expect = mix32(seq * 2654435761u + i);
+            if (r[base + i] != expect) count += 1u;
+        }
+    }
+    mism[li] = count;
+    barrier();
+
+    if (li == 0u) {
+        uint total = 0u;
+        for (uint i = 0u; i < 64u; i++) total += mism[i];
+        if (magic != 0x48534657u) total += 1u;   // session magic wrong
+        if (valid == 0u) total += 1u;             // no 32-bit frame to see
+        o[0] = total;
+        o[1] = seq;
+        o[2] = valid == 1u
+            ? r[20u + 2u * p.slots + ((seq - 1u) % p.slots) * p.words]
+            : 0u;
+        o[3] = 0x54464557u;                       // "WEFT" LE — GPU ran this
+    }
+}

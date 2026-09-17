@@ -259,6 +259,13 @@ jobs:
             args: ""
             needs_rust: true
 
+          # --- RFC 0003 GPU-resident rings (Vulkan zero-copy + compute proof) ---
+          - shard: "gpu-native"
+            description: "RFC-0003 spike: GPU-series + gpu-probe full dispatch (lavapipe ICD)"
+            script: "ci/scripts/run_gpu_native_shard.sh"
+            args: ""
+            needs_rust: false
+
           # --- RFC 0005 VerifiedWeft (C + Rust + TS + xlang auth gates) ---
           - shard: "verifiedweft"
             description: "RFC 0005: V-series x3 kernels + C<->TS interop + tamper rejection"

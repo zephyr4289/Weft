@@ -130,6 +130,29 @@ shm-runner: shm_ring.c shm_ring.h shm_runner.c $(SHM_SRC) fanout.h weft.h
 shm-runner-asan: shm_ring.c shm_ring.h shm_runner.c $(SHM_SRC) fanout.h weft.h
 	$(CC) $(CFLAGS_ASAN) -o shm-runner-asan $(SHM_SRC) shm_runner.c -lrt -lpthread
 
+# ---- GPU-resident rings (RFC-0003 Triad-2 spike, Series 7) ------------------
+# gpu_ring.{h,c}: Vulkan HOST_VISIBLE zero-copy session (dlopen'd loader —
+# no link-time dep), Metal compile-gated, CPU fallback; vk_min.h is the
+# shared INTERNAL minimal Vulkan ABI. gpu-probe: the zero-copy consumer
+# proof (compute shader validates live ring words). The .spv is committed;
+# glslangValidator rebuilds it when present (CI installs glslang-tools).
+GPU_SRC = gpu_ring.c fanout.c weft.c
+SPV = ../../probes/compute/validate_frame.spv
+
+$(SPV): ../../probes/compute/validate_frame.comp
+	if command -v glslangValidator >/dev/null 2>&1; then \
+	glslangValidator -V $$< -o $$@; \
+	else echo "glslangValidator not found — using committed $$@"; touch $$@; fi
+
+gpu-probe: gpu_ring.c gpu_ring.h vk_min.h gpu_probe.c $(GPU_SRC) fanout.h weft.h $(SPV)
+	$(CC) $(CFLAGS) -o gpu-probe $(GPU_SRC) gpu_probe.c -lrt -lpthread
+
+gpu-ring-test: gpu_ring.c gpu_ring.h gpu_ring_test.c $(GPU_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS) -o gpu-ring-test $(GPU_SRC) gpu_ring_test.c -lrt -lpthread
+
+gpu-ring-test-asan: gpu_ring.c gpu_ring.h gpu_ring_test.c $(GPU_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o gpu-ring-test-asan $(GPU_SRC) gpu_ring_test.c -lrt -lpthread
+
 governor-test: governor.c governor_test.c governor.h
 	$(CC) $(CFLAGS) -o governor-test governor.c governor_test.c
 
@@ -141,6 +164,7 @@ clean:
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
 	      verified-test verified-test-asan verified-runner verified-runner-asan \
 	      verified-mb-test verified-mb-test-asan \
-	      shm-test shm-test-asan shm-runner shm-runner-asan
+	      shm-test shm-test-asan shm-runner shm-runner-asan \
+	      gpu-probe gpu-ring-test gpu-ring-test-asan
 
 .PHONY: all clean

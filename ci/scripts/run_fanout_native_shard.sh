@@ -117,6 +117,50 @@ make -C tools/weft-fanout-rec weft-fanout-rec weft-fanout-rec-seq 2>&1 | tee -a 
 step "flight-recorder e2e under v3 compression (RFC-0010)"
 bash tools/weft-fanout-rec/e2e.sh 2>&1 | tee -a "$LOG" || fail=1
 
+# --- 6b: inter-process SHM ring sessions (RFC-0011 draft, Series 7) ---
+# S-series conformance + multi-process torture (both roads) + the
+# zero-syscall strace gate (data path is pure shared-memory atomics —
+# proof that between marker writes NO syscall appears) + the recorder's
+# cross-process produce->daemon flow over the session protocol.
+step "IPC shm sessions: S-series conformance (C)"
+make -C core/c shm-test 2>&1 | tee -a "$LOG" || fail=1
+./core/c/shm-test 2>&1 | tee -a "$LOG" || fail=1
+
+step "IPC shm sessions: multi-process torture (named + anonymous roads)"
+make -C core/c shm-runner 2>&1 | tee -a "$LOG" || fail=1
+./core/c/shm-runner torture 64 4 100000 2>&1 | tee -a "$LOG" || fail=1
+./core/c/shm-runner torture 64 4 100000 --fork 2>&1 | tee -a "$LOG" || fail=1
+
+step "IPC shm sessions: Rust S-series (fork torture included)"
+if command -v cargo >/dev/null 2>&1; then
+  (cd core/rust && cargo test --release --test shm_test) 2>&1 | tee -a "$LOG" || fail=1
+else
+  echo "cargo not found — shm rust gates SKIPPED (declared)" | tee -a "$LOG"
+  if [ -n "${CI:-}" ]; then fail=1; fi
+fi
+
+step "IPC shm sessions: zero-syscall data path (strace gate)"
+if command -v strace >/dev/null 2>&1; then
+  STRACE_LOG=$(mktemp)
+  strace -f -o "$STRACE_LOG" ./core/c/shm-runner strace-proof weft-ci-strace 50000 --marker 2>/dev/null | tee -a "$LOG" || fail=1
+  BETWEEN=$(awk '/MARKER-PUBLISH-START/,/MARKER-PUBLISH-END/' "$STRACE_LOG" | grep -vc 'MARKER\|^$' || true)
+  echo "non-marker syscalls between publish markers: $BETWEEN (must be 0)" | tee -a "$LOG"
+  [ "$BETWEEN" = "0" ] || fail=1
+  rm -f "$STRACE_LOG"
+else
+  echo "strace not found — zero-syscall gate SKIPPED (declared)" | tee -a "$LOG"
+  if [ -n "${CI:-}" ]; then fail=1; fi # ubuntu-latest has strace
+fi
+
+step "IPC shm sessions: cross-process produce -> daemon capture (session protocol)"
+SESS=weft-ci-session-$$
+(./tools/weft-fanout-rec/weft-fanout-rec produce --shm "$SESS" --payload 64 --slots 4 --frames 500 --hz 2000 >/dev/null 2>&1 &)
+sleep 1
+timeout 15 ./tools/weft-fanout-rec/weft-fanout-rec daemon /tmp/weft-ci-daemon-$$.weftrec --shm "$SESS" --payload 64 --slots 4 --idle-ms 300 2>&1 | tee -a "$LOG" || fail=1
+./tools/weft-fanout-rec/weft-fanout-rec validate /tmp/weft-ci-daemon-$$.weftrec 2>&1 | tee -a "$LOG" || fail=1
+rm -f /tmp/weft-ci-daemon-$$.weftrec
+python3 -c "import ctypes; ctypes.CDLL(None).shm_unlink(b'/$SESS')" 2>/dev/null || true
+
 # --- 7: F10 100k torture PARITY across ports (C baseline + JVM + parity-
 #         of-contract over the Kotlin/Swift/Dart F10 sources) ---
 step "F10 100k torture parity (C baseline x2 regimes + JVM + source contract)"
@@ -126,5 +170,5 @@ if [ "$fail" -ne 0 ]; then
   echo '{"shard":"fanout-native","status":"FAILED"}' > ci/run-artifacts/shard-fanout-native-results.json
   exit 1
 fi
-echo '{"shard":"fanout-native","status":"PASSED","gates":"C F-series+torture x2 regimes + rust suite + loom(bound 2) + xlang TS<->C + jni-harness JVM + flight-rec selftest x2 regimes + governor G-series C/Rust + G5 trace parity (TS/C/Rust + VM) + cadence PC3 trace parity (TS + VM) + v3-compression e2e + F10 cross-port parity"}' > ci/run-artifacts/shard-fanout-native-results.json
+echo '{"shard":"fanout-native","status":"PASSED","gates":"C F-series+torture x2 regimes + rust suite + loom(bound 2) + xlang TS<->C + jni-harness JVM + flight-rec selftest x2 regimes + governor G-series C/Rust + G5 trace parity (TS/C/Rust + VM) + cadence PC3 trace parity (TS + VM) + v3-compression e2e + shm S-series + shm torture x2 roads + shm rust + shm zero-syscall strace + shm produce->daemon + F10 cross-port parity"}' > ci/run-artifacts/shard-fanout-native-results.json
 echo "✅ fanout-native shard PASSED" | tee -a "$LOG"

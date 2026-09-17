@@ -40,6 +40,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 pub mod fanout;
 pub mod frame_cursor;
 pub mod governor;
+pub mod shm;
 /// VerifiedWeft — authenticated frame records (RFC 0005). Driver-layer:
 /// composes BESIDE the kernel; byte-compat with core/c/verified.c.
 pub mod verified;

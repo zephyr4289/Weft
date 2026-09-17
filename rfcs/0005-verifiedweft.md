@@ -109,6 +109,49 @@ executable-tested in the x86_64 sandbox — declared (ARM CI covers it).
 
 BLAKE3 remains deferred (open question unchanged).
 
+
+### Series 7 — SIMD batch verification + vectorized envelope scanning (this tree)
+
+The batch path's remaining serialization is now parallelized:
+`sha256_mb.{h,c}` add a multi-buffer SHA-256 transform (8-way AVX2 on x86-64,
+4-way NEON compile-guarded on aarch64, scalar lane-loop reference) with
+SNAPSHOT lane semantics — lanes declare different block counts and each
+lane's state is captured at its own finish, so mixed-length records batch
+together. `verified_mb.{h,c}` add `weft_vw_batch_decode_verify_mb` (the
+multi-buffer mirror of the Series-6 batch API: one ipad/opad amortization
+per key, two lane-batched transforms per 8-record group, semantics pinned
+identical by VMB3/VMB4 sweeps under both regimes) and `weft_vw_scan_magic`
+(a vectorized "WEFT" magic scan for crash-tolerant stream resync — the
+primitive the resync idiom in the verified_mb.h header builds on).
+
+Measured on the same sandbox shape as the Series-6 table (x86_64, SHA-NI
+present, 20k frames, `verified-runner bench-mb`, evidence
+`litmus/evidence/verified-mb/bench-mb-payloadsweep.log`):
+
+| Payload | Series 6 batch (SHA-NI, serial) | Series 7 batch (AVX2, 8-way) | Speedup |
+|---|---|---|---|
+| 16 B | 2,457 K/s | 5,221 K/s | 2.12x |
+| 64 B | 1,937 K/s | 4,014 K/s | 2.07x |
+| 256 B | 1,569 K/s | 2,299 K/s | 1.46x |
+| 1024 B | 894 K/s | 867 K/s | 0.97x (parity) |
+
+The crossover is honest and stated: multi-buffer wins where records are
+SHORT (the flight-recorder / bridge-ingestion hot case — the ipad/opad pad
+blocks dominate the math); at ~1 KiB payloads SHA-NI's single-stream
+multi-block advantage balances the lane packing, and the cap boundary
+(WEFT_VW_MB_MAX_PAYLOAD) routes larger records to the serial path with
+identical semantics (VMB8). The magic scan measures 6.5-7.4 GB/s on a
+64 MB haystack vs 2.6 GB/s scalar (byte-mask AND chain, 29-byte window
+seams covered exactly — VMB6 plants a needle at EVERY offset).
+
+Equivalence is GATED, not asserted: VMB1 sweeps the transform against the
+per-lane scalar reference across staggered/zero lane counts (both regimes);
+VMB2/VMB3/VMB4 sweep the batch API against the Series-6 serial path across
+149 generated streams and every corruption class — codes, counters, and
+views byte-identical. The NEON 4-way transform and phase-shifted dword scan
+are compile-guarded aarch64 and NOT executable-tested in the x86_64 sandbox
+— declared (ARM CI covers them), mirroring the Series-6 CE declaration.
+
 ### What gates the wire format (normative)
 
 - Tag covers `envelope[0..16] || payload` — the v1 envelope's

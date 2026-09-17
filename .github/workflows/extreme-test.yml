@@ -259,6 +259,13 @@ jobs:
             args: ""
             needs_rust: true
 
+          # --- RFC 0003 GPU-resident rings (Vulkan zero-copy + compute proof) ---
+          - shard: "gpu-native"
+            description: "RFC-0003 spike: GPU-series + gpu-probe full dispatch (lavapipe ICD)"
+            script: "ci/scripts/run_gpu_native_shard.sh"
+            args: ""
+            needs_rust: false
+
           # --- RFC 0005 VerifiedWeft (C + Rust + TS + xlang auth gates) ---
           - shard: "verifiedweft"
             description: "RFC 0005: V-series x3 kernels + C<->TS interop + tamper rejection"
@@ -372,6 +379,12 @@ jobs:
           curl -sSL https://drop-sh.fullyjustified.net | sh
           sudo mv tectonic /usr/local/bin/
           sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
+
+      - name: Install Vulkan ICD + tools (gpu-native shard)
+        if: matrix.shard == 'gpu-native'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libvulkan1 libvulkan-dev mesa-vulkan-drivers glslang-tools spirv-tools vulkan-tools
 
       - name: Run shard
         id: shard_run

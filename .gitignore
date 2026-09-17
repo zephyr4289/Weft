@@ -23,6 +23,15 @@ core/c/verified-test
 core/c/verified-test-asan
 core/c/verified-runner
 core/c/verified-runner-asan
+core/c/verified-mb-test
+core/c/verified-mb-test-asan
+core/c/shm-test
+core/c/shm-test-asan
+core/c/shm-runner
+core/c/shm-runner-asan
+core/c/gpu-probe
+core/c/gpu-ring-test
+core/c/gpu-ring-test-asan
 tools/weft-probe/weft_probe
 tools/weft-record/weft_record
 tools/weft-fanout-rec/weft-fanout-rec

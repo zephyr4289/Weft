@@ -68,7 +68,20 @@ static void fill_mixer(uint8_t* dst, uint32_t seq, size_t words) {
 }
 
 static void* read_spv(const char* path, size_t* out_len) {
-    FILE* f = fopen(path, "rb");
+    const char* candidates[] = {
+        path,
+        "probes/compute/validate_frame.spv",
+        "../../probes/compute/validate_frame.spv",
+        "../probes/compute/validate_frame.spv",
+        NULL
+    };
+    FILE* f = NULL;
+    for (int i = 0; candidates[i] != NULL; i++) {
+        if (candidates[i] && candidates[i][0] != '\0') {
+            f = fopen(candidates[i], "rb");
+            if (f) break;
+        }
+    }
     if (!f) return NULL;
     fseek(f, 0, SEEK_END);
     long n = ftell(f);

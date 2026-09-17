@@ -380,6 +380,12 @@ jobs:
           sudo mv tectonic /usr/local/bin/
           sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
 
+      - name: Install Vulkan ICD + tools (gpu-native shard)
+        if: matrix.shard == 'gpu-native'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libvulkan1 libvulkan-dev mesa-vulkan-drivers glslang-tools spirv-tools vulkan-tools
+
       - name: Run shard
         id: shard_run
         run: |

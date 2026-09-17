@@ -27,8 +27,9 @@ LOG=ci/run-artifacts/shard-gpu-native.log
 fail=0
 step() { echo "" | tee -a "$LOG"; echo "=== $1 ===" | tee -a "$LOG"; }
 
-# --- environment: install the software ICD when apt is available ----------
-step "environment (mesa-vulkan-drivers when apt available)"
+# --- environment: install the software ICD and Vulkan loader when apt is available
+step "environment (mesa-vulkan-drivers + libvulkan1 when apt available)"
+export WEFT_GPU_PROBE_SPV="$ROOT/probes/compute/validate_frame.spv"
 if command -v apt-get >/dev/null 2>&1; then
   if [ "$(id -u)" = "0" ]; then
     APT="apt-get"
@@ -39,7 +40,7 @@ if command -v apt-get >/dev/null 2>&1; then
   fi
   if [ -n "$APT" ]; then
     $APT update -qq >/dev/null 2>&1 || true
-    $APT install -y -qq mesa-vulkan-drivers glslang-tools spirv-tools >/dev/null 2>&1 || \
+    $APT install -y -qq libvulkan1 libvulkan-dev mesa-vulkan-drivers glslang-tools spirv-tools vulkan-tools >/dev/null 2>&1 || \
       echo "apt install failed — proceeding with whatever ICD exists" | tee -a "$LOG"
   fi
 fi

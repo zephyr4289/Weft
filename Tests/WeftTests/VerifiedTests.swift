@@ -206,8 +206,8 @@ final class VerifiedTests: XCTestCase {
             let tag = signer.sign(envelope: envelope, payload: payload)
             var slice = Data(count: recLen)
             let written = vwRecordEncode(envelope: envelope, payload: payload, tag: tag, dst: &slice)
-            stream.replaceSubrange((stream.startIndex + i * recLen)..<
-                                   (stream.startIndex + i * recLen + written), with: slice)
+            let start = stream.startIndex + i * recLen
+            stream.replaceSubrange(start..<start + written, with: slice)
         }
         return stream
     }

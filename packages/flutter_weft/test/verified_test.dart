@@ -33,7 +33,7 @@ String _hexOf(Uint8List b) =>
 
 class _Vec {
   final String name, key, data, tag;
-  _Vec(this.name, this.key, this.data, this.tag);
+  const _Vec(this.name, this.key, this.data, this.tag);
 }
 
 const _vectors = <_Vec>[

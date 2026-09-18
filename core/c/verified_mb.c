@@ -351,35 +351,34 @@ static int scan_magic_avx2(const uint8_t* src, size_t len, size_t from, size_t* 
 
 #include <arm_neon.h>
 
-// Phase-shifted dword compares: for phase p in {0,1,2,3}, compare the four
-// dwords at byte offsets p, p+4, p+8, p+12 of each 16-byte span against the
-// "WEFT" pattern — together the four phases cover every byte offset in the
-// span. Compile-guarded aarch64 (not executable-tested on the x86_64 sandbox).
+// Byte-mask AND chain: candidate byte b in a 16-byte window iff
+// src[b]=='W' & src[b+1]=='E' & src[b+2]=='F' & src[b+3]=='T'. vextq_u8
+// aligns neighbor comparisons to byte lane b; lanes 0..12 cover needles
+// fully inside the 16-byte window. Windows advance 13 so every start
+// offset is covered exactly once across windows.
 static int scan_magic_neon(const uint8_t* src, size_t len, size_t from, size_t* out_off) {
-    static const uint32_t PAT = 0x54464557u;  // 'W','E','F','T' little-endian
+    const uint8x16_t wv = vdupq_n_u8((uint8_t)'W');
+    const uint8x16_t ev = vdupq_n_u8((uint8_t)'E');
+    const uint8x16_t fv = vdupq_n_u8((uint8_t)'F');
+    const uint8x16_t tv = vdupq_n_u8((uint8_t)'T');
+    const uint8x16_t zv = vdupq_n_u8(0);
     size_t i = from;
-    for (; i + 16 <= len; i += 16) {
-        for (int p = 0; p < 4; p++) {
-            if (i + p + 16 <= len) {
-                uint32_t d[4];
-                memcpy(&d[0], src + i + p, 4);
-                memcpy(&d[1], src + i + p + 4, 4);
-                memcpy(&d[2], src + i + p + 8, 4);
-                memcpy(&d[3], src + i + p + 12, 4);
-                const uint32x4_t dv = vld1q_u32(d);
-                const uint32x4_t eq = vceqq_u32(dv, vdupq_n_u32(PAT));
-                const uint32_t m = vgetq_lane_u32(eq, 0) |
-                                   (vgetq_lane_u32(eq, 1) << 1) |
-                                   (vgetq_lane_u32(eq, 2) << 2) |
-                                   (vgetq_lane_u32(eq, 3) << 3);
-                if (m != 0) {
-                    for (int k = 0; k < 4; k++) {
-                        if (m & (1u << k)) {
-                            *out_off = i + (size_t)p + (size_t)(4 * k);
-                            return 1;
-                        }
-                    }
-                }
+    for (; i + 16 <= len; i += 13) {
+        const uint8x16_t v = vld1q_u8(src + i);
+        const uint8x16_t wm = vceqq_u8(v, wv);
+        const uint8x16_t em = vceqq_u8(v, ev);
+        const uint8x16_t fm = vceqq_u8(v, fv);
+        const uint8x16_t tm = vceqq_u8(v, tv);
+        const uint8x16_t e1 = vextq_u8(em, zv, 1);
+        const uint8x16_t f2 = vextq_u8(fm, zv, 2);
+        const uint8x16_t t3 = vextq_u8(tm, zv, 3);
+        const uint8x16_t cand = vandq_u8(vandq_u8(wm, e1), vandq_u8(f2, t3));
+        uint8_t match[16];
+        vst1q_u8(match, cand);
+        for (int b = 0; b < 13; b++) {
+            if (match[b]) {
+                *out_off = i + (size_t)b;
+                return 1;
             }
         }
     }

@@ -193,7 +193,7 @@ weft_gpu_stream_err_t weft_gpu_stream_init(weft_gpu_stream_t** out,
             weft_gpu_stream_destroy(s);
             return WEFT_GPU_STREAM_ERR_NO_VULKAN;
         }
-        vkGetPhysicalDeviceMemoryProperties(weft_gpu_vk_physical_device(g), &memprops);
+        vkGetPhysicalDeviceMemoryProperties((void*)weft_gpu_vk_physical_device(g), &memprops);
     }
 
     // --- result buffer: 32 B HOST_VISIBLE|COHERENT -----------------------

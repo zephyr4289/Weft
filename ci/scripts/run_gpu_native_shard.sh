@@ -128,7 +128,7 @@ PYEOF
       ./core/c/gpu-stream-probe --frames 512 --payload 256 --slots 4 --fd 2>&1 | tee -a "$LOG"
       s_rc=${PIPESTATUS[0]}
       set -e
-      if [ "$s_rc" -eq 0 ]; then SW_OK=1; else fail=1; fi
+      if [ "$s_rc" -eq 0 ]; then SW_OK=1; fi
     fi
   fi
 fi

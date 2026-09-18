@@ -39,8 +39,16 @@ core/c/shm-test-asan
 core/c/shm-runner
 core/c/shm-runner-asan
 core/c/gpu-probe
+core/c/gpu-stream-probe
+core/c/vk-abi-check
 core/c/gpu-ring-test
 core/c/gpu-ring-test-asan
+core/c/mb-bench
+core/c/blend-test
+core/c/blend-test-asan
+core/c/blend-runner
+core/c/worklet-test
+core/c/qos-test
 tools/weft-probe/weft_probe
 tools/weft-record/weft_record
 tools/weft-fanout-rec/weft-fanout-rec

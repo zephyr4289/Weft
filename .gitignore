@@ -104,3 +104,4 @@ tools/stranger-repro/build/
 tools/stranger-repro/STRANGER-REPRO-REPORT.*
 .tlc-cache/
 formal/*/states/
+nano/

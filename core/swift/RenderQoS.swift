@@ -94,11 +94,12 @@ public final class WeftWorklet {
     @discardableResult
     public func start() -> UInt32 {
         var latchedFlags: UInt32 = 0
-        latch.enter()
+        let group = latch
+        group.enter()
         let t = Thread { [weak self] in
-            guard let self = self else { latch.leave(); return }
+            guard let self = self else { group.leave(); return }
             latchedFlags = weftApplyRenderQoS()
-            latch.leave()
+            group.leave()
             while !self.stop {
                 _ = self.sem.wait(timeout: .distantFuture)
                 if self.stop { break }

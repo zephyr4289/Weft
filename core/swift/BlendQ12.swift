@@ -48,6 +48,10 @@ public enum BlendQ12 {
         let invV = SIMD4<UInt32>(repeating: inv)
         let alV = SIMD4<UInt32>(repeating: al)
         let ffV = SIMD4<UInt32>(repeating: 0xff)
+        let shift8V = SIMD4<UInt32>(repeating: 8)
+        let shift16V = SIMD4<UInt32>(repeating: 16)
+        let shift24V = SIMD4<UInt32>(repeating: 24)
+        let shift12V = SIMD4<UInt32>(repeating: 12)
         var i = 0
         while i + 4 <= n {
             // Load 4 pixels, split channels into 32-bit lanes (each lane a
@@ -58,16 +62,16 @@ public enum BlendQ12 {
             let pb = SIMD4<UInt32>(newest[i], newest[i + 1], newest[i + 2], newest[i + 3])
             let rA = pa & ffV
             let rB = pb & ffV
-            let gA = (pa >> 8) & ffV
-            let gB = (pb >> 8) & ffV
-            let bA = (pa >> 16) & ffV
-            let bB = (pb >> 16) & ffV
-            let aA = (pa >> 24) & ffV
-            let aB = (pb >> 24) & ffV
-            let r = ((rA &* invV) + (rB &* alV)) >> 12
-            let g = ((gA &* invV) + (gB &* alV)) >> 12
-            let b = ((bA &* invV) + (bB &* alV)) >> 12
-            let a = ((aA &* invV) + (aB &* alV)) >> 12
+            let gA = (pa &>> shift8V) & ffV
+            let gB = (pb &>> shift8V) & ffV
+            let bA = (pa &>> shift16V) & ffV
+            let bB = (pb &>> shift16V) & ffV
+            let aA = (pa &>> shift24V) & ffV
+            let aB = (pb &>> shift24V) & ffV
+            let r = ((rA &* invV) &+ (rB &* alV)) &>> shift12V
+            let g = ((gA &* invV) &+ (gB &* alV)) &>> shift12V
+            let b = ((bA &* invV) &+ (bB &* alV)) &>> shift12V
+            let a = ((aA &* invV) &+ (aB &* alV)) &>> shift12V
             out[i] = r.x | (g.x << 8) | (b.x << 16) | (a.x << 24)
             out[i + 1] = r.y | (g.y << 8) | (b.y << 16) | (a.y << 24)
             out[i + 2] = r.z | (g.z << 8) | (b.z << 16) | (a.z << 24)

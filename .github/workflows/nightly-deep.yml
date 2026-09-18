@@ -8,6 +8,14 @@ name: Nightly Deep Annihilation Matrix
 #   - Nightly cron (00:00 UTC)
 #   - Manual dispatch (workflow_dispatch)
 #   - Push with [nightly] in commit message
+#
+# NOTE: this workflow previously ALSO fired on every push touching
+# core/litmus/bench — racing the full extreme-test matrix on the same SHA
+# and double-paying the most expensive jobs we have (10-min thermal, TSAN,
+# chaos-10M, Loom bound-3, TLC). The documented intent was always the
+# [nightly] commit-message marker; the trigger now matches the docs. The
+# cron leg still covers main's HEAD every night, so nothing is lost —
+# the duplicate same-SHA runs are.
 
 on:
   schedule:
@@ -15,11 +23,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - 'core/**'
-      - 'litmus/**'
-      - 'bench/**'
-      - '.github/workflows/nightly-deep.yml'
+
+# Marker gate used by every job below: scheduled/dispatched runs always go;
+# push runs only when the head commit asks for it with [nightly].
 
 permissions:
   contents: write
@@ -43,6 +49,7 @@ jobs:
   litmus-stability:
     name: Litmus stability (5× iterations)
     runs-on: ubuntu-latest
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[nightly]')
     strategy:
       fail-fast: false
       matrix:
@@ -100,6 +107,7 @@ jobs:
   thermal-long:
     name: Thermal long (10min × 4 backends)
     runs-on: ubuntu-latest
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[nightly]')
     steps:
       - uses: actions/checkout@v4
 
@@ -143,6 +151,7 @@ jobs:
   tsan-deep:
     name: TSAN deep (C kernel, 5×8 = 40 runs)
     runs-on: ubuntu-latest
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[nightly]')
     steps:
       - uses: actions/checkout@v4
 
@@ -186,6 +195,7 @@ jobs:
   clean-tree-deep:
     name: Clean-tree validation (tarball unpack + 5 targets)
     runs-on: ubuntu-latest
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[nightly]')
     steps:
       - uses: actions/checkout@v4
 
@@ -254,6 +264,7 @@ jobs:
     name: Language battery — ${{ matrix.lang }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[nightly]')
     strategy:
       fail-fast: false
       matrix:
@@ -274,6 +285,10 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Set up Gradle (build caching)
+        if: matrix.lang == 'kotlin'
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Accept Android Licenses & Install NDK / CMake
         if: matrix.lang == 'kotlin'
@@ -338,7 +353,7 @@ jobs:
     name: Aggregate nightly → ci-report
     runs-on: ubuntu-latest
     needs: [litmus-stability, thermal-long, tsan-deep, clean-tree-deep, lang-ports]
-    if: always()
+    if: always() && (github.event_name != 'push' || contains(github.event.head_commit.message, '[nightly]'))
     permissions:
       contents: write
     steps:
@@ -412,6 +427,7 @@ jobs:
   chaos-10m:
     name: Chaos free-running (10,000,000 frames, seed-deterministic faults)
     runs-on: ubuntu-latest
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[nightly]')
     steps:
       - uses: actions/checkout@v4
       - name: Build the chaos engine
@@ -441,6 +457,7 @@ jobs:
   loom-bound3:
     name: Loom preemption-bound-3 exhaustive sweep (RFC 0011 deep-model)
     runs-on: ubuntu-latest
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[nightly]')
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust
@@ -467,6 +484,7 @@ jobs:
   formal-deep:
     name: TLA+ deeper bounds (3 readers / 4 frames)
     runs-on: ubuntu-latest
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[nightly]')
     steps:
       - uses: actions/checkout@v4
       - name: Set up Java
@@ -474,11 +492,20 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Cache pinned TLC jar
+        uses: actions/cache@v4
+        with:
+          path: .tlc-cache/tla2tools-1.8.0.jar
+          key: tla2tools-1.8.0-9d36716f
       - name: Fetch pinned TLC
         run: |
           set -euo pipefail
           mkdir -p .tlc-cache
-          curl -sSLf -o .tlc-cache/tla2tools-1.8.0.jar https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar
+          if [ -f .tlc-cache/tla2tools-1.8.0.jar ]; then
+            echo "TLC jar restored from cache — verifying pinned sha256"
+          else
+            curl -sSLf -o .tlc-cache/tla2tools-1.8.0.jar https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar
+          fi
           echo "9d36716ffb5e49d1ba8fae4651eba59f3189887e12eb90e204a42d2e6e993fef  .tlc-cache/tla2tools-1.8.0.jar" | sha256sum -c -
       - name: FanoutSeqlock — wider model (3 readers, 4 frames)
         run: |

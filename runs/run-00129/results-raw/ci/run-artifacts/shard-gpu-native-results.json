@@ -1,0 +1,1 @@
+{"shard":"gpu-native","status":"PASSED","gates":"GPU-series vulkan+cpu+asan + gpu-probe dispatch proof + geometry sweep + vk-abi-check + gpu-stream-probe STREAM/RASTER/FD (SwiftShader leg) + guardrail + spv determinism x3"}

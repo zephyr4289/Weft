@@ -84,12 +84,14 @@ jobs:
           chmod +x ci/scripts/run_litmus_stability.sh
           ./ci/scripts/run_litmus_stability.sh ${{ matrix.lang }} 5 2>&1 | tee ci/run-artifacts/shard-litmus-stability-${{ matrix.lang }}.log
 
-      - name: Upload stability log
+      - name: Upload stability artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: log-litmus-stability-${{ matrix.lang }}
-          path: ci/run-artifacts/shard-litmus-stability-${{ matrix.lang }}.log
+          path: |
+            ci/run-artifacts/shard-litmus-stability-${{ matrix.lang }}.log
+            ci/run-artifacts/shard-litmus-stability-${{ matrix.lang }}-results.json
           retention-days: 30
 
   # ===========================================================================
@@ -122,14 +124,17 @@ jobs:
           chmod +x ci/scripts/run_thermal_shard.sh
           ./ci/scripts/run_thermal_shard.sh 600 2>&1 | tee ci/run-artifacts/shard-thermal-long.log
 
-      - name: Upload thermal-long log + JSON
+      - name: Upload thermal-long artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: log-thermal-long
           path: |
             ci/run-artifacts/shard-thermal-long.log
+            ci/run-artifacts/shard-thermal-long-results.json
+            ci/run-artifacts/shard-thermal-proxy-results.json
             bench/results/wsuite-thermal-x86_64-sandbox.json
+          if-no-files-found: ignore
           retention-days: 30
 
   # ===========================================================================
@@ -164,12 +169,14 @@ jobs:
           chmod +x ci/scripts/run_tsan_deep.sh
           ./ci/scripts/run_tsan_deep.sh 5 2>&1 | tee ci/run-artifacts/shard-tsan-deep.log
 
-      - name: Upload TSAN log
+      - name: Upload TSAN artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: log-tsan-deep
-          path: ci/run-artifacts/shard-tsan-deep.log
+          path: |
+            ci/run-artifacts/shard-tsan-deep.log
+            ci/run-artifacts/shard-tsan-deep-results.json
           retention-days: 30
 
   # ===========================================================================
@@ -222,14 +229,16 @@ jobs:
           chmod +x ci/scripts/run_clean_tree_deep.sh
           ./ci/scripts/run_clean_tree_deep.sh weft-nightly.tar.gz 2>&1 | tee ci/run-artifacts/shard-clean-tree.log
 
-      - name: Upload clean-tree logs
+      - name: Upload clean-tree artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: log-clean-tree-deep
           path: |
             ci/run-artifacts/shard-clean-tree.log
+            ci/run-artifacts/shard-clean-tree-results.json
             litmus/evidence/clean-tree-nightly/
+          if-no-files-found: ignore
           retention-days: 30
 
   # ===========================================================================
@@ -266,9 +275,19 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Gradle
+      - name: Accept Android Licenses & Install NDK / CMake
         if: matrix.lang == 'kotlin'
-        uses: gradle/actions/setup-gradle@v4
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Prepare Gradle Wrapper
+        if: matrix.lang == 'kotlin'
+        run: chmod +x android/gradlew
+
+      - name: Select Xcode
+        if: matrix.lang == 'swift'
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app || true
 
       - name: Setup Flutter SDK
         if: matrix.lang == 'dart'
@@ -282,8 +301,6 @@ jobs:
         run: |
           set -o pipefail  # no silent-green
           cd android
-          gradle wrapper --gradle-version 8.11.1 >/dev/null 2>&1 || true
-          chmod +x gradlew
           ./gradlew test --stacktrace 2>&1 | tee /tmp/lang-kotlin.log
 
       - name: Battery — swift (SPM, Metal probe included)
@@ -468,14 +485,14 @@ jobs:
           set -euo pipefail
           cd formal/fanout
           sed -e 's/READERS = 2/READERS = 3/' -e 's/FRAMES = 3/FRAMES = 4/' FanoutSeqlock.cfg > FanoutSeqlock-nightly.cfg
-          java -XX:+UseParallelGC -cp ../../.tlc-cache/tla2tools-1.8.0.jar tlc2.TLC -config FanoutSeqlock-nightly.cfg FanoutSeqlock.tla 2>&1 | tee ../../ci/run-artifacts/formal-nightly-fanout.log
+          java -XX:+UseParallelGC -Xmx4g -cp ../../.tlc-cache/tla2tools-1.8.0.jar tlc2.TLC -config FanoutSeqlock-nightly.cfg FanoutSeqlock.tla 2>&1 | tee ../../ci/run-artifacts/formal-nightly-fanout.log
           grep -q "Model checking completed. No error has been found." ../../ci/run-artifacts/formal-nightly-fanout.log
       - name: ReattachPolicy — deeper model (3 deaths, 4 frames)
         run: |
           set -euo pipefail
           cd formal/reattach
           sed -e 's/DEATHS = 2/DEATHS = 3/' -e 's/FRAMES = 3/FRAMES = 4/' ReattachPolicy.cfg > ReattachPolicy-nightly.cfg
-          java -XX:+UseParallelGC -cp ../../.tlc-cache/tla2tools-1.8.0.jar tlc2.TLC -config ReattachPolicy-nightly.cfg ReattachPolicy.tla 2>&1 | tee ../../ci/run-artifacts/formal-nightly-reattach.log
+          java -XX:+UseParallelGC -Xmx4g -cp ../../.tlc-cache/tla2tools-1.8.0.jar tlc2.TLC -config ReattachPolicy-nightly.cfg ReattachPolicy.tla 2>&1 | tee ../../ci/run-artifacts/formal-nightly-reattach.log
           grep -q "Model checking completed. No error has been found." ../../ci/run-artifacts/formal-nightly-reattach.log
       - name: Upload formal evidence
         if: always()

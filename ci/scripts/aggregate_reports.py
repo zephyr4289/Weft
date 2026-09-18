@@ -57,23 +57,35 @@ def main():
         shard_name = shard_log.stem.replace("shard-", "")
         log_text = shard_log.read_text(errors="replace")
 
-        # Extract status from the header
-        status = "UNKNOWN"
-        for line in log_text.splitlines()[:10]:
-            if line.startswith("STATUS:"):
-                status = line.split(":", 1)[1].strip()
-                # Normalize: "PASSED ✅" -> "PASSED"
-                status = status.split()[0] if status.split() else "UNKNOWN"
-                break
-
         # Find matching results JSON
         results_json_path = results_dir / f"shard-{shard_name}-results.json"
+        if not results_json_path.exists():
+            results_json_path = logs_dir / f"shard-{shard_name}-results.json"
         shard_data = {}
         if results_json_path.exists():
             try:
                 shard_data = json.loads(results_json_path.read_text())
             except json.JSONDecodeError:
                 pass
+
+        # Extract status: from results JSON first, then log header, then common success indicators
+        status = shard_data.get("status") if isinstance(shard_data, dict) and shard_data.get("status") else None
+        if not status:
+            for line in log_text.splitlines()[:15]:
+                if line.startswith("STATUS:"):
+                    status = line.split(":", 1)[1].strip().split()[0]
+                    break
+        if not status:
+            # Fallback: check last lines for explicit status markers
+            for line in reversed(log_text.splitlines()[-15:]):
+                if line.startswith("STATUS:"):
+                    status = line.split(":", 1)[1].strip().split()[0]
+                    break
+                elif "ALL PASS ✅" in line or "✅ Stability threshold met" in line:
+                    status = "PASSED"
+                    break
+        if not status:
+            status = "UNKNOWN"
 
         # Take last 30 lines as tail for the summary
         tail = "\n".join(log_text.splitlines()[-30:])

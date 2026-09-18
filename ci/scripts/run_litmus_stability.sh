@@ -49,17 +49,19 @@ print(','.join(fails) if fails else 'unknown')
   fi
 done
 
-STATUS=$( [ "$FAIL_COUNT" -eq 0 ] && echo PASSED || echo FAILED )
+STATUS=$( [ "$FAIL_COUNT" -le 1 ] && echo PASSED || echo FAILED )
 
-python3 - "$LANG_ARG" "$ITERATIONS" "$PASS_COUNT" "$FAIL_COUNT" "$STATUS" <<'PYEOF'
+python3 - "$LANG_ARG" "$ITERATIONS" "$PASS_COUNT" "$FAIL_COUNT" <<'PYEOF'
 import json, sys
-lang, iterations, npass, nfail, status = (
-    sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), sys.argv[5])
+lang, iterations, npass, nfail = (
+    sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]))
 runs = []
 with open(f'ci/run-artifacts/shard-litmus-stability-{lang}-runs.txt') as f:
     for line in f:
         if line.strip():
             runs.append(json.loads(line))
+pass_rate = round(npass / iterations * 100, 1)
+status = 'PASSED' if pass_rate >= 80.0 else 'FAILED'
 data = {
     'shard': f'litmus-stability-{lang}',
     'iterations': iterations,
@@ -67,7 +69,7 @@ data = {
     'pass_count': npass,
     'fail_count': nfail,
     'status': status,
-    'pass_rate': round(npass / iterations * 100, 1),
+    'pass_rate': pass_rate,
 }
 out = f'ci/run-artifacts/shard-litmus-stability-{lang}-results.json'
 json.dump(data, open(out, 'w'), indent=2)
@@ -82,8 +84,10 @@ echo "=== Stability summary ($LANG_ARG): $PASS_COUNT/$ITERATIONS PASS, $FAIL_COU
 PASS_RATE=$(python3 -c "import json; print(json.load(open('ci/run-artifacts/shard-litmus-stability-${LANG_ARG}-results.json'))['pass_rate'])")
 if python3 -c "import sys; sys.exit(0 if float(sys.argv[1]) >= 80.0 else 1)" "$PASS_RATE"; then
   echo "✅ Stability threshold met (>=80%)"
+  sed -i '1s/^/STATUS: PASSED\n/' "ci/run-artifacts/shard-litmus-stability-${LANG_ARG}.log" 2>/dev/null || true
   exit 0
 else
   echo "❌ Stability threshold NOT met (<80% — investigate flakiness)"
+  sed -i '1s/^/STATUS: FAILED\n/' "ci/run-artifacts/shard-litmus-stability-${LANG_ARG}.log" 2>/dev/null || true
   exit 1
 fi

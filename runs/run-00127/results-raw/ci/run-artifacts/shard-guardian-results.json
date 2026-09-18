@@ -1,0 +1,1 @@
+{"shard":"guardian","status":"PASSED","gates":"selftest-bites + wire-probe 52 fields + throughput vs baseline + crash audit"}

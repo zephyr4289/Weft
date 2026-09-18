@@ -1,0 +1,16 @@
+{
+  "shard": "litmus-rust",
+  "status": "PASSED",
+  "cells_pass": 8,
+  "cells_total": 8,
+  "cells": {
+    "rust/L1-tear": true,
+    "rust/L2-writer-steps": true,
+    "rust/L3-reader-steps": true,
+    "rust/L4-freshness": true,
+    "rust/L5-progress": true,
+    "rust/L6-ownership": true,
+    "rust/L7-revocation": true,
+    "rust/L8-envelope": true
+  }
+}

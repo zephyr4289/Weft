@@ -105,4 +105,10 @@ echo "=== Clean-tree validation: $( [ $OVERALL_PASS -eq 1 ] && echo 'ALL PASS âœ
 # Clean up the work tree
 rm -rf "$WORK_DIR"
 
-[ $OVERALL_PASS -eq 1 ] || exit 1
+if [ $OVERALL_PASS -eq 1 ]; then
+  sed -i '1s/^/STATUS: PASSED\n/' ci/run-artifacts/shard-clean-tree.log 2>/dev/null || true
+  exit 0
+else
+  sed -i '1s/^/STATUS: FAILED\n/' ci/run-artifacts/shard-clean-tree.log 2>/dev/null || true
+  exit 1
+fi

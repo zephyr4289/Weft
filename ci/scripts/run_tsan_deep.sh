@@ -59,4 +59,10 @@ print(json.dumps(out, indent=2))
 
 echo ""
 echo "=== TSAN deep summary: $TSAN_HITS TSAN warnings across $TOTAL_RUNS runs ==="
-[ $TSAN_HITS -eq 0 ] || exit 1
+if [ $TSAN_HITS -eq 0 ] && [ $FAIL_COUNT -eq 0 ]; then
+  sed -i '1s/^/STATUS: PASSED\n/' ci/run-artifacts/shard-tsan-deep.log 2>/dev/null || true
+  exit 0
+else
+  sed -i '1s/^/STATUS: FAILED\n/' ci/run-artifacts/shard-tsan-deep.log 2>/dev/null || true
+  exit 1
+fi

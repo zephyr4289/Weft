@@ -253,6 +253,14 @@ ffi-fuzz: ffi_fuzz.c weft.c weft.h
 ffi-fuzz-asan: ffi_fuzz.c weft.c weft.h
 	$(CC) $(CFLAGS_ASAN) -o ffi-fuzz-asan ffi_fuzz.c weft.c
 
+# ---- Issue #15: thin hardware-adaptive layer (weft_hw) --------------------
+
+weft-hw-test: weft_hw.c weft_hw_test.c weft_hw.h weft.c weft.h
+	$(CC) $(CFLAGS) -o weft-hw-test weft_hw.c weft_hw_test.c weft.c
+
+weft-hw-test-asan: weft_hw.c weft_hw_test.c weft_hw.h weft.c weft.h
+	$(CC) $(CFLAGS_ASAN) -o weft-hw-test-asan weft_hw.c weft_hw_test.c weft.c
+
 bench: bench_runner.c weft.c weft.h
 	$(CC) $(CFLAGS) -o bench bench_runner.c weft.c
 

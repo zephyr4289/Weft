@@ -1,0 +1,7 @@
+# TL-ring — 8MiB ring, 1MiB payloads, cadence 1ms — 2026-09-17T20:42:50Z
+{"bench":"TL-ring","lang":"c","variant":"posix-alloc","payload_max":1048576,"slots":8,"ring_mib":8.0,"cadence_us":1000,"samples":3063,"p50":151612,"p90":498321,"p99":614336,"p999":28045318,"max":28095281,"clock_overhead_ns":23}
+{"bench":"TL-ring","lang":"c","variant":"turbo-mmap","payload_max":1048576,"slots":8,"ring_mib":8.0,"cadence_us":1000,"samples":3063,"p50":134403,"p90":433592,"p99":576078,"p999":655200,"max":695775,"clock_overhead_ns":23}
+{"bench":"TL-ring","lang":"c","variant":"posix-alloc","payload_max":1048576,"slots":8,"ring_mib":8.0,"cadence_us":1000,"samples":3063,"p50":140366,"p90":448695,"p99":584242,"p999":28064558,"max":28108065,"clock_overhead_ns":23}
+{"bench":"TL-ring","lang":"c","variant":"turbo-mmap","payload_max":1048576,"slots":8,"ring_mib":8.0,"cadence_us":1000,"samples":3063,"p50":136593,"p90":444616,"p99":584167,"p999":835756,"max":1232227,"clock_overhead_ns":23}
+{"bench":"TL-ring","lang":"c","variant":"posix-alloc","payload_max":1048576,"slots":8,"ring_mib":8.0,"cadence_us":1000,"samples":3063,"p50":125684,"p90":419422,"p99":576071,"p999":27919831,"max":27949440,"clock_overhead_ns":23}
+{"bench":"TL-ring","lang":"c","variant":"turbo-mmap","payload_max":1048576,"slots":8,"ring_mib":8.0,"cadence_us":1000,"samples":3063,"p50":116229,"p90":366051,"p99":523287,"p999":677969,"max":738266,"clock_overhead_ns":23}

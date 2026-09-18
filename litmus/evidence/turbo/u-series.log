@@ -1,0 +1,22 @@
+# U-series (plain / asan / tsan) — 2026-09-17T20:42:50Z
+--- uring-test ---
+uring-capability: mode=ring register_errno=0 kernel=5.10.134-013.15.kangaroo.al8.x86_64 (fixed-recv rung needs >= 5.19; multishot+sqpoll: PREDICTED, hardware-gated)
+ok: U1 probe returns a declared mode
+ok: U1 SYSCALL fallback is universal (mode >= syscall)
+  U2 session mode: ring
+  U3 session mode: ring
+U-SERIES: ALL PASS
+--- uring-test-asan ---
+uring-capability: mode=ring register_errno=0 kernel=5.10.134-013.15.kangaroo.al8.x86_64 (fixed-recv rung needs >= 5.19; multishot+sqpoll: PREDICTED, hardware-gated)
+ok: U1 probe returns a declared mode
+ok: U1 SYSCALL fallback is universal (mode >= syscall)
+  U2 session mode: ring
+  U3 session mode: ring
+U-SERIES: ALL PASS
+--- uring-test-tsan ---
+uring-capability: mode=ring register_errno=0 kernel=5.10.134-013.15.kangaroo.al8.x86_64 (fixed-recv rung needs >= 5.19; multishot+sqpoll: PREDICTED, hardware-gated)
+ok: U1 probe returns a declared mode
+ok: U1 SYSCALL fallback is universal (mode >= syscall)
+  U2 session mode: ring
+  U3 session mode: ring
+U-SERIES: ALL PASS

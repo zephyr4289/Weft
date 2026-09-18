@@ -119,3 +119,17 @@ A Weft release candidate that regresses any published C-row metric (P99 beyond n
 any nonzero bytes/frame) **fails release** and blocks until fixed or the regression is publicly
 explained. The Laws are enforced here: this gate is Law 2's teeth at release time, and the reason
 the philosophy survives contact with a thousand contributors.
+
+## 9. T-series evidence benches (RFC 0012 TLEL)
+
+The T-bench family (`core/c/turbo_runner.c`) is evidence tooling for the
+Tail-Latency Eradication Layer — not catalog benches; parameters are
+runner-owned and every cell runs in its own process (the B-suite
+methodology, applied per-variant). Modes: `caps`, `TL-writer`,
+`TL-reader`, `TL-ring`, `ING-uring`. Committed evidence (3 reps per cell,
+A-B interleaved) lives in `litmus/evidence/turbo/` with the honesty labels
+in [RFC 0012](../../rfcs/0012-tail-latency-turbo.md): MEASURED (reader
+early-hint p50 −27%, +pin p99 −45%, placement determinism) vs PREDICTED
+(THP/TLB on real hardware, FIXED/multishot ingestion on kernel ≥ 5.19,
+cross-NUMA, SCHED_FIFO). The zero-regression guardrail re-runs B1/B2/B3
+and the F-series alongside every T-bench collection.

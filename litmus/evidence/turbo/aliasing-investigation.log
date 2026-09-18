@@ -1,0 +1,28 @@
+# TL-writer posix-ring anomaly — the full trail — 2026-09-17T20:42:50Z
+# OBSERVED: posix ring + wrappers p50 ~450-590ns in the runner binary
+#   while plain (posix, no wrappers) = 60ns and turbo-ring (mmap +
+#   SAME wrappers) = 65ns. Stable across 3 reps and fresh processes.
+# BISECT (prefetch disabled, -DWEFT_TURBO_PREFETCH_MAX_BYTES=0):
+{"bench":"TL-writer","lang":"c","variant":"turbo-prefetch","payload_max":256,"slots":8,"frames":100000,"stride":16,"ops_per_s":2028341,"p50":343,"p90":453,"p99":496,"p999":598,"max":4813,"samples":6250,"clock_overhead_ns":23}
+# PHASE PROBE (begin/fill/publish decomposed, posix ring):
+plain    begin_med=  41 fill_med=  45 pub_med=  30  total_med= 116 (n=3750)
+turbo    begin_med=  43 fill_med=  45 pub_med=  34  total_med= 123 (n=3750)
+plain    begin_med=  41 fill_med=  45 pub_med=  30  total_med= 116 (n=3750)
+turbo    begin_med=  43 fill_med=  45 pub_med=  34  total_med= 123 (n=3750)
+# 8-CELL PROBE (ring x buf x prefetch, minimal binary):
+ring=posix buf=heap  pf=no  median=60 ns
+ring=posix buf=heap  pf=yes median=66 ns
+ring=posix buf=mmap  pf=no  median=60 ns
+ring=posix buf=mmap  pf=yes median=64 ns
+ring=mmap  buf=heap  pf=no  median=60 ns
+ring=mmap  buf=heap  pf=yes median=64 ns
+ring=mmap  buf=mmap  pf=no  median=60 ns
+ring=mmap  buf=mmap  pf=yes median=65 ns
+# CONCLUSION: the wrappers cost +5-8ns on a benign layout (phase
+#  probe); the runner's slow cell is an ADDRESS-LAYOUT effect — the
+#  posix-heap ring's p50 with identical instructions is a build- and
+#  ASLR-dependent lottery (60..590ns observed), consistent with
+#  store->load 4K-aliasing on this Xeon. The turbo mmap ring is
+#  DETERMINISTICALLY ~65ns: the 2MiB-aligned dedicated mapping wins
+#  the layout lottery by construction. Root cause not fully isolated
+#  in-sandbox (no perf-counter access) — stated, not claimed.

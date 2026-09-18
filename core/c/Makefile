@@ -153,6 +153,58 @@ gpu-ring-test: gpu_ring.c gpu_ring.h gpu_ring_test.c $(GPU_SRC) fanout.h weft.h
 gpu-ring-test-asan: gpu_ring.c gpu_ring.h gpu_ring_test.c $(GPU_SRC) fanout.h weft.h
 	$(CC) $(CFLAGS_ASAN) -o gpu-ring-test-asan $(GPU_SRC) gpu_ring_test.c -lrt -lpthread -ldl
 
+# ---- RFC 0012 Tail-Latency Eradication Layer (turbo) -----------------------
+# turbo.{h,c}: capability-detected placement/prefetch/pinning services riding
+# the frozen fanout attach seam. T-series conformance (byte-equivalence,
+# prefault gate, pinned torture). -seq builds the all-seq_cst A/B regime —
+# prefetch and placement must be ordering-neutral there too.
+
+TURBO_SRC = turbo.c fanout.c frame_cursor.c weft.c
+
+turbo-test: turbo.c turbo.h turbo_test.c $(TURBO_SRC) fanout.h frame_cursor.h weft.h
+	$(CC) $(CFLAGS) -o turbo-test $(TURBO_SRC) turbo_test.c
+
+turbo-test-asan: turbo.c turbo.h turbo_test.c $(TURBO_SRC) fanout.h frame_cursor.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o turbo-test-asan $(TURBO_SRC) turbo_test.c
+
+turbo-test-tsan: turbo.c turbo.h turbo_test.c $(TURBO_SRC) fanout.h frame_cursor.h weft.h
+	$(CC) $(CFLAGS_DBG) -o turbo-test-tsan $(TURBO_SRC) turbo_test.c
+
+turbo-test-seq: turbo.c turbo.h turbo_test.c $(TURBO_SRC) fanout.h frame_cursor.h weft.h
+	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 -o turbo-test-seq $(TURBO_SRC) turbo_test.c
+
+# ---- RFC 0012 kernel-bypass ingestion (uring_rx) ----------------------------
+# uring_rx.{h,c}: datagram->frame ingestion under the FI1 bracket; capability
+# ladder NONE/SYSCALL/RING/FIXED probed at runtime (no liburing dependency).
+# U-series conformance + concurrent torture.
+
+URING_SRC = uring_rx.c fanout.c weft.c
+
+uring-test: uring_rx.c uring_rx.h uring_test.c $(URING_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS) -o uring-test $(URING_SRC) uring_test.c
+
+uring-test-asan: uring_rx.c uring_rx.h uring_test.c $(URING_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o uring-test-asan $(URING_SRC) uring_test.c
+
+uring-test-tsan: uring_rx.c uring_rx.h uring_test.c $(URING_SRC) fanout.h weft.h
+	$(CC) $(CFLAGS_DBG) -o uring-test-tsan $(URING_SRC) uring_test.c
+
+# ---- RFC 0012 T-bench evidence runner ---------------------------------------
+# turbo_runner.c: caps / TL-writer / TL-reader / TL-ring / ING-uring modes;
+# one JSON line per variant (bench_runner.c methodology). -sys builds the
+# forced-SYSCALL ingestion A/B leg (-DWEFT_URING_FORCE_SYSCALL, bench-only).
+
+TRUNNER_SRC = turbo.c uring_rx.c fanout.c weft.c
+
+turbo-runner: turbo_runner.c $(TRUNNER_SRC) turbo.h uring_rx.h fanout.h weft.h
+	$(CC) $(CFLAGS) -o turbo-runner $(TRUNNER_SRC) turbo_runner.c
+
+turbo-runner-sys: turbo_runner.c $(TRUNNER_SRC) turbo.h uring_rx.h fanout.h weft.h
+	$(CC) $(CFLAGS) -DWEFT_URING_FORCE_SYSCALL=1 -o turbo-runner-sys $(TRUNNER_SRC) turbo_runner.c
+
+bench: bench_runner.c weft.c weft.h
+	$(CC) $(CFLAGS) -o bench bench_runner.c weft.c
+
 governor-test: governor.c governor_test.c governor.h
 	$(CC) $(CFLAGS) -o governor-test governor.c governor_test.c
 
@@ -165,6 +217,10 @@ clean:
 	      verified-test verified-test-asan verified-runner verified-runner-asan \
 	      verified-mb-test verified-mb-test-asan \
 	      shm-test shm-test-asan shm-runner shm-runner-asan \
-	      gpu-probe gpu-ring-test gpu-ring-test-asan
+	      gpu-probe gpu-ring-test gpu-ring-test-asan \
+	      turbo-test turbo-test-asan turbo-test-tsan turbo-test-seq \
+	      uring-test uring-test-asan uring-test-tsan \
+	      turbo-runner turbo-runner-sys bench
 
 .PHONY: all clean
+

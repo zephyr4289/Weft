@@ -4,6 +4,15 @@ core/c/governor-test
 core/c/governor-test-asan
 core/c/spike-tsan
 core/c/bench
+core/c/turbo-test
+core/c/turbo-test-asan
+core/c/turbo-test-tsan
+core/c/turbo-test-seq
+core/c/uring-test
+core/c/uring-test-asan
+core/c/uring-test-tsan
+core/c/turbo-runner
+core/c/turbo-runner-sys
 core/c/bench-asan
 core/c/libweft.so
 core/c/fanout-test
@@ -69,6 +78,7 @@ Thumbs.db
 # Node & Package builds
 node_modules/
 packages/*/dist/
+packages/*/temp/
 fixtures/*/dist/
 demos/*/dist/
 dist/

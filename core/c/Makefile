@@ -211,6 +211,34 @@ governor-test: governor.c governor_test.c governor.h
 governor-test-asan: governor.c governor_test.c governor.h
 	$(CC) $(CFLAGS_ASAN) -o governor-test-asan governor.c governor_test.c
 
+# ---- Series 8: SIMD Q12 raster blend (RFC-0009 §cadence raster op) --------
+# blend-test: bit-exactness gate — every compiled path (sse4.1/avx2/neon)
+#             must equal the scalar reference on the full sweep; also the
+#             --digests golden-vector emitter for the xlang-blend fixture.
+# blend-runner: ns/frame + GB/s at 1080p/4K/8K, scalar vs dispatched SIMD.
+
+blend-test: blend_q12.c blend_test.c blend_q12.h
+	$(CC) $(CFLAGS) -o blend-test blend_q12.c blend_test.c
+
+blend-test-asan: blend_q12.c blend_test.c blend_q12.h
+	$(CC) $(CFLAGS_ASAN) -o blend-test-asan blend_q12.c blend_test.c
+
+blend-runner: blend_q12.c blend_runner.c blend_q12.h
+	$(CC) $(CFLAGS) -o blend-runner blend_q12.c blend_runner.c
+
+# ---- Series 8: thread QoS + the native render worklet ---------------------
+# worklet-test: W1 no-lost-ticks, W2 single-consumer order, W3 QoS honesty,
+#               W4 post->run latency distribution, W5 the governed blend
+#               loop on the worklet thread.
+# qos-test: thread_qos flags honesty (affinity applies / RT refused is
+#           declared; the big-core mask parses or abstains).
+
+worklet-test: worklet.c worklet.h thread_qos.c thread_qos.h worklet_test.c blend_q12.c blend_q12.h
+	$(CC) $(CFLAGS) -o worklet-test worklet.c thread_qos.c worklet_test.c blend_q12.c
+
+qos-test: thread_qos.c thread_qos.h qos_test.c
+	$(CC) $(CFLAGS) -o qos-test thread_qos.c qos_test.c
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
@@ -220,7 +248,9 @@ clean:
 	      gpu-probe gpu-ring-test gpu-ring-test-asan \
 	      turbo-test turbo-test-asan turbo-test-tsan turbo-test-seq \
 	      uring-test uring-test-asan uring-test-tsan \
-	      turbo-runner turbo-runner-sys bench
+	      turbo-runner turbo-runner-sys bench \
+	      blend-test blend-test-asan blend-runner \
+	      worklet-test qos-test
 
 .PHONY: all clean
 

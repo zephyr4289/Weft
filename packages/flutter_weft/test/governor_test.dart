@@ -10,7 +10,8 @@
 // CROSS-LANGUAGE PARITY, LOCALLY (the Series-7 upgrade): the canonical
 // xorshift32 traces (04-LITMUS §0.2) are pinned by FNV-1a-64 hashes
 // computed from the TS reference (scripts/gen_trace_refs.mjs — ladder
-// 0x3c33156204c7cfdf over 10,000 bytes, cadence 0x6f654c298cbcc9f4 over
+// 0x3c33156204c7cfdf over 10,000 bytes, cadence (PC3 v2, four policies)
+// 0x12eed7eec11b6a57 over 80,000 bytes, predictive-only 0xa6b942ef48046e0e over
 // 60,000 bytes). Any arithmetic drift in THIS port fails HERE, without
 // needing another toolchain; the fixtures (xlang-governor/vm,
 // xlang-cadence) byte-compare all ports in CI as the standing proof.
@@ -409,17 +410,20 @@ void main() {
     expect(p.presents > 0, true);
   });
 
-  test('PC3 local cadence trace hash pin (TS reference)', () {
+  test('PC3 v2 local cadence trace hash pin (TS reference)', () {
     // The canonical arrival trace, packed identically to
-    // fixtures/xlang-cadence: per tick, 3 policies in kind order, each
-    // 2 bytes: b1 = present<<7 | interp<<6 | alphaQ12>>7,
-    // b2 = min(coalesced, 255). Hash pinned from the TS reference.
+    // fixtures/xlang-cadence (PC3 v2): per tick, 4 policies in kind
+    // order, each 2 bytes: b1 = present<<7 | interp<<6 | alphaQ12>>7,
+    // b2 = min(coalesced, 255). Hash pinned from the TS reference
+    // (RFC-0012 added PREDICTIVE_PACED as kind 3 — the v1 3-policy
+    // substream is byte-preserved; the pin covers the extended stream).
     final pols = [
       CadencePolicy(CadenceConfig(CadencePolicyKind.latestWins)),
       CadencePolicy(CadenceConfig(CadencePolicyKind.pacedInterpolate)),
       CadencePolicy(CadenceConfig(CadencePolicyKind.burstCoalesce)),
+      CadencePolicy(CadenceConfig(CadencePolicyKind.predictivePaced)),
     ];
-    final bytes = Uint8List(60000);
+    final bytes = Uint8List(80000);
     var state = 0x00c0ffee;
     var latest = 0;
     var out = 0;
@@ -437,7 +441,25 @@ void main() {
         out++;
       }
     }
-    expect(_fnv1a64(bytes), 0x6f654c298cbcc9f4,
-        reason: 'PC3 local trace hash (TS reference pin)');
+    expect(_fnv1a64(bytes), 0x12eed7eec11b6a57,
+        reason: 'PC3 v2 local trace hash (TS reference pin)');
+  });
+
+  test('PC7 predictive: drift-freedom on the 12/5 beat + reactive gate clears', () {
+    final p = CadencePolicy(CadenceConfig(CadencePolicyKind.predictivePaced));
+    var m = 1;
+    var latest = 0;
+    var satHolds = 0;
+    for (var t = 1; t <= 10000; t++) {
+      if (t >= (2.4 * m).toInt()) { latest++; m++; }
+      final d = p.step(latest);
+      if (d.present && d.alphaQ12 == cadenceAlphaOneQ12) satHolds++;
+    }
+    final dev = (p.gapQ16ForTest() - (2.4 * cadenceOneQ16).toInt()).abs();
+    expect(dev <= 8192, true, reason: 'PC7a gap EWMA orbit: $dev');
+    expect(satHolds <= 10, true, reason: 'PC7b saturated holds: $satHolds');
+    final r0 = p.reactiveTicks;
+    for (var i = 0; i < 5000; i++) { p.step(latest); }
+    expect(p.reactiveTicks - r0, 0, reason: 'PC7b gate clear');
   });
 }

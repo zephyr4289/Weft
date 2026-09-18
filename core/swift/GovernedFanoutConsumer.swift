@@ -137,10 +137,9 @@ public final class GovernedFanoutConsumer {
         if d.present {
             if d.interp {
                 let alpha = d.alphaQ12
-                let inv = cadenceAlphaOneQ12 - alpha
                 for i in 0..<words {
-                    let packed = GovernedFanoutConsumer.blendQ12(
-                        prevWords[i], newWords[i], alpha, inv)
+                    let packed = BlendQ12.blendPacked(
+                        prevWords[i], newWords[i], alpha)
                     raster[4 * i] = UInt8(truncatingIfNeeded: packed)
                     raster[4 * i + 1] = UInt8(truncatingIfNeeded: packed >> 8)
                     raster[4 * i + 2] = UInt8(truncatingIfNeeded: packed >> 16)
@@ -167,17 +166,4 @@ public final class GovernedFanoutConsumer {
         myPool?.release(raster)
     }
 
-    /// Per-channel u32 blend in Q12 — the raster op (zero alloc).
-    @inline(__always)
-    private static func blendQ12(_ a: UInt32, _ b: UInt32,
-                                 _ alpha: Int32, _ inv: Int32) -> UInt32 {
-        func ch(_ x: UInt32, _ y: UInt32) -> UInt32 {
-            UInt32(((Int(x & 0xff) * Int(inv)) + (Int(y & 0xff) * Int(alpha))) >> 12)
-        }
-        let r = ch(a, b)
-        let g = ch(a >> 8, b >> 8)
-        let bl = ch(a >> 16, b >> 16)
-        let al = ch(a >> 24, b >> 24)
-        return r | (g << 8) | (bl << 16) | (al << 24)
-    }
 }

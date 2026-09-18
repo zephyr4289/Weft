@@ -11,7 +11,8 @@
 // fixture in CI"): the canonical xorshift32 traces (04-LITMUS §0.2) are
 // pinned by FNV-1a 64 hashes computed from the TS reference
 // (scripts/gen_trace_refs.mjs — ladder 0x3c33156204c7cfdf over 10,000
-// bytes, cadence 0x6f654c298cbcc9f4 over 60,000 bytes). Any arithmetic
+// bytes, cadence (PC3 v2, four policies) 0x12eed7eec11b6a57 over 80,000
+// bytes, predictive-only 0xa6b942ef48046e0e over 20,000 bytes). Any arithmetic
 // drift in THIS port fails HERE, without needing another toolchain; the
 // fixtures (xlang-governor/vm, xlang-cadence) then byte-compare all ports
 // in CI as the standing proof.
@@ -454,15 +455,18 @@ class GovernorTest {
     @Test
     fun pc3LocalCadenceTraceHashPin() {
         // The canonical arrival trace, packed identically to
-        // fixtures/xlang-cadence: per tick, 3 policies in kind order, each
-        // 2 bytes: b1 = present<<7 | interp<<6 | alphaQ12>>7,
-        // b2 = min(coalesced, 255). Hash pinned from the TS reference.
+        // fixtures/xlang-cadence (PC3 v2): per tick, 4 policies in kind
+        // order, each 2 bytes: b1 = present<<7 | interp<<6 | alphaQ12>>7,
+        // b2 = min(coalesced, 255). Hash pinned from the TS reference
+        // (RFC-0012 added PREDICTIVE_PACED as kind 3 — the v1 3-policy
+        // substream is byte-preserved; the pin covers the extended stream).
         val pols = arrayOf(
             CadencePolicy(CadencePolicyKind.LATEST_WINS),
             CadencePolicy(CadencePolicyKind.PACED_INTERPOLATE),
-            CadencePolicy(CadencePolicyKind.BURST_COALESCE)
+            CadencePolicy(CadencePolicyKind.BURST_COALESCE),
+            CadencePolicy(CadencePolicyKind.PREDICTIVE_PACED)
         )
-        val bytes = ByteArray(60_000)
+        val bytes = ByteArray(80_000)
         var state = 0x00c0ffeeL
         var latest = 0L
         var out = 0
@@ -478,6 +482,63 @@ class GovernorTest {
                 bytes[out++] = minOf(a.coalesced, 255L).toByte()
             }
         }
-        assertEquals("PC3 local trace hash (TS reference pin)", 0x6f654c298cbcc9f4L, fnv1a64(bytes))
+        assertEquals("PC3 v2 local trace hash (TS reference pin)", 0x12eed7eec11b6a57L, fnv1a64(bytes))
+    }
+
+    @Test
+    fun pc7PredictiveDriftFreedomOnFractionalBeat() {
+        // RFC-0012 PC7: on the stable 12/5 beat (2.4 ticks) the gap EWMA
+        // converges into its measured orbit and saturated holds stay rare;
+        // on a crafted late-jitter beat every late window holds exactly
+        // once and no non-late window does.
+        // (a) convergence + rare holds on 12/5.
+        val p = CadencePolicy(CadencePolicyKind.PREDICTIVE_PACED)
+        var state = 0x00c0ffeeL
+        var latest = 0L
+        var m = 1L
+        var satHolds = 0
+        for (t in 1..10_000) {
+            val arrival = t >= (2.4 * m).toInt()
+            if (arrival) { latest++; m++ }
+            val d = p.step(latest)
+            if (d.present && d.alphaQ12 == CADENCE_ALPHA_ONE_Q12) satHolds++
+        }
+        val dev = Math.abs(p.gapQ16ForTest() - (2.4 * CADENCE_ONE_Q16).toLong())
+        assertTrue("PC7a gap EWMA orbit: $dev", dev <= 8192)
+        assertTrue("PC7b saturated holds: $satHolds", satHolds <= 10)
+        // (b) reactive gate clears and stays clear on the stable beat.
+        val r0 = p.reactiveTicks
+        repeat(5000) { p.step(latest) }
+        assertTrue("PC7b gate clear", p.reactiveTicks - r0 == 0L)
+    }
+
+    @Test
+    fun pc10PredictiveReactiveGateFiresOnPathologicalClock() {
+        // Alternating 1,5 gaps: the relative MAD explodes, the gate pins
+        // on (counted), and the predictive stream equals PACED's.
+        val pred = CadencePolicy(CadencePolicyKind.PREDICTIVE_PACED)
+        val paced = CadencePolicy(CadencePolicyKind.PACED_INTERPOLATE)
+        var latestP = 0L
+        var latestQ = 0L
+        // Deterministic alternating feed: arrival at ticks 1,2,7,8,13,14,...
+        val arrivals = HashSet<Long>()
+        var at = 1L
+        var k = 0
+        while (at <= 10_000) {
+            arrivals.add(at)
+            at += if (k % 2 == 0) 1L else 5L
+            k++
+        }
+        for (tick in 1..10_000L) {
+            if (arrivals.contains(tick)) latestP++
+            val dp = pred.step(latestP)
+            if (arrivals.contains(tick)) latestQ++
+            val dq = paced.step(latestQ)
+            if (tick in 3000..6000) {
+                assertEquals("PC10 gated stream == PACED at tick $tick",
+                    Pair(dq.present, dq.alphaQ12), Pair(dp.present, dp.alphaQ12))
+            }
+        }
+        assertTrue("PC10 gate fired: ${pred.reactiveTicks}", pred.reactiveTicks > 3000)
     }
 }

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# run.sh — PC3 cross-language cadence-policy parity gate (RFC-0009 §cadence).
+# run.sh — PC3 cross-language cadence-policy parity gate (RFC-0009 §cadence
+# + RFC-0012 §PREDICTIVE_PACED).
 #
 # The SAME deterministic arrival trace (xorshift32-seeded, the repo's
-# canonical 04-LITMUS §0.2 generator) is run through ALL THREE cadence
+# canonical 04-LITMUS §0.2 generator) is run through ALL FOUR cadence
 # policies in every VM port; each emitter emits the packed decision log
 # (per tick, per policy in kind order: b1 = present<<7 | interp<<6 |
 # alphaQ12>>7, b2 = min(coalesced,255); hex-encoded, one trailing
@@ -96,18 +97,18 @@ else
   echo "-- Dart emitter -- SKIPPED (no dart on this runner; flutter-packages CI covers)"
 fi
 
-# Sanity: the trace must actually PRESENT in all three policies and
+# Sanity: the trace must actually PRESENT in all four policies and
 # exercise both coalescing and interpolation — otherwise the comparison
 # proves nothing.
 echo "-- policy coverage --"
 COV=$($NODE -e "
 const hex = require('fs').readFileSync('/tmp/pc3-ts.log', 'utf8').trim();
-// 6 bytes per tick (3 policies x 2 bytes), hex-encoded = 12 chars/tick.
-if (hex.length % 12 !== 0) { console.error('not 3 policies x 2 bytes per tick'); process.exit(1); }
-const presented = [false, false, false];
+// 8 bytes per tick (4 policies x 2 bytes), hex-encoded = 16 chars/tick.
+if (hex.length % 16 !== 0) { console.error('not 4 policies x 2 bytes per tick'); process.exit(1); }
+const presented = [false, false, false, false];
 let coalesced = 0, interp = 0;
-for (let i = 0; i < hex.length; i += 12) {
-  for (let p = 0; p < 3; p++) {
+for (let i = 0; i < hex.length; i += 16) {
+  for (let p = 0; p < 4; p++) {
     const b1 = parseInt(hex.slice(i + p * 4, i + p * 4 + 2), 16);
     const b2 = parseInt(hex.slice(i + p * 4 + 2, i + p * 4 + 4), 16);
     if (b1 & 0x80) presented[p] = true;
@@ -115,9 +116,9 @@ for (let i = 0; i < hex.length; i += 12) {
     coalesced += b2;
   }
 }
-const missing = [0, 1, 2].filter((p) => !presented[p]);
+const missing = [0, 1, 2, 3].filter((p) => !presented[p]);
 if (missing.length) { console.error('policies that never presented: ' + missing.join(',')); process.exit(1); }
-console.log('all three policies presented; ticks=' + (hex.length / 12) +
+console.log('all four policies presented; ticks=' + (hex.length / 16) +
   ' interpPacked=' + interp + ' coalescedPacked=' + coalesced);
 ") || fail=1
 echo "   $COV"

@@ -5,6 +5,15 @@
 ```ts
 
 // @public (undocumented)
+export const BLEND_ONE_Q12 = 4096;
+
+// @public (undocumented)
+export function blendQ12Packed(a: number, b: number, alphaQ12: number): number;
+
+// @public (undocumented)
+export function blendQ12Words(prev: Uint32Array, newest: Uint32Array, alphaQ12: number, out: Uint32Array): void;
+
+// @public (undocumented)
 export const CADENCE_ALPHA_ONE_Q12 = 4096;
 
 // @public (undocumented)
@@ -15,6 +24,9 @@ export const CADENCE_K_MAX = 64;
 
 // @public (undocumented)
 export const CADENCE_K_MIN = 1;
+
+// @public (undocumented)
+export const CADENCE_ONE_Q16 = 65536;
 
 // @public (undocumented)
 export interface CadenceConfig {
@@ -40,11 +52,21 @@ export class CadencePolicy {
     // (undocumented)
     elided: number;
     // (undocumented)
+    internal_gapQ16ForTest(): number;
+    // (undocumented)
+    internal_phaseQ16ForTest(): number;
+    // (undocumented)
+    internal_phaseRemForTest(): number;
+    // (undocumented)
+    internal_varQ16ForTest(): number;
+    // (undocumented)
     interpFrames: number;
     // (undocumented)
     missedPresentTicks: number;
     // (undocumented)
     presents: number;
+    // (undocumented)
+    reactiveTicks: number;
     // (undocumented)
     reset(policy?: CadencePolicyKind): void;
     // (undocumented)
@@ -56,6 +78,7 @@ export const CadencePolicyKind: {
     readonly LATEST_WINS: 0;
     readonly PACED_INTERPOLATE: 1;
     readonly BURST_COALESCE: 2;
+    readonly PREDICTIVE_PACED: 3;
 };
 
 // @public (undocumented)
@@ -159,6 +182,9 @@ export interface FanoutReaderStats {
     // (undocumented)
     tornExhausted: number;
 }
+
+// @public (undocumented)
+export function fnv1a64Words(words: Uint32Array): string;
 
 // @public (undocumented)
 export interface FrameClaim {

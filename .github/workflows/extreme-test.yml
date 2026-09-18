@@ -325,6 +325,17 @@ jobs:
             args: ""
             needs_rust: false
 
+          # --- Series 8: SIMD blend + QoS/worklet shards ---
+          - shard: "simd-blend"
+            description: "Q12 raster blend: C golden gates + xlang-blend cross-language digests + bench"
+            script: "ci/scripts/run_blend_shard.sh"
+            args: ""
+            needs_rust: false
+          - shard: "qos-worklet"
+            description: "thread QoS flags honesty + native worklet conformance (20k ticks, order, latency)"
+            script: "ci/scripts/run_qos_shard.sh"
+            args: ""
+            needs_rust: false
           - shard: "guardian"
             description: "Telemetry Guardian — must-bite selftest + wire probe + 3% throughput + crash audit"
             script: "ci/scripts/run_guardian_shard.sh"
@@ -348,19 +359,13 @@ jobs:
         if: matrix.needs_rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Set up pnpm + build @weft/core dist (fanout-native interop leg)
-        if: matrix.shard == 'fanout-native'
+      - name: Set up pnpm + build @weft/core dist (fanout-native, browser-sab, simd-blend)
+        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend'
         run: |
           npm i -g pnpm@9
           pnpm install --frozen-lockfile
           pnpm --filter @weft/core build
 
-      - name: Set up pnpm + build @weft/core dist (browser-sab leg)
-        if: matrix.shard == 'browser-sab'
-        run: |
-          npm i -g pnpm@9
-          pnpm install --frozen-lockfile
-          pnpm --filter @weft/core build
 
       - name: Set up pnpm (verifiedweft TS + xlang legs)
         if: matrix.shard == 'verifiedweft'

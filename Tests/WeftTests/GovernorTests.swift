@@ -10,7 +10,8 @@
 // CROSS-LANGUAGE PARITY, LOCALLY (the Series-7 upgrade): the canonical
 // xorshift32 traces (04-LITMUS §0.2) are pinned by FNV-1a-64 hashes
 // computed from the TS reference (scripts/gen_trace_refs.mjs — ladder
-// 0x3c33156204c7cfdf over 10,000 bytes, cadence 0x6f654c298cbcc9f4 over
+// 0x3c33156204c7cfdf over 10,000 bytes, cadence (PC3 v2, four policies)
+// 0x12eed7eec11b6a57 over 80,000 bytes, predictive-only 0xa6b942ef48046e0e over
 // 60,000 bytes). Any arithmetic drift in THIS port fails HERE, without
 // needing another toolchain; the fixtures (xlang-governor/vm,
 // xlang-cadence) byte-compare all ports in CI as the standing proof.
@@ -384,15 +385,18 @@ final class GovernorTests: XCTestCase {
 
     func testPC3LocalCadenceTraceHashPin() {
         // The canonical arrival trace, packed identically to
-        // fixtures/xlang-cadence: per tick, 3 policies in kind order, each
-        // 2 bytes: b1 = present<<7 | interp<<6 | alphaQ12>>7,
-        // b2 = min(coalesced, 255). Hash pinned from the TS reference.
+        // fixtures/xlang-cadence (PC3 v2): per tick, 4 policies in kind
+        // order, each 2 bytes: b1 = present<<7 | interp<<6 | alphaQ12>>7,
+        // b2 = min(coalesced, 255). Hash pinned from the TS reference
+        // (RFC-0012 added PREDICTIVE_PACED as kind 3 — the v1 3-policy
+        // substream is byte-preserved; the pin covers the extended stream).
         let pols = [
             CadencePolicy(policy: CadencePolicyKind.latestWins),
             CadencePolicy(policy: CadencePolicyKind.pacedInterpolate),
             CadencePolicy(policy: CadencePolicyKind.burstCoalesce),
+            CadencePolicy(policy: CadencePolicyKind.predictivePaced),
         ]
-        var bytes = [UInt8](repeating: 0, count: 60_000)
+        var bytes = [UInt8](repeating: 0, count: 80_000)
         var state = Int64(0x00c0ffee)
         var latest: Int64 = 0
         var out = 0
@@ -408,7 +412,27 @@ final class GovernorTests: XCTestCase {
                 out += 1
             }
         }
-        XCTAssertEqual(fnv1a64(bytes), 0x6f654c298cbcc9f4,
-                       "PC3 local trace hash (TS reference pin)")
+        XCTAssertEqual(fnv1a64(bytes), 0x12eed7eec11b6a57,
+                       "PC3 v2 local trace hash (TS reference pin)")
+    }
+
+    func testPC7PredictiveDriftFreedomOnFractionalBeat() {
+        // RFC-0012 PC7: convergence into the measured orbit + rare holds
+        // on the 12/5 beat; the reactive gate clears and stays clear.
+        let p = CadencePolicy(policy: CadencePolicyKind.predictivePaced)
+        var m: Int64 = 1
+        var latest: Int64 = 0
+        var satHolds = 0
+        for t in 1...10_000 {
+            if Int64(t) >= Int64(2.4 * Double(m)) { latest += 1; m += 1 }
+            let d = p.step(latestSeq: latest)
+            if d.present && d.alphaQ12 == cadenceAlphaOneQ12 { satHolds += 1 }
+        }
+        let dev = abs(p.gapQ16ForTest() - Int64(2.4 * Double(cadenceOneQ16)))
+        XCTAssertTrue(dev <= 8192, "PC7a gap EWMA orbit: \(dev)")
+        XCTAssertTrue(satHolds <= 10, "PC7b saturated holds: \(satHolds)")
+        let r0 = p.reactiveTicks
+        for _ in 0..<5000 { p.step(latestSeq: latest) }
+        XCTAssertEqual(p.reactiveTicks - r0, 0, "PC7b gate clear")
     }
 }

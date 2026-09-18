@@ -53,6 +53,10 @@ PAIRS=(
   "core/dart/governor.dart|packages/flutter_weft/lib/src/reference/governor.dart"
   "core/dart/recycler.dart|packages/flutter_weft/lib/src/reference/recycler.dart"
   "core/dart/governed_consumer.dart|packages/flutter_weft/lib/src/reference/governed_consumer.dart"
+  "core/kotlin/BlendQ12.kt|android/weft-core/src/main/kotlin/dev/weft/BlendQ12.kt"
+  "core/kotlin/RenderQos.kt|android/weft-core/src/main/kotlin/dev/weft/RenderQos.kt"
+  "core/dart/blend_q12.dart|packages/flutter_weft/lib/src/reference/blend_q12.dart"
+  "core/dart/render_qos.dart|packages/flutter_weft/lib/src/reference/render_qos.dart"
 )
 
 n_pass=0

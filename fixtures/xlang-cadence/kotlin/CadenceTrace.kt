@@ -6,13 +6,15 @@
 //   state = SEED (default 0x00C0FFEE)
 //   for i in 0..N:
 //     state = xorshift32(state); arrivals = state % 5; latest += arrivals
-//     for policy in [LATEST_WINS, PACED_INTERPOLATE, BURST_COALESCE]:
+//     for policy in [LATEST_WINS, PACED_INTERPOLATE, BURST_COALESCE,
+//                    PREDICTIVE_PACED]:
 //       d = policy.step(latest)
 //       emit byte1 = (present<<7) | (interp<<6) | (alphaQ12 >> 7)
 //       emit byte2 = min(coalesced, 255)
 //
-// Hex-encoded (lowercase, no separators, one trailing newline) — 6 bytes
-// per tick, three policies in kind order. run.sh byte-compares all ports.
+// Hex-encoded (lowercase, no separators, one trailing newline) — 8 bytes
+// per tick, four policies in kind order (PC3 v2, RFC-0012 added kind 3).
+// run.sh byte-compares all ports.
 //
 // Build & run:
 //   kotlinc core/kotlin/Governor.kt fixtures/xlang-cadence/kotlin/CadenceTrace.kt \
@@ -41,7 +43,8 @@ fun main(args: Array<String>) {
     val pols = arrayOf(
         CadencePolicy(CadencePolicyKind.LATEST_WINS),
         CadencePolicy(CadencePolicyKind.PACED_INTERPOLATE),
-        CadencePolicy(CadencePolicyKind.BURST_COALESCE)
+        CadencePolicy(CadencePolicyKind.BURST_COALESCE),
+        CadencePolicy(CadencePolicyKind.PREDICTIVE_PACED)
     )
     val sb = StringBuilder(steps * 6 * 2)
     var state = seed

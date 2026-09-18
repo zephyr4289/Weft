@@ -46,6 +46,7 @@
 
 import 'dart:typed_data';
 
+import 'blend_q12.dart';
 import 'fanout.dart';
 import 'governor.dart';
 import 'recycler.dart';
@@ -146,10 +147,11 @@ class GovernedFanoutConsumer {
     if (d.present) {
       if (d.interp) {
         final alpha = d.alphaQ12;
-        final inv = cadenceAlphaOneQ12 - alpha;
         final r = raster;
         for (var i = 0; i < words; i++) {
-          final packed = _blendQ12(_prevWords[i], _newWords[i], alpha, inv);
+          // blend_q12.dart = the single spec'd raster op (Series 8;
+          // bit-exact to the C SIMD kernel via the xlang gate).
+          final packed = blendQ12Packed(_prevWords[i], _newWords[i], alpha);
           r[4 * i] = packed & 0xFF;
           r[4 * i + 1] = (packed >>> 8) & 0xFF;
           r[4 * i + 2] = (packed >>> 16) & 0xFF;
@@ -178,12 +180,4 @@ class GovernedFanoutConsumer {
     _myPool?.release(r);
   }
 
-  /// Per-channel u32 blend in Q12 — the raster op (zero alloc).
-  static int _blendQ12(int a, int b, int alpha, int inv) {
-    final r = ((a & 0xff) * inv + (b & 0xff) * alpha) >>> 12;
-    final g = ((a >>> 8 & 0xff) * inv + (b >>> 8 & 0xff) * alpha) >>> 12;
-    final bl = ((a >>> 16 & 0xff) * inv + (b >>> 16 & 0xff) * alpha) >>> 12;
-    final al = ((a >>> 24 & 0xff) * inv + (b >>> 24 & 0xff) * alpha) >>> 12;
-    return r | (g << 8) | (bl << 16) | (al << 24);
-  }
 }

@@ -4,7 +4,7 @@ The cadence policies' PC-series conformance (RFC-0009 §"Cadence
 conformance") closes with **PC3: identical packed decision traces for
 identical arrival traces across TS/Kotlin/Swift/Dart** — the same xlang
 discipline the governor ladder used for G5 (`fixtures/xlang-governor/`),
-extended to the four VM ports (Series 7).
+extended to the four VM ports (Series 7) and extended again in place to the FOURTH policy — RFC-0012's PREDICTIVE_PACED (Series 8, PC3 v2): the stream is 8 bytes/tick, policies in kind order 0,1,2,3.
 
 ## Mechanism
 
@@ -16,10 +16,10 @@ state = 0x00C0FFEE                      (xorshift32 — 04-LITMUS §0.2)
 for i in 0..10_000:
     state   = xorshift32(state)
     latest += state % 5                 (volatile arrivals: 0..4 per tick)
-    for policy in [LATEST_WINS, PACED_INTERPOLATE, BURST_COALESCE]:
+    for policy in [LATEST_WINS, PACED_INTERPOLATE, BURST_COALESCE, PREDICTIVE_PACED]:
         d = policy.step(latest)
         emit byte1 = (present<<7) | (interp<<6) | (alphaQ12 >> 7)
-        emit byte2 = min(coalesced, 255)   — hex-encoded, 6 bytes/tick
+        emit byte2 = min(coalesced, 255)   — hex-encoded, 8 bytes/tick
 ```
 
 The packing is deliberately lossy-but-sufficient (alphaQ12's high 5 bits,

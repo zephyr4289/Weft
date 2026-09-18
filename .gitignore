@@ -78,6 +78,7 @@ Thumbs.db
 # Node & Package builds
 node_modules/
 packages/*/dist/
+packages/*/temp/
 fixtures/*/dist/
 demos/*/dist/
 dist/

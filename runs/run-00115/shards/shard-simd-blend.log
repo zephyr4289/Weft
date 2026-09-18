@@ -1,0 +1,32 @@
+==================================================
+SHARD: simd-blend
+DESCRIPTION: Q12 raster blend: C golden gates + xlang-blend cross-language digests + bench
+STATUS: FAILED ❌
+COMMIT: 4e12e44cb39bcf8c540283723681818cc1b58930
+RUN: 115
+==================================================
+
+== simd-blend shard: env x86_64/Linux ==
+-- C kernel gates --
+== blend_test: impl=avx2 (2) ==
+B1 boundaries: OK
+B2 parity sweep: OK (154 path-checks, all == scalar)
+B3 alpha sweep 0..4096 (dispatched): OK
+B4 in-place aliasing: OK
+blend_test: ALL GATES GREEN
+blend-test: ALL GATES GREEN
+-- xlang-blend golden gate --
+== xlang-blend golden parity: env x86_64/Linux ==
+-- C kernel (golden source) --
+   blend-test gates GREEN
+   golden-vectors.csv matches the kernel
+packages/core/dist not built — run: (cd packages/core && npx tsup)
+xlang-blend parity RED
+-- blend_runner benchmark --
+== blend_runner: dispatch=avx2 ==
+256x256-hot (65536 words): scalar   189025 ns/frame (  4.2 GB/s) | avx2    23366 ns/frame ( 33.7 GB/s) | speedup 8.09x
+1080p (2073600 words): scalar  6034858 ns/frame (  4.1 GB/s) | avx2   798285 ns/frame ( 31.2 GB/s) | speedup 7.56x
+4K (8294400 words): scalar 24521423 ns/frame (  4.1 GB/s) | avx2  3202415 ns/frame ( 31.1 GB/s) | speedup 7.66x
+8K (33177600 words): scalar 98339662 ns/frame (  4.0 GB/s) | avx2 30775910 ns/frame ( 12.9 GB/s) | speedup 3.20x
+❌ simd-blend shard RED
+❌ simd-blend shard RED

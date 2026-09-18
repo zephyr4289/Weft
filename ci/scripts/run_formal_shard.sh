@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # run_formal_shard.sh — RFC 0011 formal verification shard (TLA+/TLC).
 #
-# Runs the two PlusCal-free TLA+ models of the branch:
+# Runs the PlusCal-free TLA+ models of the branch:
 #   formal/fanout/FanoutSeqlock.tla   — the RFC 0004 multi-reader fan-out
 #                                       seqlock: NoTornAccepted, Telescoping,
 #                                       StampBracket, NoFuture + the
@@ -10,14 +10,30 @@
 #                                       ReattachPolicy: NoStaleAccess,
 #                                       NoBlindAttach, NoLeakOnRealloc,
 #                                       Telescoping + reattach/catch-up liveness
+#   formal/triad/TriadExchange.tla    — Issue #16 Tier 1 Task 1: the Triad
+#                                       core kernel (publish/claim/revoke/
+#                                       reclaim) — THREE regimes:
+#                                       TriadAcqRel (production ordering:
+#                                       PROVEN, incl. liveness), TriadRelaxed
+#                                       (EXPECTED COUNTEREXAMPLE: weaker
+#                                       ordering tears the protocol — the
+#                                       necessity half of "acq_rel is
+#                                       sufficient"), TriadPremature
+#                                       (EXPECTED COUNTEREXAMPLE: free
+#                                       without the epoch ACK is the A1
+#                                       use-after-free the I6 handshake
+#                                       prevents). A counterexample cfg that
+#                                       checks CLEAN is a RED shard — the
+#                                       metamorphic gate: the counterexample
+#                                       must exist, reproducibly.
 #
 # TLC (tla2tools.jar) is fetched with a PINNED sha256 into .tlc-cache/ — a
 # different jar is a RED (the prover itself is part of the evidence chain).
 #
 # Output: ci/run-artifacts/shard-formal.log
 #         ci/run-artifacts/shard-formal-results.json
-# Exit:   0 only if BOTH models check clean ("Model checking completed. No
-#         error has been found.").
+# Exit:   0 only if every clean-model checks clean AND every counterexample
+#         model reports its expected violation.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -66,27 +82,50 @@ run_model() {
 # NOTE: each model's verdict is matched within its own log slice — the
 # greedy grep above would otherwise match the previous model's line.
 check_model() {
-  local dir="$1" name="$2"
-  step "Model: $name"
+  local dir="$1" module="$2" cfg="$3"
+  step "Model: $cfg"
   # Absolute path: the model runs inside a ( cd ... ) subshell, and a
   # relative tee target would land INSIDE formal/<dir> — the exact
   # silent-green class this branch exists to kill.
-  local model_log="$ROOT/ci/run-artifacts/shard-formal-$name.log"
+  local model_log="$ROOT/ci/run-artifacts/shard-formal-$cfg.log"
   rm -f "$model_log"
-  ( cd "$dir" && java -XX:+UseParallelGC -cp "$JAR" tlc2.TLC -config "$name.cfg" "$name.tla" 2>&1 | tee "$model_log" | tail -20 | tee -a "$LOG" )
+  ( cd "$dir" && java -XX:+UseParallelGC -cp "$JAR" tlc2.TLC -config "$cfg.cfg" "$module.tla" 2>&1 | tee "$model_log" | tail -20 | tee -a "$LOG" )
   if grep -q "Model checking completed. No error has been found." "$model_log"; then
-    echo "[$name] PROVEN — no error found" | tee -a "$LOG"
+    echo "[$cfg] PROVEN — no error found" | tee -a "$LOG"
     return 0
   fi
-  echo "[$name] TLC did NOT report a clean check" | tee -a "$LOG"
+  echo "[$cfg] TLC did NOT report a clean check" | tee -a "$LOG"
   return 1
 }
 
-if check_model "formal/fanout" "FanoutSeqlock"; then :; else fail=1; fi
-if check_model "formal/reattach" "ReattachPolicy"; then :; else fail=1; fi
+# Counterexample gate (Issue #16 Tier 1): the model MUST report a violation of
+# one of the expected invariants — the trace IS the artifact. A clean run is a
+# RED shard: the counterexample has stopped reproducing (model or protocol
+# drift) and the necessity proof is GONE.
+check_counterexample_model() {
+  local dir="$1" module="$2" cfg="$3" expected="$4"
+  step "Model (expected counterexample): $cfg"
+  local model_log="$ROOT/ci/run-artifacts/shard-formal-$cfg.log"
+  rm -f "$model_log"
+  # TLC exits nonzero when it finds the violation we WANT — neutralize the
+  # exit code; the grep on the log below is the gate (never the exit code).
+  ( cd "$dir" && java -XX:+UseParallelGC -cp "$JAR" tlc2.TLC -config "$cfg.cfg" "$module.tla" 2>&1 | tee "$model_log" | tail -20 | tee -a "$LOG" ) || true
+  if grep -qE "Invariant (${expected}) is violated" "$model_log"; then
+    echo "[$cfg] COUNTEREXAMPLE REPRODUCED — $(grep -oE "Invariant (${expected}) is violated" "$model_log" | head -1)" | tee -a "$LOG"
+    return 0
+  fi
+  echo "[$cfg] expected a violation of [${expected}] — got none (or an unexpected one). RED: the necessity proof is gone." | tee -a "$LOG"
+  return 1
+}
+
+if check_model "formal/fanout" "FanoutSeqlock" "FanoutSeqlock"; then :; else fail=1; fi
+if check_model "formal/reattach" "ReattachPolicy" "ReattachPolicy"; then :; else fail=1; fi
+if check_model "formal/triad" "TriadExchange" "TriadAcqRel"; then :; else fail=1; fi
+if check_counterexample_model "formal/triad" "TriadExchange" "TriadRelaxed" "CanaryIntegrity|TornPayload|ObservedMonotone"; then :; else fail=1; fi
+if check_counterexample_model "formal/triad" "TriadExchange" "TriadPremature" "NoUseAfterFree"; then :; else fail=1; fi
 
 if [ "$fail" -eq 0 ]; then
-  echo '{"shard":"formal","status":"PASSED","gates":"FanoutSeqlock PROVEN + ReattachPolicy PROVEN (TLC, pinned jar)"}' > "$RESULTS"
+  echo '{"shard":"formal","status":"PASSED","gates":"FanoutSeqlock PROVEN + ReattachPolicy PROVEN + TriadAcqRel PROVEN + TriadRelaxed/TriadPremature counterexamples reproduced (TLC, pinned jar)"}' > "$RESULTS"
   echo "formal shard: PASS" | tee -a "$LOG"
 else
   echo '{"shard":"formal","status":"FAILED"}' > "$RESULTS"

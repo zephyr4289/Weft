@@ -54,8 +54,8 @@ fun main() {
     println("KOTLIN PROOF GREEN")
 }
 KOTLIN
-  if kotlinc core/kotlin/RenderQos.kt "$PROOF_DIR/Proof.kt" -d "$PROOF_DIR/classes" >/dev/null 2>&1 \
-     && java -cp "$PROOF_DIR/classes:$(kotlinc -print-java-home 2>/dev/null)/lib/kotlin-stdlib.jar" ProofKt 2>&1 | tee -a "$LOG"; then
+  if kotlinc core/kotlin/RenderQos.kt "$PROOF_DIR/Proof.kt" -include-runtime -d "$PROOF_DIR/proof.jar" >/dev/null 2>&1 \
+     && java -jar "$PROOF_DIR/proof.jar" 2>&1 | tee -a "$LOG"; then
     :
   else
     echo "Kotlin QoS proof RED" >&2

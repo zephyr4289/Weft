@@ -287,12 +287,18 @@ static int probe_vk_init(probe_vk_t* v, weft_gpu_ring_t* g, const char* spv_path
 
     VkComputePipelineCreateInfo_ cpci = {0};
     cpci.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-    cpci.stage.sType = VK_STRUCTURE_TYPE_SHADER_STAGE_CREATE_INFO;
+    cpci.stage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     cpci.stage.stage = VK_SHADER_STAGE_COMPUTE_BIT;
     cpci.stage.module = v->module;
     cpci.stage.pName = "main";
     cpci.layout = v->pipeline_layout;
-    if (v->vkCreateComputePipelines(v->device, NULL, 0, &cpci, NULL, &v->pipeline) != VK_SUCCESS) {
+    // AUDIT FIX (Series 8): this call passed createInfoCount=0 — the loop in
+    // every conformant driver then creates NOTHING and returns VK_SUCCESS, so
+    // v->pipeline stayed NULL and vkCmdBindPipeline would bind garbage. Never
+    // exposed pre-Series-8 because the dispatch leg never executed anywhere
+    // (llvmpipe JIT reservations fail on every evidence host).
+    if (v->vkCreateComputePipelines(v->device, NULL, 1, &cpci, NULL, &v->pipeline) != VK_SUCCESS ||
+        v->pipeline == NULL) {
         return -11;
     }
 
@@ -308,13 +314,11 @@ static int probe_vk_init(probe_vk_t* v, weft_gpu_ring_t* g, const char* spv_path
     if (v->vkCreateDescriptorPool(v->device, &dpci, NULL, &v->desc_pool) != VK_SUCCESS) {
         return -12;
     }
-    typedef struct { uint32_t sType; const void* pNext; void* pool; uint32_t setCount;
-                     const void* const* pSetLayouts; } VkDescriptorSetAllocateInfo_;
     const void* alloc_layouts[1] = { v->set_layout };
     VkDescriptorSetAllocateInfo_ dsai = {0};
-    dsai.sType = 19u;  // VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO
-    dsai.pool = v->desc_pool;
-    dsai.setCount = 1;
+    dsai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    dsai.descriptorPool = v->desc_pool;
+    dsai.descriptorSetCount = 1;
     dsai.pSetLayouts = alloc_layouts;
     if (v->vkAllocateDescriptorSets(v->device, &dsai, &v->set) != VK_SUCCESS) {
         return -13;
@@ -343,18 +347,14 @@ static int probe_vk_init(probe_vk_t* v, weft_gpu_ring_t* g, const char* spv_path
     v->vkUpdateDescriptorSets(v->device, 2, writes, 0, NULL);
 
     // Command pool/buffer + queue.
-    typedef struct { uint32_t sType; const void* pNext; VkFlags_ flags;
-                     uint32_t queueFamilyIndex; } VkCommandPoolCreateInfo_;
     VkCommandPoolCreateInfo_ cpci2 = {0};
-    cpci2.sType = 26u;  // VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO
+    cpci2.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     cpci2.queueFamilyIndex = weft_gpu_vk_queue_family(g);
     if (v->vkCreateCommandPool(v->device, &cpci2, NULL, &v->cmd_pool) != VK_SUCCESS) {
         return -14;
     }
-    typedef struct { uint32_t sType; const void* pNext; const void* commandPool;
-                     uint32_t level; uint32_t commandBufferCount; } VkCommandBufferAllocateInfo_;
     VkCommandBufferAllocateInfo_ cbai = {0};
-    cbai.sType = 27u;  // VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
+    cbai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     cbai.commandPool = v->cmd_pool;
     cbai.level = 0;    // PRIMARY
     cbai.commandBufferCount = 1;

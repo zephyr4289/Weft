@@ -1,0 +1,61 @@
+# Series 8 — RFC-0013 Vulkan ABI audit + first-ever dispatch proof evidence
+# x86_64 sandbox: SwiftShader ICD (Subzero JIT) via chrome-for-testing 156.0.8063.1
+# generated: 2026-09-17T20:37:38Z
+
+## AUDIT FINDINGS (vk_min.h vs Khronos Vulkan-Headers r362)
+
+```
+4 defect classes, all fixed in this series:
+  1. 12 wrong constants (sType/enum/flag values; see vk_min.h audit block)
+  2. VkShaderModuleCreateInfo_ missing flags field — ICD read codeSize as flags;
+     experimentally confirmed: SwiftShader aborted with 'UNSUPPORTED
+     pCreateInfo->flags 0x1544' where 0x1544=5444=exact byte size of
+     validate_frame.spv
+  3. VkPhysicalDeviceProperties_ was a 296-byte prefix view; every ICD writes
+     824 bytes — 528-byte stack smash (-O0 segfault, -O2 silent)
+  4. gpu_probe.c vkCreateComputePipelines called with createInfoCount=0 —
+     pipelines were NEVER created; first vkCmdBindPipeline would bind NULL
+
+WHY NEVER SEEN: the dispatch leg never executed on any evidence host —
+llvmpipe's ~94 TiB JIT reservation fails on the sandbox AND all 100+ logged
+ci-report gpu-native runs (every log shows allocation-leg-only, exit 4).
+```
+
+## gpu-probe: zero-copy consumer proof — FULL DISPATCH (first in repo history)
+
+```
+gpu-probe: backend=vulkan device='SwiftShader Device (Subzero)' payload=256 slots=4 frames=1000
+dispatch-1: mismatches=0 seq=1 word0=0x6d523710 magic=0x54464557 (live read after frame 1)
+dispatch-2: mismatches=0 seq=1000 word0=0x3edc3a1f magic=0x54464557 (live read after frame 1000)
+gpu-probe: zero-copy consumer PROVEN — GPU validated 1000 live frames with no staging copy (backend=vulkan, device='SwiftShader Device (Subzero)')
+exit: 0
+
+--- geometry: payload=64 slots=4 ---
+gpu-probe: backend=vulkan device='SwiftShader Device (Subzero)' payload=64 slots=4 frames=500
+dispatch-1: mismatches=0 seq=1 word0=0x6d523710 magic=0x54464557 (live read after frame 1)
+dispatch-2: mismatches=0 seq=500 word0=0x1c962924 magic=0x54464557 (live read after frame 500)
+gpu-probe: zero-copy consumer PROVEN — GPU validated 500 live frames with no staging copy (backend=vulkan, device='SwiftShader Device (Subzero)')
+exit: 0
+--- geometry: payload=1024 slots=8 ---
+gpu-probe: backend=vulkan device='SwiftShader Device (Subzero)' payload=1024 slots=8 frames=500
+dispatch-1: mismatches=0 seq=1 word0=0x6d523710 magic=0x54464557 (live read after frame 1)
+dispatch-2: mismatches=0 seq=500 word0=0x1c962924 magic=0x54464557 (live read after frame 500)
+gpu-probe: zero-copy consumer PROVEN — GPU validated 500 live frames with no staging copy (backend=vulkan, device='SwiftShader Device (Subzero)')
+exit: 0
+--- geometry: payload=16 slots=3 ---
+gpu-probe: backend=vulkan device='SwiftShader Device (Subzero)' payload=16 slots=3 frames=500
+dispatch-1: mismatches=0 seq=1 word0=0x6d523710 magic=0x54464557 (live read after frame 1)
+dispatch-2: mismatches=0 seq=500 word0=0x1c962924 magic=0x54464557 (live read after frame 500)
+gpu-probe: zero-copy consumer PROVEN — GPU validated 500 live frames with no staging copy (backend=vulkan, device='SwiftShader Device (Subzero)')
+exit: 0
+```
+
+## gpu-ring-test (Vulkan leg, SwiftShader ICD)
+```
+  backend=vulkan device='SwiftShader Device (Subzero)'
+  PASS session span IS the VkBuffer (one allocation, no staging buffer)
+  PASS device + compute queue family exported
+  PASS device-level proc resolution works
+  PASS 1000 live frames published through the Vulkan mapping
+verdict: PASS
+```

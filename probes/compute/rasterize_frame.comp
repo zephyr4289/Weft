@@ -1,0 +1,100 @@
+#version 450
+// rasterize_frame.comp — RFC-0013 render-path proof: frames -> texture,
+// zero-copy, self-verifying (GPU side).
+//
+// The "render shaders stream frames" leg: the latest frame's payload words
+// become RGBA8UI pixels of a storage image — the texture a raster pass would
+// sample — written directly from the LIVE ring words. No copy to host, no
+// readback stage: the shader VERIFIES ITS OWN STORES (imageStore + imageLoad
+// within one invocation is coherent) against the expected mixer-derived
+// color, so the proof never leaves the GPU.
+//
+// BOUND AT descriptor set 0:
+//   binding 0 (storage, readonly):  the weft_gpu session span (word map)
+//   binding 1 (storage, writeonly): result[8] u32 words
+//   binding 2 (rgba8ui image):      the w*h storage texture (R8G8B8A8_UINT)
+// PUSH CONSTANTS: slots (u32), words (u32), width (u32), height (u32)
+//
+// REPORTS:
+//   result[0] = ring mismatches + pixel-store mismatches (0 iff perfect)
+//   result[1] = latestSeq lo word
+//   result[2] = pixels written (== width*height when geometry matches)
+//   result[3] = payload words covered by the image
+//   result[4] = 0x54464557 ("WEFT" LE)
+//
+// PIXEL MAPPING: pixel (x, y) <- payload word i = y*width + x of the latest
+// frame; color = (word>>24, word>>16&255, word>>8&255, 255). The CPU probe
+// recomputes the same mapping for its expectation.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(std430, binding = 0) readonly buffer RingBuf { uint r[]; };
+layout(std430, binding = 1) writeonly buffer OutBuf { uint o[]; };
+layout(binding = 2, rgba8ui) uniform uimage2D img;
+
+layout(push_constant) uniform Params {
+    uint slots;
+    uint words;
+    uint width;
+    uint height;
+} p;
+
+shared uint mism[64];
+shared uint pixs[64];
+
+uint mix32(uint x) {
+    x ^= x >> 16;
+    x *= 0x7feb352du;
+    x ^= x >> 15;
+    x *= 0x846ca68bu;
+    x ^= x >> 16;
+    return x;
+}
+
+void main() {
+    uvec2 lid = gl_LocalInvocationID.xy;
+    uint li = lid.y * 8u + lid.x;
+
+    uint seq = r[16];
+    uint seq_hi = r[17];
+    uint count = 0u;
+    uint pix = 0u;
+
+    if (gl_GlobalInvocationID.x < p.width && gl_GlobalInvocationID.y < p.height) {
+        uint i = gl_GlobalInvocationID.y * p.width + gl_GlobalInvocationID.x;
+        if (i < p.words) {
+            uint k = (seq - 1u) % p.slots;
+            uint base = 20u + 2u * p.slots + k * p.words;
+            uint expect = mix32(seq * 2654435761u + i);
+            uint got = r[base + i];
+            if (got != expect) count += 1u;          // ring word invalid
+            uvec4 color = uvec4(got >> 24, (got >> 16) & 255u,
+                                 (got >> 8) & 255u, 255u);
+            imageStore(img, ivec2(gl_GlobalInvocationID.xy), color);
+            memoryBarrier();  // store visible to the load below (SPIR-V model)
+            // Self-verification: read back OUR OWN store.
+            uvec4 stored = imageLoad(img, ivec2(gl_GlobalInvocationID.xy));
+            if (i == 0u) { o[5] = stored.x; o[6] = stored.y; o[7] = stored.w; }
+            if (stored != color) count += 1u;         // the texture lies
+            pix = 1u;
+        }
+    }
+    mism[li] = count;
+    pixs[li] = pix;
+    barrier();
+
+    if (li == 0u) {
+        uint total = 0u, pixels = 0u;
+        for (uint i = 0u; i < 64u; i++) {
+            total += mism[i];
+            pixels += pixs[i];
+        }
+        if (r[0] != 0x48534657u) total += 1u;    // session magic
+        if (seq_hi != 0u) total += 1u;           // latestSeq outside 32 bits
+        o[0] = total;
+        o[1] = seq;
+        o[2] = pixels;
+        o[3] = p.width * p.height;
+        o[4] = 0x54464557u;
+    }
+}

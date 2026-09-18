@@ -1,0 +1,95 @@
+# Series 8 — RFC-0012 AVX-512 16-lane multi-buffer SHA-256 evidence
+# x86_64 sandbox: Intel Xeon (AVX-512F/VL/BW/CD/DQ + SHA-NI), gcc 14.2.0 -O2, 2 cores
+# generated: 2026-09-17T20:25:06Z
+
+## VMB-series conformance (backend: x86-avx512, 16 lanes)
+```
+  backend: x86-avx512 (lanes=16)
+  PASS 64 randomized staggered-lane trials bit-identical
+  PASS scalar lane loop 1..16 lanes bit-identical (256 trials)
+  PASS 64 serial-signed records verify in lanes
+  PASS bytes_consumed exact
+  PASS first tampered record stops the batch (20)
+  PASS prefix end exact
+  PASS 149 generated streams: code/counters/views identical
+  PASS magic byte 0 -> X
+  PASS magic byte 3 -> X
+  PASS header_size -> 15
+  PASS payload_len overflow
+  PASS payload tamper
+  PASS tag tamper
+  PASS envelope seq tamper
+  PASS all corruption classes agree (code, prefix, consumed)
+  PASS duplicate-lane call succeeds
+  PASS identical message in every lane -> identical snapshots
+  PASS staggered-lane call succeeds
+  PASS staggered finishes: each lane's snapshot exact, undisturbed
+  PASS needle at every offset 0..508: vector == scalar first-find
+  PASS multi-match enumeration identical (5 needles incl. seams)
+  PASS near-misses skipped; real needle at 41 found
+  PASS from past last match -> 0
+  PASS from > len -> 0
+  PASS empty buffer -> 0
+  PASS 39 of 40 records verified across one corruption (drop counted)
+  PASS exactly one resync
+  PASS stream walked to the end
+  PASS prefix batch: 5 good records
+  PASS scan lands exactly on record 6's magic
+  PASS post-resync batch: remaining 34 records
+  PASS resumed stream starts at seq 7 (dropped seq 6)
+  PASS mixed cap-boundary stream: both paths verify all 7
+  PASS bytes_consumed identical (full stream)
+  PASS cap-boundary tamper: identical stop (prefix 5)
+  PASS prefix end exact at the oversized seam
+  PASS avx512 16-lane snapshots bit-identical to scalar (staggered)
+  PASS avx2 8-lane snapshots bit-identical to scalar (staggered)
+verdict: PASS
+```
+
+## VMB-series under ASAN
+```
+VMB9: cross-impl bit-identity (every available kernel vs scalar)
+verdict: PASS
+```
+
+## mb-bench (RFC-0012 falsifiable-throughput, per-impl pinned)
+```
+weft sha256-mb bench (RFC-0012) — multi-buffer SHA-256 / batch HMAC
+cpu-probe: mb=x86-avx512 lanes=16, single-stream=x86-sha-ni
+
+== A. raw multi-buffer transform (uniform nblocks per lane) ==
+impl             blocks          MiB/s      Mblocks/s
+scalar-lanes          2          259.2            4.2
+scalar-lanes          8          258.5            4.2
+scalar-lanes         32          259.9            4.3
+avx2-8way             2         1103.8           18.1
+avx2-8way             8         1111.5           18.2
+avx2-8way            32         1105.5           18.1
+avx512-16way          2         2195.2           36.0
+avx512-16way          8         2166.8           35.5
+avx512-16way         32         2088.9           34.2
+
+== B. end-to-end VerifiedWeft batch verification (weft_vw_batch_decode_verify_mb) ==
+regime          payload       recs/s      auth MB/s vs serial-scalar
+serial-scalar        64       643727           49.1            1.00x
+serial-scalar       256       444368          115.3            1.00x
+serial-scalar      1024       195867          194.3            1.00x
+serial-scalar      4096        60574          237.5            1.00x
+serial-shani         64      1923696          146.8            2.99x
+serial-shani        256      1577974          409.3            3.55x
+serial-shani       1024       894528          887.2            4.57x
+serial-shani       4096       340005         1333.3            5.61x
+mb-avx2              64      3884909          296.4            6.04x
+mb-avx2             256      2282991          592.2            5.14x
+mb-avx2            1024       900286          892.9            4.60x
+mb-avx2            4096       257851         1011.2            4.26x
+mb-avx512            64      5861910          447.2            9.11x
+mb-avx512           256      3893989         1010.1            8.76x
+mb-avx512          1024      1664159         1650.5            8.50x
+mb-avx512          4096       491222         1926.3            8.11x
+auto                 64      5824815          444.4            9.05x
+auto                256      3908961         1014.0            8.80x
+auto               1024      1670423         1656.8            8.53x
+auto               4096       493979         1937.1            8.15x
+run_rc=0
+```

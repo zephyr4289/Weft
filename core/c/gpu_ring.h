@@ -73,6 +73,45 @@ typedef struct weft_gpu_ring weft_gpu_ring_t;
 /// to the data path, not create).
 int weft_gpu_create(weft_gpu_ring_t** out, size_t payload_bytes, unsigned slot_count);
 
+/// Create with flags (Series 8). WEFT_GPU_CREATE_EXPORTABLE_FD chains
+/// VkExportMemoryAllocateInfo into the allocation when the device offers
+/// VK_KHR_external_memory_fd, so weft_gpu_export_fd() can hand the session
+/// to another process/GPU with zero copies. When the extension is absent
+/// the session is created WITHOUT it and export_fd reports -1 with a reason
+/// — the WFSH shm session (RFC-0011) is the documented cross-process
+/// fallback (transparent, never silent).
+int weft_gpu_create_ex(weft_gpu_ring_t** out, size_t payload_bytes,
+                       unsigned slot_count, uint32_t flags);
+
+/// Export the session allocation as a POSIX fd (VK_KHR_external_memory_fd;
+/// opaque-fd handle type, dma-buf when the ICD offers the EXT too).
+/// The fd is OWNED BY THE CALLER (close(2) when done). Returns 0 on
+/// success; -1 when the backend is not Vulkan, the allocation was not
+/// created exportable, or the ICD refused the handle type.
+int weft_gpu_export_fd(weft_gpu_ring_t* g, int* out_fd);
+
+/// Import a session exported by another process (the fd bridge's far side).
+/// The allocation is imported (VkImportMemoryFdInfoKHR — the fd is consumed
+/// on success), a session-span buffer is bound over it, the WFSH header is
+/// validated (geometry must match), and the ring is mapped for CPU access.
+/// Returns 0 on success; the WFSH fallback (shm_ring attach) is the
+/// documented alternative when the extension is absent.
+int weft_gpu_import_fd(weft_gpu_ring_t** out, size_t payload_bytes,
+                       unsigned slot_count, int fd);
+
+/// Advisory: which external-memory handle types this ring's device offered
+/// at create time ("opaque-fd", "opaque-fd+dmabuf", or "" when not
+/// exportable). Logging/evidence only — never a correctness input (AXIOM T).
+const char* weft_gpu_external_info(const weft_gpu_ring_t* g);
+
+/// Creation flags (weft_gpu_create_ex, Series 8 — RFC-0013).
+typedef enum {
+    WEFT_GPU_CREATE_DEFAULT = 0,       ///< plain HOST_VISIBLE session
+    WEFT_GPU_CREATE_EXPORTABLE_FD = 1, ///< allocation exports an fd
+                                       ///  (VK_KHR_external_memory_fd;
+                                       ///   weft_gpu_export_fd below)
+} weft_gpu_create_flags_t;
+
 /// The chosen backend (for logging/evidence — never a correctness input).
 weft_gpu_backend_t weft_gpu_backend(const weft_gpu_ring_t* g);
 
@@ -104,6 +143,18 @@ size_t weft_gpu_vk_buffer_bytes(const weft_gpu_ring_t* g);
 const void* weft_gpu_vk_device(const weft_gpu_ring_t* g);
 uint32_t weft_gpu_vk_queue_family(const weft_gpu_ring_t* g);
 
+/// GPU-side export (Vulkan backend, Series 8): the VkInstance and the
+/// VkPhysicalDevice the session's device was built from — consumers that
+/// need instance-level queries (memory properties, extension enumeration
+/// for the RFC-0013 fd bridge) use these instead of re-creating instances.
+const void* weft_gpu_vk_instance(const weft_gpu_ring_t* g);
+const void* weft_gpu_vk_physical_device(const weft_gpu_ring_t* g);
+
+/// Resolve an INSTANCE-level Vulkan entry point by name (vkGetInstanceProcAddr
+/// on the ring's instance — the loader discipline mirror of weft_gpu_vk_proc).
+/// NULL on non-Vulkan backends or unknown name.
+const void* weft_gpu_vk_instance_proc(const weft_gpu_ring_t* g, const char* name);
+
 /// Resolve a device-level Vulkan entry point by name on the ring's device
 /// (vkGetDeviceProcAddr under the hood). NULL on non-Vulkan backends or
 /// unknown name. This is how the probe builds its pipeline WITHOUT any
@@ -126,5 +177,11 @@ void weft_gpu_destroy(weft_gpu_ring_t* g);
 //                    words[20 + 2*M + k*W + i]      (W = payload_bytes/4)
 // The reference consumer (probes/compute/validate_frame.comp) validates
 // slot (latestSeq-1) mod M against the mixer family entirely GPU-side.
+// Series 8 adds the streaming consumers: probes/compute/stream_frames.comp
+// (every resident slot, window advancing across dispatches — RFC-0013) and
+// probes/compute/rasterize_frame.comp (latest frame -> rgba8ui storage
+// image, self-verifying in-shader). The bind kit that wires any of them is
+// core/c/gpu_stream.{h,c} (bindings 0=ring SSBO, 1=result, 2=image,
+// 3=texel view).
 
 #endif // WEFT_GPU_RING_H

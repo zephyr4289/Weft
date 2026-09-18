@@ -1,0 +1,214 @@
+STATUS: PASSED
+
+=== TSAN iteration 1/5 ===
+  → L1-tear
+    ✅ PASS
+  → L2-writer-steps
+    ✅ PASS
+  → L3-reader-steps
+    ✅ PASS
+  → L4-freshness
+    ✅ PASS
+  → L5-progress
+    ✅ PASS
+  → L6-ownership
+    ✅ PASS
+  → L7-revocation
+    ✅ PASS
+  → L8-envelope
+    ✅ PASS
+
+=== TSAN iteration 2/5 ===
+  → L1-tear
+    ✅ PASS
+  → L2-writer-steps
+    ✅ PASS
+  → L3-reader-steps
+    ✅ PASS
+  → L4-freshness
+    ✅ PASS
+  → L5-progress
+    ✅ PASS
+  → L6-ownership
+    ✅ PASS
+  → L7-revocation
+    ✅ PASS
+  → L8-envelope
+    ✅ PASS
+
+=== TSAN iteration 3/5 ===
+  → L1-tear
+    ✅ PASS
+  → L2-writer-steps
+    ✅ PASS
+  → L3-reader-steps
+    ✅ PASS
+  → L4-freshness
+    ✅ PASS
+  → L5-progress
+    ✅ PASS
+  → L6-ownership
+    ✅ PASS
+  → L7-revocation
+    ✅ PASS
+  → L8-envelope
+    ✅ PASS
+
+=== TSAN iteration 4/5 ===
+  → L1-tear
+    ✅ PASS
+  → L2-writer-steps
+    ✅ PASS
+  → L3-reader-steps
+    ✅ PASS
+  → L4-freshness
+    ✅ PASS
+  → L5-progress
+    ✅ PASS
+  → L6-ownership
+    ✅ PASS
+  → L7-revocation
+    ✅ PASS
+  → L8-envelope
+    ✅ PASS
+
+=== TSAN iteration 5/5 ===
+  → L1-tear
+    ✅ PASS
+  → L2-writer-steps
+    ✅ PASS
+  → L3-reader-steps
+    ✅ PASS
+  → L4-freshness
+    ✅ PASS
+  → L5-progress
+    ✅ PASS
+  → L6-ownership
+    ✅ PASS
+  → L7-revocation
+    ✅ PASS
+  → L8-envelope
+    ✅ PASS
+{
+  "shard": "tsan-deep",
+  "iterations": 5,
+  "total_runs": 40,
+  "tsan_warning_hits": 0,
+  "fail_count": 0,
+  "status": "PASSED"
+}
+
+=== TSAN deep summary: 0 TSAN warnings across 40 runs ===
+s":0,"seed":"0x00C0FFEE"}}
+L7 reclaim_ok=1 post_revoke_revoked=100 poison_intact=1 pass=1
+{"test":"L7-revocation","lang":"c","pass":true,"metrics":{"reclaim_ok":true,"post_revoke_revoked":100,"poison_intact":true,"first_revoked_at":891}}
+L8 roundtrip=1 unknown=1 negotiation=1 coexist=1 pass=1
+{"test":"L8-envelope","lang":"c","pass":true,"metrics":{"roundtrip":true,"unknown_fields":true,"negotiation":true,"coexist":true}}
+L1 hold=5ms claims=489 torn=0 drain_ok=1 claims_per_s=195.4
+L1 hold=10ms claims=249 torn=0 drain_ok=1 claims_per_s=99.1
+L1 hold=50ms claims=51 torn=0 drain_ok=1 claims_per_s=19.9
+{"test":"L1-tear","lang":"c","pass":true,"metrics":{"holds_ms":[5,10,50],"claims":789,"claims_per_s":104.8,"torn":0,"drain_ok":true}}
+L2 hold=0ms published=2000 max_wsteps=1 ok=1
+L2 hold=10ms published=2000 max_wsteps=1 ok=1
+L2 hold=25ms published=2000 max_wsteps=1 ok=1
+L2 hold=50ms published=2000 max_wsteps=1 ok=1
+L2 hold=100ms published=2000 max_wsteps=1 ok=1
+{"test":"L2-writer-steps","lang":"c","pass":true,"metrics":{"holds_ms":[0,10,25,50,100],"publishes":10000,"max_wsteps":1,"bound":2}}
+L3 claims=2000 max_rsteps=1 bound=2 pass=1
+{"test":"L3-reader-steps","lang":"c","pass":true,"metrics":{"claims":2000,"max_rsteps":1,"bound":2}}
+L4 freshness_violations=0 future_violations=0 stale_returns=0 drain_exact=1 (last=2000) pass=1
+{"test":"L4-freshness","lang":"c","pass":true,"metrics":{"frames":2000,"freshness_violations":0,"future_violations":0,"drain_exact":true,"stale_returns":0}}
+L5 hold=0ms rate=2000.0 Hz
+L5 hold=10ms rate=2000.0 Hz
+L5 hold=50ms rate=2000.0 Hz
+L5 hold=100ms rate=2000.0 Hz
+L5 suspended-reader rate=2000.0 Hz
+L5 ratio=1.000 tolerance=1.50 pass=1
+{"test":"L5-progress","lang":"c","pass":true,"metrics":{"rates_hz":[2000.0,2000.0,2000.0,2000.0,2000.0],"ratio":1.000,"tolerance":1.50,"configs":5}}
+L6 trials=200 violations=0 seed=0x00C0FFEE pass=1
+{"test":"L6-ownership","lang":"c","pass":true,"metrics":{"trials":200,"frames_per_trial":64,"violations":0,"seed":"0x00C0FFEE"}}
+L7 reclaim_ok=1 post_revoke_revoked=100 poison_intact=1 pass=1
+{"test":"L7-revocation","lang":"c","pass":true,"metrics":{"reclaim_ok":true,"post_revoke_revoked":100,"poison_intact":true,"first_revoked_at":517}}
+L8 roundtrip=1 unknown=1 negotiation=1 coexist=1 pass=1
+{"test":"L8-envelope","lang":"c","pass":true,"metrics":{"roundtrip":true,"unknown_fields":true,"negotiation":true,"coexist":true}}
+L1 hold=5ms claims=491 torn=0 drain_ok=1 claims_per_s=196.1
+L1 hold=10ms claims=249 torn=0 drain_ok=1 claims_per_s=99.0
+L1 hold=50ms claims=52 torn=0 drain_ok=1 claims_per_s=20.3
+{"test":"L1-tear","lang":"c","pass":true,"metrics":{"holds_ms":[5,10,50],"claims":792,"claims_per_s":105.2,"torn":0,"drain_ok":true}}
+L2 hold=0ms published=2000 max_wsteps=1 ok=1
+L2 hold=10ms published=2000 max_wsteps=1 ok=1
+L2 hold=25ms published=2000 max_wsteps=1 ok=1
+L2 hold=50ms published=2000 max_wsteps=1 ok=1
+L2 hold=100ms published=2000 max_wsteps=1 ok=1
+{"test":"L2-writer-steps","lang":"c","pass":true,"metrics":{"holds_ms":[0,10,25,50,100],"publishes":10000,"max_wsteps":1,"bound":2}}
+L3 claims=2000 max_rsteps=1 bound=2 pass=1
+{"test":"L3-reader-steps","lang":"c","pass":true,"metrics":{"claims":2000,"max_rsteps":1,"bound":2}}
+L4 freshness_violations=0 future_violations=0 stale_returns=1 drain_exact=1 (last=2000) pass=1
+{"test":"L4-freshness","lang":"c","pass":true,"metrics":{"frames":2000,"freshness_violations":0,"future_violations":0,"drain_exact":true,"stale_returns":1}}
+L5 hold=0ms rate=2000.0 Hz
+L5 hold=10ms rate=2000.0 Hz
+L5 hold=50ms rate=2000.0 Hz
+L5 hold=100ms rate=2000.0 Hz
+L5 suspended-reader rate=2000.0 Hz
+L5 ratio=1.000 tolerance=1.50 pass=1
+{"test":"L5-progress","lang":"c","pass":true,"metrics":{"rates_hz":[2000.0,2000.0,2000.0,2000.0,2000.0],"ratio":1.000,"tolerance":1.50,"configs":5}}
+L6 trials=200 violations=0 seed=0x00C0FFEE pass=1
+{"test":"L6-ownership","lang":"c","pass":true,"metrics":{"trials":200,"frames_per_trial":64,"violations":0,"seed":"0x00C0FFEE"}}
+L7 reclaim_ok=1 post_revoke_revoked=100 poison_intact=1 pass=1
+{"test":"L7-revocation","lang":"c","pass":true,"metrics":{"reclaim_ok":true,"post_revoke_revoked":100,"poison_intact":true,"first_revoked_at":848}}
+L8 roundtrip=1 unknown=1 negotiation=1 coexist=1 pass=1
+{"test":"L8-envelope","lang":"c","pass":true,"metrics":{"roundtrip":true,"unknown_fields":true,"negotiation":true,"coexist":true}}
+L1 hold=5ms claims=490 torn=0 drain_ok=1 claims_per_s=195.7
+L1 hold=10ms claims=249 torn=0 drain_ok=1 claims_per_s=99.1
+L1 hold=50ms claims=52 torn=0 drain_ok=1 claims_per_s=20.3
+{"test":"L1-tear","lang":"c","pass":true,"metrics":{"holds_ms":[5,10,50],"claims":791,"claims_per_s":105.0,"torn":0,"drain_ok":true}}
+L2 hold=0ms published=2000 max_wsteps=1 ok=1
+L2 hold=10ms published=2000 max_wsteps=1 ok=1
+L2 hold=25ms published=2000 max_wsteps=1 ok=1
+L2 hold=50ms published=2000 max_wsteps=1 ok=1
+L2 hold=100ms published=2000 max_wsteps=1 ok=1
+{"test":"L2-writer-steps","lang":"c","pass":true,"metrics":{"holds_ms":[0,10,25,50,100],"publishes":10000,"max_wsteps":1,"bound":2}}
+L3 claims=2000 max_rsteps=1 bound=2 pass=1
+{"test":"L3-reader-steps","lang":"c","pass":true,"metrics":{"claims":2000,"max_rsteps":1,"bound":2}}
+L4 freshness_violations=0 future_violations=0 stale_returns=1 drain_exact=1 (last=2000) pass=1
+{"test":"L4-freshness","lang":"c","pass":true,"metrics":{"frames":2000,"freshness_violations":0,"future_violations":0,"drain_exact":true,"stale_returns":1}}
+L5 hold=0ms rate=2000.0 Hz
+L5 hold=10ms rate=2000.0 Hz
+L5 hold=50ms rate=2000.0 Hz
+L5 hold=100ms rate=2000.0 Hz
+L5 suspended-reader rate=2000.0 Hz
+L5 ratio=1.000 tolerance=1.50 pass=1
+{"test":"L5-progress","lang":"c","pass":true,"metrics":{"rates_hz":[2000.0,2000.0,2000.0,2000.0,2000.0],"ratio":1.000,"tolerance":1.50,"configs":5}}
+L6 trials=200 violations=0 seed=0x00C0FFEE pass=1
+{"test":"L6-ownership","lang":"c","pass":true,"metrics":{"trials":200,"frames_per_trial":64,"violations":0,"seed":"0x00C0FFEE"}}
+L7 reclaim_ok=1 post_revoke_revoked=100 poison_intact=1 pass=1
+{"test":"L7-revocation","lang":"c","pass":true,"metrics":{"reclaim_ok":true,"post_revoke_revoked":100,"poison_intact":true,"first_revoked_at":862}}
+L8 roundtrip=1 unknown=1 negotiation=1 coexist=1 pass=1
+{"test":"L8-envelope","lang":"c","pass":true,"metrics":{"roundtrip":true,"unknown_fields":true,"negotiation":true,"coexist":true}}
+L1 hold=5ms claims=490 torn=0 drain_ok=1 claims_per_s=195.7
+L1 hold=10ms claims=249 torn=0 drain_ok=1 claims_per_s=99.1
+L1 hold=50ms claims=52 torn=0 drain_ok=1 claims_per_s=20.3
+{"test":"L1-tear","lang":"c","pass":true,"metrics":{"holds_ms":[5,10,50],"claims":791,"claims_per_s":105.0,"torn":0,"drain_ok":true}}
+L2 hold=0ms published=2000 max_wsteps=1 ok=1
+L2 hold=10ms published=2000 max_wsteps=1 ok=1
+L2 hold=25ms published=2000 max_wsteps=1 ok=1
+L2 hold=50ms published=2000 max_wsteps=1 ok=1
+L2 hold=100ms published=2000 max_wsteps=1 ok=1
+{"test":"L2-writer-steps","lang":"c","pass":true,"metrics":{"holds_ms":[0,10,25,50,100],"publishes":10000,"max_wsteps":1,"bound":2}}
+L3 claims=2000 max_rsteps=1 bound=2 pass=1
+{"test":"L3-reader-steps","lang":"c","pass":true,"metrics":{"claims":2000,"max_rsteps":1,"bound":2}}
+L4 freshness_violations=0 future_violations=0 stale_returns=1 drain_exact=1 (last=2000) pass=1
+{"test":"L4-freshness","lang":"c","pass":true,"metrics":{"frames":2000,"freshness_violations":0,"future_violations":0,"drain_exact":true,"stale_returns":1}}
+L5 hold=0ms rate=2000.0 Hz
+L5 hold=10ms rate=2000.0 Hz
+L5 hold=50ms rate=2000.0 Hz
+L5 hold=100ms rate=2000.0 Hz
+L5 suspended-reader rate=2000.0 Hz
+L5 ratio=1.000 tolerance=1.50 pass=1
+{"test":"L5-progress","lang":"c","pass":true,"metrics":{"rates_hz":[2000.0,2000.0,2000.0,2000.0,2000.0],"ratio":1.000,"tolerance":1.50,"configs":5}}
+L6 trials=200 violations=0 seed=0x00C0FFEE pass=1
+{"test":"L6-ownership","lang":"c","pass":true,"metrics":{"trials":200,"frames_per_trial":64,"violations":0,"seed":"0x00C0FFEE"}}
+L7 reclaim_ok=1 post_revoke_revoked=100 poison_intact=1 pass=1
+{"test":"L7-revocation","lang":"c","pass":true,"metrics":{"reclaim_ok":true,"post_revoke_revoked":100,"poison_intact":true,"first_revoked_at":524}}
+L8 roundtrip=1 unknown=1 negotiation=1 coexist=1 pass=1
+{"test":"L8-envelope","lang":"c","pass":true,"metrics":{"roundtrip":true,"unknown_fields":true,"negotiation":true,"coexist":true}}

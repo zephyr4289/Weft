@@ -1,7 +1,9 @@
 # core/c/Makefile — local C build target (also driven by the root Makefile)
 #
 # Kernel targets (weft.c/weft.h — frozen):
-#   spike, spike-tsan            — the kernel litmus runner (unchanged)
+#   spike, spike-tsan            — the kernel litmus runner (L1-L8) + the
+#                                  Issue #16 Tier 1 L9-L16 suite (L13 needs
+#                                  the fan-out driver layer linked in)
 # Fan-out driver-layer targets (fanout.{h,c}, frame_cursor.{h,c} — RFC 0004/0008):
 #   fanout-test{,-asan,-tsan,-seq}   — F-series + FrameCursor conformance
 #   fanout-runner{,-asan,-tsan,-seq} — torture + xlang dump/validate runner
@@ -23,11 +25,11 @@ FANOUT_SRC = fanout.c frame_cursor.c weft.c
 
 all: $(TARGET)
 
-$(TARGET): weft.c litmus_runner.c weft.h
-	$(CC) $(CFLAGS) -o $(TARGET) weft.c litmus_runner.c
+$(TARGET): weft.c fanout.c frame_cursor.c litmus_runner.c weft.h fanout.h frame_cursor.h
+	$(CC) $(CFLAGS) -o $(TARGET) weft.c fanout.c frame_cursor.c litmus_runner.c
 
-$(TARGET_TSAN): weft.c litmus_runner.c weft.h
-	$(CC) $(CFLAGS_DBG) -o $(TARGET_TSAN) weft.c litmus_runner.c
+$(TARGET_TSAN): weft.c fanout.c frame_cursor.c litmus_runner.c weft.h fanout.h frame_cursor.h
+	$(CC) $(CFLAGS_DBG) -o $(TARGET_TSAN) weft.c fanout.c frame_cursor.c litmus_runner.c
 
 # ---- fan-out driver layer (RFC 0004 + RFC 0008) --------------------------
 

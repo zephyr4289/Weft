@@ -137,10 +137,9 @@ public final class GovernedFanoutConsumer {
         if d.present {
             if d.interp {
                 let alpha = d.alphaQ12
-                let inv = cadenceAlphaOneQ12 - alpha
                 for i in 0..<words {
-                    let packed = GovernedFanoutConsumer.blendQ12(
-                        prevWords[i], newWords[i], alpha, inv)
+                    let packed = BlendQ12.blendPacked(
+                        prevWords[i], newWords[i], alpha)
                     raster[4 * i] = UInt8(truncatingIfNeeded: packed)
                     raster[4 * i + 1] = UInt8(truncatingIfNeeded: packed >> 8)
                     raster[4 * i + 2] = UInt8(truncatingIfNeeded: packed >> 16)

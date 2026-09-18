@@ -54,7 +54,7 @@ public func weftApplyRenderQoS(allowTimeConstraint: Bool = false) -> UInt32 {
         let selfThread = mach_thread_self()
         let kr = withUnsafeMutablePointer(to: &policy) { p in
             thread_policy_set(selfThread, UInt32(THREAD_TIME_CONSTRAINT_POLICY),
-                              UnsafeMutablePointer<thread_policy_t>(OpaquePointer(p)),
+                              thread_policy_t(OpaquePointer(p)),
                               UInt32(MemoryLayout<thread_time_constraint_policy>.size /
                                       MemoryLayout<integer_t>.size))
         }

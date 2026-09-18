@@ -1,0 +1,759 @@
+==================================================
+SHARD: gpu-native
+DESCRIPTION: RFC-0003 spike: GPU-series + gpu-probe full dispatch (lavapipe ICD)
+STATUS: FAILED ❌
+COMMIT: 257f9b6c9e3a3cbbfb3c821dc231269464056278
+RUN: 126
+==================================================
+
+
+=== environment (mesa-vulkan-drivers + libvulkan1 when apt available) ===
+	apiVersion         = 1.4.318
+	deviceName         = llvmpipe (LLVM 20.1.2, 256 bits)
+
+=== GPU-series conformance (Vulkan/lavapipe leg) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o gpu-ring-test gpu_ring.c fanout.c weft.c gpu_ring_test.c -lrt -lpthread -ldl
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+Weft GPU-series (GPU-resident rings, RFC-0003 spike) — C driver layer
+GPU1: create — session contract + geometry
+  PASS create ok
+  backend=vulkan device='llvmpipe (LLVM 20.1.2, 256 bits)'
+  PASS geometry from session
+  PASS span = header + ring_bytes (RFC-0004 identity)
+  PASS session bytes validate under the shared WFSH contract
+  PASS ctrl zero-initialized (fresh-ring invariants)
+  PASS destroy + NULL-destroy safe
+GPU2: fan-out over the mapping — publish/claim bit-exact
+  PASS create ok
+  PASS writer attach over the mapping
+  PASS reader attach over the mapping
+  PASS 5000 frames, sampled claims bit-exact
+  PASS telescoping exact over the mapping
+GPU3: session bytes interchange with the shm contract
+  PASS create ok
+  PASS WFSH header identical in both modules' dialects
+  PASS word map: latestSeq at words[16..18)
+  PASS word map: publishes at words[18..20)
+  PASS word map: slotSeq[0] at words[20..22)
+  PASS word map: slot-0 payload word 0 at words[28] (20+2*4)
+GPU4: vulkan leg (allocation + persistent map + live publish)
+  PASS session span IS the VkBuffer (one allocation, no staging buffer)
+  PASS device + compute queue family exported
+  PASS device-level proc resolution works
+  PASS writer over the persistent map
+  PASS 1000 live frames published through the Vulkan mapping
+GPU5: lifecycle — cycles hold no leaks (ASAN-gated)
+  PASS 8 create/publish/destroy cycles clean
+
+verdict: PASS
+
+=== GPU-series conformance (CPU-fallback leg) ===
+Weft GPU-series (GPU-resident rings, RFC-0003 spike) — C driver layer
+GPU1: create — session contract + geometry
+  PASS create ok
+  backend=cpu device='anonymous mapping (no GPU backend available)'
+  PASS geometry from session
+  PASS span = header + ring_bytes (RFC-0004 identity)
+  PASS session bytes validate under the shared WFSH contract
+  PASS ctrl zero-initialized (fresh-ring invariants)
+  PASS destroy + NULL-destroy safe
+GPU2: fan-out over the mapping — publish/claim bit-exact
+  PASS create ok
+  PASS writer attach over the mapping
+  PASS reader attach over the mapping
+  PASS 5000 frames, sampled claims bit-exact
+  PASS telescoping exact over the mapping
+GPU3: session bytes interchange with the shm contract
+  PASS create ok
+  PASS WFSH header identical in both modules' dialects
+  PASS word map: latestSeq at words[16..18)
+  PASS word map: publishes at words[18..20)
+  PASS word map: slotSeq[0] at words[20..22)
+  PASS word map: slot-0 payload word 0 at words[28] (20+2*4)
+GPU4: vulkan leg (allocation + persistent map + live publish)
+  (backend=cpu — vulkan leg skipped, declared)
+  PASS non-vulkan backend: leg skipped honestly
+GPU5: lifecycle — cycles hold no leaks (ASAN-gated)
+  PASS 8 create/publish/destroy cycles clean
+
+verdict: PASS
+
+=== GPU-series conformance under ASAN ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o gpu-ring-test-asan gpu_ring.c fanout.c weft.c gpu_ring_test.c -lrt -lpthread -ldl
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+Weft GPU-series (GPU-resident rings, RFC-0003 spike) — C driver layer
+GPU1: create — session contract + geometry
+  PASS create ok
+  backend=vulkan device='llvmpipe (LLVM 20.1.2, 256 bits)'
+  PASS geometry from session
+  PASS span = header + ring_bytes (RFC-0004 identity)
+  PASS session bytes validate under the shared WFSH contract
+  PASS ctrl zero-initialized (fresh-ring invariants)
+  PASS destroy + NULL-destroy safe
+GPU2: fan-out over the mapping — publish/claim bit-exact
+  PASS create ok
+  PASS writer attach over the mapping
+  PASS reader attach over the mapping
+  PASS 5000 frames, sampled claims bit-exact
+  PASS telescoping exact over the mapping
+GPU3: session bytes interchange with the shm contract
+  PASS create ok
+  PASS WFSH header identical in both modules' dialects
+  PASS word map: latestSeq at words[16..18)
+  PASS word map: publishes at words[18..20)
+  PASS word map: slotSeq[0] at words[20..22)
+  PASS word map: slot-0 payload word 0 at words[28] (20+2*4)
+GPU4: vulkan leg (allocation + persistent map + live publish)
+  PASS session span IS the VkBuffer (one allocation, no staging buffer)
+  PASS device + compute queue family exported
+  PASS device-level proc resolution works
+  PASS writer over the persistent map
+  PASS 1000 live frames published through the Vulkan mapping
+GPU5: lifecycle — cycles hold no leaks (ASAN-gated)
+  PASS 8 create/publish/destroy cycles clean
+
+verdict: PASS
+
+=== gpu-probe: zero-copy consumer proof (compute dispatch validates live ring words) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o gpu-probe gpu_ring.c fanout.c weft.c gpu_probe.c -lrt -lpthread -ldl
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+gpu-probe: backend=vulkan device='llvmpipe (LLVM 20.1.2, 256 bits)' payload=256 slots=4 frames=1000
+dispatch-1: mismatches=0 seq=1 word0=0x6d523710 magic=0x54464557 (live read after frame 1)
+dispatch-2: mismatches=0 seq=1000 word0=0x3edc3a1f magic=0x54464557 (live read after frame 1000)
+gpu-probe: zero-copy consumer PROVEN — GPU validated 1000 live frames with no staging copy (backend=vulkan, device='llvmpipe (LLVM 20.1.2, 256 bits)')
+
+=== gpu-probe geometry sweep ===
+gpu-probe: backend=vulkan device='llvmpipe (LLVM 20.1.2, 256 bits)' payload=64 slots=4 frames=500
+dispatch-1: mismatches=0 seq=1 word0=0x6d523710 magic=0x54464557 (live read after frame 1)
+dispatch-2: mismatches=0 seq=500 word0=0x1c962924 magic=0x54464557 (live read after frame 500)
+gpu-probe: zero-copy consumer PROVEN — GPU validated 500 live frames with no staging copy (backend=vulkan, device='llvmpipe (LLVM 20.1.2, 256 bits)')
+gpu-probe: backend=vulkan device='llvmpipe (LLVM 20.1.2, 256 bits)' payload=1024 slots=8 frames=500
+dispatch-1: mismatches=0 seq=1 word0=0x6d523710 magic=0x54464557 (live read after frame 1)
+dispatch-2: mismatches=0 seq=500 word0=0x1c962924 magic=0x54464557 (live read after frame 500)
+gpu-probe: zero-copy consumer PROVEN — GPU validated 500 live frames with no staging copy (backend=vulkan, device='llvmpipe (LLVM 20.1.2, 256 bits)')
+gpu-probe: backend=vulkan device='llvmpipe (LLVM 20.1.2, 256 bits)' payload=16 slots=3 frames=500
+dispatch-1: mismatches=0 seq=1 word0=0x6d523710 magic=0x54464557 (live read after frame 1)
+dispatch-2: mismatches=0 seq=500 word0=0x1c962924 magic=0x54464557 (live read after frame 500)
+gpu-probe: zero-copy consumer PROVEN — GPU validated 500 live frames with no staging copy (backend=vulkan, device='llvmpipe (LLVM 20.1.2, 256 bits)')
+
+=== vk-abi-check: vk_min constants/sizes vs installed Khronos headers ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+In file included from vk_abi_check.c:17:
+vk_min.h:108: warning: "VK_API_VERSION_1_0" redefined
+  108 | #define VK_API_VERSION_1_0                              0x00400000u
+      | 
+In file included from vk_abi_check.c:16:
+/usr/include/vulkan/vulkan_core.h:69: note: this is the location of the previous definition
+   69 | #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)// Patch version should always be set to 0
+      | 
+vk_min.h:125: warning: "VK_MAX_PHYSICAL_DEVICE_NAME_SIZE" redefined
+  125 | #define VK_MAX_PHYSICAL_DEVICE_NAME_SIZE                256u
+      | 
+/usr/include/vulkan/vulkan_core.h:134: note: this is the location of the previous definition
+  134 | #define VK_MAX_PHYSICAL_DEVICE_NAME_SIZE  256U
+      | 
+vk_min.h:126: warning: "VK_MAX_EXTENSION_NAME_SIZE" redefined
+  126 | #define VK_MAX_EXTENSION_NAME_SIZE                      256u
+      | 
+/usr/include/vulkan/vulkan_core.h:136: note: this is the location of the previous definition
+  136 | #define VK_MAX_EXTENSION_NAME_SIZE        256U
+      | 
+vk_abi_check.c:23:9: error: ‘VK_STRUCTURE_TYPE_APPLICATION_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_APPLICATION_INFO’?
+   23 | CHECKEQ(VK_STRUCTURE_TYPE_APPLICATION_INFO_, VK_STRUCTURE_TYPE_APPLICATION_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:23:1: note: in expansion of macro ‘CHECKEQ’
+   23 | CHECKEQ(VK_STRUCTURE_TYPE_APPLICATION_INFO_, VK_STRUCTURE_TYPE_APPLICATION_INFO);
+      | ^~~~~~~
+vk_abi_check.c:24:9: error: ‘VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO’?
+   24 | CHECKEQ(VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO_, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:24:1: note: in expansion of macro ‘CHECKEQ’
+   24 | CHECKEQ(VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO_, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:25:9: error: ‘VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO’?
+   25 | CHECKEQ(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO_, VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:25:1: note: in expansion of macro ‘CHECKEQ’
+   25 | CHECKEQ(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO_, VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:26:9: error: ‘VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO’?
+   26 | CHECKEQ(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO_, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:26:1: note: in expansion of macro ‘CHECKEQ’
+   26 | CHECKEQ(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO_, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:27:9: error: ‘VK_STRUCTURE_TYPE_SUBMIT_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_SUBMIT_INFO_2’?
+   27 | CHECKEQ(VK_STRUCTURE_TYPE_SUBMIT_INFO_, VK_STRUCTURE_TYPE_SUBMIT_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:27:1: note: in expansion of macro ‘CHECKEQ’
+   27 | CHECKEQ(VK_STRUCTURE_TYPE_SUBMIT_INFO_, VK_STRUCTURE_TYPE_SUBMIT_INFO);
+      | ^~~~~~~
+vk_abi_check.c:28:9: error: ‘VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO’?
+   28 | CHECKEQ(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO_, VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:28:1: note: in expansion of macro ‘CHECKEQ’
+   28 | CHECKEQ(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO_, VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:29:9: error: ‘VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO’?
+   29 | CHECKEQ(VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO_, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:29:1: note: in expansion of macro ‘CHECKEQ’
+   29 | CHECKEQ(VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO_, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:30:9: error: ‘VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO’?
+   30 | CHECKEQ(VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO_, VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:30:1: note: in expansion of macro ‘CHECKEQ’
+   30 | CHECKEQ(VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO_, VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:31:9: error: ‘VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO’?
+   31 | CHECKEQ(VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO_, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:31:1: note: in expansion of macro ‘CHECKEQ’
+   31 | CHECKEQ(VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO_, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:32:9: error: ‘VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO’?
+   32 | CHECKEQ(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO_, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:32:1: note: in expansion of macro ‘CHECKEQ’
+   32 | CHECKEQ(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO_, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:33:9: error: ‘VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO’?
+   33 | CHECKEQ(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO_, VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:33:1: note: in expansion of macro ‘CHECKEQ’
+   33 | CHECKEQ(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO_, VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:34:9: error: ‘VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO’?
+   34 | CHECKEQ(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO_, VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:34:1: note: in expansion of macro ‘CHECKEQ’
+   34 | CHECKEQ(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO_, VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:35:9: error: ‘VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO’?
+   35 | CHECKEQ(VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO_, VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:35:1: note: in expansion of macro ‘CHECKEQ’
+   35 | CHECKEQ(VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO_, VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:36:9: error: ‘VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO’?
+   36 | CHECKEQ(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO_, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:36:1: note: in expansion of macro ‘CHECKEQ’
+   36 | CHECKEQ(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO_, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:37:9: error: ‘VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO’?
+   37 | CHECKEQ(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO_, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:37:1: note: in expansion of macro ‘CHECKEQ’
+   37 | CHECKEQ(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO_, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:38:9: error: ‘VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO’?
+   38 | CHECKEQ(VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO_, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:38:1: note: in expansion of macro ‘CHECKEQ’
+   38 | CHECKEQ(VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO_, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:39:9: error: ‘VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO’?
+   39 | CHECKEQ(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO_, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:39:1: note: in expansion of macro ‘CHECKEQ’
+   39 | CHECKEQ(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO_, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:40:9: error: ‘VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET’?
+   40 | CHECKEQ(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_, VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:40:1: note: in expansion of macro ‘CHECKEQ’
+   40 | CHECKEQ(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_, VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET);
+      | ^~~~~~~
+vk_abi_check.c:41:9: error: ‘VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO’?
+   41 | CHECKEQ(VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO_, VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:41:1: note: in expansion of macro ‘CHECKEQ’
+   41 | CHECKEQ(VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO_, VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:42:9: error: ‘VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO’?
+   42 | CHECKEQ(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO_, VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:42:1: note: in expansion of macro ‘CHECKEQ’
+   42 | CHECKEQ(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO_, VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:43:9: error: ‘VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO’?
+   43 | CHECKEQ(VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO_, VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:43:1: note: in expansion of macro ‘CHECKEQ’
+   43 | CHECKEQ(VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO_, VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
+      | ^~~~~~~
+vk_abi_check.c:44:9: error: ‘VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2’?
+   44 | CHECKEQ(VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_, VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:44:1: note: in expansion of macro ‘CHECKEQ’
+   44 | CHECKEQ(VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_, VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER);
+      | ^~~~~~~
+vk_abi_check.c:45:9: error: ‘VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO’?
+   45 | CHECKEQ(VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_, VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:45:1: note: in expansion of macro ‘CHECKEQ’
+   45 | CHECKEQ(VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_, VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO);
+      | ^~~~~~~
+vk_abi_check.c:46:9: error: ‘VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR’?
+   46 | CHECKEQ(VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR_, VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:46:1: note: in expansion of macro ‘CHECKEQ’
+   46 | CHECKEQ(VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR_, VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR);
+      | ^~~~~~~
+vk_abi_check.c:47:9: error: ‘VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR_’ undeclared here (not in a function); did you mean ‘VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR’?
+   47 | CHECKEQ(VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR_, VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:47:1: note: in expansion of macro ‘CHECKEQ’
+   47 | CHECKEQ(VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR_, VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR);
+      | ^~~~~~~
+vk_abi_check.c:50:9: error: ‘VK_QUEUE_COMPUTE_BIT_’ undeclared here (not in a function); did you mean ‘VK_QUEUE_COMPUTE_BIT’?
+   50 | CHECKEQ(VK_QUEUE_COMPUTE_BIT_, VK_QUEUE_COMPUTE_BIT);
+      |         ^~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:50:1: note: in expansion of macro ‘CHECKEQ’
+   50 | CHECKEQ(VK_QUEUE_COMPUTE_BIT_, VK_QUEUE_COMPUTE_BIT);
+      | ^~~~~~~
+vk_abi_check.c:51:9: error: ‘VK_BUFFER_USAGE_STORAGE_BUFFER_BIT_’ undeclared here (not in a function); did you mean ‘VK_BUFFER_USAGE_STORAGE_BUFFER_BIT’?
+   51 | CHECKEQ(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT_, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:51:1: note: in expansion of macro ‘CHECKEQ’
+   51 | CHECKEQ(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT_, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+      | ^~~~~~~
+vk_abi_check.c:52:9: error: ‘VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT_’ undeclared here (not in a function); did you mean ‘VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT’?
+   52 | CHECKEQ(VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT_, VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:52:1: note: in expansion of macro ‘CHECKEQ’
+   52 | CHECKEQ(VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT_, VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT);
+      | ^~~~~~~
+vk_abi_check.c:53:9: error: ‘VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT_’ undeclared here (not in a function); did you mean ‘VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT’?
+   53 | CHECKEQ(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT_, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:53:1: note: in expansion of macro ‘CHECKEQ’
+   53 | CHECKEQ(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT_, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT);
+      | ^~~~~~~
+vk_abi_check.c:54:9: error: ‘VK_IMAGE_USAGE_STORAGE_BIT_’ undeclared here (not in a function); did you mean ‘VK_IMAGE_USAGE_STORAGE_BIT’?
+   54 | CHECKEQ(VK_IMAGE_USAGE_STORAGE_BIT_, VK_IMAGE_USAGE_STORAGE_BIT);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:54:1: note: in expansion of macro ‘CHECKEQ’
+   54 | CHECKEQ(VK_IMAGE_USAGE_STORAGE_BIT_, VK_IMAGE_USAGE_STORAGE_BIT);
+      | ^~~~~~~
+vk_abi_check.c:55:9: error: ‘VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT_’ undeclared here (not in a function); did you mean ‘VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT’?
+   55 | CHECKEQ(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT_, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:55:1: note: in expansion of macro ‘CHECKEQ’
+   55 | CHECKEQ(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT_, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+      | ^~~~~~~
+vk_abi_check.c:56:9: error: ‘VK_MEMORY_PROPERTY_HOST_COHERENT_BIT_’ undeclared here (not in a function); did you mean ‘VK_MEMORY_PROPERTY_HOST_COHERENT_BIT’?
+   56 | CHECKEQ(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT_, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:56:1: note: in expansion of macro ‘CHECKEQ’
+   56 | CHECKEQ(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT_, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+      | ^~~~~~~
+vk_abi_check.c:57:9: error: ‘VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_’ undeclared here (not in a function); did you mean ‘VK_DESCRIPTOR_TYPE_STORAGE_BUFFER’?
+   57 | CHECKEQ(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:57:1: note: in expansion of macro ‘CHECKEQ’
+   57 | CHECKEQ(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+      | ^~~~~~~
+vk_abi_check.c:58:9: error: ‘VK_DESCRIPTOR_TYPE_STORAGE_IMAGE_’ undeclared here (not in a function); did you mean ‘VK_DESCRIPTOR_TYPE_STORAGE_IMAGE’?
+   58 | CHECKEQ(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE_, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:58:1: note: in expansion of macro ‘CHECKEQ’
+   58 | CHECKEQ(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE_, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+      | ^~~~~~~
+vk_abi_check.c:59:9: error: ‘VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER_’ undeclared here (not in a function); did you mean ‘VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER’?
+   59 | CHECKEQ(VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER_, VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:59:1: note: in expansion of macro ‘CHECKEQ’
+   59 | CHECKEQ(VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER_, VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER);
+      | ^~~~~~~
+vk_abi_check.c:60:9: error: ‘VK_SHADER_STAGE_COMPUTE_BIT_’ undeclared here (not in a function); did you mean ‘VK_SHADER_STAGE_COMPUTE_BIT’?
+   60 | CHECKEQ(VK_SHADER_STAGE_COMPUTE_BIT_, VK_SHADER_STAGE_COMPUTE_BIT);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:60:1: note: in expansion of macro ‘CHECKEQ’
+   60 | CHECKEQ(VK_SHADER_STAGE_COMPUTE_BIT_, VK_SHADER_STAGE_COMPUTE_BIT);
+      | ^~~~~~~
+vk_abi_check.c:61:9: error: ‘VK_PIPELINE_BIND_POINT_COMPUTE_’ undeclared here (not in a function); did you mean ‘VK_PIPELINE_BIND_POINT_COMPUTE’?
+   61 | CHECKEQ(VK_PIPELINE_BIND_POINT_COMPUTE_, VK_PIPELINE_BIND_POINT_COMPUTE);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:61:1: note: in expansion of macro ‘CHECKEQ’
+   61 | CHECKEQ(VK_PIPELINE_BIND_POINT_COMPUTE_, VK_PIPELINE_BIND_POINT_COMPUTE);
+      | ^~~~~~~
+vk_abi_check.c:62:9: error: ‘VK_IMAGE_TYPE_2D_’ undeclared here (not in a function); did you mean ‘VK_IMAGE_TYPE_2D’?
+   62 | CHECKEQ(VK_IMAGE_TYPE_2D_, VK_IMAGE_TYPE_2D);
+      |         ^~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:62:1: note: in expansion of macro ‘CHECKEQ’
+   62 | CHECKEQ(VK_IMAGE_TYPE_2D_, VK_IMAGE_TYPE_2D);
+      | ^~~~~~~
+vk_abi_check.c:63:9: error: ‘VK_FORMAT_R32_UINT_’ undeclared here (not in a function); did you mean ‘VK_FORMAT_R32_UINT’?
+   63 | CHECKEQ(VK_FORMAT_R32_UINT_, VK_FORMAT_R32_UINT);
+      |         ^~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:63:1: note: in expansion of macro ‘CHECKEQ’
+   63 | CHECKEQ(VK_FORMAT_R32_UINT_, VK_FORMAT_R32_UINT);
+      | ^~~~~~~
+vk_abi_check.c:64:9: error: ‘VK_IMAGE_LAYOUT_GENERAL_’ undeclared here (not in a function); did you mean ‘VK_IMAGE_LAYOUT_GENERAL’?
+   64 | CHECKEQ(VK_IMAGE_LAYOUT_GENERAL_, VK_IMAGE_LAYOUT_GENERAL);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:64:1: note: in expansion of macro ‘CHECKEQ’
+   64 | CHECKEQ(VK_IMAGE_LAYOUT_GENERAL_, VK_IMAGE_LAYOUT_GENERAL);
+      | ^~~~~~~
+vk_abi_check.c:65:9: error: ‘VK_IMAGE_LAYOUT_UNDEFINED_’ undeclared here (not in a function); did you mean ‘VK_IMAGE_LAYOUT_UNDEFINED’?
+   65 | CHECKEQ(VK_IMAGE_LAYOUT_UNDEFINED_, VK_IMAGE_LAYOUT_UNDEFINED);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:65:1: note: in expansion of macro ‘CHECKEQ’
+   65 | CHECKEQ(VK_IMAGE_LAYOUT_UNDEFINED_, VK_IMAGE_LAYOUT_UNDEFINED);
+      | ^~~~~~~
+vk_abi_check.c:66:9: error: ‘VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT_’ undeclared here (not in a function); did you mean ‘VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT’?
+   66 | CHECKEQ(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT_, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:66:1: note: in expansion of macro ‘CHECKEQ’
+   66 | CHECKEQ(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT_, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+      | ^~~~~~~
+vk_abi_check.c:67:9: error: ‘VK_ACCESS_SHADER_WRITE_BIT_’ undeclared here (not in a function); did you mean ‘VK_ACCESS_SHADER_WRITE_BIT’?
+   67 | CHECKEQ(VK_ACCESS_SHADER_WRITE_BIT_, VK_ACCESS_SHADER_WRITE_BIT);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:67:1: note: in expansion of macro ‘CHECKEQ’
+   67 | CHECKEQ(VK_ACCESS_SHADER_WRITE_BIT_, VK_ACCESS_SHADER_WRITE_BIT);
+      | ^~~~~~~
+vk_abi_check.c:68:9: error: ‘VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT_’ undeclared here (not in a function); did you mean ‘VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT’?
+   68 | CHECKEQ(VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT_, VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:68:1: note: in expansion of macro ‘CHECKEQ’
+   68 | CHECKEQ(VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT_, VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT);
+      | ^~~~~~~
+vk_abi_check.c:69:9: error: ‘VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT_’ undeclared here (not in a function); did you mean ‘VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT’?
+   69 | CHECKEQ(VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT_, VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vk_abi_check.c:20:50: note: in definition of macro ‘CHECKEQ’
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                                  ^
+vk_abi_check.c:20:38: error: expression in static assertion is not an integer
+   20 | #define CHECKEQ(a, b) _Static_assert((long long)(a) == (long long)(b), #a " == " #b)
+      |                                      ^
+vk_abi_check.c:69:1: note: in expansion of macro ‘CHECKEQ’
+   69 | CHECKEQ(VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT_, VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT);
+      | ^~~~~~~
+make: *** [Makefile:174: vk-abi-check] Error 1
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+
+=== gpu-stream-probe: STREAM + RASTER + FD gates (SwiftShader leg) ===
+gpu-stream-probe: backend=vulkan device='SwiftShader Device (Subzero)' payload=256 slots=4 frames=512
+stream-1: mismatches=0 seq=256 xor=0x0c0e0e96 slots=1413891415 magic=0x00000000 (window after 256 frames)
+stream-2: mismatches=0 seq=512 xor=0x53ec96ee slots=1413891415 magic=0x00000000 (window advanced to 512)
+STREAM gate: FAIL — whole-ring GPU consumption advanced across dispatches
+raster:   mismatches=0 seq=512 pixels=1408014062/1413891415 magic=0x00000000 (frame -> 8x8 rgba8ui texture) [diag load r/g/a=0/0/0 want_r=83]
+RASTER gate: FAIL — frames became a self-verified GPU texture
+fd-worker: imported session validated GPU-side: mismatches=0 seq=512 word0=0x53ec96ee magic=0x54464557
+fd:      backend=vulkan external=opaque-fd device='SwiftShader Device (Subzero)'
+FD gate:  PASS — child imported the fd and validated 512 frames GPU-side through the producer's allocation
+SwiftShader leg unavailable (download or ICD failed) — falling back to installed-ICD + no-ICD legs
+gpu-stream-probe: backend=vulkan device='SwiftShader Device (Subzero)' payload=256 slots=4 frames=256
+stream-1: mismatches=0 seq=128 xor=0x787daac0 slots=1413891415 magic=0x00000000 (window after 128 frames)
+stream-2: mismatches=0 seq=256 xor=0x0c0e0e96 slots=1413891415 magic=0x00000000 (window advanced to 256)
+STREAM gate: FAIL — whole-ring GPU consumption advanced across dispatches
+raster:   mismatches=0 seq=256 pixels=202247830/1413891415 magic=0x00000000 (frame -> 8x8 rgba8ui texture) [diag load r/g/a=0/0/0 want_r=12]
+RASTER gate: FAIL — frames became a self-verified GPU texture
+fd-worker: imported session validated GPU-side: mismatches=0 seq=256 word0=0x0c0e0e96 magic=0x54464557
+fd:      backend=vulkan external=opaque-fd device='SwiftShader Device (Subzero)'
+FD gate:  PASS — child imported the fd and validated 256 frames GPU-side through the producer's allocation
+
+=== gpu-stream-probe guardrail (no ICD — clean refusal) ===
+guardrail: kit on cpu backend -> rc=-1 (clean refusal)
+gpu-stream-probe: backend=cpu device='anonymous mapping (no GPU backend available)' payload=256 slots=4 frames=32
+gpu-stream-probe: no Vulkan ICD — streaming/raster/fd proofs not runnable here (guardrail gate ran above)
+
+=== SPIR-V rebuild byte-identity (glslang determinism, all three shaders) ===
+validate_frame.spv rebuild byte-identical
+stream_frames.spv rebuild byte-identical
+rasterize_frame.spv rebuild byte-identical
+and validated 256 frames GPU-side through the producer's allocation
+
+=== gpu-stream-probe guardrail (no ICD — clean refusal) ===
+guardrail: kit on cpu backend -> rc=-1 (clean refusal)
+gpu-stream-probe: backend=cpu device='anonymous mapping (no GPU backend available)' payload=256 slots=4 frames=32
+gpu-stream-probe: no Vulkan ICD — streaming/raster/fd proofs not runnable here (guardrail gate ran above)
+
+=== SPIR-V rebuild byte-identity (glslang determinism, all three shaders) ===
+validate_frame.spv rebuild byte-identical
+stream_frames.spv rebuild byte-identical
+rasterize_frame.spv rebuild byte-identical

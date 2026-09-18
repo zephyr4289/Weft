@@ -1,0 +1,465 @@
+From cc0b800f263db776748643795fcf3941275e32ea Mon Sep 17 00:00:00 2001
+From: Vibe Nuage Agent <vibe@mistral.ai>
+Date: Fri, 18 Sep 2026 06:18:50 +0000
+Subject: [PATCH] docs: consolidate scattered MD files into docs/ directory
+ [skip ci]
+
+Co-authored-by: zephyr4289 <zephyr4289@users.noreply.github.com>
+---
+ README.md                                     | 155 +-----------------
+ {apple => docs/apple}/WeftExample/README.md   |   0
+ {core => docs/bindings}/dart/README.md        |   0
+ {core => docs/bindings}/kotlin/README.md      |   0
+ {core => docs/bindings}/swift/README.md       |   0
+ .../contrib}/cmp-eval-rig/README.md           |   0
+ 05-CONTRACTS.md => docs/core/05-CONTRACTS.md  |   0
+ ARCHITECTURE.md => docs/core/ARCHITECTURE.md  |   0
+ .../core/CODE_OF_CONDUCT.md                   |   0
+ CONTRIBUTING.md => docs/core/CONTRIBUTING.md  |   0
+ GOVERNANCE.md => docs/core/GOVERNANCE.md      |   0
+ INSTALL.md => docs/core/INSTALL.md            |   0
+ .../core/RELEASE-NOTES.md                     |   0
+ ROADMAP.md => docs/core/ROADMAP.md            |   0
+ SECURITY.md => docs/core/SECURITY.md          |   0
+ worklog.md => docs/core/worklog.md            |   0
+ {demos => docs/demos}/web/README.md           |   0
+ .../fixtures}/jni-fanout/README.md            |   0
+ .../fixtures}/xlang-cadence/README.md         |   0
+ .../fixtures}/xlang-fanout/README.md          |   0
+ .../fixtures}/xlang-governor/README.md        |   0
+ .../fixtures}/xlang-verifiedweft/README.md    |   0
+ .../infrastructure/bench}/README.md           |   0
+ .../infrastructure/bench}/REPORT.md           |   0
+ {ci => docs/infrastructure/ci}/README.md      |   0
+ .../infrastructure/litmus}/README.md          |   0
+ .../litmus}/REPORT-v1-preWO-P0A.md            |   0
+ .../infrastructure/litmus}/REPORT.md          |   0
+ .../evidence/governor-vm/swift-source-only.md |   0
+ .../infrastructure/tools}/FORMATS.md          |   0
+ .../tools}/chaos-fixtures/README.md           |   0
+ .../tools}/stranger-repro/README.md           |   0
+ {packages => docs/packages}/core/README.md    |   0
+ .../etc => docs/packages/core}/core.api.md    |   0
+ .../packages/core/core.api.md.bak             |   0
+ .../packages}/flutter_weft/CHANGELOG.md       |   0
+ .../packages}/flutter_weft/README.md          |   0
+ .../packages}/flutter_weft/example/README.md  |   0
+ .../react-native}/react-native.api.md         |   0
+ .../react-native/react-native.api.md.bak      |   0
+ .../etc => docs/packages/react}/react.api.md  |   0
+ .../packages/react/react.api.md.bak           |   0
+ .../packages/svelte}/svelte.api.md            |   0
+ .../packages/svelte/svelte.api.md.bak         |   0
+ .../vue/etc => docs/packages/vue}/vue.api.md  |   0
+ .../packages/vue/vue.api.md.bak               |   0
+ .../spikes}/compose-mp-ios/cmp_ios_eval.md    |   0
+ .../spikes}/fanout-heddles/README.md          |   0
+ 48 files changed, 1 insertion(+), 154 deletions(-)
+ mode change 100644 => 120000 README.md
+ rename {apple => docs/apple}/WeftExample/README.md (100%)
+ rename {core => docs/bindings}/dart/README.md (100%)
+ rename {core => docs/bindings}/kotlin/README.md (100%)
+ rename {core => docs/bindings}/swift/README.md (100%)
+ rename {contrib => docs/contrib}/cmp-eval-rig/README.md (100%)
+ rename 05-CONTRACTS.md => docs/core/05-CONTRACTS.md (100%)
+ rename ARCHITECTURE.md => docs/core/ARCHITECTURE.md (100%)
+ rename CODE_OF_CONDUCT.md => docs/core/CODE_OF_CONDUCT.md (100%)
+ rename CONTRIBUTING.md => docs/core/CONTRIBUTING.md (100%)
+ rename GOVERNANCE.md => docs/core/GOVERNANCE.md (100%)
+ rename INSTALL.md => docs/core/INSTALL.md (100%)
+ rename RELEASE-NOTES.md => docs/core/RELEASE-NOTES.md (100%)
+ rename ROADMAP.md => docs/core/ROADMAP.md (100%)
+ rename SECURITY.md => docs/core/SECURITY.md (100%)
+ rename worklog.md => docs/core/worklog.md (100%)
+ rename {demos => docs/demos}/web/README.md (100%)
+ rename {fixtures => docs/fixtures}/jni-fanout/README.md (100%)
+ rename {fixtures => docs/fixtures}/xlang-cadence/README.md (100%)
+ rename {fixtures => docs/fixtures}/xlang-fanout/README.md (100%)
+ rename {fixtures => docs/fixtures}/xlang-governor/README.md (100%)
+ rename {fixtures => docs/fixtures}/xlang-verifiedweft/README.md (100%)
+ rename {bench => docs/infrastructure/bench}/README.md (100%)
+ rename {bench => docs/infrastructure/bench}/REPORT.md (100%)
+ rename {ci => docs/infrastructure/ci}/README.md (100%)
+ rename {litmus => docs/infrastructure/litmus}/README.md (100%)
+ rename {litmus => docs/infrastructure/litmus}/REPORT-v1-preWO-P0A.md (100%)
+ rename {litmus => docs/infrastructure/litmus}/REPORT.md (100%)
+ rename {litmus => docs/infrastructure/litmus}/evidence/governor-vm/swift-source-only.md (100%)
+ rename {tools => docs/infrastructure/tools}/FORMATS.md (100%)
+ rename {tools => docs/infrastructure/tools}/chaos-fixtures/README.md (100%)
+ rename {tools => docs/infrastructure/tools}/stranger-repro/README.md (100%)
+ rename {packages => docs/packages}/core/README.md (100%)
+ rename {packages/core/etc => docs/packages/core}/core.api.md (100%)
+ rename packages/core/temp/core.api.md => docs/packages/core/core.api.md.bak (100%)
+ rename {packages => docs/packages}/flutter_weft/CHANGELOG.md (100%)
+ rename {packages => docs/packages}/flutter_weft/README.md (100%)
+ rename {packages => docs/packages}/flutter_weft/example/README.md (100%)
+ rename {packages/react-native/etc => docs/packages/react-native}/react-native.api.md (100%)
+ rename packages/react-native/temp/react-native.api.md => docs/packages/react-native/react-native.api.md.bak (100%)
+ rename {packages/react/etc => docs/packages/react}/react.api.md (100%)
+ rename packages/react/temp/react.api.md => docs/packages/react/react.api.md.bak (100%)
+ rename {packages/svelte/etc => docs/packages/svelte}/svelte.api.md (100%)
+ rename packages/svelte/temp/svelte.api.md => docs/packages/svelte/svelte.api.md.bak (100%)
+ rename {packages/vue/etc => docs/packages/vue}/vue.api.md (100%)
+ rename packages/vue/temp/vue.api.md => docs/packages/vue/vue.api.md.bak (100%)
+ rename {spikes => docs/spikes}/compose-mp-ios/cmp_ios_eval.md (100%)
+ rename {spikes => docs/spikes}/fanout-heddles/README.md (100%)
+
+diff --git a/README.md b/README.md
+deleted file mode 100644
+index fde0dad..0000000
+--- a/README.md
++++ /dev/null
+@@ -1,154 +0,0 @@
+-# Weft Complete Repository — Sandbox v0.1 + Extreme Testing CI
+-
+-> **Single-zip extract-and-use repository** · 2026-09-15 · `x86_64-sandbox`
+-> All source, all reports, all directive packages, all build scripts, all audit logs,
+-> **plus the full extreme-testing CI suite**.
+-
+-## What this is
+-
+-The complete Weft sandbox-buildable project, packaged as a single zip you can extract anywhere. After extraction, you have:
+-
+-- The full Weft source tree (3-language kernel, litmus suite, benchmark suite, W-suite, tools, ports, docs)
+-- **The extreme-testing CI suite** (3 GitHub Actions workflows + 15 parallel test shards + perf-regression gate)
+-- Every PDF report ever produced (whitepaper v1.0.0 through v1.0.4, all phase reports, all errata, all closure-batch evidence)
+-- Every directive package from staff (Phase 0 through Phase 5, including the round-5 verification record)
+-- Every build/validation script used to produce the deliverables
+-- The multi-agent worklog (the full audit trail across all phases)
+-- The release tarball itself (`weft-sandbox-v0.1.tar.gz`)
+-
+-## Directory layout
+-
+-```
+-weft-complete-repo/
+-├── README.md                          ← this file
+-├── weft-sandbox-v0.1.tar.gz           ← the release tarball
+-├── worklog.md                         ← multi-agent audit trail
+-│
+-├── weft/                              ← the Weft source tree (with R1+R2 fixes)
+-│   ├── .github/workflows/             ← **CI workflows (NEW)**
+-│   │   ├── extreme-test.yml           ← 14 parallel shards, runs on every push/PR
+-│   │   ├── nightly-deep.yml           ← nightly: 5× litmus, 10min thermal, TSAN, clean-tree
+-│   │   └── update-perf-baseline.yml   ← safety valve for perf-regression gate
+-│   ├── ci/                            ← **CI scripts + baselines (NEW)**
+-│   │   ├── README.md                  ← full CI documentation
+-│   │   ├── scripts/                   ← 15 shard runners + aggregator
+-│   │   └── baselines/wsuite-p99-baseline.json  ← pinned P99 baseline
+-│   ├── core/                          ← kernel (C, Rust, TS, Kotlin, Swift, Dart)
+-│   ├── heddles/                       ← TS Heddle bindings
+-│   ├── litmus/                        ← L1-L8 suite
+-│   ├── bench/                         ← B-suite + W-suite + thermal + site
+-│   ├── tools/                         ← drivers, validators, weft-probe, weft-record
+-│   ├── docs/                          ← WHITEPAPER.md (v1.0.4 canonical), ERRATA, PORTS
+-│   ├── reports/                       ← all PDFs (also at top-level reports/)
+-│   ├── Makefile + INSTALL.md + RELEASE-NOTES.md + SHA256SUMS + .gitignore
+-│   └── README.md
+-│
+-├── reports/                           ← all PDFs + markdown sources (top-level copy)
+-├── directives/                        ← all staff directive packages (audit trail)
+-└── scripts/                           ← all build/validation scripts
+-```
+-
+-## Quick start
+-
+-After extracting this zip:
+-
+-```sh
+-cd weft-complete-repo/weft
+-
+-# Verify the in-sandbox toolchain (per INSTALL.md):
+-#   gcc 14+, rustc 1.7x+, node 24+, python3 3.12+
+-
+-# Run all five make targets locally:
+-make all       # litmus + bench + site + validate + build
+-```
+-
+-## Push to GitHub + enable CI
+-
+-```sh
+-cd weft-complete-repo/weft
+-git init
+-git remote add origin https://github.com/zephyr4289/Weft.git
+-git add .
+-git commit -m "Initial commit: Weft sandbox v0.1 + extreme testing CI"
+-git push -u origin main
+-```
+-
+-On the first push, GitHub Actions will trigger the **Extreme Test Matrix** workflow (`.github/workflows/extreme-test.yml`). It runs 14 parallel shards:
+-
+-| Shard | What it gates |
+-|---|---|
+-| `build` (gatekeeper) | Compiles all 3 kernels first |
+-| `codeql-analysis` | Static security + quality on C + Python |
+-| `litmus-c/rust/ts` | 8-test litmus suite per language (with EXPOSURE-RETRY) |
+-| `bench-b-c/rust/ts` | B1-B5 benchmarks per language (canonical bundle isolation) |
+-| `wsuite` | 20 W-suite cells; alloc==0 assertion for C+D |
+-| `thermal-proxy` | 4 backends × sustained FPS decay (advisory) |
+-| `tools-interop` | 4 record/replay combos (C→C, C→Rust, Rust→Rust, Rust→C) |
+-| `ports-validate` | 4/4 port structural validator |
+-| `site-determinism` | `make site` double-render byte-identical |
+-| `forensic-scan` | PAST-CROPBOX scan at 611.5pt on all PDFs |
+-| `canonical-audit` | `bench/results.json` sha256 = `16b5c663` |
+-| **`perf-regression`** | **W-suite P99 vs baseline; >15% drop = FAIL** |
+-
+-After all shards finish, the aggregation job commits the full report to the **`ci-report` branch** under `runs/run-<NNNNN>/`.
+-
+-## Pull CI reports for analysis
+-
+-```sh
+-# Fetch the ci-report branch (created automatically on first CI run)
+-git fetch origin ci-report:ci-report
+-
+-# Inspect in a separate worktree
+-git worktree add ../weft-ci-reports ci-report
+-cd ../weft-ci-reports
+-
+-# Latest run's combined log
+-cat latest.log | less
+-
+-# Latest run's structured summary
+-python3 -c "import json; print(json.dumps(json.load(open('latest-summary.json')), indent=2))"
+-
+-# Find all FAILED runs
+-grep -l '"overall_status": "FAILED"' runs/*/summary.json
+-```
+-
+-See `weft/ci/README.md` for the full CI documentation (every shard, every script, baseline update protocol).
+-
+-## The performance gate (key feature)
+-
+-The `perf-regression` shard is what makes this CI "extreme": **committed code can never silently degrade performance.**
+-
+-1. W-suite (5 workloads × 4 backends = 20 cells) measures P99 FPS for each cell
+-2. Each cell's P99 is compared against the pinned baseline in `ci/baselines/wsuite-p99-baseline.json`
+-3. >15% drop = FAIL → workflow blocks the merge → PR gets a regression-table comment
+-4. To update the baseline intentionally (e.g., after a protocol change): add the **`perf-baseline-update`** label to the PR. When the PR merges, `update-perf-baseline.yml` runs the W-suite with longer measure windows and commits the new baseline to `main`.
+-
+-**Every perf change is intentional, attributed, and reviewed. No silent regressions.**
+-
+-## Nightly deep matrix
+-
+-`.github/workflows/nightly-deep.yml` runs at 00:00 UTC daily with the expensive tests:
+-
+-- `litmus-stability`: 5× iterations per language (catches flaky `EXPOSURE-SHORTFALL`s)
+-- `thermal-long`: 10 min per backend × 4 backends
+-- `tsan-deep`: C kernel with `-fsanitize=thread` × 5 iterations × 8 tests = 40 runs
+-- `clean-tree-deep`: build tarball, unpack into empty dir, run all 5 make targets
+-
+-Nightly reports commit to `ci-report` branch under `runs/nightly-<YYYY-MM-DD>-<NNNNN>/`.
+-
+-## Canonical artifacts
+-
+-| Artifact | Path | sha256 |
+-|---|---|---|
+-| Final tarball | `weft-sandbox-v0.1.tar.gz` | `62e8c5c2...` |
+-| Canonical whitepaper | `reports/Weft-Whitepaper-v1.0.4.pdf` | `6f3a3211...` |
+-| Canonical B-suite bundle | `weft/bench/results.json` | `16b5c663...` |
+-| Latest release report | `reports/Weft-Phase5-Release-Report-v1.0.1.pdf` | `54eb4499...` |
+-| W-suite P99 baseline | `weft/ci/baselines/wsuite-p99-baseline.json` | (pinned from R3 clean-tree run) |
+-
+-## Honesty
+-
+-- All measured numbers carry `[MEASURED x86_64-sandbox]`
+-- Structural gates are normative; telemetry is advisory (AXIOM T)
+-- Verification claims name scan scope + numeric threshold
+-- The CI cannot prove real-device performance — that's Phase 6+
+diff --git a/README.md b/README.md
+new file mode 120000
+index 0000000..6c8c7ea
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1 @@
++docs/core/README.md
+\ No newline at end of file
+diff --git a/apple/WeftExample/README.md b/docs/apple/WeftExample/README.md
+similarity index 100%
+rename from apple/WeftExample/README.md
+rename to docs/apple/WeftExample/README.md
+diff --git a/core/dart/README.md b/docs/bindings/dart/README.md
+similarity index 100%
+rename from core/dart/README.md
+rename to docs/bindings/dart/README.md
+diff --git a/core/kotlin/README.md b/docs/bindings/kotlin/README.md
+similarity index 100%
+rename from core/kotlin/README.md
+rename to docs/bindings/kotlin/README.md
+diff --git a/core/swift/README.md b/docs/bindings/swift/README.md
+similarity index 100%
+rename from core/swift/README.md
+rename to docs/bindings/swift/README.md
+diff --git a/contrib/cmp-eval-rig/README.md b/docs/contrib/cmp-eval-rig/README.md
+similarity index 100%
+rename from contrib/cmp-eval-rig/README.md
+rename to docs/contrib/cmp-eval-rig/README.md
+diff --git a/05-CONTRACTS.md b/docs/core/05-CONTRACTS.md
+similarity index 100%
+rename from 05-CONTRACTS.md
+rename to docs/core/05-CONTRACTS.md
+diff --git a/ARCHITECTURE.md b/docs/core/ARCHITECTURE.md
+similarity index 100%
+rename from ARCHITECTURE.md
+rename to docs/core/ARCHITECTURE.md
+diff --git a/CODE_OF_CONDUCT.md b/docs/core/CODE_OF_CONDUCT.md
+similarity index 100%
+rename from CODE_OF_CONDUCT.md
+rename to docs/core/CODE_OF_CONDUCT.md
+diff --git a/CONTRIBUTING.md b/docs/core/CONTRIBUTING.md
+similarity index 100%
+rename from CONTRIBUTING.md
+rename to docs/core/CONTRIBUTING.md
+diff --git a/GOVERNANCE.md b/docs/core/GOVERNANCE.md
+similarity index 100%
+rename from GOVERNANCE.md
+rename to docs/core/GOVERNANCE.md
+diff --git a/INSTALL.md b/docs/core/INSTALL.md
+similarity index 100%
+rename from INSTALL.md
+rename to docs/core/INSTALL.md
+diff --git a/RELEASE-NOTES.md b/docs/core/RELEASE-NOTES.md
+similarity index 100%
+rename from RELEASE-NOTES.md
+rename to docs/core/RELEASE-NOTES.md
+diff --git a/ROADMAP.md b/docs/core/ROADMAP.md
+similarity index 100%
+rename from ROADMAP.md
+rename to docs/core/ROADMAP.md
+diff --git a/SECURITY.md b/docs/core/SECURITY.md
+similarity index 100%
+rename from SECURITY.md
+rename to docs/core/SECURITY.md
+diff --git a/worklog.md b/docs/core/worklog.md
+similarity index 100%
+rename from worklog.md
+rename to docs/core/worklog.md
+diff --git a/demos/web/README.md b/docs/demos/web/README.md
+similarity index 100%
+rename from demos/web/README.md
+rename to docs/demos/web/README.md
+diff --git a/fixtures/jni-fanout/README.md b/docs/fixtures/jni-fanout/README.md
+similarity index 100%
+rename from fixtures/jni-fanout/README.md
+rename to docs/fixtures/jni-fanout/README.md
+diff --git a/fixtures/xlang-cadence/README.md b/docs/fixtures/xlang-cadence/README.md
+similarity index 100%
+rename from fixtures/xlang-cadence/README.md
+rename to docs/fixtures/xlang-cadence/README.md
+diff --git a/fixtures/xlang-fanout/README.md b/docs/fixtures/xlang-fanout/README.md
+similarity index 100%
+rename from fixtures/xlang-fanout/README.md
+rename to docs/fixtures/xlang-fanout/README.md
+diff --git a/fixtures/xlang-governor/README.md b/docs/fixtures/xlang-governor/README.md
+similarity index 100%
+rename from fixtures/xlang-governor/README.md
+rename to docs/fixtures/xlang-governor/README.md
+diff --git a/fixtures/xlang-verifiedweft/README.md b/docs/fixtures/xlang-verifiedweft/README.md
+similarity index 100%
+rename from fixtures/xlang-verifiedweft/README.md
+rename to docs/fixtures/xlang-verifiedweft/README.md
+diff --git a/bench/README.md b/docs/infrastructure/bench/README.md
+similarity index 100%
+rename from bench/README.md
+rename to docs/infrastructure/bench/README.md
+diff --git a/bench/REPORT.md b/docs/infrastructure/bench/REPORT.md
+similarity index 100%
+rename from bench/REPORT.md
+rename to docs/infrastructure/bench/REPORT.md
+diff --git a/ci/README.md b/docs/infrastructure/ci/README.md
+similarity index 100%
+rename from ci/README.md
+rename to docs/infrastructure/ci/README.md
+diff --git a/litmus/README.md b/docs/infrastructure/litmus/README.md
+similarity index 100%
+rename from litmus/README.md
+rename to docs/infrastructure/litmus/README.md
+diff --git a/litmus/REPORT-v1-preWO-P0A.md b/docs/infrastructure/litmus/REPORT-v1-preWO-P0A.md
+similarity index 100%
+rename from litmus/REPORT-v1-preWO-P0A.md
+rename to docs/infrastructure/litmus/REPORT-v1-preWO-P0A.md
+diff --git a/litmus/REPORT.md b/docs/infrastructure/litmus/REPORT.md
+similarity index 100%
+rename from litmus/REPORT.md
+rename to docs/infrastructure/litmus/REPORT.md
+diff --git a/litmus/evidence/governor-vm/swift-source-only.md b/docs/infrastructure/litmus/evidence/governor-vm/swift-source-only.md
+similarity index 100%
+rename from litmus/evidence/governor-vm/swift-source-only.md
+rename to docs/infrastructure/litmus/evidence/governor-vm/swift-source-only.md
+diff --git a/tools/FORMATS.md b/docs/infrastructure/tools/FORMATS.md
+similarity index 100%
+rename from tools/FORMATS.md
+rename to docs/infrastructure/tools/FORMATS.md
+diff --git a/tools/chaos-fixtures/README.md b/docs/infrastructure/tools/chaos-fixtures/README.md
+similarity index 100%
+rename from tools/chaos-fixtures/README.md
+rename to docs/infrastructure/tools/chaos-fixtures/README.md
+diff --git a/tools/stranger-repro/README.md b/docs/infrastructure/tools/stranger-repro/README.md
+similarity index 100%
+rename from tools/stranger-repro/README.md
+rename to docs/infrastructure/tools/stranger-repro/README.md
+diff --git a/packages/core/README.md b/docs/packages/core/README.md
+similarity index 100%
+rename from packages/core/README.md
+rename to docs/packages/core/README.md
+diff --git a/packages/core/etc/core.api.md b/docs/packages/core/core.api.md
+similarity index 100%
+rename from packages/core/etc/core.api.md
+rename to docs/packages/core/core.api.md
+diff --git a/packages/core/temp/core.api.md b/docs/packages/core/core.api.md.bak
+similarity index 100%
+rename from packages/core/temp/core.api.md
+rename to docs/packages/core/core.api.md.bak
+diff --git a/packages/flutter_weft/CHANGELOG.md b/docs/packages/flutter_weft/CHANGELOG.md
+similarity index 100%
+rename from packages/flutter_weft/CHANGELOG.md
+rename to docs/packages/flutter_weft/CHANGELOG.md
+diff --git a/packages/flutter_weft/README.md b/docs/packages/flutter_weft/README.md
+similarity index 100%
+rename from packages/flutter_weft/README.md
+rename to docs/packages/flutter_weft/README.md
+diff --git a/packages/flutter_weft/example/README.md b/docs/packages/flutter_weft/example/README.md
+similarity index 100%
+rename from packages/flutter_weft/example/README.md
+rename to docs/packages/flutter_weft/example/README.md
+diff --git a/packages/react-native/etc/react-native.api.md b/docs/packages/react-native/react-native.api.md
+similarity index 100%
+rename from packages/react-native/etc/react-native.api.md
+rename to docs/packages/react-native/react-native.api.md
+diff --git a/packages/react-native/temp/react-native.api.md b/docs/packages/react-native/react-native.api.md.bak
+similarity index 100%
+rename from packages/react-native/temp/react-native.api.md
+rename to docs/packages/react-native/react-native.api.md.bak
+diff --git a/packages/react/etc/react.api.md b/docs/packages/react/react.api.md
+similarity index 100%
+rename from packages/react/etc/react.api.md
+rename to docs/packages/react/react.api.md
+diff --git a/packages/react/temp/react.api.md b/docs/packages/react/react.api.md.bak
+similarity index 100%
+rename from packages/react/temp/react.api.md
+rename to docs/packages/react/react.api.md.bak
+diff --git a/packages/svelte/etc/svelte.api.md b/docs/packages/svelte/svelte.api.md
+similarity index 100%
+rename from packages/svelte/etc/svelte.api.md
+rename to docs/packages/svelte/svelte.api.md
+diff --git a/packages/svelte/temp/svelte.api.md b/docs/packages/svelte/svelte.api.md.bak
+similarity index 100%
+rename from packages/svelte/temp/svelte.api.md
+rename to docs/packages/svelte/svelte.api.md.bak
+diff --git a/packages/vue/etc/vue.api.md b/docs/packages/vue/vue.api.md
+similarity index 100%
+rename from packages/vue/etc/vue.api.md
+rename to docs/packages/vue/vue.api.md
+diff --git a/packages/vue/temp/vue.api.md b/docs/packages/vue/vue.api.md.bak
+similarity index 100%
+rename from packages/vue/temp/vue.api.md
+rename to docs/packages/vue/vue.api.md.bak
+diff --git a/spikes/compose-mp-ios/cmp_ios_eval.md b/docs/spikes/compose-mp-ios/cmp_ios_eval.md
+similarity index 100%
+rename from spikes/compose-mp-ios/cmp_ios_eval.md
+rename to docs/spikes/compose-mp-ios/cmp_ios_eval.md
+diff --git a/spikes/fanout-heddles/README.md b/docs/spikes/fanout-heddles/README.md
+similarity index 100%
+rename from spikes/fanout-heddles/README.md
+rename to docs/spikes/fanout-heddles/README.md
+-- 
+2.47.3
+

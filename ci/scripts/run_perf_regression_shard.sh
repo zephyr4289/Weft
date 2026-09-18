@@ -9,7 +9,7 @@
 #     new W-suite output as the baseline and commit it to the baseline file.
 set -euo pipefail
 
-mkdir -p ci/run-artifacts
+mkdir -p ci/run-artifacts ci/final-report
 
 BASELINE_FILE="ci/baselines/wsuite-p99-baseline.json"
 REGRESSION_THRESHOLD_PCT=15  # >15% drop = FAIL

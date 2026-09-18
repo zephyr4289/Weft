@@ -69,11 +69,11 @@ static void* read_file(const char* name, size_t* out_len) {
     snprintf(b1, sizeof(b1), "probes/compute/%s", name);
     snprintf(b2, sizeof(b2), "../../probes/compute/%s", name);
     snprintf(b3, sizeof(b3), "../probes/compute/%s", name);
-    candidates[0] = (env != NULL) ? env : "";  // "" is skipped below
-    candidates[1] = name;
-    candidates[2] = b1;
-    candidates[3] = b2;
-    candidates[4] = b3;
+    candidates[0] = (env != NULL && strstr(env, name) != NULL) ? env : "";
+    candidates[1] = b1;
+    candidates[2] = b2;
+    candidates[3] = b3;
+    candidates[4] = name;
     candidates[5] = NULL;
     for (int i = 0; candidates[i] != NULL; i++) {
         if (candidates[i][0] == '\0') continue;

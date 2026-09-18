@@ -1,0 +1,61 @@
+==================================================
+SHARD: formal
+DESCRIPTION: TLA+ proofs — FanoutSeqlock + ReattachPolicy (TLC, pinned jar)
+STATUS: PASSED ✅
+COMMIT: f953c3714f338195c218f11a269307644c547373
+RUN: 123
+==================================================
+
+
+=== TLC toolchain (pinned sha256) ===
+fetching tla2tools 1.8.0...
+tla2tools 1.8.0 sha256 OK
+
+=== Model: FanoutSeqlock ===
+tee: ci/run-artifacts/shard-formal.log: No such file or directory
+Semantic processing of module _TLCTrace
+Semantic processing of module FanoutSeqlock
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module FanoutSeqlock
+Starting... (2026-09-18 10:45:10)
+Implied-temporal checking--satisfiability problem has 3 branches.
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-09-18 10:45:11.
+Progress(46) at 2026-09-18 10:45:12: 19,454 states generated, 6,481 distinct states found, 0 states left on queue.
+Checking 3 branches of temporal properties for the complete state space with 19443 total distinct states at (2026-09-18 10:45:12)
+Finished checking temporal properties in 00s at 2026-09-18 10:45:12
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 4.6E-12
+19454 states generated, 6481 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 46.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 3 and the 95th percentile is 2).
+Finished in 04s at (2026-09-18 10:45:12)
+[FanoutSeqlock] PROVEN — no error found
+
+=== Model: ReattachPolicy ===
+tee: ci/run-artifacts/shard-formal.log: No such file or directory
+Starting... (2026-09-18 10:45:13)
+Implied-temporal checking--satisfiability problem has 4 branches.
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-09-18 10:45:13.
+Warning: The variable rHdrOK was changed while it is specified as UNCHANGED at
+line 188, col 89 to line 188, col 94 of module ReattachPolicy
+(Use the -nowarning option to disable this warning.)
+Warning: The variable rHdrOK was changed while it is specified as UNCHANGED at
+line 188, col 89 to line 188, col 94 of module ReattachPolicy
+Progress(17) at 2026-09-18 10:45:13: 2,063 states generated, 615 distinct states found, 0 states left on queue.
+Checking 4 branches of temporal properties for the complete state space with 2460 total distinct states at (2026-09-18 10:45:13)
+Finished checking temporal properties in 00s at 2026-09-18 10:45:13
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 4.8E-14
+2063 states generated, 615 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 17.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 4 and the 95th percentile is 2).
+Finished in 00s at (2026-09-18 10:45:13)
+[ReattachPolicy] PROVEN — no error found
+formal shard: PASS

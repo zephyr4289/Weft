@@ -234,6 +234,25 @@ turbo-runner: turbo_runner.c $(TRUNNER_SRC) turbo.h uring_rx.h fanout.h weft.h
 turbo-runner-sys: turbo_runner.c $(TRUNNER_SRC) turbo.h uring_rx.h fanout.h weft.h
 	$(CC) $(CFLAGS) -DWEFT_URING_FORCE_SYSCALL=1 -o turbo-runner-sys $(TRUNNER_SRC) turbo_runner.c
 
+# ---- Issue #16 Tier 1: revocation handshake stress (Task 5) --------------
+
+revoke-stress: revoke_stress.c weft.c weft.h
+	$(CC) $(CFLAGS) -o revoke-stress revoke_stress.c weft.c
+
+revoke-stress-asan: revoke_stress.c weft.c weft.h
+	$(CC) $(CFLAGS_ASAN) -o revoke-stress-asan revoke_stress.c weft.c
+
+revoke-stress-tsan: revoke_stress.c weft.c weft.h
+	$(CC) $(CFLAGS_DBG) -o revoke-stress-tsan revoke_stress.c weft.c
+
+# ---- Issue #16 Tier 1: FFI-boundary structured fuzz (Task 4) -------------
+
+ffi-fuzz: ffi_fuzz.c weft.c weft.h
+	$(CC) $(CFLAGS) -o ffi-fuzz ffi_fuzz.c weft.c
+
+ffi-fuzz-asan: ffi_fuzz.c weft.c weft.h
+	$(CC) $(CFLAGS_ASAN) -o ffi-fuzz-asan ffi_fuzz.c weft.c
+
 bench: bench_runner.c weft.c weft.h
 	$(CC) $(CFLAGS) -o bench bench_runner.c weft.c
 

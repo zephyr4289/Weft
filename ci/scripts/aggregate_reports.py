@@ -114,7 +114,16 @@ def main():
     if "thermal-proxy" in shards_summary and shards_summary["thermal-proxy"]["status"] != "PASSED":
         n_failed -= 1  # don't let thermal fail the overall
 
-    overall = "PASSED" if n_failed == 0 and n_pass > 0 else "FAILED"
+    if n_total == 0:
+        # Zero shards ran: path routing filtered every gate out for this
+        # change set (see the `changes` job in extreme-test.yml). Nothing
+        # this matrix gates was modified, so the verdict is the vacuous
+        # pass — recorded honestly as SKIPPED rather than FAILED, so
+        # branch protection stays green and the audit trail says exactly
+        # what happened.
+        overall = "SKIPPED"
+    else:
+        overall = "PASSED" if n_failed == 0 and n_pass > 0 else "FAILED"
 
     summary = {
         "run_number": int(args.run_number),
@@ -135,7 +144,7 @@ def main():
     print(f"  Overall: {overall}")
     print(f"  Combined log: {out_dir / 'combined.log'}")
     print(f"  Summary JSON: {out_dir / 'summary.json'}")
-    return 0 if overall == "PASSED" else 1
+    return 0 if overall in ("PASSED", "SKIPPED") else 1
 
 
 if __name__ == "__main__":

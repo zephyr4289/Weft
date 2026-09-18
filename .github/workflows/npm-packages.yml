@@ -1,11 +1,39 @@
 name: npm Packages CI
 
+# Path-aware: this workflow only owns the JS/TS package surface. A change
+# outside it (kernel C, docs, reports, ...) cannot alter its outcome, so it
+# stays asleep. Ownership contract: ci/README.md.
 on:
   push:
     branches: [main, develop]
+    paths:
+      - 'packages/**'
+      - 'core/ts/**'
+      - 'fixtures/**'
+      - 'heddles/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'ci/scripts/run_binding_parity.sh'
+      - '.github/workflows/npm-packages.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'packages/**'
+      - 'core/ts/**'
+      - 'fixtures/**'
+      - 'heddles/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'ci/scripts/run_binding_parity.sh'
+      - '.github/workflows/npm-packages.yml'
   workflow_dispatch:
+
+concurrency:
+  group: npm-packages-${{ github.ref }}
+  # PRs: newest head wins; pushes to a branch: let it finish
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: write
@@ -143,4 +171,14 @@ jobs:
 
           git add -f "$LOG_DIR/"
           git commit -m "ci(npm-node-${NODE_VER}): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
-          git push origin ci/logs || true
+          # ci/logs sees concurrent pushes from sibling matrix jobs — retry
+          # with rebase so a log is never silently dropped to a lost race.
+          PUSHED=0
+          for attempt in 1 2 3; do
+            if git push origin ci/logs; then PUSHED=1; break; fi
+            git pull --rebase origin ci/logs || true
+            sleep $((attempt * 2))
+          done
+          if [ "$PUSHED" != "1" ]; then
+            echo "::warning::ci/logs push lost the race 3x — log for $LOG_DIR not published"
+          fi

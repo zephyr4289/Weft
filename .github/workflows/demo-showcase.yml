@@ -1,11 +1,32 @@
 name: Demo Showcase CI
 
+# Path-aware: this workflow only owns the demo web surface. Ownership
+# contract: ci/README.md.
 on:
   push:
     branches: [main, develop]
+    paths:
+      - 'demos/**'
+      - 'packages/**'
+      - 'core/ts/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/demo-showcase.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'demos/**'
+      - 'packages/**'
+      - 'core/ts/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/demo-showcase.yml'
   workflow_dispatch:
+
+concurrency:
+  group: demo-showcase-${{ github.ref }}
+  # PRs: newest head wins; pushes to a branch: let it finish
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: write

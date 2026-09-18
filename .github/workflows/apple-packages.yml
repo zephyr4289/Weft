@@ -1,11 +1,28 @@
 name: Apple SPM CI
 
+# Path-aware: this workflow only owns the Swift/SPM surface. Ownership
+# contract: ci/README.md.
 on:
   push:
     branches: [main, develop]
+    paths:
+      - 'Package.swift'
+      - 'core/swift/**'
+      - 'apple/**'
+      - '.github/workflows/apple-packages.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'Package.swift'
+      - 'core/swift/**'
+      - 'apple/**'
+      - '.github/workflows/apple-packages.yml'
   workflow_dispatch:
+
+concurrency:
+  group: apple-packages-${{ github.ref }}
+  # PRs: newest head wins; pushes to a branch: let it finish
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: write
@@ -88,7 +105,17 @@ jobs:
 
           git add -f "$LOG_DIR/"
           git commit -m "ci(apple-macos): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
-          git push origin ci/logs || true
+          # ci/logs sees concurrent pushes from sibling jobs — retry with
+          # rebase so a log is never silently dropped to a lost race.
+          PUSHED=0
+          for attempt in 1 2 3; do
+            if git push origin ci/logs; then PUSHED=1; break; fi
+            git pull --rebase origin ci/logs || true
+            sleep $((attempt * 2))
+          done
+          if [ "$PUSHED" != "1" ]; then
+            echo "::warning::ci/logs push lost the race 3x — log for $LOG_DIR not published"
+          fi
 
       # Legacy branch kept for backward compat
       - name: Publish CI Result Branch (legacy)
@@ -208,4 +235,14 @@ jobs:
 
           git add -f "$LOG_DIR/"
           git commit -m "ci(apple-ios-sim): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
-          git push origin ci/logs || true
+          # ci/logs sees concurrent pushes from sibling jobs — retry with
+          # rebase so a log is never silently dropped to a lost race.
+          PUSHED=0
+          for attempt in 1 2 3; do
+            if git push origin ci/logs; then PUSHED=1; break; fi
+            git pull --rebase origin ci/logs || true
+            sleep $((attempt * 2))
+          done
+          if [ "$PUSHED" != "1" ]; then
+            echo "::warning::ci/logs push lost the race 3x — log for $LOG_DIR not published"
+          fi

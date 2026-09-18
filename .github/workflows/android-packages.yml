@@ -1,11 +1,30 @@
 name: Android Packages CI
 
+# Path-aware: this workflow only owns the Android/Gradle surface (plus the
+# Kotlin mirror + C kernel it builds against). Ownership contract: ci/README.md.
 on:
   push:
     branches: [main, develop]
+    paths:
+      - 'android/**'
+      - 'core/kotlin/**'
+      - 'core/c/**'
+      - 'ci/scripts/run_binding_parity.sh'
+      - '.github/workflows/android-packages.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'android/**'
+      - 'core/kotlin/**'
+      - 'core/c/**'
+      - 'ci/scripts/run_binding_parity.sh'
+      - '.github/workflows/android-packages.yml'
   workflow_dispatch:
+
+concurrency:
+  group: android-packages-${{ github.ref }}
+  # PRs: newest head wins; pushes to a branch: let it finish
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -29,6 +48,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Set up Gradle (build caching)
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Accept Android Licenses & Install NDK / CMake
         run: |
@@ -150,7 +172,17 @@ jobs:
 
           git add -f "$LOG_DIR/"
           git commit -m "ci(android-packages): $STATUS [${SHA:0:8}] event=$EVENT run=${{ github.run_number }}" || true
-          git push origin ci/logs || true
+          # ci/logs sees concurrent pushes from sibling jobs — retry with
+          # rebase so a log is never silently dropped to a lost race.
+          PUSHED=0
+          for attempt in 1 2 3; do
+            if git push origin ci/logs; then PUSHED=1; break; fi
+            git pull --rebase origin ci/logs || true
+            sleep $((attempt * 2))
+          done
+          if [ "$PUSHED" != "1" ]; then
+            echo "::warning::ci/logs push lost the race 3x — log for $LOG_DIR not published"
+          fi
 
       # Keep the legacy ci/android-status branch for backward compat
       - name: Publish CI Result Branch (legacy)

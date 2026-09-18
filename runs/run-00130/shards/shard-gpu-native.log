@@ -1,0 +1,188 @@
+==================================================
+SHARD: gpu-native
+DESCRIPTION: RFC-0003 spike: GPU-series + gpu-probe full dispatch (lavapipe ICD)
+STATUS: PASSED ✅
+COMMIT: c95d02913592b3ea84135b29ec5682914635a5eb
+RUN: 130
+==================================================
+
+
+=== environment (mesa-vulkan-drivers + libvulkan1 when apt available) ===
+	apiVersion         = 1.4.318
+	deviceName         = llvmpipe (LLVM 20.1.2, 256 bits)
+
+=== GPU-series conformance (Vulkan/lavapipe leg) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o gpu-ring-test gpu_ring.c fanout.c weft.c gpu_ring_test.c -lrt -lpthread -ldl
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+Weft GPU-series (GPU-resident rings, RFC-0003 spike) — C driver layer
+GPU1: create — session contract + geometry
+  PASS create ok
+  backend=vulkan device='llvmpipe (LLVM 20.1.2, 256 bits)'
+  PASS geometry from session
+  PASS span = header + ring_bytes (RFC-0004 identity)
+  PASS session bytes validate under the shared WFSH contract
+  PASS ctrl zero-initialized (fresh-ring invariants)
+  PASS destroy + NULL-destroy safe
+GPU2: fan-out over the mapping — publish/claim bit-exact
+  PASS create ok
+  PASS writer attach over the mapping
+  PASS reader attach over the mapping
+  PASS 5000 frames, sampled claims bit-exact
+  PASS telescoping exact over the mapping
+GPU3: session bytes interchange with the shm contract
+  PASS create ok
+  PASS WFSH header identical in both modules' dialects
+  PASS word map: latestSeq at words[16..18)
+  PASS word map: publishes at words[18..20)
+  PASS word map: slotSeq[0] at words[20..22)
+  PASS word map: slot-0 payload word 0 at words[28] (20+2*4)
+GPU4: vulkan leg (allocation + persistent map + live publish)
+  PASS session span IS the VkBuffer (one allocation, no staging buffer)
+  PASS device + compute queue family exported
+  PASS device-level proc resolution works
+  PASS writer over the persistent map
+  PASS 1000 live frames published through the Vulkan mapping
+GPU5: lifecycle — cycles hold no leaks (ASAN-gated)
+  PASS 8 create/publish/destroy cycles clean
+
+verdict: PASS
+
+=== GPU-series conformance (CPU-fallback leg) ===
+Weft GPU-series (GPU-resident rings, RFC-0003 spike) — C driver layer
+GPU1: create — session contract + geometry
+  PASS create ok
+  backend=cpu device='anonymous mapping (no GPU backend available)'
+  PASS geometry from session
+  PASS span = header + ring_bytes (RFC-0004 identity)
+  PASS session bytes validate under the shared WFSH contract
+  PASS ctrl zero-initialized (fresh-ring invariants)
+  PASS destroy + NULL-destroy safe
+GPU2: fan-out over the mapping — publish/claim bit-exact
+  PASS create ok
+  PASS writer attach over the mapping
+  PASS reader attach over the mapping
+  PASS 5000 frames, sampled claims bit-exact
+  PASS telescoping exact over the mapping
+GPU3: session bytes interchange with the shm contract
+  PASS create ok
+  PASS WFSH header identical in both modules' dialects
+  PASS word map: latestSeq at words[16..18)
+  PASS word map: publishes at words[18..20)
+  PASS word map: slotSeq[0] at words[20..22)
+  PASS word map: slot-0 payload word 0 at words[28] (20+2*4)
+GPU4: vulkan leg (allocation + persistent map + live publish)
+  (backend=cpu — vulkan leg skipped, declared)
+  PASS non-vulkan backend: leg skipped honestly
+GPU5: lifecycle — cycles hold no leaks (ASAN-gated)
+  PASS 8 create/publish/destroy cycles clean
+
+verdict: PASS
+
+=== GPU-series conformance under ASAN ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o gpu-ring-test-asan gpu_ring.c fanout.c weft.c gpu_ring_test.c -lrt -lpthread -ldl
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+Weft GPU-series (GPU-resident rings, RFC-0003 spike) — C driver layer
+GPU1: create — session contract + geometry
+  PASS create ok
+  backend=vulkan device='llvmpipe (LLVM 20.1.2, 256 bits)'
+  PASS geometry from session
+  PASS span = header + ring_bytes (RFC-0004 identity)
+  PASS session bytes validate under the shared WFSH contract
+  PASS ctrl zero-initialized (fresh-ring invariants)
+  PASS destroy + NULL-destroy safe
+GPU2: fan-out over the mapping — publish/claim bit-exact
+  PASS create ok
+  PASS writer attach over the mapping
+  PASS reader attach over the mapping
+  PASS 5000 frames, sampled claims bit-exact
+  PASS telescoping exact over the mapping
+GPU3: session bytes interchange with the shm contract
+  PASS create ok
+  PASS WFSH header identical in both modules' dialects
+  PASS word map: latestSeq at words[16..18)
+  PASS word map: publishes at words[18..20)
+  PASS word map: slotSeq[0] at words[20..22)
+  PASS word map: slot-0 payload word 0 at words[28] (20+2*4)
+GPU4: vulkan leg (allocation + persistent map + live publish)
+  PASS session span IS the VkBuffer (one allocation, no staging buffer)
+  PASS device + compute queue family exported
+  PASS device-level proc resolution works
+  PASS writer over the persistent map
+  PASS 1000 live frames published through the Vulkan mapping
+GPU5: lifecycle — cycles hold no leaks (ASAN-gated)
+  PASS 8 create/publish/destroy cycles clean
+
+verdict: PASS
+
+=== gpu-probe: zero-copy consumer proof (compute dispatch validates live ring words) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o gpu-probe gpu_ring.c fanout.c weft.c gpu_probe.c -lrt -lpthread -ldl
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+gpu-probe: backend=vulkan device='llvmpipe (LLVM 20.1.2, 256 bits)' payload=256 slots=4 frames=1000
+dispatch-1: mismatches=0 seq=1 word0=0x6d523710 magic=0x54464557 (live read after frame 1)
+dispatch-2: mismatches=0 seq=1000 word0=0x3edc3a1f magic=0x54464557 (live read after frame 1000)
+gpu-probe: zero-copy consumer PROVEN — GPU validated 1000 live frames with no staging copy (backend=vulkan, device='llvmpipe (LLVM 20.1.2, 256 bits)')
+
+=== gpu-probe geometry sweep ===
+gpu-probe: backend=vulkan device='llvmpipe (LLVM 20.1.2, 256 bits)' payload=64 slots=4 frames=500
+dispatch-1: mismatches=0 seq=1 word0=0x6d523710 magic=0x54464557 (live read after frame 1)
+dispatch-2: mismatches=0 seq=500 word0=0x1c962924 magic=0x54464557 (live read after frame 500)
+gpu-probe: zero-copy consumer PROVEN — GPU validated 500 live frames with no staging copy (backend=vulkan, device='llvmpipe (LLVM 20.1.2, 256 bits)')
+gpu-probe: backend=vulkan device='llvmpipe (LLVM 20.1.2, 256 bits)' payload=1024 slots=8 frames=500
+dispatch-1: mismatches=0 seq=1 word0=0x6d523710 magic=0x54464557 (live read after frame 1)
+dispatch-2: mismatches=0 seq=500 word0=0x1c962924 magic=0x54464557 (live read after frame 500)
+gpu-probe: zero-copy consumer PROVEN — GPU validated 500 live frames with no staging copy (backend=vulkan, device='llvmpipe (LLVM 20.1.2, 256 bits)')
+gpu-probe: backend=vulkan device='llvmpipe (LLVM 20.1.2, 256 bits)' payload=16 slots=3 frames=500
+dispatch-1: mismatches=0 seq=1 word0=0x6d523710 magic=0x54464557 (live read after frame 1)
+dispatch-2: mismatches=0 seq=500 word0=0x1c962924 magic=0x54464557 (live read after frame 500)
+gpu-probe: zero-copy consumer PROVEN — GPU validated 500 live frames with no staging copy (backend=vulkan, device='llvmpipe (LLVM 20.1.2, 256 bits)')
+
+=== vk-abi-check: vk_min constants/sizes vs installed Khronos headers ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+vk-abi-check: every vk_min constant and struct verified against the installed Khronos headers — PASS (compile-time)
+
+=== gpu-stream-probe: STREAM + RASTER + FD gates (SwiftShader leg) ===
+gpu-stream-probe: backend=vulkan device='SwiftShader Device (Subzero)' payload=256 slots=4 frames=512
+stream-1: mismatches=0 seq=256 xor=0x76e059cb slots=4 magic=0x54464557 (window after 256 frames)
+stream-2: mismatches=0 seq=512 xor=0x6d96082f slots=4 magic=0x54464557 (window advanced to 512)
+STREAM gate: PASS — whole-ring GPU consumption advanced across dispatches
+raster:   mismatches=0 seq=512 pixels=64/64 magic=0x54464557 (frame -> 8x8 rgba8ui texture) [diag load r/g/a=83/236/255 want_r=83]
+RASTER gate: PASS — frames became a self-verified GPU texture
+fd-worker: imported session validated GPU-side: mismatches=0 seq=512 word0=0x53ec96ee magic=0x54464557
+fd:      backend=vulkan external=opaque-fd device='SwiftShader Device (Subzero)'
+FD gate:  PASS — child imported the fd and validated 512 frames GPU-side through the producer's allocation
+gpu-stream-probe: ALL APPLICABLE PROOFS PASSED (fd leg: passed)
+
+=== gpu-stream-probe guardrail (no ICD — clean refusal) ===
+guardrail: kit on cpu backend -> rc=-1 (clean refusal)
+gpu-stream-probe: backend=cpu device='anonymous mapping (no GPU backend available)' payload=256 slots=4 frames=32
+gpu-stream-probe: no Vulkan ICD — streaming/raster/fd proofs not runnable here (guardrail gate ran above)
+
+=== SPIR-V rebuild byte-identity (glslang determinism, all three shaders) ===
+validate_frame.spv rebuild byte-identical
+stream_frames.spv rebuild byte-identical
+rasterize_frame.spv rebuild byte-identical
+✅ gpu-native shard PASSED
+tream-probe: backend=cpu device='anonymous mapping (no GPU backend available)' payload=256 slots=4 frames=32
+gpu-stream-probe: no Vulkan ICD — streaming/raster/fd proofs not runnable here (guardrail gate ran above)
+
+=== SPIR-V rebuild byte-identity (glslang determinism, all three shaders) ===
+validate_frame.spv rebuild byte-identical
+stream_frames.spv rebuild byte-identical
+rasterize_frame.spv rebuild byte-identical
+✅ gpu-native shard PASSED

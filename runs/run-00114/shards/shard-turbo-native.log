@@ -1,0 +1,147 @@
+==================================================
+SHARD: turbo-native
+DESCRIPTION: RFC-0012 TLEL: T/U-series x sanitizers + seq_cst, T-bench smoke, zero-regression guardrail
+STATUS: FAILED ❌
+COMMIT: 854f6d1c713e1863808a61f5ecd99067240f32e4
+RUN: 114
+==================================================
+
+
+=== build turbo + uring targets ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o turbo-test turbo.c fanout.c frame_cursor.c weft.c turbo_test.c
+turbo.c:6: warning: "_GNU_SOURCE" redefined
+    6 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+turbo_test.c:30: warning: "_GNU_SOURCE" redefined
+   30 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o turbo-test-asan turbo.c fanout.c frame_cursor.c weft.c turbo_test.c
+turbo.c:6: warning: "_GNU_SOURCE" redefined
+    6 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+turbo_test.c:30: warning: "_GNU_SOURCE" redefined
+   30 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O0 -g -fsanitize=thread -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o turbo-test-tsan turbo.c fanout.c frame_cursor.c weft.c turbo_test.c
+turbo.c:6: warning: "_GNU_SOURCE" redefined
+    6 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+turbo_test.c:30: warning: "_GNU_SOURCE" redefined
+   30 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_FANOUT_SEQ_CST=1 -o turbo-test-seq turbo.c fanout.c frame_cursor.c weft.c turbo_test.c
+turbo.c:6: warning: "_GNU_SOURCE" redefined
+    6 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+turbo_test.c:30: warning: "_GNU_SOURCE" redefined
+   30 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o uring-test uring_rx.c fanout.c weft.c uring_test.c
+uring_rx.c:10: warning: "_GNU_SOURCE" redefined
+   10 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+uring_test.c:21: warning: "_GNU_SOURCE" redefined
+   21 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o uring-test-asan uring_rx.c fanout.c weft.c uring_test.c
+uring_rx.c:10: warning: "_GNU_SOURCE" redefined
+   10 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+uring_test.c:21: warning: "_GNU_SOURCE" redefined
+   21 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O0 -g -fsanitize=thread -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o uring-test-tsan uring_rx.c fanout.c weft.c uring_test.c
+uring_rx.c:10: warning: "_GNU_SOURCE" redefined
+   10 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+uring_test.c:21: warning: "_GNU_SOURCE" redefined
+   21 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o turbo-runner turbo.c uring_rx.c fanout.c weft.c turbo_runner.c
+turbo.c:6: warning: "_GNU_SOURCE" redefined
+    6 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+uring_rx.c:10: warning: "_GNU_SOURCE" redefined
+   10 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+turbo_runner.c:22: warning: "_GNU_SOURCE" redefined
+   22 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_URING_FORCE_SYSCALL=1 -o turbo-runner-sys turbo.c uring_rx.c fanout.c weft.c turbo_runner.c
+turbo.c:6: warning: "_GNU_SOURCE" redefined
+    6 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+uring_rx.c:10: warning: "_GNU_SOURCE" redefined
+   10 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+uring_rx.c:47:12: warning: ‘kernel_at_least’ defined but not used [-Wunused-function]
+   47 | static int kernel_at_least(int major, int minor) {
+      |            ^~~~~~~~~~~~~~~
+uring_rx.c:44:26: warning: ‘g_probe_mode’ defined but not used [-Wunused-variable]
+   44 | static weft_uring_mode_t g_probe_mode = WEFT_URING_MODE_NONE;
+      |                          ^~~~~~~~~~~~
+uring_rx.c:43:12: warning: ‘g_probe_done’ defined but not used [-Wunused-variable]
+   43 | static int g_probe_done = 0;
+      |            ^~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+turbo_runner.c:22: warning: "_GNU_SOURCE" redefined
+   22 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+make: *** No rule to make target 'bench'.  Stop.
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'

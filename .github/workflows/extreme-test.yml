@@ -71,6 +71,7 @@ jobs:
       canonical: ${{ steps.routing.outputs.canonical }}
       silent_green: ${{ steps.routing.outputs.silent_green }}
       any_gate: ${{ steps.routing.outputs.any_gate }}
+      matrix: ${{ steps.routing.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -132,27 +133,55 @@ jobs:
           F_SILENT_GREEN: ${{ steps.filter.outputs.silent_green }}
         run: |
           set -euo pipefail
-          # Manual dispatch is an explicit human intent to run everything:
-          # force every route on regardless of what the path diff says.
-          route() {
-            local name="$1" val="${2:-false}"
-            if [ "$IS_DISPATCH" = "true" ]; then val="true"; fi
-            echo "$name=$val" >> "$GITHUB_OUTPUT"
+          python3 - <<'PY'
+          import json, os
+          is_dispatch = os.environ.get("IS_DISPATCH") == "true"
+          routes = {
+              "any_code": is_dispatch or os.environ.get("F_ANY_CODE") == "true",
+              "formal": is_dispatch or os.environ.get("F_FORMAL") == "true",
+              "forensic": is_dispatch or os.environ.get("F_FORENSIC") == "true",
+              "site": is_dispatch or os.environ.get("F_SITE") == "true",
+              "canonical": is_dispatch or os.environ.get("F_CANONICAL") == "true",
+              "silent_green": is_dispatch or os.environ.get("F_SILENT_GREEN") == "true",
           }
-          route any_code   "$F_ANY_CODE"
-          route formal     "$F_FORMAL"
-          route forensic   "$F_FORENSIC"
-          route site       "$F_SITE"
-          route canonical  "$F_CANONICAL"
-          route silent_green "$F_SILENT_GREEN"
-
-          # any_gate: true when at least one gate in this workflow will run.
-          AG=false
-          for v in "$F_ANY_CODE" "$F_FORMAL" "$F_FORENSIC" "$F_SITE" "$F_CANONICAL" "$F_SILENT_GREEN"; do
-            if [ "$v" = "true" ]; then AG=true; fi
-          done
-          if [ "$IS_DISPATCH" = "true" ]; then AG=true; fi
-          echo "any_gate=$AG" >> "$GITHUB_OUTPUT"
+          all_shards = [
+              {"shard": "litmus-c", "description": "L1-L8 litmus suite, C kernel (8 tests, 2 build modes)", "script": "ci/scripts/run_litmus_shard.sh", "args": "c", "needs_rust": False, "filter": "any_code"},
+              {"shard": "litmus-rust", "description": "L1-L8 litmus suite, Rust kernel (8 tests, release)", "script": "ci/scripts/run_litmus_shard.sh", "args": "rust", "needs_rust": True, "filter": "any_code"},
+              {"shard": "litmus-ts", "description": "L1-L8 litmus suite, TS kernel (with EXPOSURE-RETRY)", "script": "ci/scripts/run_litmus_shard.sh", "args": "ts", "needs_rust": False, "filter": "any_code"},
+              {"shard": "bench-b-c", "description": "B1-B5 benchmarks, C kernel", "script": "ci/scripts/run_bench_shard.sh", "args": "c", "needs_rust": False, "filter": "any_code"},
+              {"shard": "bench-b-rust", "description": "B1-B5 benchmarks, Rust kernel", "script": "ci/scripts/run_bench_shard.sh", "args": "rust", "needs_rust": True, "filter": "any_code"},
+              {"shard": "bench-b-ts", "description": "B1-B5 benchmarks, TS kernel", "script": "ci/scripts/run_bench_shard.sh", "args": "ts", "needs_rust": False, "filter": "any_code"},
+              {"shard": "wsuite", "description": "W1-W5 × A/B/C/D = 20 cells, P99 + alloc assertions", "script": "ci/scripts/run_wsuite_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "thermal-proxy", "description": "W2 × 4 backends × 120s sustained, decay curves", "script": "ci/scripts/run_thermal_shard.sh", "args": "120", "needs_rust": False, "filter": "any_code"},
+              {"shard": "tools-interop", "description": "C→C, C→Rust, Rust→Rust, Rust→C record/replay", "script": "ci/scripts/run_tools_interop_shard.sh", "args": "", "needs_rust": True, "filter": "any_code"},
+              {"shard": "ports-validate", "description": "Kotlin + Swift + Dart + TS heddles structural validator", "script": "ci/scripts/run_ports_validate_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "silent-green-audit", "description": "pipefail in every shard + every workflow pipeline", "script": "ci/scripts/run_silentgreen_shard.sh", "args": "", "needs_rust": False, "filter": "silent_green"},
+              {"shard": "browser-sab", "description": "chromium: crossOriginIsolated + SAB kernel roundtrip + 1W/2R fanout", "script": "ci/scripts/run_browser_sab_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "fanout-concurrent", "description": "1 writer + 4 reader workers, integrity-gated + daisy-chain", "script": "ci/scripts/run_fanout_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "fanout-native", "description": "C/Rust fan-out ring: F-series + torture x2 regimes + Loom + xlang", "script": "ci/scripts/run_fanout_native_shard.sh", "args": "", "needs_rust": True, "filter": "any_code"},
+              {"shard": "turbo-native", "description": "RFC-0012 TLEL: T/U-series x sanitizers + seq_cst, T-bench smoke, zero-regression guardrail", "script": "ci/scripts/run_turbo_native_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "gpu-native", "description": "RFC-0003 spike: GPU-series + gpu-probe full dispatch (lavapipe ICD)", "script": "ci/scripts/run_gpu_native_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "verifiedweft", "description": "RFC 0005: V-series x3 kernels + C<->TS interop + tamper rejection", "script": "ci/scripts/run_verifiedweft_shard.sh", "args": "", "needs_rust": True, "filter": "any_code"},
+              {"shard": "site-determinism", "description": "make site double-render, byte-identical sha256 check", "script": "ci/scripts/run_site_determinism_shard.sh", "args": "", "needs_rust": False, "filter": "site"},
+              {"shard": "forensic-scan", "description": "PAST-CROPBOX scan at 611.5pt, whole document", "script": "ci/scripts/run_forensic_scan_shard.sh", "args": "", "needs_rust": False, "filter": "forensic"},
+              {"shard": "canonical-audit", "description": "bench/results.json sha256 = 16b5c663 invariant", "script": "ci/scripts/run_canonical_audit_shard.sh", "args": "", "needs_rust": False, "filter": "canonical"},
+              {"shard": "perf-regression", "description": "W-suite P99 vs pinned baseline; >15% drop = FAIL", "script": "ci/scripts/run_perf_regression_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "chaos", "description": "Deterministic chaos engine — stepped shapes x2 regimes + ASAN + free 2M", "script": "ci/scripts/run_chaos_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "chaos-parity", "description": "Cross-language chaos parity — C==TS==JVM==Dart byte-identical verdicts", "script": "ci/scripts/run_chaos_parity.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "formal", "description": "TLA+ proofs — FanoutSeqlock + ReattachPolicy (TLC, pinned jar)", "script": "ci/scripts/run_formal_shard.sh", "args": "", "needs_rust": False, "filter": "formal"},
+              {"shard": "simd-blend", "description": "Q12 raster blend: C golden gates + xlang-blend cross-language digests + bench", "script": "ci/scripts/run_blend_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "qos-worklet", "description": "thread QoS flags honesty + native worklet conformance (20k ticks, order, latency)", "script": "ci/scripts/run_qos_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "guardian", "description": "Telemetry Guardian — must-bite selftest + wire probe + 3% throughput + crash audit", "script": "ci/scripts/run_guardian_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+          ]
+          active = [s for s in all_shards if routes.get(s["filter"], False)]
+          any_gate = bool(active)
+          gh_out = os.environ.get("GITHUB_OUTPUT")
+          with open(gh_out, "a") as f:
+              for k, v in routes.items():
+                  f.write(f"{k}={str(v).lower()}\n")
+              f.write(f"any_gate={str(any_gate).lower()}\n")
+              f.write(f"matrix={json.dumps(active if any_gate else [all_shards[0]])}\n")
+          PY
 
   # ===========================================================================
   # 1. GATEKEEPER — compile all three kernels first; skip downstream if it fails
@@ -291,216 +320,13 @@ jobs:
   test-matrix:
     name: ${{ matrix.shard }}
     needs: changes
-    if: "!cancelled() && needs.changes.outputs[matrix.filter] == 'true'"
+    if: "!cancelled() && needs.changes.outputs.any_gate == 'true'"
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # --- Litmus shards (one per language) ---
-          - shard: "litmus-c"
-            description: "L1-L8 litmus suite, C kernel (8 tests, 2 build modes)"
-            script: "ci/scripts/run_litmus_shard.sh"
-            args: "c"
-            needs_rust: false
-            filter: "any_code"
-
-          - shard: "litmus-rust"
-            description: "L1-L8 litmus suite, Rust kernel (8 tests, release)"
-            script: "ci/scripts/run_litmus_shard.sh"
-            args: "rust"
-            needs_rust: true
-            filter: "any_code"
-
-          - shard: "litmus-ts"
-            description: "L1-L8 litmus suite, TS kernel (with EXPOSURE-RETRY)"
-            script: "ci/scripts/run_litmus_shard.sh"
-            args: "ts"
-            needs_rust: false
-            filter: "any_code"
-
-          # --- B-suite benchmark shards (one per language) ---
-          - shard: "bench-b-c"
-            description: "B1-B5 benchmarks, C kernel"
-            script: "ci/scripts/run_bench_shard.sh"
-            args: "c"
-            needs_rust: false
-            filter: "any_code"
-
-          - shard: "bench-b-rust"
-            description: "B1-B5 benchmarks, Rust kernel"
-            script: "ci/scripts/run_bench_shard.sh"
-            args: "rust"
-            needs_rust: true
-            filter: "any_code"
-
-          - shard: "bench-b-ts"
-            description: "B1-B5 benchmarks, TS kernel"
-            script: "ci/scripts/run_bench_shard.sh"
-            args: "ts"
-            needs_rust: false
-            filter: "any_code"
-
-          # --- W-suite (all 20 cells in one shard; needs Weft .so for backend C) ---
-          - shard: "wsuite"
-            description: "W1-W5 × A/B/C/D = 20 cells, P99 + alloc assertions"
-            script: "ci/scripts/run_wsuite_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "any_code"
-
-          # --- Thermal proxy (4 backends × sustained) ---
-          - shard: "thermal-proxy"
-            description: "W2 × 4 backends × 120s sustained, decay curves"
-            script: "ci/scripts/run_thermal_shard.sh"
-            args: "120"
-            needs_rust: false
-            filter: "any_code"
-
-          # --- Tools interop (record/replay 4 combos) ---
-          - shard: "tools-interop"
-            description: "C→C, C→Rust, Rust→Rust, Rust→C record/replay"
-            script: "ci/scripts/run_tools_interop_shard.sh"
-            args: ""
-            needs_rust: true
-            filter: "any_code"
-
-          # --- Port structural validation (4/4 targets) ---
-          - shard: "ports-validate"
-            description: "Kotlin + Swift + Dart + TS heddles structural validator"
-            script: "ci/scripts/run_ports_validate_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "any_code"
-
-          # --- No-silent-green audit (pipefail everywhere, Series 7) ---
-          - shard: "silent-green-audit"
-            description: "pipefail in every shard + every workflow pipeline"
-            script: "ci/scripts/run_silentgreen_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "silent_green"
-
-          # --- Real-browser SAB/COOP-COEP leg (Series 7) ---
-          - shard: "browser-sab"
-            description: "chromium: crossOriginIsolated + SAB kernel roundtrip + 1W/2R fanout"
-            script: "ci/scripts/run_browser_sab_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "any_code"
-
-          # --- RFC 0004 concurrent fan-out (true-parallelism gate) ---
-          - shard: "fanout-concurrent"
-            description: "1 writer + 4 reader workers, integrity-gated + daisy-chain"
-            script: "ci/scripts/run_fanout_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "any_code"
-
-          # --- RFC 0004 native fan-out (C + Rust + TS<->C interop gates) ---
-          - shard: "fanout-native"
-            description: "C/Rust fan-out ring: F-series + torture x2 regimes + Loom + xlang"
-            script: "ci/scripts/run_fanout_native_shard.sh"
-            args: ""
-            needs_rust: true
-            filter: "any_code"
-          - shard: "turbo-native"
-            description: "RFC-0012 TLEL: T/U-series x sanitizers + seq_cst, T-bench smoke, zero-regression guardrail"
-            script: "ci/scripts/run_turbo_native_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "any_code"
-
-          # --- RFC 0003 GPU-resident rings (Vulkan zero-copy + compute proof) ---
-          - shard: "gpu-native"
-            description: "RFC-0003 spike: GPU-series + gpu-probe full dispatch (lavapipe ICD)"
-            script: "ci/scripts/run_gpu_native_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "any_code"
-
-          # --- RFC 0005 VerifiedWeft (C + Rust + TS + xlang auth gates) ---
-          - shard: "verifiedweft"
-            description: "RFC 0005: V-series x3 kernels + C<->TS interop + tamper rejection"
-            script: "ci/scripts/run_verifiedweft_shard.sh"
-            args: ""
-            needs_rust: true
-            filter: "any_code"
-
-          # --- Site determinism (regenerate + compare) ---
-          - shard: "site-determinism"
-            description: "make site double-render, byte-identical sha256 check"
-            script: "ci/scripts/run_site_determinism_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "site"
-
-          # --- Forensic overflow scan (whitepaper + report PDFs at 611.5pt) ---
-          - shard: "forensic-scan"
-            description: "PAST-CROPBOX scan at 611.5pt, whole document"
-            script: "ci/scripts/run_forensic_scan_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "forensic"
-
-          # --- Canonical bundle audit (R1 Path C invariant) ---
-          - shard: "canonical-audit"
-            description: "bench/results.json sha256 = 16b5c663 invariant"
-            script: "ci/scripts/run_canonical_audit_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "canonical"
-
-          # --- Performance regression gate (the key shard) ---
-          - shard: "perf-regression"
-            description: "W-suite P99 vs pinned baseline; >15% drop = FAIL"
-            script: "ci/scripts/run_perf_regression_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "any_code"
-
-          # --- RFC 0011: Exhaustive State-Space Proofs & Chaos shards ---
-          - shard: "chaos"
-            description: "Deterministic chaos engine — stepped shapes x2 regimes + ASAN + free 2M"
-            script: "ci/scripts/run_chaos_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "any_code"
-
-          - shard: "chaos-parity"
-            description: "Cross-language chaos parity — C==TS==JVM==Dart byte-identical verdicts"
-            script: "ci/scripts/run_chaos_parity.sh"
-            args: ""
-            needs_rust: false
-            filter: "any_code"
-
-          - shard: "formal"
-            description: "TLA+ proofs — FanoutSeqlock + ReattachPolicy (TLC, pinned jar)"
-            script: "ci/scripts/run_formal_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "formal"
-
-          # --- Series 8: SIMD blend + QoS/worklet shards ---
-          - shard: "simd-blend"
-            description: "Q12 raster blend: C golden gates + xlang-blend cross-language digests + bench"
-            script: "ci/scripts/run_blend_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "any_code"
-          - shard: "qos-worklet"
-            description: "thread QoS flags honesty + native worklet conformance (20k ticks, order, latency)"
-            script: "ci/scripts/run_qos_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "any_code"
-          - shard: "guardian"
-            description: "Telemetry Guardian — must-bite selftest + wire probe + 3% throughput + crash audit"
-            script: "ci/scripts/run_guardian_shard.sh"
-            args: ""
-            needs_rust: false
-            filter: "any_code"
+        include: ${{ fromJson(needs.changes.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v4

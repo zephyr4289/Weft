@@ -28,7 +28,9 @@ step() { echo "" | tee -a "$LOG"; echo "=== $1 ===" | tee -a "$LOG"; }
 step "build turbo + uring targets"
 make -C core/c turbo-test turbo-test-asan turbo-test-tsan turbo-test-seq \
      uring-test uring-test-asan uring-test-tsan \
-     turbo-runner turbo-runner-sys bench 2>&1 | tee -a "$LOG"
+     turbo-runner turbo-runner-sys bench \
+     fanout-test fanout-test-seq 2>&1 | tee -a "$LOG"
+
 
 step "T-series conformance (plain)"
 ./core/c/turbo-test 2>&1 | tee -a "$LOG" || fail=1

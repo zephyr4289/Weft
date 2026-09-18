@@ -202,6 +202,9 @@ turbo-runner: turbo_runner.c $(TRUNNER_SRC) turbo.h uring_rx.h fanout.h weft.h
 turbo-runner-sys: turbo_runner.c $(TRUNNER_SRC) turbo.h uring_rx.h fanout.h weft.h
 	$(CC) $(CFLAGS) -DWEFT_URING_FORCE_SYSCALL=1 -o turbo-runner-sys $(TRUNNER_SRC) turbo_runner.c
 
+bench: bench_runner.c weft.c weft.h
+	$(CC) $(CFLAGS) -o bench bench_runner.c weft.c
+
 governor-test: governor.c governor_test.c governor.h
 	$(CC) $(CFLAGS) -o governor-test governor.c governor_test.c
 
@@ -214,6 +217,10 @@ clean:
 	      verified-test verified-test-asan verified-runner verified-runner-asan \
 	      verified-mb-test verified-mb-test-asan \
 	      shm-test shm-test-asan shm-runner shm-runner-asan \
-	      gpu-probe gpu-ring-test gpu-ring-test-asan
+	      gpu-probe gpu-ring-test gpu-ring-test-asan \
+	      turbo-test turbo-test-asan turbo-test-tsan turbo-test-seq \
+	      uring-test uring-test-asan uring-test-tsan \
+	      turbo-runner turbo-runner-sys bench
 
 .PHONY: all clean
+

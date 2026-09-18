@@ -1,0 +1,38 @@
+==================================================
+SHARD: qos-worklet
+DESCRIPTION: thread QoS flags honesty + native worklet conformance (20k ticks, order, latency)
+STATUS: PASSED ✅
+COMMIT: 16c1978fefc545ce278ef6f24fc6002dbc7866c9
+RUN: 125
+==================================================
+
+== qos-worklet shard: env x86_64/Linux ==
+thread_qos.c: In function ‘weft_thread_apply_qos’:
+thread_qos.c:126:19: warning: ignoring return value of ‘nice’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  126 |             (void)nice(niceness); /* best-effort by design — flag carries it */
+      |                   ^~~~~~~~~~~~~~
+thread_qos.c: In function ‘weft_thread_apply_qos’:
+thread_qos.c:126:19: warning: ignoring return value of ‘nice’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  126 |             (void)nice(niceness); /* best-effort by design — flag carries it */
+      |                   ^~~~~~~~~~~~~~
+-- thread_qos flags --
+== qos_test ==
+A1 big-core mask = 0x0 (abstain, 4 online) OK
+A2 render preset flags = 0x0
+A3 rt attempt flags = 0x4 (declared fallback)
+A4 affinity flags = 0x1, core0 set readback = 1
+qos_test: ALL GATES GREEN
+-- native worklet --
+== worklet_test ==
+W3 spawn qos_flags = 0x0 ()
+W1 no lost ticks: 20000 posts -> executed 20000
+W2 single-consumer order: every ordinal exactly once
+W4 inter-tick latency us: p50=0.1 p99=0.1 max=11.2
+W5 governed blend worklet: 27 us/frame (28.7 GB/s) at 256x256
+worklet_test: ALL GATES GREEN
+-- Kotlin QoS/worklet proof --
+bigCoreMask = 0
+applyRenderQos flags = 0x10
+kotlin worklet: 20000/20000 ticks
+KOTLIN PROOF GREEN
+✅ qos-worklet shard GREEN

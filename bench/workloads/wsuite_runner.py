@@ -171,7 +171,8 @@ def run_cell(workload_id: str, backend_id: str, measure_s: float = 10.0,
         fps_samples.sort()
         n = len(fps_samples)
         p50 = fps_samples[n // 2]
-        p99 = fps_samples[int(n * 0.99)]
+        # P99 tail frame rate (1% low — 99th percentile worst-case frame duration floor):
+        p99 = fps_samples[max(0, int(n * 0.01))]
         p100 = fps_samples[-1]
     else:
         p50 = p99 = p100 = 0.0

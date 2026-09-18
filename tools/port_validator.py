@@ -740,25 +740,31 @@ def main():
                     help='run the C F10 100k 3-reader torture as part of the gate')
     args = ap.parse_args()
     
+    def _doc_path(lang: str) -> Path:
+        p = ROOT / 'docs' / 'bindings' / lang / 'README.md'
+        if p.exists():
+            return p
+        return ROOT / 'core' / lang / 'README.md'
+
     targets = {
         'kotlin': [
             ROOT / 'core' / 'kotlin' / 'Weft.kt',
             ROOT / 'core' / 'kotlin' / 'Steward.kt',
             ROOT / 'core' / 'kotlin' / 'Heddle.kt',
             ROOT / 'core' / 'kotlin' / 'TriadNative.kt',
-            ROOT / 'core' / 'kotlin' / 'README.md',
+            _doc_path('kotlin'),
         ],
         'swift': [
             ROOT / 'core' / 'swift' / 'Weft.swift',
             ROOT / 'core' / 'swift' / 'Steward.swift',
             ROOT / 'core' / 'swift' / 'Heddle.swift',
-            ROOT / 'core' / 'swift' / 'README.md',
+            _doc_path('swift'),
         ],
         'dart': [
             ROOT / 'core' / 'dart' / 'weft.dart',
             ROOT / 'core' / 'dart' / 'steward.dart',
             ROOT / 'core' / 'dart' / 'heddle.dart',
-            ROOT / 'core' / 'dart' / 'README.md',
+            _doc_path('dart'),
         ],
         'ts': [
             ROOT / 'heddles' / 'react' / 'WeftCanvas.tsx',

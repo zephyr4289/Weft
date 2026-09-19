@@ -66,28 +66,27 @@ export interface WeftClaimResult {
 
 /** Load the module. `url` is the libweft.js glue (MODULARIZE build). */
 export async function loadWeftWasm(url?: string): Promise<WeftWasm> {
-  let init: (opts?: unknown) => Promise<WeftExports>;
-  let glue: string;
-  if (url) {
-    glue = url;
-  } else {
-    // node / bundler default: sibling dist/libweft.js
-    const path = await import("node:path");
-    const { pathToFileURL } = await import("node:url");
-    const here = typeof __dirname !== "undefined"
-      ? __dirname
-      : path.dirname(process.argv[1] ?? ".");
-    glue = pathToFileURL(
-      path.resolve(here, "..", "dist", "libweft.js")).href;
-  }
-  const imported = await import(/* webpackIgnore: true */ glue);
+  const glueUrl = url
+    ? (url.startsWith("http:") || url.startsWith("https:") || url.startsWith("file:") ? new URL(url) : new URL(url, import.meta.url))
+    : new URL("../dist/libweft.js", import.meta.url);
+  const imported = await import(/* webpackIgnore: true */ glueUrl.href);
   const candidate = imported.default ?? imported.initWeftWasm ?? imported;
   if (typeof candidate !== "function") {
-    throw new Error(`libweft glue at ${glue} did not export the MODULARIZE ` +
+    throw new Error(`libweft glue at ${glueUrl.href} did not export the MODULARIZE ` +
       "init function (build mismatch?)");
   }
-  init = candidate as (opts?: unknown) => Promise<WeftExports>;
-  const mod = (await init()) as unknown as WeftExports;
+  const init = candidate as (opts?: unknown) => Promise<WeftExports>;
+  const distUrl = new URL("./", glueUrl);
+  const isNode = typeof process !== "undefined" && Boolean(process.versions?.node);
+  const mod = (await init({
+    locateFile: (file: string) => {
+      const targetUrl = new URL(file, distUrl);
+      if (isNode && targetUrl.protocol === "file:") {
+        return decodeURI(targetUrl.pathname);
+      }
+      return targetUrl.href;
+    },
+  })) as unknown as WeftExports;
   if (typeof mod._wweft_new !== "function") {
     throw new Error("libweft.wasm loaded but exports missing (build mismatch?)");
   }

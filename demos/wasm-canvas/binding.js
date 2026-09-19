@@ -7,7 +7,11 @@
 export async function loadWeftWasm(glueUrl) {
   const mod = await import(glueUrl);
   const init = mod.default ?? mod.initWeftWasm ?? mod;
-  const m = await init();
+  if (typeof init !== "function") throw new Error("init function missing");
+  const distUrl = new URL("./", new URL(glueUrl, location.href));
+  const m = await init({
+    locateFile: (file) => new URL(file, distUrl).href,
+  });
   if (typeof m._wfan_new !== "function") throw new Error("libweft exports missing");
   return {
     fanout(payloadBytes, slotCount) { return new Fanout(m, payloadBytes, slotCount); },

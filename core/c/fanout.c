@@ -241,6 +241,7 @@ int weft_fanout_reader_init(weft_fanout_reader_t* r, const void* ring, size_t ri
 }
 
 const weft_fanout_claim_t* weft_fanout_claim(weft_fanout_reader_t* r) {
+    if (r) { r->n_reads++; }
     weft_fanout_claim_t* rec = &r->rec;
 #ifndef NDEBUG
     if (r->ring == NULL || r->ctrl == NULL || r->target == NULL ||

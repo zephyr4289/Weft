@@ -1,0 +1,104 @@
+==================================================
+SHARD: litmus-rust
+DESCRIPTION: L1-L8 litmus suite, Rust kernel (8 tests, release)
+STATUS: FAILED ❌
+COMMIT: 060f75d83385980179f8e2c29175ed4a31cf933d
+RUN: 139
+==================================================
+
+cd core/rust && cargo build --release
+[1m[92m    Updating[0m crates.io index
+[1m[92m   Compiling[0m weft-core v0.1.0 (/home/runner/work/Weft/Weft/core/rust)
+[1m[33mwarning[0m[1m: unused import: `AsRawFd`[0m
+  [1m[94m--> [0msrc/shm.rs:35:25
+   [1m[94m|[0m
+[1m[94m35[0m [1m[94m|[0m use std::os::unix::io::{AsRawFd, FromRawFd};
+   [1m[94m|[0m                         [1m[33m^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[91merror[E0369][0m[1m: binary operation `!=` cannot be applied to type `Atomic<u32>`[0m
+   [1m[94m--> [0msrc/lib.rs:414:59
+    [1m[94m|[0m
+[1m[94m414[0m [1m[94m|[0m         let effective_ms = if self.max_reclaim_timeout_ms != 0
+    [1m[94m|[0m                               [1m[94m---------------------------[0m [1m[91m^^[0m [1m[94m-[0m [1m[94m{integer}[0m
+    [1m[94m|[0m                               [1m[94m|[0m
+    [1m[94m|[0m                               [1m[94mAtomic<u32>[0m
+    [1m[94m|[0m
+[1m[92mnote[0m: `Atomic<u32>` does not implement `PartialEq<{integer}>`
+   [1m[94m--> [0m/rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/sync/atomic.rs:361:0
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `Atomic<u32>` is defined in another crate
+
+[1m[91merror[E0308][0m[1m: mismatched types[0m
+   [1m[94m--> [0msrc/lib.rs:415:29
+    [1m[94m|[0m
+[1m[94m415[0m [1m[94m|[0m             && timeout_ms > self.max_reclaim_timeout_ms
+    [1m[94m|[0m                [1m[94m----------[0m   [1m[91m^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [1m[91mexpected `u32`, found `Atomic<u32>`[0m
+    [1m[94m|[0m                [1m[94m|[0m
+    [1m[94m|[0m                [1m[94mexpected because this is `u32`[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: expected type `[1m[35mu32[0m`
+             found struct `[1m[35mAtomic<u32>[0m`
+
+[1m[91merror[E0308][0m[1m: `if` and `else` have incompatible types[0m
+   [1m[94m--> [0msrc/lib.rs:419:13
+    [1m[94m|[0m
+[1m[94m414[0m [1m[94m|[0m           let effective_ms = if self.max_reclaim_timeout_ms != 0
+    [1m[94m|[0m [1m[94m ____________________________-[0m
+[1m[94m415[0m [1m[94m|[0m [1m[94m|[0m             && timeout_ms > self.max_reclaim_timeout_ms
+[1m[94m416[0m [1m[94m|[0m [1m[94m|[0m         {
+[1m[94m417[0m [1m[94m|[0m [1m[94m|[0m             self.max_reclaim_timeout_ms
+    [1m[94m|[0m [1m[94m|[0m             [1m[94m---------------------------[0m [1m[94mexpected because of this[0m
+[1m[94m418[0m [1m[94m|[0m [1m[94m|[0m         } else {
+[1m[94m419[0m [1m[94m|[0m [1m[94m|[0m             timeout_ms
+    [1m[94m|[0m [1m[94m|[0m             [1m[91m^^^^^^^^^^[0m [1m[91mexpected `Atomic<u32>`, found `u32`[0m
+[1m[94m420[0m [1m[94m|[0m [1m[94m|[0m         };
+    [1m[94m|[0m [1m[94m|_________-[0m [1m[94m`if` and `else` have incompatible types[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: expected struct `[1m[35mAtomic<u32>[0m`
+                 found type `[1m[35mu32[0m`
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/shm.rs:265:20
+    [1m[94m|[0m
+[1m[94m255[0m [1m[94m|[0m     unsafe {
+    [1m[94m|[0m     [1m[94m------[0m [1m[94mbecause it's nested under this `unsafe` block[0m
+[1m[94m...[0m
+[1m[94m265[0m [1m[94m|[0m         let file = unsafe { File::from_raw_fd(fd) };
+    [1m[94m|[0m                    [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `#[warn(unused_unsafe)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/shm.rs:294:20
+    [1m[94m|[0m
+[1m[94m287[0m [1m[94m|[0m     unsafe {
+    [1m[94m|[0m     [1m[94m------[0m [1m[94mbecause it's nested under this `unsafe` block[0m
+[1m[94m...[0m
+[1m[94m294[0m [1m[94m|[0m         let file = unsafe { File::from_raw_fd(fd) };
+    [1m[94m|[0m                    [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/shm.rs:306:13
+    [1m[94m|[0m
+[1m[94m287[0m [1m[94m|[0m     unsafe {
+    [1m[94m|[0m     [1m[94m------[0m [1m[94mbecause it's nested under this `unsafe` block[0m
+[1m[94m...[0m
+[1m[94m306[0m [1m[94m|[0m             unsafe { sys::munmap(p, mapping_bytes) };
+    [1m[94m|[0m             [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/verified.rs:262:21
+    [1m[94m|[0m
+[1m[94m250[0m [1m[94m|[0m       unsafe {
+    [1m[94m|[0m       [1m[94m------[0m [1m[94mbecause it's nested under this `unsafe` block[0m
+[1m[94m...[0m
+[1m[94m262[0m [1m[94m|[0m             let d = unsafe { data.add(blk * 64) };
+    [1m[94m|[0m                     [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+
+[1mSome errors have detailed explanations: E0308, E0369.[0m
+[1mFor more information about an error, try `rustc --explain E0308`.[0m
+[1m[33mwarning[0m: `weft-core` (lib) generated 5 warnings
+[1m[91merror[0m: could not compile `weft-core` (lib) due to 3 previous errors; 5 warnings emitted
+make: *** [Makefile:30: build-rust] Error 101

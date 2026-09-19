@@ -1,0 +1,114 @@
+==================================================
+SHARD: guardian
+DESCRIPTION: Telemetry Guardian — must-bite selftest + wire probe + 3% throughput + crash audit
+STATUS: PASSED ✅
+COMMIT: 22810dab9cf79cce20274c8e0d33207c4aba38d3
+RUN: 151
+==================================================
+
+
+=== Build the C wire probe ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o wire-probe wire_probe.c fanout.c frame_cursor.c weft.c fanout_simd.c
+wire_probe.c: In function ‘main’:
+wire_probe.c:72:18: warning: variable ‘buf’ set but not used [-Wunused-but-set-variable]
+   72 |         uint32_t buf[4];
+      |                  ^~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+
+=== 1. Guardian SELFTEST — the watchdog must bite ===
+  [ok] c/B1-pub-throughput: ops_per_s 2916757 vs baseline 2916757 (+0.00%)
+  [ok] c/B2-contended: publishes_per_s 1002408 vs baseline 1002408 (+0.00%)
+{
+  "watch": "throughput",
+  "status": "PASS",
+  "findings": [],
+  "compared": 2,
+  "threshold_pct": 3.0
+}
+  [ok] throughput/healthy: healthy fixture passes
+  [ok] c/B2-contended: publishes_per_s 1002408 vs baseline 1002408 (+0.00%)
+{
+  "watch": "throughput",
+  "status": "FAIL",
+  "findings": [
+    "c/B1-pub-throughput: ops_per_s dropped 3.41% (baseline 2916757, current 2817397, gate 3.0%)"
+  ],
+  "compared": 2,
+  "threshold_pct": 3.0
+}
+  [ok] throughput/drop-3.4pct: guardian BITES (exit 1)
+{
+  "watch": "wire",
+  "status": "FAIL",
+  "findings": [
+    "WIRE DRIFT at fanout_ring.publishes.offset: canonical 8, observed 9 \u2014 a single byte of layout drift is a breaking change"
+  ]
+}
+  [ok] wire/one-byte-drift: guardian BITES (exit 1)
+{
+  "watch": "wire",
+  "status": "PASS",
+  "findings": [
+    "observed layout matches manifest (52 fields)"
+  ],
+  "fields_checked": 52
+}
+  [ok] wire/healthy: healthy fixture passes
+{
+  "watch": "crash",
+  "status": "FAIL",
+  "findings": [
+    "crash-results.json: status=FAILED",
+    "crash-results.json: selftest-fake-shard.legs[0].pass=false"
+  ],
+  "artifacts_audited": 2
+}
+  [ok] crash/crash-fixture: guardian BITES (exit 1)
+{
+  "watch": "selftest",
+  "status": "PASS",
+  "findings": [
+    "all fixtures bit or passed as designed"
+  ]
+}
+
+=== 2. WIRE watch — live C kernel probe vs canonical manifest ===
+{
+  "watch": "wire",
+  "status": "PASS",
+  "findings": [
+    "observed layout matches manifest (52 fields)"
+  ],
+  "fields_checked": 52
+}
+
+=== 3. THROUGHPUT watch — bench matrix vs pinned baseline (>=3% drop = RED) ===
+no guardian throughput baseline yet — seeding from the current bench results (LOUD first-run)
+seeded 6 baseline entries
+  [ok] c/B1-pub-throughput: ops_per_s 2916757 vs baseline 2916757 (+0.00%)
+  [ok] c/B2-contended: publishes_per_s 1002408 vs baseline 1002408 (+0.00%)
+  [ok] rust/B1-pub-throughput: ops_per_s 2327011 vs baseline 2327011 (+0.00%)
+  [ok] rust/B2-contended: publishes_per_s 323937 vs baseline 323937 (+0.00%)
+  [ok] ts/B1-pub-throughput: ops_per_s 1611026 vs baseline 1611026 (+0.00%)
+  [ok] ts/B2-contended: publishes_per_s 1559006 vs baseline 1559006 (+0.00%)
+{
+  "watch": "throughput",
+  "status": "PASS",
+  "findings": [],
+  "compared": 6,
+  "threshold_pct": 3.0
+}
+
+=== 4. CRASH watch — shard artifacts + litmus results audited ===
+{
+  "watch": "crash",
+  "status": "PASS",
+  "findings": [],
+  "artifacts_audited": 1
+}
+guardian shard: PASS

@@ -181,7 +181,7 @@ jobs:
               {"shard": "recovery-self-stabilizing", "description": "Axis 3: Self-stabilizing ring recovery + health check + 10k fault injection cycles + TLA+ recovery proof", "script": "ci/scripts/run_recovery_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "device-spectrum", "description": "doc-007: Device-spectrum profiling, F16 quantization, dirty-mask, and zero-copy render bridge", "script": "ci/scripts/run_device_spectrum_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "weftc", "description": "RFC-0017 schema compiler: WL/WH/WD suites + goldens + verify-header drift gate (plain + ASAN)", "script": "ci/scripts/run_weftc_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
-              {"shard": "weftc-codegen", "description": "Project weftc Pillar 1: C11/Rust/WGSL/GLSL codegen — determinism + goldens + Law-4 refusal matrix + C x3 flavors + Rust no_std + xlang bit-exact + GPU double-entry", "script": "ci/scripts/run_weftc_codegen_shard.sh", "args": "", "needs_rust": True, "filter": "any_code"},
+              {"shard": "weftc-codegen", "description": "Project weftc Pillar 1: Native (C11/Rust/WGSL/GLSL) & Managed (TS/Python/Swift/Dart/React/Flutter) codegen suites + parity matrix + E2E kernel roundtrip", "script": "ci/scripts/run_weftc_codegen_shard.sh", "args": "", "needs_rust": True, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)

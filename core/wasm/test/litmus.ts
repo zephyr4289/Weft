@@ -49,10 +49,9 @@ function bytesEqual(a: Uint8Array, b: Uint8Array): boolean {
   return true;
 }
 
-let W: Awaited<ReturnType<typeof loadWeftWasm>>;
+const W = await loadWeftWasm();
 
-test("setup: module loads (wasm C core + BigInt seqs)", async () => {
-  W = await loadWeftWasm();
+test("setup: module loads (wasm C core + BigInt seqs)", () => {
   assert.ok(W, "module loaded");
 });
 

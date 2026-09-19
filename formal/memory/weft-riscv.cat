@@ -1,0 +1,65 @@
+// weft-riscv.cat — Formal memory model for Weft under RISC-V RVWMO
+// Compatible with herd7 / herdtools7 axiomatic memory model checker.
+//
+// Models Weft synchronization under the RISC-V Weak Memory Ordering (RVWMO) specification.
+// Specifically verifies amoswap.d.aqrl and fence rw,w / fence r,rw combinations.
+
+"Weft-RISCV-RVWMO"
+
+// --- Base relations ---
+let po-loc = po & loc
+let rfe = rf & ext
+let rfi = rf & int
+let coe = co & ext
+let coi = co & int
+let fre = fr & ext
+let fri = fr & int
+
+// --- RISC-V Fences and Atomic Annotations ---
+let fence-rw-w  = [F & 'fence.rw.w']
+let fence-r-rw  = [F & 'fence.r.rw']
+let fence-rw-rw = [F & 'fence.rw.rw']
+
+let aq = [M & 'Acquire']
+let rl = [M & 'Release']
+let aqrl = [M & 'AcqRel']
+
+// RVWMO Preserved Program Order (PPO) rules
+// Rule 1-3: Dependencies
+let ppo-dep = (po & (R * R) & (data | ctrl)) |
+              (po & (R * W) & (data | addr | ctrl)) |
+              (po & (W * W) & (data | addr))
+
+// Rule 4-5: Fences
+let ppo-fence = (po & (M * (fence-rw-w | fence-rw-rw)) ; po & ((fence-rw-w | fence-rw-rw) * W)) |
+                (po & (R * (fence-r-rw | fence-rw-rw)) ; po & ((fence-r-rw | fence-rw-rw) * M))
+
+// Rule 6-7: Acquire and Release annotations (amoswap.d.aqrl)
+let ppo-aqrl = (po & ((rl | aqrl) * M)) |
+               (po & (M * (aq | aqrl)))
+
+let ppo = ppo-dep | ppo-fence | ppo-aqrl
+
+// Cross-hart synchronization (Release -> Read-From -> Acquire)
+let sync-rel = (rl | aqrl | (po & (M * (fence-rw-w | fence-rw-rw))))
+let sync-acq = (aq | aqrl | (po & ((fence-r-rw | fence-rw-rw) * M)))
+
+let rvhb = (ppo | (sync-rel ; rfe ; sync-acq))+
+
+// --- RVWMO Axioms ---
+
+// 1. Coherence (SC per location)
+acyclic (po-loc | rf | co | fr) as RV_Coherence
+
+// 2. Atomicity of amoswap.d.aqrl
+empty (rmw & (fre ; coe)) as RV_Atomicity
+
+// 3. Global Memory Order Consistency
+acyclic (ppo | rfe | coe | fre) as RV_GlobalOrder
+
+// 4. Weft Triad Invariant I1 (No Torn Reads on RISC-V)
+let rv-triad-published = (W & 'Payload') ; ppo ; (W & 'Canary') ; ppo ; (W & 'ExchangeAQRL')
+let rv-triad-claimed   = (R & 'ExchangeAQRL') ; ppo ; (R & 'Canary') ; ppo ; (R & 'Payload')
+let rv-sync = rv-triad-published ; rfe ; rv-triad-claimed
+
+assert (rv-sync <= rvhb) as RV_InvariantI1_NoTornReads

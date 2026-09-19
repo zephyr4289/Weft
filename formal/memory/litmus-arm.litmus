@@ -1,0 +1,35 @@
+AArch64 Weft-Triad-AcqRel
+"Weft Triad Protocol: Writer payload+canary before release exchange, Reader acquire exchange before canary+payload read"
+{
+  0:X1=0xCAFE;    // payload value
+  0:X2=42;        // sequence / canary value
+  0:X3=1;         // writer new work slot
+  0:X4=0;         // initial latest slot
+  1:X5=2;         // reader private work slot
+  x_payload=0;
+  x_canary=0;
+  x_latest=0;
+}
+
+P0 (
+  // Writer begins fill
+  STR W1, [X_payload]
+  STR W2, [X_canary]
+  DMB ISH                         // Fence P1 (Release)
+  // Atomic exchange: latest = w_work, w_work = old_latest
+  SWPAL W3, W0, [X_latest]
+)
+
+P1 (
+  // Reader claim: exchange latest with r_work (AcqRel)
+  SWPAL W5, W0, [X_latest]
+  DMB ISHLD                       // Fence P2 (Acquire)
+  LDR W3, [X_canary]
+  LDR W4, [X_payload]
+)
+
+// Post-condition:
+// If Reader (P1) successfully exchanged and observed latest from P0 (1:W0 = 1),
+// then it MUST observe the published canary (1:W3 = 42) and payload (1:W4 = 0xCAFE).
+// A torn/stale read where (1:W0 = 1 /\ (1:W3 != 42 \/ 1:W4 != 0xCAFE)) is FORBIDDEN.
+exists (1:X0=1 /\ (1:X3=0 \/ 1:X4=0))

@@ -1,0 +1,312 @@
+{
+  "weftc_version": "0.1.0",
+  "ir_version": 1,
+  "path": "tests/golden/frames.weft",
+  "endianness": "little",
+  "abi_hash": "0x0e7280ce8f313931",
+  "schema_id": "0x5b31c5b9f9f7b3eb",
+  "fnv1a64_abi": "0x94a2f711e9ad2f16",
+  "decl_count": 7,
+  "decls": [
+    {
+      "kind": "enum",
+      "name": "Kind",
+      "size": 1,
+      "align": 1,
+      "abi_hash": "0xf7714909a63a66ad",
+      "backing": "u8",
+      "align_attr": 0,
+      "variants": [
+        {
+          "name": "Render",
+          "value": 0
+        },
+        {
+          "name": "Present",
+          "value": 1
+        },
+        {
+          "name": "Telemetry",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "kind": "bitflags",
+      "name": "Caps",
+      "size": 4,
+      "align": 4,
+      "abi_hash": "0x70dfc168b7e518cc",
+      "backing": "u32",
+      "align_attr": 0,
+      "variants": [
+        {
+          "name": "None",
+          "value": 0
+        },
+        {
+          "name": "FloatMath",
+          "value": 1
+        },
+        {
+          "name": "SimdBlend",
+          "value": 2
+        },
+        {
+          "name": "GpuUpload",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Vec3",
+      "size": 12,
+      "align": 4,
+      "abi_hash": "0x61ddb568acf95b0f",
+      "packed": false,
+      "reordered": false,
+      "align_attr": 0,
+      "simd_attr": 0,
+      "internal_pad": 0,
+      "trailing_pad": 0,
+      "optimize_hint": 0,
+      "fields": [
+        {
+          "name": "x",
+          "type": "f32",
+          "offset": 0,
+          "size": 4,
+          "align": 4,
+          "index": 0
+        },
+        {
+          "name": "y",
+          "type": "f32",
+          "offset": 4,
+          "size": 4,
+          "align": 4,
+          "index": 1
+        },
+        {
+          "name": "z",
+          "type": "f32",
+          "offset": 8,
+          "size": 4,
+          "align": 4,
+          "index": 2
+        }
+      ],
+      "holes": [
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Header",
+      "size": 24,
+      "align": 8,
+      "abi_hash": "0x8427797a68caa357",
+      "packed": false,
+      "reordered": false,
+      "align_attr": 0,
+      "simd_attr": 0,
+      "internal_pad": 7,
+      "trailing_pad": 0,
+      "optimize_hint": 0,
+      "fields": [
+        {
+          "name": "seq",
+          "type": "u64",
+          "offset": 0,
+          "size": 8,
+          "align": 8,
+          "index": 0
+        },
+        {
+          "name": "kind",
+          "type": "Kind",
+          "offset": 8,
+          "size": 1,
+          "align": 1,
+          "index": 1
+        },
+        {
+          "name": "stamp",
+          "type": "u64",
+          "offset": 16,
+          "size": 8,
+          "align": 8,
+          "index": 2
+        }
+      ],
+      "holes": [
+        {
+          "offset": 9,
+          "size": 7
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "TelemetryMsg",
+      "size": 16,
+      "align": 8,
+      "abi_hash": "0x5f12f453dd569495",
+      "packed": false,
+      "reordered": true,
+      "align_attr": 0,
+      "simd_attr": 0,
+      "internal_pad": 0,
+      "trailing_pad": 2,
+      "optimize_hint": 0,
+      "fields": [
+        {
+          "name": "temperature",
+          "type": "f64",
+          "offset": 0,
+          "size": 8,
+          "align": 8,
+          "index": 1
+        },
+        {
+          "name": "pressure",
+          "type": "f32",
+          "offset": 8,
+          "size": 4,
+          "align": 4,
+          "index": 2
+        },
+        {
+          "name": "flags",
+          "type": "u8",
+          "offset": 12,
+          "size": 1,
+          "align": 1,
+          "index": 0
+        },
+        {
+          "name": "humidity",
+          "type": "u8",
+          "offset": 13,
+          "size": 1,
+          "align": 1,
+          "index": 3
+        }
+      ],
+      "holes": [
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "CachelineFrame",
+      "size": 64,
+      "align": 64,
+      "abi_hash": "0x79f04e9440822e70",
+      "packed": false,
+      "reordered": false,
+      "align_attr": 64,
+      "simd_attr": 0,
+      "internal_pad": 0,
+      "trailing_pad": 0,
+      "optimize_hint": 0,
+      "fields": [
+        {
+          "name": "ctrl",
+          "type": "u32",
+          "offset": 0,
+          "size": 4,
+          "align": 4,
+          "index": 0
+        },
+        {
+          "name": "payload",
+          "type": "[u8; 60]",
+          "offset": 4,
+          "size": 60,
+          "align": 1,
+          "index": 1
+        }
+      ],
+      "holes": [
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "BigFrame",
+      "size": 136,
+      "align": 8,
+      "abi_hash": "0x94c196087085eef4",
+      "packed": false,
+      "reordered": false,
+      "align_attr": 0,
+      "simd_attr": 0,
+      "internal_pad": 4,
+      "trailing_pad": 0,
+      "optimize_hint": 0,
+      "fields": [
+        {
+          "name": "hdr",
+          "type": "Header",
+          "offset": 0,
+          "size": 24,
+          "align": 8,
+          "index": 0
+        },
+        {
+          "name": "pos",
+          "type": "Vec3",
+          "offset": 24,
+          "size": 12,
+          "align": 4,
+          "index": 1
+        },
+        {
+          "name": "vel",
+          "type": "Vec3",
+          "offset": 36,
+          "size": 12,
+          "align": 4,
+          "index": 2
+        },
+        {
+          "name": "caps",
+          "type": "Caps",
+          "offset": 48,
+          "size": 4,
+          "align": 4,
+          "index": 3
+        },
+        {
+          "name": "name",
+          "type": "str[32]",
+          "offset": 52,
+          "size": 32,
+          "align": 1,
+          "index": 4
+        },
+        {
+          "name": "samples",
+          "type": "[f32; 8]",
+          "offset": 84,
+          "size": 32,
+          "align": 4,
+          "index": 5
+        },
+        {
+          "name": "blob",
+          "type": "span<u8>",
+          "offset": 120,
+          "size": 16,
+          "align": 8,
+          "index": 6
+        }
+      ],
+      "holes": [
+        {
+          "offset": 116,
+          "size": 4
+        }
+      ]
+    }
+  ]
+}

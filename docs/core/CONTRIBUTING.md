@@ -84,6 +84,7 @@ The PR template embeds these; they restate the Four Laws as concrete gates:
 - [ ] **Law 4** — every claim in new docs carries a baseline, a measured/predicted label, and a
       source for platform limitations.
 - [ ] Kernel or Steward changes: link the RFC and the green litmus run.
+- [ ] **Multiplatform & CI Conformance**: Follow the [Patch Engineering & CI Diagnostic Guide](../PATCH_ENGINEERING_AND_CI_GUIDE.md) to ensure mirror parity, API Extractor signatures, xlang bit-identity, and zero sanitizer findings.
 - [ ] New public API: documented in the same PR, with an example that would survive the founding
       spec's honesty review.
 - [ ] DCO sign-off present (`git commit -s`) — see §5.

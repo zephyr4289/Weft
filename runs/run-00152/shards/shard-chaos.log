@@ -1,0 +1,99 @@
+==================================================
+SHARD: chaos
+DESCRIPTION: Deterministic chaos engine — stepped shapes x2 regimes + ASAN + free 2M
+STATUS: PASSED ✅
+COMMIT: 65c0bae7157089e39116a52b8beaa3f8b695e145
+RUN: 152
+==================================================
+
+
+=== Build: fanout-chaos (free mode), fanout-chaos-seq (A/B regime), fanout-chaos-asan ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_FANOUT_CHAOS_FREE_MODE=1 -o fanout-chaos fanout.c frame_cursor.c weft.c fanout_simd.c fanout_chaos.c fanout_chaos_runner.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_FANOUT_CHAOS_FREE_MODE=1 -DWEFT_FANOUT_SEQ_CST=1 -o fanout-chaos-seq fanout.c frame_cursor.c weft.c fanout_simd.c fanout_chaos.c fanout_chaos_runner.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_FANOUT_CHAOS_FREE_MODE=1 -o fanout-chaos-asan fanout.c frame_cursor.c weft.c fanout_simd.c fanout_chaos.c fanout_chaos_runner.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+
+=== 1. selftest (pinned chaos-contract vectors) ===
+chaos-selftest: PASS
+
+=== 2. stepped shapes — the deterministic scheduler (both regimes) ===
+--- stepped 50000/2/2/1/50/350 seed=7 (fenced) ---
+--- stepped 50000/2/2/1/50/350 seed=7 (all-seq_cst) ---
+--- stepped 200000/4/4/2/200/200 seed=1337 (fenced) ---
+--- stepped 200000/4/4/2/200/200 seed=1337 (all-seq_cst) ---
+--- stepped 12345/3/1/2/77/999 seed=424242 (fenced) ---
+--- stepped 12345/3/1/2/77/999 seed=424242 (all-seq_cst) ---
+
+=== 3. sanitizer leg (ASAN, heavy chaos) ===
+
+=== 4. free-running (real threads, seed-deterministic faults, 2M frames) ===
+
+=== 5. v2 extended fault classes (Issue #16 Tier 1) — stepped, both regimes ===
+--- stepped-v2 200000/4/4/2/200/50 seed=1337 mask=15 (fenced) ---
+--- stepped-v2 200000/4/4/2/200/50 seed=1337 mask=15 (all-seq_cst) ---
+--- stepped-v2 100000/4/4/2/50/50 seed=77 mask=15 (fenced) ---
+--- stepped-v2 100000/4/4/2/50/50 seed=77 mask=15 (all-seq_cst) ---
+--- stepped-v2 1000000/2/2/1/40/25 seed=424242 mask=6 (fenced) ---
+--- stepped-v2 1000000/2/2/1/40/25 seed=424242 mask=6 (all-seq_cst) ---
+
+=== 6. v2 free-running (real ring, real corruption, 200K frames) ===
+chaos shard: PASS
+e},"telescoping":"OK","verdict":"PASS"}
+--- stepped 200000/4/4/2/200/200 seed=1337 (fenced) ---
+chaos-stepped: PASS (steps_executed=6176, injections p/s/t/r = 323/318/305/300)
+{"engine":"weft-chaos-stepped","v":1,"seed":1337,"steps":200000,"slots":4,"words":4,"readers":2,"frames":200,"chaosRate":200,"stepsExecuted":6176,"injections":{"preempt":323,"stall":318,"throttle":305,"reorder":300},"ledger":{"publishes":200,"fresh":[140,134],"dropped":[60,66],"lastSeq":[200,200],"skips":[0,0],"exhausted":[0,0],"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+--- stepped 200000/4/4/2/200/200 seed=1337 (all-seq_cst) ---
+chaos-stepped: PASS (steps_executed=6176, injections p/s/t/r = 323/318/305/300)
+{"engine":"weft-chaos-stepped","v":1,"seed":1337,"steps":200000,"slots":4,"words":4,"readers":2,"frames":200,"chaosRate":200,"stepsExecuted":6176,"injections":{"preempt":323,"stall":318,"throttle":305,"reorder":300},"ledger":{"publishes":200,"fresh":[140,134],"dropped":[60,66],"lastSeq":[200,200],"skips":[0,0],"exhausted":[0,0],"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+--- stepped 12345/3/1/2/77/999 seed=424242 (fenced) ---
+chaos-stepped: PASS (steps_executed=12345, injections p/s/t/r = 2999/3115/3131/3085)
+{"engine":"weft-chaos-stepped","v":1,"seed":424242,"steps":12345,"slots":3,"words":1,"readers":2,"frames":77,"chaosRate":999,"stepsExecuted":12345,"injections":{"preempt":2999,"stall":3115,"throttle":3131,"reorder":3085},"ledger":{"publishes":77,"fresh":[52,52],"dropped":[25,25],"lastSeq":[77,77],"skips":[0,0],"exhausted":[0,0],"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+--- stepped 12345/3/1/2/77/999 seed=424242 (all-seq_cst) ---
+chaos-stepped: PASS (steps_executed=12345, injections p/s/t/r = 2999/3115/3131/3085)
+{"engine":"weft-chaos-stepped","v":1,"seed":424242,"steps":12345,"slots":3,"words":1,"readers":2,"frames":77,"chaosRate":999,"stepsExecuted":12345,"injections":{"preempt":2999,"stall":3115,"throttle":3131,"reorder":3085},"ledger":{"publishes":77,"fresh":[52,52],"dropped":[25,25],"lastSeq":[77,77],"skips":[0,0],"exhausted":[0,0],"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+
+=== 3. sanitizer leg (ASAN, heavy chaos) ===
+chaos-stepped: PASS (steps_executed=2804, injections p/s/t/r = 318/307/280/260)
+{"engine":"weft-chaos-stepped","v":1,"seed":777,"steps":60000,"slots":4,"words":2,"readers":2,"frames":60,"chaosRate":400,"stepsExecuted":2804,"injections":{"preempt":318,"stall":307,"throttle":280,"reorder":260},"ledger":{"publishes":60,"fresh":[26,37],"dropped":[34,23],"lastSeq":[60,60],"skips":[0,0],"exhausted":[0,0],"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+
+=== 4. free-running (real threads, seed-deterministic faults, 2M frames) ===
+chaos-free: PASS (16.21s, injections p/s/t/r = 238032/238074/238199/239227)
+{"engine":"weft-chaos-free","v":1,"seed":424242,"slots":4,"words":8,"readers":3,"frames":2000000,"chaosRate":40,"elapsedNs":16207990186,"injections":{"preempt":238032,"stall":238074,"throttle":238199,"reorder":239227},"ledger":{"publishes":2000000,"fresh":[64667,63815,64192],"dropped":[1935333,1936185,1935808],"lastSeq":[2000000,2000000,2000000],"skips":[0,0,0],"exhausted":[0,0,0],"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+
+=== 5. v2 extended fault classes (Issue #16 Tier 1) — stepped, both regimes ===
+--- stepped-v2 200000/4/4/2/200/50 seed=1337 mask=15 (fenced) ---
+chaos-stepped: PASS (steps_executed=4994, injections p/s/t/r = 61/66/62/64)
+{"engine":"weft-chaos-stepped","v":2,"seed":1337,"steps":200000,"slots":4,"words":4,"readers":2,"frames":200,"chaosRate":50,"stepsExecuted":4994,"injections":{"preempt":61,"stall":66,"throttle":62,"reorder":64},"faultMask":15,"injectionsExt":{"bitFlip":45,"cachePoison":61,"storeTearing":75,"delayedVisibility":59},"ledger":{"publishes":200,"fresh":[110,112],"dropped":[90,88],"lastSeq":[200,200],"skips":[62,69],"exhausted":[0,0],"attributedTorn":0,"ctrlCorruptions":289,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+--- stepped-v2 200000/4/4/2/200/50 seed=1337 mask=15 (all-seq_cst) ---
+chaos-stepped: PASS (steps_executed=4994, injections p/s/t/r = 61/66/62/64)
+{"engine":"weft-chaos-stepped","v":2,"seed":1337,"steps":200000,"slots":4,"words":4,"readers":2,"frames":200,"chaosRate":50,"stepsExecuted":4994,"injections":{"preempt":61,"stall":66,"throttle":62,"reorder":64},"faultMask":15,"injectionsExt":{"bitFlip":45,"cachePoison":61,"storeTearing":75,"delayedVisibility":59},"ledger":{"publishes":200,"fresh":[110,112],"dropped":[90,88],"lastSeq":[200,200],"skips":[62,69],"exhausted":[0,0],"attributedTorn":0,"ctrlCorruptions":289,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+--- stepped-v2 100000/4/4/2/50/50 seed=77 mask=15 (fenced) ---
+chaos-stepped: PASS (steps_executed=1390, injections p/s/t/r = 19/22/17/16)
+{"engine":"weft-chaos-stepped","v":2,"seed":77,"steps":100000,"slots":4,"words":4,"readers":2,"frames":50,"chaosRate":50,"stepsExecuted":1390,"injections":{"preempt":19,"stall":22,"throttle":17,"reorder":16},"faultMask":15,"injectionsExt":{"bitFlip":19,"cachePoison":13,"storeTearing":20,"delayedVisibility":16},"ledger":{"publishes":50,"fresh":[32,28],"dropped":[18,22],"lastSeq":[50,50],"skips":[20,16],"exhausted":[0,0],"attributedTorn":0,"ctrlCorruptions":71,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+--- stepped-v2 100000/4/4/2/50/50 seed=77 mask=15 (all-seq_cst) ---
+chaos-stepped: PASS (steps_executed=1390, injections p/s/t/r = 19/22/17/16)
+{"engine":"weft-chaos-stepped","v":2,"seed":77,"steps":100000,"slots":4,"words":4,"readers":2,"frames":50,"chaosRate":50,"stepsExecuted":1390,"injections":{"preempt":19,"stall":22,"throttle":17,"reorder":16},"faultMask":15,"injectionsExt":{"bitFlip":19,"cachePoison":13,"storeTearing":20,"delayedVisibility":16},"ledger":{"publishes":50,"fresh":[32,28],"dropped":[18,22],"lastSeq":[50,50],"skips":[20,16],"exhausted":[0,0],"attributedTorn":0,"ctrlCorruptions":71,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+--- stepped-v2 1000000/2/2/1/40/25 seed=424242 mask=6 (fenced) ---
+chaos-stepped: PASS (steps_executed=428, injections p/s/t/r = 5/1/0/0)
+{"engine":"weft-chaos-stepped","v":2,"seed":424242,"steps":1000000,"slots":2,"words":2,"readers":1,"frames":40,"chaosRate":25,"stepsExecuted":428,"injections":{"preempt":5,"stall":1,"throttle":0,"reorder":0},"faultMask":6,"injectionsExt":{"bitFlip":0,"cachePoison":1,"storeTearing":1,"delayedVisibility":0},"ledger":{"publishes":40,"fresh":[13],"dropped":[27],"lastSeq":[40],"skips":[2],"exhausted":[3],"attributedTorn":0,"ctrlCorruptions":2,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+--- stepped-v2 1000000/2/2/1/40/25 seed=424242 mask=6 (all-seq_cst) ---
+chaos-stepped: PASS (steps_executed=428, injections p/s/t/r = 5/1/0/0)
+{"engine":"weft-chaos-stepped","v":2,"seed":424242,"steps":1000000,"slots":2,"words":2,"readers":1,"frames":40,"chaosRate":25,"stepsExecuted":428,"injections":{"preempt":5,"stall":1,"throttle":0,"reorder":0},"faultMask":6,"injectionsExt":{"bitFlip":0,"cachePoison":1,"storeTearing":1,"delayedVisibility":0},"ledger":{"publishes":40,"fresh":[13],"dropped":[27],"lastSeq":[40],"skips":[2],"exhausted":[3],"attributedTorn":0,"ctrlCorruptions":2,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+
+=== 6. v2 free-running (real ring, real corruption, 200K frames) ===
+chaos-free: PASS (1.63s, injections p/s/t/r = 23625/23705/23530/23773)
+{"engine":"weft-chaos-free","v":2,"seed":424242,"slots":4,"words":8,"readers":3,"frames":200000,"chaosRate":40,"elapsedNs":1630995363,"injections":{"preempt":23625,"stall":23705,"throttle":23530,"reorder":23773},"faultMask":15,"injectionsExt":{"bitFlip":992,"cachePoison":940,"storeTearing":0,"delayedVisibility":953},"ledger":{"publishes":200000,"fresh":[5591,6279,6436],"dropped":[194409,193721,193564],"lastSeq":[200000,200000,200000],"skips":[26625,34039,28900],"exhausted":[0,0,0],"attributedTorn":0,"ctrlCorruptions":0,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+chaos shard: PASS

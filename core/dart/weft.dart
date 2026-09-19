@@ -67,7 +67,7 @@ class Weft {
     for (var i = 0; i < 3; i++) {
       _envelopeEncodeV1(_buffers[i], 0, payloadMax);
       for (var j = 0; j < payloadMax; j++) {
-        _buffers[i].setUint8(16 + j, _pat(0, j));
+        _buffers[i].setUint8(16 + j, pat(0, j));
       }
     }
   }

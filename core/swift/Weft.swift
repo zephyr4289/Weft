@@ -104,8 +104,8 @@ public final class Weft {
             return .droppedRevoked
         }
 
-        if payloadLen < 0 || payloadLen > payloadMax {
-            tInvalid += 1
+        if payloadLen > UInt32(payloadMax) {
+            tInvalid.wrappingIncrement(by: 1, ordering: .relaxed)
             return .invalid
         }
 

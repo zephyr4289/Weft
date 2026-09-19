@@ -172,6 +172,7 @@ jobs:
               {"shard": "simd-blend", "description": "Q12 raster blend: C golden gates + xlang-blend cross-language digests + bench", "script": "ci/scripts/run_blend_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "qos-worklet", "description": "thread QoS flags honesty + native worklet conformance (20k ticks, order, latency)", "script": "ci/scripts/run_qos_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "guardian", "description": "Telemetry Guardian — must-bite selftest + wire probe + 3% throughput + crash audit", "script": "ci/scripts/run_guardian_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "sanitizers", "description": "TIER4 memory-safety audit: ASan+UBSan + TSan, zero findings", "script": "ci/scripts/run_sanitizers_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)

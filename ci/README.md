@@ -104,3 +104,8 @@ cannot flip any verdict from red to green.
   TLC jar) only remove time; a cache miss costs the same as the previous
   cold path.
 - No test, threshold, retry count, or matrix axis was removed or relaxed.
+
+## Developer & Agent Diagnostic Guide
+
+For full rules on how to format multiplatform patches, ensure binding parity, satisfy API Extractor, avoid sanitizers/link issues, and run pre-push local gates, see the comprehensive [Patch Engineering & CI Diagnostic Guide](../docs/PATCH_ENGINEERING_AND_CI_GUIDE.md).
+

@@ -149,15 +149,53 @@ typedef struct {
 ///   - w_seq/w_slot: WRITER-PRIVATE (single writer by contract).
 ///   - owns_ring: set by init, cleared by attach; only destroy consults it.
 typedef struct weft_fanout {
-    uint8_t* ring;             ///< Single allocation (or foreign memory if attached)
-    _Atomic uint64_t* ctrl;    ///< ring + 0: [latestSeq, publishes, slotSeq[0..M)]
+    uint8_t* ring;             ///< Ring base (allocation or foreign memory if attached)
+    _Atomic uint64_t* ctrl;    ///< ring + 0: [latestSeq, publishes, slotSeq[0..M))
     size_t payload_bytes;      ///< Immutable after init; multiple of 4
     unsigned slot_count;       ///< Immutable after init; [2, WEFT_FANOUT_MAX_SLOTS]
     uint64_t w_seq;            ///< Writer-private frame counter (0 = no begin yet)
     unsigned w_slot;           ///< Writer-private slot index of the current begin()
     uint8_t* w_cursor;         ///< Cached payload cursor of the current begin()
     int owns_ring;             ///< 1 = init allocated it (destroy frees); 0 = attached
+    uint8_t* alloc_base;       ///< malloc base for the slot-aligned allocation (or NULL)
 } weft_fanout_t;
+
+// ---------------------------------------------------------------------------
+// Slot-line alignment (issue #17-2: cache-aware buffer layout)
+// ---------------------------------------------------------------------------
+// The wire layout's payload base (16 + 8M) is a cache-line multiple only
+// when M == 6 (mod 8) at 64 B lines (16 + 8*6 = 64) -- the one lucky depth.
+// Every other depth leaves slot cursors straddling lines under a base-
+// aligned allocation: a 64-byte vector load at ring+48 spans two lines,
+// halving effective fetch width exactly where the claim copy is
+// bandwidth-bound (issue #17-1's evidence; FL2's theory table quantifies
+// the split count per geometry).
+//
+// weft_fanout_init therefore over-allocates one line and shifts the ring so
+// SLOT 0's payload starts line-aligned -- payload accesses become
+// single-line and whole-slot copies touch ceil(pb/line) lines exactly (the
+// ctrl block absorbs the shift at 1-2 cold lines). THE WIRE LAYOUT IS
+// UNCHANGED: all offsets stay relative to `ring`; dumps, fixtures, and
+// cross-port interop are byte-identical; attach() on foreign rings keeps
+// the producer's alignment (loadu copies handle any base -- FS2's sweep).
+//
+// Per-architecture line guidance (issue #17-2's documentation ask):
+//   x86-64 (Intel/AMD): 64 B lines -- 64 is optimal; 128 doubles the
+//       adjacent-line-prefetch pairing for pure streaming but showed no
+//       claim-path win in the FL evidence (knob available for experiments).
+//   Apple Silicon: 64 B lines (DCZVA = 64); 16 B NEON ops stay in-line.
+//   ARMv8 server/mobile: 64 B (CTR_EL0.DminLine); ARMv7/embedded and some
+//       RISC-V parts are 32 B -- the knob drops to 32 with NO regression
+//       (a payload base that is 64-aligned is 32-aligned too).
+//   RISC-V RV64GC: typically 64 B; embedded 32 B -- same 32-knob fallback.
+//
+// Compile knobs (house escape-hatch pattern):
+//   WEFT_FANOUT_SLOT_ALIGN_BYTES = 64 (default) -- payload-base alignment
+//   WEFT_FANOUT_SLOT_ALIGN_BYTES = 0  -- legacy base-aligned allocation
+
+/// The payload-base alignment this build's init() guarantees (0 = legacy
+/// base-aligned). Evidence lines and the FL-series gate read this.
+unsigned weft_fanout_slot_line_align(void);
 
 /// A reader bound to a ring (any ring — same process, or foreign memory
 /// produced by another port). Each reader owns its pre-allocated copy buffer

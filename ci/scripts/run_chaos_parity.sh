@@ -33,24 +33,39 @@ step() { echo "" | tee -a "$LOG"; echo "=== $1 ===" | tee -a "$LOG"; }
 
 CFG_STEPS=200000; CFG_SLOTS=4; CFG_WORDS=4; CFG_READERS=2; CFG_FRAMES=200; CFG_RATE=200; CFG_SEED=1337
 CFG2_STEPS=800000; CFG2_SLOTS=8; CFG2_WORDS=8; CFG2_READERS=4; CFG2_FRAMES=4000; CFG2_RATE=100; CFG2_SEED=90210
+# v2 (Issue #16 Tier 1): the extended fault classes (faultMask 15 = all four)
+# at a corruption density below the measured starvation threshold.
+CFG3_STEPS=200000; CFG3_SLOTS=4; CFG3_WORDS=4; CFG3_READERS=2; CFG3_FRAMES=200; CFG3_RATE=50; CFG3_SEED=1337; CFG3_MASK=15
 
 parity_run() {
-  # parity_run <label> <command...> — runs a port, byte-diffs BOTH configs vs C
+  # parity_run <label> <command...> — runs a port, byte-diffs the configs vs C
+  # (v1 x2 + v2 extended x1 when CFG3_MASK is set)
   local label="$1"; shift
-  local c1 c2
+  local c1 c2 c3 p1 p2 p3
   c1=$(./core/c/fanout-chaos stepped "$CFG_STEPS" "$CFG_SLOTS" "$CFG_WORDS" "$CFG_READERS" "$CFG_FRAMES" "$CFG_RATE" "$CFG_SEED" 2>/dev/null)
   c2=$(./core/c/fanout-chaos stepped "$CFG2_STEPS" "$CFG2_SLOTS" "$CFG2_WORDS" "$CFG2_READERS" "$CFG2_FRAMES" "$CFG2_RATE" "$CFG2_SEED" 2>/dev/null)
-  local p1 p2
   p1=$("$@" "$CFG_STEPS" "$CFG_SLOTS" "$CFG_WORDS" "$CFG_READERS" "$CFG_FRAMES" "$CFG_RATE" "$CFG_SEED" 2>/dev/null)
   p2=$("$@" "$CFG2_STEPS" "$CFG2_SLOTS" "$CFG2_WORDS" "$CFG2_READERS" "$CFG2_FRAMES" "$CFG2_RATE" "$CFG2_SEED" 2>/dev/null)
+  local ok=0
   if [ "$c1" = "$p1" ] && [ "$c2" = "$p2" ]; then
-    echo "[$label] BYTE-IDENTICAL to C on both configs" | tee -a "$LOG"
-    return 0
+    echo "[$label] BYTE-IDENTICAL to C on both v1 configs" | tee -a "$LOG"
+  else
+    echo "[$label] PARITY BROKEN (v1)" | tee -a "$LOG"
+    echo "  C:   $c1" | tee -a "$LOG"
+    echo "  $label: $p1" | tee -a "$LOG"
+    ok=1
   fi
-  echo "[$label] PARITY BROKEN" | tee -a "$LOG"
-  echo "  C:   $c1" | tee -a "$LOG"
-  echo "  $label: $p1" | tee -a "$LOG"
-  return 1
+  if [ -n "${CFG3_MASK:-}" ] && [ "$label" = "ts" ]; then
+    c3=$(./core/c/fanout-chaos stepped "$CFG3_STEPS" "$CFG3_SLOTS" "$CFG3_WORDS" "$CFG3_READERS" "$CFG3_FRAMES" "$CFG3_RATE" "$CFG3_SEED" "$CFG3_MASK" 2>/dev/null)
+    p3=$("$@" "$CFG3_STEPS" "$CFG3_SLOTS" "$CFG3_WORDS" "$CFG3_READERS" "$CFG3_FRAMES" "$CFG3_RATE" "$CFG3_SEED" "$CFG3_MASK" 2>/dev/null)
+    if [ "$c3" = "$p3" ]; then
+      echo "[$label] BYTE-IDENTICAL to C on the v2 extended config (faultMask=$CFG3_MASK)" | tee -a "$LOG"
+    else
+      echo "[$label] PARITY BROKEN (v2 extended)" | tee -a "$LOG"
+      ok=1
+    fi
+  fi
+  return $ok
 }
 
 step "Build C oracle"
@@ -70,8 +85,9 @@ parity_run ts node -e '
 const cfg = process.argv.slice(1).map(Number);
 import(process.cwd() + "/core/ts/fanout_chaos.ts").then(m => {
   const v = m.runSteppedChaos({seed: cfg[6]>>>0, steps: cfg[0], slots: cfg[1],
-    words: cfg[2], readers: cfg[3], frames: cfg[4], chaosRate: cfg[5]});
-  process.stdout.write(v.json);
+    words: cfg[2], readers: cfg[3], frames: cfg[4], chaosRate: cfg[5],
+    ...(cfg[7] ? {faultMask: cfg[7]} : {})});
+  process.stdout.write(v.json + "\n");
 });' || fail=1
 
 step "3. JVM port (kotlinc when present)"
@@ -103,6 +119,15 @@ if ./core/c/fanout-chaos stepped 200000 4 4 2 200 200 1337 2>/dev/null | \
   echo "golden fixture reproduced byte-for-byte" | tee -a "$LOG"
 else
   echo "golden fixture DIVERGED from the C oracle — regenerate or investigate" | tee -a "$LOG"
+  fail=1
+fi
+
+step "7. Extended golden fixture (v2, Issue #16) = the C oracle, reproduced here and now"
+if ./core/c/fanout-chaos stepped 200000 4 4 2 200 50 1337 15 2>/dev/null | \
+   diff -q - tools/chaos-fixtures/stepped-ext-golden-200k.json >/dev/null; then
+  echo "extended golden fixture reproduced byte-for-byte" | tee -a "$LOG"
+else
+  echo "extended golden fixture DIVERGED from the C oracle — regenerate or investigate" | tee -a "$LOG"
   fail=1
 fi
 

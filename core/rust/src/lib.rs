@@ -408,13 +408,9 @@ impl Weft {
     /// After ACK is observed, the caller may poison (memset 0xDE) or free.
     /// Poison-before-ACK is the bug this handshake prevents (A1).
     pub fn reclaim(&self, pre_revoke_epoch: u32, timeout_ms: u32) -> Result<(), ()> {
-        // TIER4 §4 (issue #19): effective bound = min(timeout_ms, ceiling).
-        // Ceiling 0 disables itself. Timeouts are counted, never silent; the
-        // caller must NOT poison/free after Err (the writer has not ACKed).
-        let effective_ms = if self.max_reclaim_timeout_ms != 0
-            && timeout_ms > self.max_reclaim_timeout_ms
-        {
-            self.max_reclaim_timeout_ms
+        let max_ceiling = self.max_reclaim_timeout_ms.load(Ordering::Relaxed);
+        let effective_ms = if max_ceiling != 0 && timeout_ms > max_ceiling {
+            max_ceiling
         } else {
             timeout_ms
         };
@@ -439,6 +435,7 @@ impl Weft {
     pub fn set_max_reclaim_timeout(&self, max_ms: u32) {
         self.max_reclaim_timeout_ms.store(max_ms, Ordering::Relaxed);
     }
+    /// Current runtime-configurable reclaim ceiling in milliseconds (TIER4 §4).
     pub fn max_reclaim_timeout(&self) -> u32 { self.max_reclaim_timeout_ms.load(Ordering::Relaxed) }
     /// Advisory reclaim-timeout count (TIER4 §4).
     pub fn t_reclaim_timeouts(&self) -> u64 { self.t_reclaim_timeouts.load(Ordering::Relaxed) }

@@ -1,0 +1,2 @@
+L7 reclaim_ok=1 post_revoke_revoked=100 poison_intact=1 pass=1
+{"test":"L7-revocation","lang":"c","pass":true,"metrics":{"reclaim_ok":true,"post_revoke_revoked":100,"poison_intact":true,"first_revoked_at":1190}}

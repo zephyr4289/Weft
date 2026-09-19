@@ -1,7 +1,9 @@
 # core/c/Makefile — local C build target (also driven by the root Makefile)
 #
 # Kernel targets (weft.c/weft.h — frozen):
-#   spike, spike-tsan            — the kernel litmus runner (unchanged)
+#   spike, spike-tsan            — the kernel litmus runner (L1-L8) + the
+#                                  Issue #16 Tier 1 L9-L16 suite (L13 needs
+#                                  the fan-out driver layer linked in)
 # Fan-out driver-layer targets (fanout.{h,c}, frame_cursor.{h,c} — RFC 0004/0008):
 #   fanout-test{,-asan,-tsan,-seq}   — F-series + FrameCursor conformance
 #   fanout-runner{,-asan,-tsan,-seq} — torture + xlang dump/validate runner
@@ -19,15 +21,18 @@ CFLAGS_ASAN = -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_S
 TARGET   = spike
 TARGET_TSAN = spike-tsan
 
-FANOUT_SRC = fanout.c frame_cursor.c weft.c
+# Issue #17-1: every target linking fanout.c links the SIMD claim-copy seam
+# (fanout_simd.{h,c}) — the dispatcher resolves scalar when silicon refuses.
+FSIMD_SRC = fanout_simd.c
+FANOUT_SRC = fanout.c frame_cursor.c weft.c $(FSIMD_SRC)
 
 all: $(TARGET)
 
-$(TARGET): weft.c litmus_runner.c weft.h
-	$(CC) $(CFLAGS) -o $(TARGET) weft.c litmus_runner.c
+$(TARGET): weft.c fanout.c frame_cursor.c fanout_simd.c litmus_runner.c weft.h fanout.h frame_cursor.h fanout_simd.h
+	$(CC) $(CFLAGS) -o $(TARGET) weft.c fanout.c frame_cursor.c $(FSIMD_SRC) litmus_runner.c
 
-$(TARGET_TSAN): weft.c litmus_runner.c weft.h
-	$(CC) $(CFLAGS_DBG) -o $(TARGET_TSAN) weft.c litmus_runner.c
+$(TARGET_TSAN): weft.c fanout.c frame_cursor.c fanout_simd.c litmus_runner.c weft.h fanout.h frame_cursor.h fanout_simd.h
+	$(CC) $(CFLAGS_DBG) -o $(TARGET_TSAN) weft.c fanout.c frame_cursor.c $(FSIMD_SRC) litmus_runner.c
 
 # ---- fan-out driver layer (RFC 0004 + RFC 0008) --------------------------
 
@@ -55,6 +60,61 @@ fanout-runner-tsan: fanout.c frame_cursor.c fanout_runner.c fanout.h frame_curso
 fanout-runner-seq: fanout.c frame_cursor.c fanout_runner.c fanout.h frame_cursor.h weft.h
 	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 -o fanout-runner-seq $(FANOUT_SRC) fanout_runner.c
 
+# ---- Issue #17-1: SIMD claim copy (fanout_simd) ----------------------------
+# FS-series conformance (byte-identity gate, end-to-end integrity, torture)
+# + --copy-bench micro mode. -legacy builds the seam DISABLED (the literal
+# inline scalar loop) and must pass the identical battery — the escape
+# hatch is a compatibility contract, not a stub.
+
+fanout-simd-test: fanout.c fanout_simd.c fanout_simd_test.c fanout.h fanout_simd.h weft.h
+	$(CC) $(CFLAGS) -o fanout-simd-test $(FANOUT_SRC) fanout_simd_test.c
+
+fanout-simd-test-asan: fanout.c fanout_simd.c fanout_simd_test.c fanout.h fanout_simd.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o fanout-simd-test-asan $(FANOUT_SRC) fanout_simd_test.c
+
+fanout-simd-test-tsan: fanout.c fanout_simd.c fanout_simd_test.c fanout.h fanout_simd.h weft.h
+	$(CC) $(CFLAGS_DBG) -o fanout-simd-test-tsan $(FANOUT_SRC) fanout_simd_test.c
+
+fanout-simd-test-seq: fanout.c fanout_simd.c fanout_simd_test.c fanout.h fanout_simd.h weft.h
+	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 -o fanout-simd-test-seq $(FANOUT_SRC) fanout_simd_test.c
+
+fanout-simd-test-legacy: fanout.c fanout_simd.c fanout_simd_test.c fanout.h fanout_simd.h weft.h
+	$(CC) $(CFLAGS) -DWEFT_FANOUT_SIMD_DISABLE=1 -o fanout-simd-test-legacy $(FANOUT_SRC) fanout_simd_test.c
+
+# ---- Issue #17-2: cache-aware slot layout (fanout_layout gate) ------------
+# FL-series: split-theory (validated vs brute force), allocation guarantee,
+# latency A/B (base- vs slot-aligned), interop byte-layout equality, foreign
+# ring tolerance. -smallline builds the 32B-line leg (ARMv7/embedded class
+# CPUs; a 64B-aligned payload base is 32B-aligned too — the no-regression
+# claim exercised at its own line size).
+
+fanout-layout-test: fanout.c fanout_simd.c fanout_layout_test.c fanout.h fanout_simd.h weft.h
+	$(CC) $(CFLAGS) -o fanout-layout-test $(FANOUT_SRC) fanout_layout_test.c
+
+fanout-layout-test-asan: fanout.c fanout_simd.c fanout_layout_test.c fanout.h fanout_simd.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o fanout-layout-test-asan $(FANOUT_SRC) fanout_layout_test.c
+
+fanout-layout-test-smallline: fanout.c fanout_simd.c fanout_layout_test.c fanout.h fanout_simd.h weft.h
+	$(CC) $(CFLAGS) -DWEFT_FANOUT_SLOT_ALIGN_BYTES=32 -o fanout-layout-test-smallline $(FANOUT_SRC) fanout_layout_test.c
+
+# ---- Issue #17-3: writer batching (fanout_batch) --------------------------
+# FB-series: batch roundtrip, mixed-mode compat, dropped accounting under
+# n > M bursts (windowed stamping torture), atomic refusal, commit-only
+# API + --bench throughput A/B (100-frame batches vs 100 singles, idle
+# and reader-polling legs). Pure atomics: TSAN-clean by construction.
+
+fanout-batch-test: fanout.c fanout_simd.c fanout_batch.c fanout_batch_test.c fanout.h fanout_simd.h fanout_batch.h weft.h
+	$(CC) $(CFLAGS) -o fanout-batch-test $(FANOUT_SRC) fanout_batch.c fanout_batch_test.c
+
+fanout-batch-test-asan: fanout.c fanout_simd.c fanout_batch.c fanout_batch_test.c fanout.h fanout_simd.h fanout_batch.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o fanout-batch-test-asan $(FANOUT_SRC) fanout_batch.c fanout_batch_test.c
+
+fanout-batch-test-tsan: fanout.c fanout_simd.c fanout_batch.c fanout_batch_test.c fanout.h fanout_simd.h fanout_batch.h weft.h
+	$(CC) $(CFLAGS_DBG) -o fanout-batch-test-tsan $(FANOUT_SRC) fanout_batch.c fanout_batch_test.c
+
+fanout-batch-test-seq: fanout.c fanout_simd.c fanout_batch.c fanout_batch_test.c fanout.h fanout_simd.h fanout_batch.h weft.h
+	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 -o fanout-batch-test-seq $(FANOUT_SRC) fanout_batch.c fanout_batch_test.c
+
 # ---- RFC 0011 chaos engine ------------------------------------------------
 # fanout-chaos: stepped (deterministic scheduler -- the parity oracle) +
 #               free (real threads, seed-deterministic fault sequence).
@@ -71,7 +131,7 @@ fanout-chaos-seq: fanout.c frame_cursor.c fanout_chaos.c fanout_chaos_runner.c f
 	$(CC) $(CFLAGS) -DWEFT_FANOUT_CHAOS_FREE_MODE=1 -DWEFT_FANOUT_SEQ_CST=1 -o fanout-chaos-seq $(FANOUT_SRC) fanout_chaos.c fanout_chaos_runner.c
 
 wire-probe: wire_probe.c fanout.c frame_cursor.c weft.c fanout.h frame_cursor.h weft.h
-	$(CC) $(CFLAGS) -o wire-probe wire_probe.c fanout.c frame_cursor.c weft.c
+	$(CC) $(CFLAGS) -o wire-probe wire_probe.c fanout.c frame_cursor.c weft.c $(FSIMD_SRC)
 
 # ---- VerifiedWeft driver layer (RFC 0005) --------------------------------
 # sha256.{h,c} + sha256_hw.c (Series 6 HW dispatch: x86 SHA-NI via target
@@ -120,7 +180,7 @@ verified-runner-asan: sha256.c sha256_hw.c hmac.c verified.c verified_runner.c w
 # the RFC-0004 fan-out ring. S-series conformance (fork torture included)
 # + the IPC torture/xlang runner. Linux link note: shm_open lives in librt
 # on glibc < 2.17 and in libc since; -lrt is accepted and harmless either way.
-SHM_SRC = shm_ring.c fanout.c weft.c
+SHM_SRC = shm_ring.c fanout.c weft.c $(FSIMD_SRC)
 
 shm-test: shm_ring.c shm_ring.h shm_test.c $(SHM_SRC) fanout.h weft.h
 	$(CC) $(CFLAGS) -o shm-test $(SHM_SRC) shm_test.c -lrt -lpthread
@@ -140,7 +200,7 @@ shm-runner-asan: shm_ring.c shm_ring.h shm_runner.c $(SHM_SRC) fanout.h weft.h
 # shared INTERNAL minimal Vulkan ABI. gpu-probe: the zero-copy consumer
 # proof (compute shader validates live ring words). The .spv is committed;
 # glslangValidator rebuilds it when present (CI installs glslang-tools).
-GPU_SRC = gpu_ring.c fanout.c weft.c
+GPU_SRC = gpu_ring.c fanout.c weft.c $(FSIMD_SRC)
 SPV = ../../probes/compute/validate_frame.spv
 SPV_STREAM = ../../probes/compute/stream_frames.spv
 SPV_RASTER = ../../probes/compute/rasterize_frame.spv
@@ -189,7 +249,7 @@ gpu-ring-test-asan: gpu_ring.c gpu_ring.h gpu_ring_test.c $(GPU_SRC) fanout.h we
 # prefault gate, pinned torture). -seq builds the all-seq_cst A/B regime —
 # prefetch and placement must be ordering-neutral there too.
 
-TURBO_SRC = turbo.c fanout.c frame_cursor.c weft.c
+TURBO_SRC = turbo.c fanout.c frame_cursor.c weft.c $(FSIMD_SRC)
 
 turbo-test: turbo.c turbo.h turbo_test.c $(TURBO_SRC) fanout.h frame_cursor.h weft.h
 	$(CC) $(CFLAGS) -o turbo-test $(TURBO_SRC) turbo_test.c
@@ -208,7 +268,7 @@ turbo-test-seq: turbo.c turbo.h turbo_test.c $(TURBO_SRC) fanout.h frame_cursor.
 # ladder NONE/SYSCALL/RING/FIXED probed at runtime (no liburing dependency).
 # U-series conformance + concurrent torture.
 
-URING_SRC = uring_rx.c fanout.c weft.c
+URING_SRC = uring_rx.c fanout.c weft.c $(FSIMD_SRC)
 
 uring-test: uring_rx.c uring_rx.h uring_test.c $(URING_SRC) fanout.h weft.h
 	$(CC) $(CFLAGS) -o uring-test $(URING_SRC) uring_test.c
@@ -224,13 +284,40 @@ uring-test-tsan: uring_rx.c uring_rx.h uring_test.c $(URING_SRC) fanout.h weft.h
 # one JSON line per variant (bench_runner.c methodology). -sys builds the
 # forced-SYSCALL ingestion A/B leg (-DWEFT_URING_FORCE_SYSCALL, bench-only).
 
-TRUNNER_SRC = turbo.c uring_rx.c fanout.c weft.c
+TRUNNER_SRC = turbo.c uring_rx.c fanout.c weft.c $(FSIMD_SRC)
 
 turbo-runner: turbo_runner.c $(TRUNNER_SRC) turbo.h uring_rx.h fanout.h weft.h
 	$(CC) $(CFLAGS) -o turbo-runner $(TRUNNER_SRC) turbo_runner.c
 
 turbo-runner-sys: turbo_runner.c $(TRUNNER_SRC) turbo.h uring_rx.h fanout.h weft.h
 	$(CC) $(CFLAGS) -DWEFT_URING_FORCE_SYSCALL=1 -o turbo-runner-sys $(TRUNNER_SRC) turbo_runner.c
+
+# ---- Issue #16 Tier 1: revocation handshake stress (Task 5) --------------
+
+revoke-stress: revoke_stress.c weft.c weft.h
+	$(CC) $(CFLAGS) -o revoke-stress revoke_stress.c weft.c
+
+revoke-stress-asan: revoke_stress.c weft.c weft.h
+	$(CC) $(CFLAGS_ASAN) -o revoke-stress-asan revoke_stress.c weft.c
+
+revoke-stress-tsan: revoke_stress.c weft.c weft.h
+	$(CC) $(CFLAGS_DBG) -o revoke-stress-tsan revoke_stress.c weft.c
+
+# ---- Issue #16 Tier 1: FFI-boundary structured fuzz (Task 4) -------------
+
+ffi-fuzz: ffi_fuzz.c weft.c weft.h
+	$(CC) $(CFLAGS) -o ffi-fuzz ffi_fuzz.c weft.c
+
+ffi-fuzz-asan: ffi_fuzz.c weft.c weft.h
+	$(CC) $(CFLAGS_ASAN) -o ffi-fuzz-asan ffi_fuzz.c weft.c
+
+# ---- Issue #15: thin hardware-adaptive layer (weft_hw) --------------------
+
+weft-hw-test: weft_hw.c weft_hw_test.c weft_hw.h weft.c weft.h
+	$(CC) $(CFLAGS) -o weft-hw-test weft_hw.c weft_hw_test.c weft.c
+
+weft-hw-test-asan: weft_hw.c weft_hw_test.c weft_hw.h weft.c weft.h
+	$(CC) $(CFLAGS_ASAN) -o weft-hw-test-asan weft_hw.c weft_hw_test.c weft.c
 
 bench: bench_runner.c weft.c weft.h
 	$(CC) $(CFLAGS) -o bench bench_runner.c weft.c
@@ -325,6 +412,9 @@ recovery-test-asan: recovery_test.c fanout.c frame_cursor.c weft.c fanout.h weft
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
+	      fanout-simd-test fanout-simd-test-asan fanout-simd-test-tsan fanout-simd-test-seq fanout-simd-test-legacy \
+	      fanout-layout-test fanout-layout-test-asan fanout-layout-test-smallline \
+	      fanout-batch-test fanout-batch-test-asan fanout-batch-test-tsan fanout-batch-test-seq \
 	      verified-test verified-test-asan verified-runner verified-runner-asan \
 	      verified-mb-test verified-mb-test-asan mb-bench \
 	      shm-test shm-test-asan shm-runner shm-runner-asan \

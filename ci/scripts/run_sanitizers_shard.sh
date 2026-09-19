@@ -38,13 +38,13 @@ ASAN_FLAGS="-O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -fsanitize=address
 TSAN_FLAGS="-O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -fsanitize=thread -g"
 
 step "Build: ASan+UBSan matrix"
-(cd core/c && gcc $ASAN_FLAGS -o asan-litmus weft.c litmus_runner.c 2>>"$LOG" && \
+(cd core/c && gcc $ASAN_FLAGS -o asan-litmus weft.c fanout.c frame_cursor.c fanout_simd.c litmus_runner.c 2>>"$LOG" && \
               gcc $ASAN_FLAGS -o asan-reclaim weft.c reclaim_test.c 2>>"$LOG" && \
-              gcc $ASAN_FLAGS -o asan-fanout fanout.c frame_cursor.c weft.c fanout_test.c 2>>"$LOG" && \
+              gcc $ASAN_FLAGS -o asan-fanout fanout.c frame_cursor.c weft.c fanout_simd.c fanout_test.c 2>>"$LOG" && \
               gcc $ASAN_FLAGS -o asan-governor governor.c governor_test.c 2>>"$LOG" && \
               gcc $ASAN_FLAGS -o asan-verified weft.c verified.c verified_test.c hmac.c sha256.c sha256_hw.c 2>>"$LOG" && \
               gcc $ASAN_FLAGS -o asan-blend blend_q12.c blend_test.c 2>>"$LOG" && \
-              gcc $ASAN_FLAGS -o asan-fuzz fuzz_runner.c weft.c fanout.c frame_cursor.c 2>>"$LOG" && \
+              gcc $ASAN_FLAGS -o asan-fuzz fuzz_runner.c weft.c fanout.c frame_cursor.c fanout_simd.c 2>>"$LOG" && \
               gcc $ASAN_FLAGS -o asan-ffihost ffi_host.c ffi_host_test.c 2>>"$LOG") \
   && record "asan-build" 0 || record "asan-build" 1
 
@@ -71,8 +71,8 @@ step "ASan+UBSan: fuzz-runner 200k ops seed 0x00C0FFEE"
 
 step "TSan: kernel litmus L1-L8 + fanout"
 TS=0
-(cd core/c && gcc $TSAN_FLAGS -o tsan-litmus weft.c litmus_runner.c 2>>"$LOG") || TS=1
-(cd core/c && gcc $TSAN_FLAGS -o tsan-fanout fanout.c frame_cursor.c weft.c fanout_test.c 2>>"$LOG") || TS=1
+(cd core/c && gcc $TSAN_FLAGS -o tsan-litmus weft.c fanout.c frame_cursor.c fanout_simd.c litmus_runner.c 2>>"$LOG") || TS=1
+(cd core/c && gcc $TSAN_FLAGS -o tsan-fanout fanout.c frame_cursor.c weft.c fanout_simd.c fanout_test.c 2>>"$LOG") || TS=1
 if [ $TS -eq 0 ]; then
   for t in L1-tear L2-writer-steps L3-reader-steps L4-freshness L5-progress L6-ownership L7-revocation L8-envelope; do
     (cd core/c && ./tsan-litmus "$t") >> "$LOG" 2>&1 || TS=1

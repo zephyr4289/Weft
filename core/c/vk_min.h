@@ -430,6 +430,19 @@ _Static_assert(sizeof(VkMemoryGetFdInfoKHR_) == 32, "vk_min: get-fd struct r362 
 _Static_assert(sizeof(VkExportMemoryAllocateInfo_) == 24, "vk_min: export-mem struct r362 size");
 _Static_assert(sizeof(VkExtensionProperties_) == 260, "vk_min: extension-props struct r362 size");
 
+// ---------------------------------------------------------------------------
+// VkFence (Series 9, issue #17-5: fence-scoped dispatch sync)
+// ---------------------------------------------------------------------------
+#define VK_STRUCTURE_TYPE_FENCE_CREATE_INFO       7u   // r362 value
+#define VK_FENCE_CREATE_SIGNALED_BIT              1u
+
+typedef struct VkFenceCreateInfo_ {
+    uint32_t sType;       // VK_STRUCTURE_TYPE_FENCE_CREATE_INFO
+    const void* pNext;
+    uint32_t flags;       // VK_FENCE_CREATE_SIGNALED_BIT for pre-signaled
+} VkFenceCreateInfo_;
+_Static_assert(sizeof(VkFenceCreateInfo_) == 24, "vk_min: fence-create struct r362 size");
+
 #ifdef __cplusplus
 }
 #endif

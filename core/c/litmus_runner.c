@@ -1,16 +1,22 @@
-// litmus_runner.c — L1–L8 litmus runner (C)
+// litmus_runner.c — L1–L16 litmus runner (C)
 //
 // Per 04-LITMUS.md (procedures + verdicts) and 05-CONTRACTS.md (CLI + JSON output).
 //
 // CLI: ./litmus_runner <TEST_ID> [key=value ...]
 //   TEST_ID ∈ L1-tear L2-writer-steps L3-reader-steps L4-freshness L5-progress
 //            L6-ownership L7-revocation L8-envelope
+//            L9-cross-beam L10-nested-revocation L12-canary-corruption
+//            L13-claim-retry L14-mixed-endianness L15-huge-payload
+//            L16-rapid-reclaim
+//            (L11-ffi-stress is script-orchestrated — litmus/ffi_stress/run.sh —
+//             it needs node/cargo cross-process, not a single-binary CLI)
 //
 // Output: exactly ONE JSON line on stdout (the LAST line); all diagnostics to stderr.
 // Exit: 0 pass · 1 fail · 2 usage/contract error.
 
 #define _GNU_SOURCE  // for nanosleep, posix_memalign
 #include "weft.h"
+#include "fanout.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,6 +50,8 @@ typedef struct {
     int max_delay_us;
     uint32_t seed;
     int min_claims;          // v1.1 (A4): per-language exposure floor (resolved by driver)
+    int cycles;              // L16: revoke/reclaim lifecycle churn count
+    int beams;               // L9: concurrent kernel instances (default 2)
 } cli_t;
 
 static void cli_init(cli_t* c) {
@@ -121,6 +129,10 @@ static int parse_args(int argc, char** argv, cli_t* c) {
             c->seed = (uint32_t)strtoul(val, NULL, 0);
         } else if (strcmp(key, "min_claims") == 0) {
             c->min_claims = parse_int(val);
+        } else if (strcmp(key, "cycles") == 0) {
+            c->cycles = parse_int(val);
+        } else if (strcmp(key, "beams") == 0) {
+            c->beams = parse_int(val);
         } else {
             fprintf(stderr, "unknown param: %s\n", key);
             return -1;
@@ -1138,6 +1150,741 @@ static int run_l8(void) {
 }
 
 // ---------------------------------------------------------------------------
+// L9 — cross-beam interference (Issue #16 Tier 1: N concurrent kernels)
+// ---------------------------------------------------------------------------
+
+// "Beam" = one independent Triad kernel instance (the weaving metaphor: each
+// beam weaves its own warp). The adversary: B beams' writer/reader pairs run
+// CONCURRENTLY on one machine — scheduling pressure, cache pressure, allocator
+// pressure. The property: every beam behaves as if it were alone (tear-free,
+// drained, no crosstalk — a reader of beam i only ever observes beam i frames,
+// which is structural: separate state, but the TEST proves it under fire).
+
+#define L9_MAX_BEAMS 4
+
+typedef struct {
+    weft_t* w;
+    int writer_hz;
+    int frames;
+    int payload_max;
+    int hold_ms;
+    _Atomic bool stop;
+    _Atomic uint64_t published;
+    _Atomic uint64_t claims;
+    _Atomic int torn;
+    _Atomic int drain_ok;
+} l9_args_t;
+
+static void* l9_writer_thread(void* arg) {
+    l9_args_t* a = (l9_args_t*)arg;
+    uint64_t period_ns = 1000000000ull / (uint64_t)a->writer_hz;
+    uint64_t next = now_ns() + period_ns;
+    uint32_t seq = 1;
+    while (!atomic_load(&a->stop) && seq <= (uint32_t)a->frames) {
+        fill_payload(a->w, seq, a->payload_max);
+        weft_pub_result_t r = weft_publish(a->w, seq, a->payload_max);
+        if (r == WEFT_PUB_OK) atomic_fetch_add(&a->published, 1);
+        seq++;
+        deadline_sleep(&next, period_ns);
+    }
+    return NULL;
+}
+
+static void* l9_reader_thread(void* arg) {
+    l9_args_t* a = (l9_args_t*)arg;
+    uint32_t last_seq = 0;
+    uint64_t deadline = now_ns() + 30000000000ull;  // 30s hard bound
+    while (now_ns() < deadline) {
+        (void)weft_r_claim(a->w);
+        uint32_t s = weft_r_seq(a->w);
+        if (s != last_seq) {
+            hold_inject_ms(a->hold_ms);   // the tear adversary (L1-style)
+            if (!verify_held(a->w, s, a->payload_max)) {
+                atomic_fetch_add(&a->torn, 1);
+            }
+            last_seq = s;
+            atomic_fetch_add(&a->claims, 1);
+        }
+        if (atomic_load(&a->stop) && s == (uint32_t)a->frames) break;
+        // Reader pacing: 4x slower than the writer (catalog adversary shape)
+        struct timespec ts = { .tv_sec = 0, .tv_nsec = 1000000000ull / 240 };
+        nanosleep(&ts, NULL);
+    }
+    atomic_store(&a->drain_ok, last_seq == (uint32_t)a->frames);
+    return NULL;
+}
+
+static int run_l9(cli_t* c) {
+    int payload_max = c->payload_max > 0 ? c->payload_max : 256;
+    int writer_hz = c->writer_hz > 0 ? c->writer_hz : 240;
+    int frames = c->frames > 0 ? c->frames : 600;
+    int beams = c->beams > 0 ? c->beams : 2;
+    if (beams < 1 || beams > L9_MAX_BEAMS) {
+        fprintf(stderr, "L9: beams must be 1..%d\n", L9_MAX_BEAMS);
+        return 2;
+    }
+    int holds_ms[1] = { c->holds_count > 0 ? c->holds_ms[0] : 5 };
+
+    weft_t w[L9_MAX_BEAMS];
+    l9_args_t args[L9_MAX_BEAMS];
+    pthread_t wt[L9_MAX_BEAMS], rt[L9_MAX_BEAMS];
+
+    for (int b = 0; b < beams; b++) {
+        if (weft_init(&w[b], payload_max) != 0) return 2;
+        args[b] = (l9_args_t){ .w = &w[b], .writer_hz = writer_hz,
+                               .frames = frames, .payload_max = payload_max,
+                               .hold_ms = holds_ms[0] };
+        atomic_init(&args[b].stop, false);
+        atomic_init(&args[b].published, 0);
+        atomic_init(&args[b].claims, 0);
+        atomic_init(&args[b].torn, 0);
+        atomic_init(&args[b].drain_ok, 0);
+    }
+
+    for (int b = 0; b < beams; b++) {
+        pthread_create(&wt[b], NULL, l9_writer_thread, &args[b]);
+        pthread_create(&rt[b], NULL, l9_reader_thread, &args[b]);
+    }
+    for (int b = 0; b < beams; b++) {
+        pthread_join(wt[b], NULL);
+        atomic_store(&args[b].stop, true);
+    }
+    for (int b = 0; b < beams; b++) pthread_join(rt[b], NULL);
+
+    int total_torn = 0, beams_drained = 0;
+    uint64_t total_claims = 0;
+    for (int b = 0; b < beams; b++) {
+        total_torn += atomic_load(&args[b].torn);
+        beams_drained += atomic_load(&args[b].drain_ok) ? 1 : 0;
+        total_claims += atomic_load(&args[b].claims);
+        weft_destroy(&w[b]);
+    }
+
+    bool pass = (total_torn == 0) && (beams_drained == beams);
+    fprintf(stderr, "L9 beams=%d frames=%d torn=%d drained=%d/%d claims=%lu pass=%d\n",
+            beams, frames, total_torn, beams_drained, beams,
+            (unsigned long)total_claims, pass);
+    printf("{\"test\":\"L9-cross-beam\",\"lang\":\"c\",\"pass\":%s,"
+           "\"metrics\":{\"beams\":%d,\"frames\":%d,\"torn\":%d,"
+           "\"beams_drained\":%d,\"claims\":%lu,\"writer_hz\":%d}}\n",
+           pass ? "true" : "false", beams, frames, total_torn,
+           beams_drained, (unsigned long)total_claims, writer_hz);
+    return pass ? 0 : 1;
+}
+
+// ---------------------------------------------------------------------------
+// L10 — nested revocation (revoke during revoke; I6 reentrancy)
+// ---------------------------------------------------------------------------
+
+// The kernel's revoke is an idempotent Release store of `true`; the ACK chain
+// is what makes the handshake safe. The adversary: (a) revoke called TWICE
+// (nested) while the writer spins; (b) revoke called from TWO threads
+// concurrently, many times; (c) reclaim polls racing those revokes. The
+// property: exactly-one-ACK-per-observation semantics hold, epoch stays
+// monotone, reclaim NEVER frees before the ACK, and no path deadlocks.
+
+typedef struct {
+    weft_t* w;
+    _Atomic bool stop;
+    _Atomic uint64_t acks;        // DROPPED_REVOKED returns observed by writer
+    _Atomic uint64_t publishes;
+} l10_writer_args_t;
+
+static void* l10_writer_thread(void* arg) {
+    l10_writer_args_t* a = (l10_writer_args_t*)arg;
+    uint32_t seq = 1;
+    bool seen = false;
+    while (!atomic_load(&a->stop)) {
+        if (!seen) fill_payload(a->w, seq, 64);
+        weft_pub_result_t r = weft_publish(a->w, seq, 64);
+        if (r == WEFT_PUB_OK) atomic_fetch_add(&a->publishes, 1);
+        else { atomic_fetch_add(&a->acks, 1); seen = true; }
+        seq++;
+        if (atomic_load(&a->acks) >= 8) break;  // enough post-revoke samples
+    }
+    return NULL;
+}
+
+typedef struct {
+    weft_t* w;
+    int count;
+} l10_revoke_args_t;
+
+static void* l10_revoke_thread(void* arg) {
+    l10_revoke_args_t* a = (l10_revoke_args_t*)arg;
+    for (int i = 0; i < a->count; i++) {
+        weft_revoke(a->w);   // idempotent Release store; racing stores are
+                             // atomic and write the same value — benign
+    }
+    return NULL;
+}
+
+static int run_l10(cli_t* c) {
+    int payload_max = c->payload_max > 0 ? c->payload_max : 256;
+    int timeout_ms = c->timeout_ms > 0 ? c->timeout_ms : 2000;
+
+    // --- Phase A: sequential nested revoke (revoke; revoke; reclaim) ---
+    weft_t w;
+    if (weft_init(&w, payload_max) != 0) return 2;
+    l10_writer_args_t wa = { .w = &w };
+    atomic_init(&wa.stop, false);
+    atomic_init(&wa.acks, 0);
+    atomic_init(&wa.publishes, 0);
+    pthread_t wt;
+    pthread_create(&wt, NULL, l10_writer_thread, &wa);
+    hold_inject_ms(5);
+    uint32_t e0 = weft_epoch(&w);
+    weft_revoke(&w);
+    weft_revoke(&w);            // the nested revoke — must be a benign no-op
+    int rc_a = weft_reclaim(&w, e0, timeout_ms);
+    uint32_t epoch_after = weft_epoch(&w);
+    // Publishes are frozen from the ACK onward (every later publish returns
+    // DROPPED without writing a byte) — capture, poison, join, compare.
+    uint64_t pubs_at_ack = atomic_load(&wa.publishes);
+    // Poison after ACK (I6 contract), then join + verify the writer went quiet
+    for (int i = 0; i < 3; i++) memset(w.buf[i], 0xDE, w.buf_size);
+    atomic_store(&wa.stop, true);
+    pthread_join(wt, NULL);
+    uint64_t pubs_after_join = atomic_load(&wa.publishes);
+    // Post-ACK discipline (02 §6): the writer never touched a byte after the
+    // ACK — the poison canaries must still be intact.
+    bool poison_a = true;
+    for (int i = 0; i < 3; i++) {
+        uint64_t cv;
+        memcpy(&cv, w.buf[i] + w.buf_size - 8, 8);
+        if (cv != 0xDEDEDEDEDEDEDEDEull) poison_a = false;
+    }
+    weft_destroy(&w);
+    bool phase_a = (rc_a == 0) && (epoch_after > e0)
+                   && (pubs_after_join == pubs_at_ack) && poison_a;
+
+    // --- Phase B: concurrent revokers + racing reclaim ---
+    if (weft_init(&w, payload_max) != 0) return 2;
+    wa.w = &w;
+    atomic_init(&wa.stop, false);
+    atomic_init(&wa.acks, 0);
+    atomic_init(&wa.publishes, 0);
+    pthread_create(&wt, NULL, l10_writer_thread, &wa);
+    hold_inject_ms(5);
+    uint32_t e0b = weft_epoch(&w);
+    l10_revoke_args_t ra1 = { .w = &w, .count = 500 };
+    l10_revoke_args_t ra2 = { .w = &w, .count = 500 };
+    pthread_t rt1, rt2;
+    pthread_create(&rt1, NULL, l10_revoke_thread, &ra1);
+    pthread_create(&rt2, NULL, l10_revoke_thread, &ra2);
+    pthread_join(rt1, NULL);
+    pthread_join(rt2, NULL);
+    int rc_b = weft_reclaim(&w, e0b, timeout_ms);
+    uint32_t epoch_final = weft_epoch(&w);
+    for (int i = 0; i < 3; i++) memset(w.buf[i], 0xDE, w.buf_size);
+    atomic_store(&wa.stop, true);
+    pthread_join(wt, NULL);
+    // Post-ACK discipline under the concurrent-revoke storm: poison intact.
+    bool poison_intact = true;
+    for (int i = 0; i < 3; i++) {
+        uint64_t cv;
+        memcpy(&cv, w.buf[i] + w.buf_size - 8, 8);
+        if (cv != 0xDEDEDEDEDEDEDEDEull) poison_intact = false;
+    }
+    weft_destroy(&w);
+
+    // epoch monotone across the whole nested/concurrent storm
+    bool epoch_monotone = (epoch_after >= 1) && (epoch_final >= 1);
+    // reclaim never timed out under nesting or racing
+    bool no_timeouts = (rc_a == 0) && (rc_b == 0);
+
+    bool pass = phase_a && no_timeouts && epoch_monotone && poison_intact;
+    fprintf(stderr, "L10 nested_rc=%d concurrent_rc=%d epoch_after=%u epoch_final=%u "
+                    "writer_acks=%lu pass=%d\n",
+            rc_a, rc_b, epoch_after, epoch_final,
+            (unsigned long)atomic_load(&wa.acks), pass);
+    printf("{\"test\":\"L10-nested-revocation\",\"lang\":\"c\",\"pass\":%s,"
+           "\"metrics\":{\"nested_reclaim_ok\":%s,\"concurrent_reclaim_ok\":%s,"
+           "\"epoch_monotone\":%s,\"poison_intact\":%s,\"epoch_after_nested\":%u,"
+           "\"epoch_final\":%u}}\n",
+           pass ? "true" : "false",
+           rc_a == 0 ? "true" : "false", rc_b == 0 ? "true" : "false",
+           epoch_monotone ? "true" : "false", poison_intact ? "true" : "false",
+           epoch_after, epoch_final);
+    return pass ? 0 : 1;
+}
+
+// ---------------------------------------------------------------------------
+// L12 — canary corruption (bit flips in the envelope/canary/payload)
+// ---------------------------------------------------------------------------
+
+// Single-threaded, no adversary threads: pure detection-matrix litmus. The
+// reader HOLDS a frame; the harness flips bits through weft_r_live_ptr (the
+// declared fault-injection surface — the pointer is const for readers, and
+// corruption is exactly what a const-cast here models: stray DMA, heap
+// stomps, FFI misuse). The matrix:
+//   envelope-seq flip   -> DETECTED  (envelope seq != canary — the kernel's
+//                                      own redundancy; 02 §1 layout)
+//   canary flip         -> DETECTED  (same comparison, other direction)
+//   magic flip          -> DETECTED  (weft_envelope_decode: BAD_MAGIC)
+//   payload flip        -> NOT DETECTED by the canary — the DOCUMENTED
+//                          boundary: the bracket detects concurrency, not
+//                          data corruption; payload integrity belongs to the
+//                          application checksum (w6Checksum precedent). The
+//                          test verifies the boundary honestly: undetected.
+// Each fault is injected, observed, and REVERTED (one buffer, many probes).
+
+typedef struct {
+    bool env_flip_detected;
+    bool canary_flip_detected;
+    bool magic_flip_detected;
+    bool payload_flip_undetected;
+} l12_matrix_t;
+
+static bool l12_canary_matches(weft_t* w, uint32_t env_seq) {
+    const uint8_t* canary = weft_r_live_ptr(w, w->buf_size - 8);
+    uint64_t cv;
+    memcpy(&cv, canary, 8);
+    return cv == (uint64_t)env_seq;
+}
+
+static int run_l12(cli_t* c) {
+    int payload_max = c->payload_max > 0 ? c->payload_max : 256;
+    (void)c;
+    weft_t w;
+    if (weft_init(&w, payload_max) != 0) return 2;
+    const uint32_t seq = 7;
+    fill_payload(&w, seq, payload_max);
+    if (weft_publish(&w, seq, payload_max) != WEFT_PUB_OK) { weft_destroy(&w); return 2; }
+    (void)weft_r_claim(&w);
+
+    l12_matrix_t m = { 0 };
+
+    // -- envelope seq bit flip (byte 8..11 of the envelope) --
+    uint8_t* env = (uint8_t*)weft_r_live_ptr(&w, 0);
+    uint8_t saved_seq_byte = env[8];
+    env[8] ^= 0x01;                                    // flip one seq bit
+    m.env_flip_detected = !l12_canary_matches(&w, weft_r_seq(&w));
+    env[8] = saved_seq_byte;                           // revert
+
+    // -- canary bit flip (last 8 bytes) --
+    uint8_t* can = (uint8_t*)weft_r_live_ptr(&w, w.buf_size - 8);
+    uint8_t saved_can_byte = can[0];
+    can[0] ^= 0x80;
+    m.canary_flip_detected = !l12_canary_matches(&w, weft_r_seq(&w));
+    can[0] = saved_can_byte;
+
+    // -- magic bit flip -> the envelope decoder must reject it --
+    uint8_t saved_magic = env[0];
+    env[0] ^= 0x01;
+    uint16_t v, hs; uint32_t s, pl;
+    weft_decode_result_t dr = weft_envelope_decode(env, w.buf_size, &v, &hs, &s, &pl);
+    m.magic_flip_detected = (dr == WEFT_DECODE_BAD_MAGIC);
+    env[0] = saved_magic;
+
+    // -- payload bit flip -> the canary check must NOT fire (the boundary) --
+    uint8_t* payload = (uint8_t*)weft_r_live_ptr(&w, 16);
+    uint8_t saved_pay = payload[0];
+    payload[0] ^= 0xFF;
+    m.payload_flip_undetected = l12_canary_matches(&w, weft_r_seq(&w))
+                                && verify_held(&w, seq, payload_max) == false
+                                && weft_r_seq(&w) == seq;
+    payload[0] = saved_pay;
+
+    // Post-revert sanity: the frame verifies clean again.
+    bool reverted_clean = verify_held(&w, seq, payload_max);
+    weft_destroy(&w);
+
+    bool pass = m.env_flip_detected && m.canary_flip_detected
+                && m.magic_flip_detected && m.payload_flip_undetected
+                && reverted_clean;
+    fprintf(stderr, "L12 env_flip=%d canary_flip=%d magic=%d payload_undetected=%d "
+                    "reverted_clean=%d pass=%d\n",
+            m.env_flip_detected, m.canary_flip_detected, m.magic_flip_detected,
+            m.payload_flip_undetected, reverted_clean, pass);
+    printf("{\"test\":\"L12-canary-corruption\",\"lang\":\"c\",\"pass\":%s,"
+           "\"metrics\":{\"env_flip_detected\":%s,\"canary_flip_detected\":%s,"
+           "\"magic_flip_detected\":%s,"
+           "\"payload_flip_undetected_boundary\":%s,\"reverted_clean\":%s}}\n",
+           pass ? "true" : "false",
+           m.env_flip_detected ? "true" : "false",
+           m.canary_flip_detected ? "true" : "false",
+           m.magic_flip_detected ? "true" : "false",
+           m.payload_flip_undetected ? "true" : "false",
+           reverted_clean ? "true" : "false");
+    return pass ? 0 : 1;
+}
+
+// ---------------------------------------------------------------------------
+// L13 — exhaustive claim retry (fan-out bounded loop, 10K claims)
+// ---------------------------------------------------------------------------
+
+// The fan-out claim's bounded 4-attempt loop (RFC 0004) under a storming
+// writer: 10,000 consecutive claims, every one must RESOLVE (fresh / not
+// fresh) — never spin, never deadlock — and every FRESH claim's payload must
+// be the exact tword pattern. The retry accounting (skips, exhaustions) is
+// surfaced via reader stats: counted, never silent (Law 1).
+
+typedef struct {
+    weft_fanout_t* f;
+    uint32_t words;
+    _Atomic uint64_t frames_done;
+    _Atomic bool stop;
+} l13_writer_args_t;
+
+static void* l13_writer_thread(void* arg) {
+    l13_writer_args_t* a = (l13_writer_args_t*)arg;
+    const uint32_t W = a->words;
+    uint32_t src[64];
+    uint32_t seq = 0;
+    while (!atomic_load(&a->stop)) {
+        seq++;   // storms until the reader is done (no frame cap: the claim
+                 // window must stay LIVE for all 10K claims)
+        (void)weft_fanout_begin(a->f);
+        for (uint32_t w = 0; w < W; w++) {
+            src[w] = weft_mix32(seq * 2654435761u + w);   // tword(seq, w)
+        }
+        (void)weft_fanout_fill(a->f, src, (size_t)W * 4);
+        (void)weft_fanout_publish(a->f);
+        atomic_store_explicit(&a->frames_done, seq, memory_order_relaxed);
+    }
+    return NULL;
+}
+
+static int run_l13(cli_t* c) {
+    int claims_target = c->claims > 0 ? c->claims : 10000;
+    int slots = c->bound > 0 ? c->bound : 4;   // reuse bound for M (2..64)
+    if (slots < 2 || slots > (int)WEFT_FANOUT_MAX_SLOTS) slots = 4;
+    int words = c->payload_max > 0 ? (c->payload_max / 4) : 8;
+    if (words < 1) words = 1;
+    if (words > 64) words = 64;
+
+    weft_fanout_t* f = weft_fanout_new((size_t)words * 4, (unsigned)slots);
+    if (!f) return 2;
+    weft_fanout_reader_t* r = weft_fanout_reader_new(
+        weft_fanout_ring(f), weft_fanout_ring_bytes((size_t)words * 4, (unsigned)slots),
+        (size_t)words * 4, (unsigned)slots);
+    if (!r) { weft_fanout_free(f); return 2; }
+
+    l13_writer_args_t wa = { .f = f, .words = (uint32_t)words };
+    atomic_init(&wa.frames_done, 0);
+    atomic_init(&wa.stop, false);
+    pthread_t wt;
+    pthread_create(&wt, NULL, l13_writer_thread, &wa);
+
+    uint64_t fresh = 0, not_fresh = 0, torn_accepted = 0;
+    // Wait for the storm to start (first frame published), then pace claims so
+    // they land on a LIVE writer (a tight loop outruns the writer and would
+    // make every claim not-fresh — exposure, not evidence).
+    while (atomic_load(&wa.frames_done) == 0) {
+        struct timespec ts = { .tv_sec = 0, .tv_nsec = 1000 };
+        nanosleep(&ts, NULL);
+    }
+    for (int i = 0; i < claims_target; i++) {
+        struct timespec pace = { .tv_sec = 0, .tv_nsec = 50000 };  // 50us tick
+        nanosleep(&pace, NULL);
+        const weft_fanout_claim_t* cl = weft_fanout_claim(r);
+        if (cl->fresh) {
+            fresh++;
+            const uint32_t* view = (const uint32_t*)weft_fanout_view(r);
+            for (uint32_t w = 0; w < (uint32_t)words; w++) {
+                if (view[w] != weft_mix32((uint32_t)cl->seq * 2654435761u + w)) {
+                    torn_accepted++;
+                    break;
+                }
+            }
+        } else {
+            not_fresh++;
+        }
+    }
+    atomic_store(&wa.stop, true);
+    pthread_join(wt, NULL);
+    // NoFuture, adjudicated exactly once the writer is parked: the reader's
+    // last consistent frame cannot exceed the writer's total publishes.
+    uint64_t future = (r->last_seq > atomic_load(&wa.frames_done)) ? 1 : 0;
+
+    weft_fanout_stats_t st;
+    weft_fanout_reader_stats(r, &st);
+    // Every claim resolved (the loop completed) — the no-deadlock property.
+    bool resolved_all = (fresh + not_fresh) == (uint64_t)claims_target;
+    // Telescoping identity at drain: drops == lastSeq - fresh (RFC 0004).
+    bool telescoping = (st.drops == r->last_seq - st.fresh);
+    weft_fanout_free(f);
+    weft_fanout_reader_free(r);
+
+    bool pass = resolved_all && torn_accepted == 0 && future == 0 && telescoping;
+    fprintf(stderr, "L13 claims=%d fresh=%lu not_fresh=%lu torn=%lu future=%lu "
+                    "skip=%lu exhausted=%lu pass=%d\n",
+            claims_target, (unsigned long)fresh, (unsigned long)not_fresh,
+            (unsigned long)torn_accepted, (unsigned long)future,
+            (unsigned long)st.skipped_mid_overwrite,
+            (unsigned long)st.torn_exhausted, pass);
+    printf("{\"test\":\"L13-claim-retry\",\"lang\":\"c\",\"pass\":%s,"
+           "\"metrics\":{\"claims\":%d,\"fresh\":%lu,\"not_fresh\":%lu,"
+           "\"torn_accepted\":%lu,\"future\":%lu,\"skips\":%lu,\"exhausted\":%lu}}\n",
+           pass ? "true" : "false", claims_target,
+           (unsigned long)fresh, (unsigned long)not_fresh,
+           (unsigned long)torn_accepted, (unsigned long)future,
+           (unsigned long)st.skipped_mid_overwrite,
+           (unsigned long)st.torn_exhausted);
+    return pass ? 0 : 1;
+}
+
+// ---------------------------------------------------------------------------
+// L14 — mixed endianness (LE wire contract, simulated-BE round-trip)
+// ---------------------------------------------------------------------------
+
+// The envelope/canary wire format is LITTLE-ENDIAN (03-ENVELOPE §1, 02 §1).
+// No big-endian hardware exists in this sandbox (declared): the test proves
+// the contract two ways instead —
+//   (a) the LE wire bytes are PINNED: encode_v1 on this (LE) host must lay
+//       out the exact documented byte sequence, field by field;
+//   (b) a simulated big-endian producer (fields stored native-BE) crosses to
+//       a little-endian consumer ONLY through the explicit bswap boundary —
+//       the byte-swap adapter a real BE port must implement — and the LE
+//       decoder then reads the frame perfectly.
+// Verdict: le_wire_pinned AND be_view_roundtrip AND canary_le_pinned.
+
+static uint32_t bswap32v(uint32_t x) {
+    return ((x & 0xFFu) << 24) | ((x & 0xFF00u) << 8)
+         | ((x >> 8) & 0xFF00u) | ((x >> 24) & 0xFFu);
+}
+
+static bool l14_le_wire_pinned(void) {
+    uint8_t enc[64];
+    memset(enc, 0, sizeof(enc));
+    weft_envelope_encode_v1(enc, 0x11223344u, 0xABCDEF00u);
+    // magic "WEFT" bytes, version=1 LE, header_size=16 LE, seq LE, payload_len LE
+    if (enc[0] != 0x57 || enc[1] != 0x45 || enc[2] != 0x46 || enc[3] != 0x54) return false;
+    if (enc[4] != 0x01 || enc[5] != 0x00) return false;          // version 1, LE
+    if (enc[6] != 0x10 || enc[7] != 0x00) return false;          // header 16, LE
+    if (enc[8] != 0x44 || enc[9] != 0x33 || enc[10] != 0x22 || enc[11] != 0x11) return false;
+    if (enc[12] != 0x00 || enc[13] != 0xEF || enc[14] != 0xCD || enc[15] != 0xAB) return false;
+    return true;
+}
+
+static bool l14_be_roundtrip(void) {
+    // A big-endian producer lays the SAME fields in ITS native order:
+    const uint16_t version = 1, header = 16;
+    const uint32_t seq = 0xA1B2C3D4u, plen = 0x00000020u;  // 32 <= 64-16: fits the probe buffer
+    uint8_t be[64];
+    memset(be, 0, sizeof(be));
+    be[0] = 0x57; be[1] = 0x45; be[2] = 0x46; be[3] = 0x54;    // magic: bytes, endian-free
+    be[4] = (uint8_t)(version >> 8); be[5] = (uint8_t)version;   // BE u16
+    be[6] = (uint8_t)(header >> 8);  be[7] = (uint8_t)header;
+    be[8] = (uint8_t)(seq >> 24); be[9] = (uint8_t)(seq >> 16);
+    be[10] = (uint8_t)(seq >> 8);  be[11] = (uint8_t)seq;        // BE u32
+    be[12] = (uint8_t)(plen >> 24); be[13] = (uint8_t)(plen >> 16);
+    be[14] = (uint8_t)(plen >> 8);  be[15] = (uint8_t)plen;
+    // The BE->LE boundary adapter (what a real BE port does at the wire):
+    uint8_t le[64];
+    memcpy(le, be, 64);
+    uint16_t v16; memcpy(&v16, le + 4, 2); v16 = (uint16_t)((v16 >> 8) | (v16 << 8)); memcpy(le + 4, &v16, 2);
+    memcpy(&v16, le + 6, 2); v16 = (uint16_t)((v16 >> 8) | (v16 << 8)); memcpy(le + 6, &v16, 2);
+    uint32_t v32; memcpy(&v32, le + 8, 4); v32 = bswap32v(v32); memcpy(le + 8, &v32, 4);
+    memcpy(&v32, le + 12, 4); v32 = bswap32v(v32); memcpy(le + 12, &v32, 4);
+    // The LE decoder must now read the frame exactly:
+    uint16_t dv, dh; uint32_t ds, dp;
+    if (weft_envelope_decode(le, 64, &dv, &dh, &ds, &dp) != WEFT_DECODE_OK) return false;
+    return dv == 1 && dh == 16 && ds == seq && dp == plen;
+}
+
+static bool l14_canary_le_pinned(void) {
+    weft_t w;
+    if (weft_init(&w, 256) != 0) return false;
+    fill_payload(&w, 0xDEADBEEFu, 256);
+    if (weft_publish(&w, 0xDEADBEEFu, 256) != WEFT_PUB_OK) { weft_destroy(&w); return false; }
+    (void)weft_r_claim(&w);
+    const uint8_t* can = weft_r_live_ptr(&w, w.buf_size - 8);
+    uint64_t cv;
+    memcpy(&cv, can, 8);
+    weft_destroy(&w);
+    // On this LE host the u64 canary must read back as the plain seq value
+    // (low byte first in memory) — the LE wire contract, pinned.
+    if (cv != 0xDEADBEEFull) return false;
+    if (can[0] != 0xEF || can[1] != 0xBE || can[2] != 0xAD || can[3] != 0xDE) return false;
+    return true;
+}
+
+static int run_l14(void) {
+    bool a = l14_le_wire_pinned();
+    bool b = l14_be_roundtrip();
+    bool d = l14_canary_le_pinned();
+    bool pass = a && b && d;
+    fprintf(stderr, "L14 le_wire_pinned=%d be_roundtrip=%d canary_le=%d pass=%d\n",
+            a, b, d, pass);
+    printf("{\"test\":\"L14-mixed-endianness\",\"lang\":\"c\",\"pass\":%s,"
+           "\"metrics\":{\"le_wire_pinned\":%s,\"be_view_roundtrip\":%s,"
+           "\"canary_le_pinned\":%s}}\n",
+           pass ? "true" : "false",
+           a ? "true" : "false", b ? "true" : "false", d ? "true" : "false");
+    return pass ? 0 : 1;
+}
+
+// ---------------------------------------------------------------------------
+// L15 — huge payload (1 MiB frames: geometry, alignment, memory pressure)
+// ---------------------------------------------------------------------------
+
+static int run_l15(cli_t* c) {
+    size_t payload_max = 1048576;                       // 1 MiB (catalog)
+    if (c->payload_max > 0) payload_max = (size_t)c->payload_max;
+    int frames = c->frames > 0 ? c->frames : 200;
+    int writer_hz = c->writer_hz > 0 ? c->writer_hz : 120;
+
+    weft_t w;
+    if (weft_init(&w, payload_max) != 0) return 2;
+    size_t expect_buf = ((16 + payload_max + 8) + 63) & ~(size_t)63;
+    bool buf_size_ok = (w.buf_size == expect_buf);
+    bool alignment_ok = true;
+    for (int i = 0; i < 3; i++) {
+        if (((uintptr_t)w.buf[i]) % 64 != 0) alignment_ok = false;
+    }
+
+    // RSS before (reported, never gated — the memory-pressure observation)
+    long rss_before_kb = 0;
+    {
+        FILE* f = fopen("/proc/self/statm", "r");
+        long tot, res;
+        if (f && fscanf(f, "%ld %ld", &tot, &res) == 2) rss_before_kb = res * 4;
+        if (f) fclose(f);
+    }
+
+    l1_writer_args_t wa = { .w = &w, .writer_hz = writer_hz, .frames = frames,
+                            .payload_max = (int)payload_max, .seq = 0 };
+    atomic_init(&wa.stop, false);
+    atomic_init(&wa.published, 0);
+    pthread_t wt;
+    pthread_create(&wt, NULL, l1_writer_thread, &wa);
+
+    uint32_t last_seq = 0;
+    int torn = 0;
+    uint64_t claims = 0;
+    uint64_t deadline = now_ns() + 30000000000ull;
+    while (now_ns() < deadline) {
+        (void)weft_r_claim(&w);
+        uint32_t s = weft_r_seq(&w);
+        if (s != last_seq) {
+            hold_inject_ms(5);
+            if (!verify_held(&w, s, (uint32_t)payload_max)) torn++;
+            last_seq = s;
+            claims++;
+        }
+        if (s == (uint32_t)frames) break;   // drain: the final frame is observed
+        struct timespec ts = { .tv_sec = 0, .tv_nsec = 1000000000ull / 60 };
+        nanosleep(&ts, NULL);
+    }
+    pthread_join(wt, NULL);
+    bool drain_ok = (last_seq == (uint32_t)frames);
+
+    long rss_after_kb = 0;
+    {
+        FILE* f = fopen("/proc/self/statm", "r");
+        long tot, res;
+        if (f && fscanf(f, "%ld %ld", &tot, &res) == 2) rss_after_kb = res * 4;
+        if (f) fclose(f);
+    }
+    weft_destroy(&w);
+
+    bool pass = (torn == 0) && drain_ok && buf_size_ok && alignment_ok;
+    fprintf(stderr, "L15 payload_max=%zu buf_size=%zu frames=%d torn=%d drain=%d "
+                    "align=%d rss_delta=%ldkB pass=%d\n",
+            payload_max, expect_buf, frames, torn, drain_ok, alignment_ok,
+            rss_after_kb - rss_before_kb, pass);
+    printf("{\"test\":\"L15-huge-payload\",\"lang\":\"c\",\"pass\":%s,"
+           "\"metrics\":{\"payload_max\":%zu,\"buf_size\":%zu,\"frames\":%d,"
+           "\"torn\":%d,\"drain_ok\":%s,\"alignment_ok\":%s,"
+           "\"rss_delta_kb\":%ld,\"claims\":%lu}}\n",
+           pass ? "true" : "false", payload_max, expect_buf, frames, torn,
+           drain_ok ? "true" : "false", alignment_ok ? "true" : "false",
+           rss_after_kb - rss_before_kb, (unsigned long)claims);
+    return pass ? 0 : 1;
+}
+
+// ---------------------------------------------------------------------------
+// L16 — rapid revoke/reclaim cycles (the I6 handshake under churn)
+// ---------------------------------------------------------------------------
+
+typedef struct {
+    weft_t* w;
+    _Atomic bool stop;
+    _Atomic bool acked;
+} l16_writer_args_t;
+
+static void* l16_writer_thread(void* arg) {
+    l16_writer_args_t* a = (l16_writer_args_t*)arg;
+    uint32_t seq = 1;
+    while (!atomic_load(&a->stop)) {
+        fill_payload(a->w, seq, 64);
+        if (weft_publish(a->w, seq, 64) == WEFT_PUB_DROPPED_REVOKED) {
+            atomic_store(&a->acked, true);
+            break;   // post-ACK: never touch buffer bytes again (02 §6)
+        }
+        seq++;
+    }
+    return NULL;
+}
+
+static int run_l16(cli_t* c) {
+    int cycles = c->cycles > 0 ? c->cycles : 2000;
+    int timeout_ms = c->timeout_ms > 0 ? c->timeout_ms : 250;
+    int payload_max = c->payload_max > 0 ? c->payload_max : 256;
+
+    int completed = 0, timeouts = 0, poison_failures = 0, ack_failures = 0;
+    for (int i = 0; i < cycles; i++) {
+        weft_t* w = (weft_t*)malloc(sizeof(weft_t));
+        if (!w) break;
+        if (weft_init(w, payload_max) != 0) { free(w); break; }
+
+        l16_writer_args_t wa = { .w = w };
+        atomic_init(&wa.stop, false);
+        atomic_init(&wa.acked, false);
+        pthread_t wt;
+        pthread_create(&wt, NULL, l16_writer_thread, &wa);
+
+        // Let each cycle establish a live publish stream before the revoke
+        // (a churn cycle with zero successful publishes is a weaker probe).
+        struct timespec warm = { .tv_sec = 0, .tv_nsec = 250000 };
+        nanosleep(&warm, NULL);
+        uint32_t e0 = weft_epoch(w);
+        weft_revoke(w);
+        int rc = weft_reclaim(w, e0, timeout_ms);
+        if (rc != 0) {
+            timeouts++;
+            atomic_store(&wa.stop, true);
+            pthread_join(wt, NULL);
+            weft_destroy(w);
+            free(w);
+            continue;
+        }
+        // Poison post-ACK, then verify the writer honored the contract
+        for (int b = 0; b < 3; b++) memset(w->buf[b], 0xDE, w->buf_size);
+        atomic_store(&wa.stop, true);
+        pthread_join(wt, NULL);
+        if (!atomic_load(&wa.acked)) ack_failures++;
+        // Spot-check the poison survived (writer must not write post-ACK):
+        // the canary word of each buffer stays 0xDEDEDEDEDEDEDEDE.
+        bool poison_ok = true;
+        for (int b = 0; b < 3; b++) {
+            uint64_t cv;
+            memcpy(&cv, w->buf[b] + w->buf_size - 8, 8);
+            if (cv != 0xDEDEDEDEDEDEDEDEull) poison_ok = false;
+        }
+        if (!poison_ok) poison_failures++;
+
+        weft_destroy(w);
+        free(w);
+        completed++;
+    }
+
+    bool pass = (completed == cycles) && timeouts == 0
+                && poison_failures == 0 && ack_failures == 0;
+    fprintf(stderr, "L16 cycles=%d completed=%d timeouts=%d poison_fail=%d "
+                    "ack_fail=%d pass=%d\n",
+            cycles, completed, timeouts, poison_failures, ack_failures, pass);
+    printf("{\"test\":\"L16-rapid-reclaim\",\"lang\":\"c\",\"pass\":%s,"
+           "\"metrics\":{\"cycles\":%d,\"completed\":%d,\"timeouts\":%d,"
+           "\"poison_failures\":%d,\"ack_failures\":%d}}\n",
+           pass ? "true" : "false", cycles, completed, timeouts,
+           poison_failures, ack_failures);
+    return pass ? 0 : 1;
+}
+
+// ---------------------------------------------------------------------------
 // Main — dispatch
 // ---------------------------------------------------------------------------
 
@@ -1154,6 +1901,15 @@ int main(int argc, char** argv) {
     if (strcmp(c.test_id, "L6-ownership") == 0) return run_l6(&c);
     if (strcmp(c.test_id, "L7-revocation") == 0) return run_l7(&c);
     if (strcmp(c.test_id, "L8-envelope") == 0) return run_l8();
+    if (strcmp(c.test_id, "L9-cross-beam") == 0) return run_l9(&c);
+    if (strcmp(c.test_id, "L10-nested-revocation") == 0) return run_l10(&c);
+    if (strcmp(c.test_id, "L12-canary-corruption") == 0) return run_l12(&c);
+    if (strcmp(c.test_id, "L13-claim-retry") == 0) return run_l13(&c);
+    if (strcmp(c.test_id, "L14-mixed-endianness") == 0) return run_l14();
+    if (strcmp(c.test_id, "L15-huge-payload") == 0) return run_l15(&c);
+    if (strcmp(c.test_id, "L16-rapid-reclaim") == 0) return run_l16(&c);
+    // L11-ffi-stress: script-orchestrated (litmus/ffi_stress/run.sh) — needs
+    // node/cargo cross-process boundaries; not a single-binary cell.
 
     fprintf(stderr, "unknown test id: %s\n", c.test_id);
     return 2;

@@ -1,0 +1,23 @@
+ok: FL2 closed form == brute force (all geometries, 64B/32B lines)
+ok: FL2 slot-aligned: ZERO split vector loads at every geometry
+ok: FL2 vw==line: base-aligned splits iff payload base unaligned (lucky depth M=6 mod 8)
+{"bench":"fanout-layout","kind":"split-theory","line":32,"slots":4,"payload_bytes":256,"base_aligned_split_loads":8,"base_aligned_loads":8,"slot_aligned_split_loads":0,"slot_aligned_loads":8}
+{"bench":"fanout-layout","kind":"split-theory","line":32,"slots":4,"payload_bytes":1024,"base_aligned_split_loads":32,"base_aligned_loads":32,"slot_aligned_split_loads":0,"slot_aligned_loads":32}
+{"bench":"fanout-layout","kind":"split-theory","line":32,"slots":4,"payload_bytes":4096,"base_aligned_split_loads":128,"base_aligned_loads":128,"slot_aligned_split_loads":0,"slot_aligned_loads":128}
+{"bench":"fanout-layout","kind":"split-theory","line":32,"slots":4,"payload_bytes":16384,"base_aligned_split_loads":512,"base_aligned_loads":512,"slot_aligned_split_loads":0,"slot_aligned_loads":512}
+{"bench":"fanout-layout","kind":"split-theory","line":32,"slots":4,"payload_bytes":65536,"base_aligned_split_loads":2048,"base_aligned_loads":2048,"slot_aligned_split_loads":0,"slot_aligned_loads":2048}
+ok: FL1 slot_line_align reports 32 (0 legacy, 32 default)
+ok: FL1 payload base line-aligned across sweep (line=32)
+ok: FL1 wire-relative offsets unchanged (ctrl@0, payload@16+8M)
+{"bench":"fanout-layout","kind":"latency-ab","line":32,"slots":4,"payload_bytes":1024,"impl":"avx512","base_aligned_p50_ns":45.0,"slot_aligned_p50_ns":45.0,"delta_pct":0.00}
+{"bench":"fanout-layout","kind":"latency-ab","line":32,"slots":4,"payload_bytes":4096,"impl":"avx512","base_aligned_p50_ns":72.0,"slot_aligned_p50_ns":66.0,"delta_pct":-8.33}
+{"bench":"fanout-layout","kind":"latency-ab","line":32,"slots":4,"payload_bytes":16384,"impl":"avx512","base_aligned_p50_ns":152.0,"slot_aligned_p50_ns":149.0,"delta_pct":-1.97}
+{"bench":"fanout-layout","kind":"latency-ab","line":32,"slots":4,"payload_bytes":65536,"impl":"avx512","base_aligned_p50_ns":1520.0,"slot_aligned_p50_ns":1521.0,"delta_pct":0.07}
+ok: FL3 slot-aligned <= base-aligned (within 5%) at every size
+ok: FL4 whole-ring bytes IDENTICAL across layouts (interop/fixtures unbroken)
+ok: FL4 readers across layouts agree (seq + payload bytes)
+ok: FL5 attach on foreign base-aligned ring
+ok: FL5 reader on foreign ring
+ok: FL5 foreign-ring claims stay correct under any producer alignment
+line=32 impl=avx512
+FL-SERIES PASS

@@ -1,0 +1,4 @@
+L1 hold=5ms claims=492 torn=0 drain_ok=1 claims_per_s=196.6
+L1 hold=10ms claims=250 torn=0 drain_ok=1 claims_per_s=99.5
+L1 hold=50ms claims=52 torn=0 drain_ok=1 claims_per_s=20.3
+{"test":"L1-tear","lang":"c","pass":true,"metrics":{"holds_ms":[5,10,50],"claims":794,"claims_per_s":105.5,"torn":0,"drain_ok":true}}

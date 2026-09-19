@@ -1,0 +1,56 @@
+=== weft_hw evidence (Issue #15: thin hardware-adaptive abstraction layer) ===
+env: x86_64, gcc 14, 2 vCPU, 2026-09-18T16:14:06Z
+HW-1 caps coherence
+  weft_hw: sse42=1 avx2=1 avx512f=1 avx512vl=1 fma=1 neon=0 cache_line=64 cores=2 numa_nodes=1 big_little=0 gpu=loader
+  HW 1.probed: ok
+  HW 1.cache_line-sane: ok
+  HW 1.core_count: ok
+  HW 1.numa_nodes: ok
+  HW 1.gpu-state: ok
+HW-2 dispatch selection
+  HW 2.transform-ladder: ok
+  HW 2.checksum-ladder: ok
+HW-3 dispatch stability
+  HW 3.backend-stable: ok
+  HW 3.deterministic: ok
+HW-4 cross-variant bit-identity
+  variants compared: 4 (all)
+  HW 4.at-least-scalar: ok
+  HW 4.transform-bit-identity: ok
+  HW 4.checksum-bit-identity: ok
+HW-5 determinism + non-degeneracy
+  HW 5.deterministic: ok
+  HW 5.actually-scrambles: ok
+  HW 5.checksum-spreads: ok
+HW-6 allocator
+  HW 6.allocates: ok
+  HW 6.cache-line-aligned: ok
+  HW 6.writable: ok
+  HW 6.zero-align-clamps: ok
+  HW 6.zero-size-defined: ok
+HW-7 scheduler
+  HW 7.spawn-default: ok
+  HW 7.spawned-ran: ok
+  HW 7.spawn-pinned-core0: ok
+  HW 7.pinned-ran: ok
+  HW 7.pinned-exited: ok
+  HW 7.refuses-negative-core: ok
+  HW 7.refuses-huge-core: ok
+HW-8 dispatch overhead (measurement, not a gate)
+  dispatched: 613.9 ns/call  direct: 611.7 ns/call  delta: +2.2 ns/call
+weft-hw: PASS
+{"metric":"hw8-dispatch-overhead","dispatched_ns_per_call":613.92,"direct_ns_per_call":611.73,"delta_ns_per_call":2.18}
+{"test":"weft-hw","lang":"c","pass":true}
+
+--- ASAN leg (memory-safety oracle; its deltas are instrumentation, not dispatch cost) ---
+{"metric":"hw8-dispatch-overhead","dispatched_ns_per_call":1846.57,"direct_ns_per_call":1844.35,"delta_ns_per_call":2.22}
+{"test":"weft-hw","lang":"c","pass":true}
+
+--- kernel freeze (weft.{h,c} vs origin/main) ---
+diff lines: 0 (0 = frozen)
+
+--- line counts (the issue estimated ~170 for its 3 proposed files; repo layout maps them to this pair) ---
+  168 core/c/weft_hw.h
+  439 core/c/weft_hw.c
+  326 core/c/weft_hw_test.c
+  933 total

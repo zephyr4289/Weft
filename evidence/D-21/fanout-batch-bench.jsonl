@@ -1,0 +1,3 @@
+{"bench":"fanout-batch","lang":"c","leg":"idle","batch_n":100,"payload_bytes":1024,"slots":8,"single_frames_per_s":3555086,"batch_frames_per_s":3519027,"speedup":0.990,"copy_impl":"avx512","polls":0}
+{"bench":"fanout-batch","lang":"c","leg":"reader-polling","batch_n":100,"payload_bytes":1024,"slots":8,"single_frames_per_s":1272518,"batch_frames_per_s":1521483,"speedup":1.196,"copy_impl":"avx512","polls":1734927550}
+{"bench":"fanout-batch","lang":"c","leg":"reader-claiming","batch_n":100,"payload_bytes":1024,"slots":8,"single_frames_per_s":1253596,"batch_frames_per_s":2066909,"speedup":1.649,"copy_impl":"avx512","polls":1216561}

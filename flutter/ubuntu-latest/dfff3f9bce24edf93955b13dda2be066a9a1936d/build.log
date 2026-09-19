@@ -1,0 +1,221 @@
+=== Starting Flutter CI (ubuntu-latest) ===
+[PASS] core/kotlin/FrameCursor.kt  <->  android/weft-core/src/main/kotlin/dev/weft/FrameCursor.kt
+[PASS] core/kotlin/Fanout.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Fanout.kt
+[PASS] core/kotlin/FanoutCompat.kt  <->  android/weft-core/src/main/kotlin/dev/weft/FanoutCompat.kt
+[PASS] core/kotlin/Steward.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Steward.kt
+[PASS] core/kotlin/TriadNative.kt  <->  android/weft-core/src/main/kotlin/dev/weft/TriadNative.kt
+[PASS] core/kotlin/Weft.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Weft.kt
+[PASS] core/kotlin/Governor.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Governor.kt
+[PASS] core/kotlin/Recycler.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Recycler.kt
+[PASS] core/kotlin/GovernedFanoutConsumer.kt  <->  android/weft-core/src/main/kotlin/dev/weft/GovernedFanoutConsumer.kt
+[PASS] core/kotlin/FanoutVhBridge.java  <->  android/weft-core/src/main/java/dev/weft/FanoutVhBridge.java
+[PASS] core/dart/frame_cursor.dart  <->  packages/flutter_weft/lib/src/reference/frame_cursor.dart
+[PASS] core/dart/fanout.dart  <->  packages/flutter_weft/lib/src/reference/fanout.dart
+[PASS] core/dart/heddle.dart  <->  packages/flutter_weft/lib/src/reference/heddle.dart
+[PASS] core/dart/steward.dart  <->  packages/flutter_weft/lib/src/reference/steward.dart
+[PASS] core/dart/weft.dart  <->  packages/flutter_weft/lib/src/reference/weft.dart
+[PASS] core/ts/weft.ts  <->  packages/core/src/weft.ts
+[PASS] core/ts/fanout.ts  <->  packages/core/src/fanout.ts
+[PASS] core/ts/verified.ts  <->  packages/core/src/verified.ts
+[PASS] core/kotlin/Verified.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Verified.kt
+[PASS] core/dart/verified.dart  <->  packages/flutter_weft/lib/src/reference/verified.dart
+[PASS] core/dart/governor.dart  <->  packages/flutter_weft/lib/src/reference/governor.dart
+[PASS] core/dart/recycler.dart  <->  packages/flutter_weft/lib/src/reference/recycler.dart
+[PASS] core/dart/governed_consumer.dart  <->  packages/flutter_weft/lib/src/reference/governed_consumer.dart
+[PASS] core/kotlin/BlendQ12.kt  <->  android/weft-core/src/main/kotlin/dev/weft/BlendQ12.kt
+[PASS] core/kotlin/RenderQos.kt  <->  android/weft-core/src/main/kotlin/dev/weft/RenderQos.kt
+[PASS] core/dart/blend_q12.dart  <->  packages/flutter_weft/lib/src/reference/blend_q12.dart
+[PASS] core/dart/render_qos.dart  <->  packages/flutter_weft/lib/src/reference/render_qos.dart
+{"shard":"binding-parity","passed":27,"failed":0,"total":27,"cells":{"core/kotlin/FrameCursor.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Fanout.kt":{"status":"PASS","detail":"identical"},"core/kotlin/FanoutCompat.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Steward.kt":{"status":"PASS","detail":"identical"},"core/kotlin/TriadNative.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Weft.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Governor.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Recycler.kt":{"status":"PASS","detail":"identical"},"core/kotlin/GovernedFanoutConsumer.kt":{"status":"PASS","detail":"identical"},"core/kotlin/FanoutVhBridge.java":{"status":"PASS","detail":"identical"},"core/dart/frame_cursor.dart":{"status":"PASS","detail":"identical"},"core/dart/fanout.dart":{"status":"PASS","detail":"identical"},"core/dart/heddle.dart":{"status":"PASS","detail":"identical"},"core/dart/steward.dart":{"status":"PASS","detail":"identical"},"core/dart/weft.dart":{"status":"PASS","detail":"identical"},"core/ts/weft.ts":{"status":"PASS","detail":"identical"},"core/ts/fanout.ts":{"status":"PASS","detail":"identical"},"core/ts/verified.ts":{"status":"PASS","detail":"identical"},"core/kotlin/Verified.kt":{"status":"PASS","detail":"identical"},"core/dart/verified.dart":{"status":"PASS","detail":"identical"},"core/dart/governor.dart":{"status":"PASS","detail":"identical"},"core/dart/recycler.dart":{"status":"PASS","detail":"identical"},"core/dart/governed_consumer.dart":{"status":"PASS","detail":"identical"},"core/kotlin/BlendQ12.kt":{"status":"PASS","detail":"identical"},"core/kotlin/RenderQos.kt":{"status":"PASS","detail":"identical"},"core/dart/blend_q12.dart":{"status":"PASS","detail":"identical"},"core/dart/render_qos.dart":{"status":"PASS","detail":"identical"}}}
+✅ Binding parity: 27/27 pairs byte-identical
+
+=== heddles <-> packages surface parity (shim re-exports) ===
+[PASS] heddles/react/WeftCanvas.tsx  ->  packages/react/src/index.ts
+[PASS] heddles/vue/useWeft.ts  ->  packages/vue/src/index.ts
+[PASS] heddles/svelte/weft-action.ts  ->  packages/svelte/src/index.ts
+[PASS] heddles/react-native/weft-rn.ts  ->  packages/react-native/src/index.ts
+✅ Heddles surface parity: 4/4 shims aligned
+{"shard":"binding-parity","byte_pairs":{"passed":27,"failed":0,"total":27},"shim_pairs":{"passed":4,"failed":0,"total":4,"cells":{"heddles/react/WeftCanvas.tsx":{"status":"PASS","detail":"surface parity"},"heddles/vue/useWeft.ts":{"status":"PASS","detail":"surface parity"},"heddles/svelte/weft-action.ts":{"status":"PASS","detail":"surface parity"},"heddles/react-native/weft-rn.ts":{"status":"PASS","detail":"surface parity"}}}}
+Resolving dependencies...
+Downloading packages...
++ async 2.13.1
++ boolean_selector 2.1.2
++ characters 1.4.1
++ clock 1.1.3
++ collection 1.19.1
++ fake_async 1.3.3
++ ffi 2.2.0
++ flutter 0.0.0 from sdk flutter
++ flutter_test 0.0.0 from sdk flutter
++ leak_tracker 11.0.2
++ leak_tracker_flutter_testing 3.0.10
++ leak_tracker_testing 3.0.2
++ lints 3.0.0 (6.1.0 available)
++ matcher 0.12.20
++ material_color_utilities 0.13.0 (0.13.1 available)
++ meta 1.19.0
++ path 1.9.1
++ sky_engine 0.0.0 from sdk flutter
++ source_span 1.10.2
++ stack_trace 1.12.2
++ stream_channel 2.1.4
++ string_scanner 1.4.1
++ term_glyph 1.2.2
++ test_api 0.7.12 (0.7.14 available)
++ vector_math 2.4.3
++ vm_service 15.3.0
+Changed 26 dependencies!
+3 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Resolving dependencies in `./example`...
+Downloading packages...
+Got dependencies in `./example`.
+Analyzing flutter_weft...
+No issues found!
+
+::group::✅ Passing tests
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout construction and geometry rejects bad geometry; ring_bytes formula has TS/C parity
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R1 pool reuse identity + counters
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R2 maxFreeSlots bounds steady state
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout construction and geometry initial state: no frame, nothing resident, zero telemetry
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R3 trim drops only free slots; live survives; next acquire reallocates
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout construction and geometry publish() before any begin() is a detectable no-op
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R4 realloc accounting (first fill != realloc; keep-all trims inert)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout writer + reader protocol one publish -> fresh claim, seq 1, dropped 0, payload intact
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R5 level mapping
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout writer + reader protocol dropped counts frames completed without this reader seeing them
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R6 center fan-out + unregister
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout writer + reader protocol ring overwrite: after M+3 publishes the claim yields the LATEST
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout writer + reader protocol telescoping identity holds exactly across an interleaved run
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout tear discipline (graceful skip) a reader skips the tick when its target slot is mid-overwrite
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout tear discipline (graceful skip) abandoned begins are skip-observable, not silent
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/recycler_test.dart: R7 drawing-loop churn: pool stable, counters exact, no reallocs
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout canonical four-consumer scenario exact per-reader accounting over 10,000 frames at 120/60/30/15 Hz
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout zero-allocation contract (Law 2) claim() mutates one record; view() is one buffer — identity-stable
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout layout parity (the cross-port wire contract) raw ctrl bytes match the shared layout; foreign bytes attach
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: fanout layout parity (the cross-port wire contract) wordToFloat round-trips a Float32 bit pattern
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_test.dart: F10: 100k-frame torture (cross-port parity gates) 100k frames, 3 cadence readers, mid-overwrite windows, zero torn
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DF1 geometry validation refuses bad pairs
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DF2 ring_bytes is the byte-layout interop contract
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DF3 roundtrip via the zero-copy begin cursor
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DF4 telescoping identity is exact
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DF5 graceful skip: mid-overwrite of the LATEST slot, counted
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DF6 publish without begin is a detectable no-op
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DF7 N readers on one ring are fully independent
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DF8 fill path delivers intact bytes and rejects bad lengths
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DF9 stats snapshot matches the protocol accounting
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DFT cross-isolate torture: 1 writer, 2 reader isolates, pat validation
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DC1 session lifecycle: spawn -> ready -> drive -> stopAll -> stats
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/fanout_ffi_test.dart: DC2 paced reader: paceMs parks (Law 1) and accounting stays exact
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: G1 ladder: every behind 0..64 maps to the documented action
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: G2 monotone: larger behind never yields a fresher-class action
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: G3 reseed flap: 10k spike trace, bound + spacing
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: G3b suppressed Reseed degrades to Snapshot
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: G4 identity-stable record + counters (no per-step allocation)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: Law 4: decidedDrops distinct from ring counters
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: custom ladder + reset
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: G5 local ladder trace hash pin (TS reference)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC1 LATEST_WINS presents iff seq advanced; jumps coalesced
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC5 PACED 30-on-120 presents every tick after warmup (398/400)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC5 PACED 240-on-120 presents every tick, one period behind
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC5 PACED stall saturates and elides, never extrapolates
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC6 PACED alpha ladder is the period ladder
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC5 BURST 30-on-120 locks K on the content beat (K=4)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC5 BURST 240-on-120 degrades to newest-wins (K=1)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC5 BURST feed paces one present per burst
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC5 BURST stall freezes cadence; recovery immediate
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC2 telescoping identities over volatile traces
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC4 cadence identity-stable record
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC6 policy switch mid-trace: monotone presentSeq
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC3 v2 local cadence trace hash pin (TS reference)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governor_test.dart: PC7 predictive: drift-freedom on the 12/5 beat + reactive gate clears
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C1 PACED 30-on-120 presents 398/400 end to end
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C2 telescoping holds through the ring (LATEST_WINS + BURST)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C3 ladder classes from real drop accounting
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/governed_consumer_test.dart: C4 dispose returns the raster slot to the pool
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/ffi_test.dart: Weft FFI & Invariant Tests 10^6 Exchanges and Invariants Verification
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/ffi_test.dart: Weft FFI & Invariant Tests Revocation and Reclaim Invariants (I6)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V1: HMAC fixture vectors (shared ground truth)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V2: domain-separated derivation
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V3: record roundtrip (zero-copy views)
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V4: exhaustive byte-flip tamper rejection
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V5: wrong key / short / bad magic / hostile geometry
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V8: pre-keyed verifier == one-shot across a stream
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V9: batch decode-verify all OK, views, exact bytesConsumed
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V9: batch decode-verify tamper stop + resync offset
+✅ /home/runner/work/Weft/Weft/packages/flutter_weft/test/verified_test.dart: V9: batch decode-verify truncation policy + capped views
+::endgroup::
+
+🎉 70 tests passed.
+Resolving dependencies...
+Downloading packages...
+  lints 3.0.0 (6.1.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  test_api 0.7.12 (0.7.14 available)
+Got dependencies!
+3 packages have newer versions incompatible with dependency constraints.
+Try `dart pub outdated` for more information.
+Publishing weft_flutter 0.1.0 to https://pub.dev:
+├── CHANGELOG.md (<1 KB)
+├── LICENSE (1 KB)
+├── README.md (1 KB)
+├── build
+│   ├── native_assets
+│   │   └── linux
+│   │       └── native_assets.json (<1 KB)
+│   ├── test_cache
+│   │   └── build
+│   │       └── c89442bec8682bc50b5d32f531ab8a9b.cache.dill.track.dill (46 MB)
+│   └── unit_test_assets
+│       ├── AssetManifest.bin (<1 KB)
+│       ├── FontManifest.json (<1 KB)
+│       ├── NOTICES.Z (95 KB)
+│       ├── NativeAssetsManifest.json (<1 KB)
+│       └── shaders
+│           ├── ink_sparkle.frag (13 KB)
+│           └── stretch_effect.frag (9 KB)
+├── example
+│   ├── README.md (<1 KB)
+│   ├── lib
+│   │   └── main.dart (2 KB)
+│   └── pubspec.yaml (<1 KB)
+├── lib
+│   ├── src
+│   │   ├── bindings.dart (10 KB)
+│   │   ├── fanout_cross_isolate.dart (16 KB)
+│   │   ├── fanout_ffi.dart (10 KB)
+│   │   ├── fanout_painter.dart (2 KB)
+│   │   ├── governed_painter.dart (2 KB)
+│   │   ├── memory_backstop.dart (2 KB)
+│   │   ├── reference
+│   │   │   ├── blend_q12.dart (4 KB)
+│   │   │   ├── fanout.dart (15 KB)
+│   │   │   ├── frame_cursor.dart (2 KB)
+│   │   │   ├── governed_consumer.dart (7 KB)
+│   │   │   ├── governor.dart (24 KB)
+│   │   │   ├── heddle.dart (1 KB)
+│   │   │   ├── recycler.dart (7 KB)
+│   │   │   ├── render_qos.dart (3 KB)
+│   │   │   ├── steward.dart (1 KB)
+│   │   │   ├── verified.dart (16 KB)
+│   │   │   └── weft.dart (8 KB)
+│   │   ├── weft_ffi.dart (4 KB)
+│   │   ├── weft_painter.dart (1 KB)
+│   │   └── weft_reference.dart (1 KB)
+│   └── weft_flutter.dart (<1 KB)
+├── pubspec.yaml (<1 KB)
+├── test
+│   ├── fanout_ffi_test.dart (17 KB)
+│   ├── fanout_test.dart (15 KB)
+│   ├── ffi_test.dart (2 KB)
+│   ├── governed_consumer_test.dart (5 KB)
+│   ├── governor_test.dart (16 KB)
+│   ├── recycler_test.dart (9 KB)
+│   └── verified_test.dart (10 KB)
+└── win_compat.h (<1 KB)
+
+Total compressed archive size: 14 MB.
+Validating package...
+The server may enforce additional checks.
+
+Package has 0 warnings.

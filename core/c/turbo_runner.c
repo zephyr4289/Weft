@@ -334,12 +334,13 @@ static void run_tl_reader(size_t payload_bytes, unsigned m,
     const double seconds = (double)(t_end - t_start) / 1e9;
     const dist_t d = dist_from_samples(samples, ns, seconds);
     printf("{\"bench\":\"TL-reader\",\"lang\":\"c\",\"variant\":\"%s\","
-           "\"copy_impl\":\"%s\","
+           "\"copy_impl\":\"%s\",\"pf_bytes\":%d,"
            "\"payload_max\":%zu,\"slots\":%u,\"cadence_us\":%.0f,"
            "\"thrash_kib\":%zu,\"writer_hz\":%.0f,\"samples\":%lu,"
            "\"p50\":%lu,\"p90\":%lu,\"p99\":%lu,\"p999\":%lu,\"max\":%lu,"
            "\"clock_overhead_ns\":%lu}\n",
            rv_name(variant), weft_fanout_copy_active_impl(),
+           weft_turbo_prefetch_get_distance(),
            payload_bytes, m, cadence_us,
            thrash_words * 4 / 1024, (double)wa.published / seconds,
            (unsigned long)d.n, d.p50, d.p90, d.p99, d.p999, d.pmax,
@@ -513,7 +514,8 @@ static void usage(const char* argv0) {
     fprintf(stderr, "usage: %s <caps|TL-writer|TL-reader|TL-ring|ING-uring> [key=value ...]\n"
             "  keys: payload= slots= measure_s= cadence_us= thrash_kib= frames= variant=\n"
             "  TL-reader only: copy=<scalar|sse2|avx2|avx512|neon> (pin the claim copy;\n"
-            "                  issue #17-1 A/B — auto = widest silicon path)\n", argv0);
+            "                  issue #17-1 A/B — auto = widest silicon path)\n"
+            "  TL-reader only: pf=<bytes|0|auto> (prefetch distance; issue #17-4 sweep)\n", argv0);
     exit(2);
 }
 
@@ -528,6 +530,7 @@ int main(int argc, char** argv) {
     uint64_t frames = 200000;
     int variant = -1;  // -1 = all (diagnostic); evidence runs set variant=
     const char* copy_impl = NULL;  // TL-reader only: pin the claim-copy impl
+    const char* pf_bytes = NULL;   // TL-reader only: prefetch distance ("auto" tunes)
 
     for (int i = 2; i < argc; i++) {
         char* eq = strchr(argv[i], '=');
@@ -558,6 +561,7 @@ int main(int argc, char** argv) {
             else usage(argv[0]);
         }
         else if (strcmp(k, "copy") == 0) copy_impl = v;
+        else if (strcmp(k, "pf") == 0) pf_bytes = v;  // TL-reader only
         else usage(argv[0]);
     }
 
@@ -594,6 +598,21 @@ int main(int argc, char** argv) {
             fprintf(stderr, "copy=%s refused (not compiled in or silicon lacks it)\n",
                     copy_impl);
             return 2;
+        }
+        // Issue #17-4 A/B: pin the runtime prefetch distance (integer bytes,
+        // 0 = off, or "auto" for the vendor tune). Refused values abort —
+        // a typo'd distance must never silently bench the wrong hint batch.
+        if (pf_bytes) {
+            if (strcmp(pf_bytes, "auto") == 0) {
+                weft_turbo_prefetch_tune();
+            } else {
+                const int d = atoi(pf_bytes);
+                if (d < 0 || weft_turbo_prefetch_set_distance(d) != d) {
+                    fprintf(stderr, "pf=%s refused (negative or over hard max)\n",
+                            pf_bytes);
+                    return 2;
+                }
+            }
         }
         if (variant >= 0 && variant <= 3) {
             run_tl_reader(payload, slots, measure_s, cadence_us,

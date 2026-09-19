@@ -6,8 +6,9 @@ import { createModeRunner, ModeType, ModeRunner } from './modes/runner';
 import { Inspector } from './components/Inspector';
 import { Playback } from './components/Playback';
 import { FeedFanoutViews } from './components/FeedFanoutViews';
+import { TraceTimeline } from './components/TraceTimeline';
 
-type TabType = 'showcase' | 'inspector' | 'playback';
+type TabType = 'showcase' | 'inspector' | 'playback' | 'trace';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('showcase');
@@ -168,11 +169,26 @@ export const App: React.FC = () => {
           >
             .weftrec Playback
           </button>
+          <button
+            onClick={() => setActiveTab('trace')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: 'none',
+              background: activeTab === 'trace' ? '#0284c7' : '#1e293b',
+              color: '#fff',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'trace' ? 'bold' : 'normal',
+            }}
+          >
+            Trace Timeline (v4)
+          </button>
         </div>
       </header>
 
       {activeTab === 'inspector' && inspectorWeft && <Inspector weft={inspectorWeft} />}
       {activeTab === 'playback' && inspectorWeft && <Playback weft={inspectorWeft} />}
+      {activeTab === 'trace' && <TraceTimeline />}
 
       {activeTab === 'showcase' && (
         <>

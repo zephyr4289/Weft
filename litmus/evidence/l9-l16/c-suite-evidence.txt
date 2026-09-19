@@ -1,0 +1,43 @@
+=== L9-L16 C suite evidence (Issue #16 Tier 1, catalog v3) ===
+env: x86_64/Linux, gcc 14, 2 vCPU
+date: 2026-09-18T14:43:59Z
+
+--- L9-cross-beam frames=600 ---
+L9 beams=2 frames=600 torn=0 drained=2/2 claims=540 pass=1
+{"test":"L9-cross-beam","lang":"c","pass":true,"metrics":{"beams":2,"frames":600,"torn":0,"beams_drained":2,"claims":540,"writer_hz":240}}
+
+--- L10-nested-revocation ---
+L10 nested_rc=0 concurrent_rc=0 epoch_after=8 epoch_final=8 writer_acks=8 pass=1
+{"test":"L10-nested-revocation","lang":"c","pass":true,"metrics":{"nested_reclaim_ok":true,"concurrent_reclaim_ok":true,"epoch_monotone":true,"poison_intact":true,"epoch_after_nested":8,"epoch_final":8}}
+
+--- L12-canary-corruption ---
+L12 env_flip=1 canary_flip=1 magic=1 payload_undetected=1 reverted_clean=1 pass=1
+{"test":"L12-canary-corruption","lang":"c","pass":true,"metrics":{"env_flip_detected":true,"canary_flip_detected":true,"magic_flip_detected":true,"payload_flip_undetected_boundary":true,"reverted_clean":true}}
+
+--- L13-claim-retry claims=10000 ---
+L13 claims=10000 fresh=9686 not_fresh=314 torn=0 future=0 skip=0 exhausted=2 pass=1
+{"test":"L13-claim-retry","lang":"c","pass":true,"metrics":{"claims":10000,"fresh":9686,"not_fresh":314,"torn_accepted":0,"future":0,"skips":0,"exhausted":2}}
+
+--- L14-mixed-endianness ---
+L14 le_wire_pinned=1 be_roundtrip=1 canary_le=1 pass=1
+{"test":"L14-mixed-endianness","lang":"c","pass":true,"metrics":{"le_wire_pinned":true,"be_view_roundtrip":true,"canary_le_pinned":true}}
+
+--- L15-huge-payload ---
+L15 payload_max=1048576 buf_size=1048640 frames=200 torn=0 drain=1 align=1 rss_delta=132kB pass=1
+{"test":"L15-huge-payload","lang":"c","pass":true,"metrics":{"payload_max":1048576,"buf_size":1048640,"frames":200,"torn":0,"drain_ok":true,"alignment_ok":true,"rss_delta_kb":132,"claims":73}}
+
+--- L16-rapid-reclaim cycles=2000 ---
+L16 cycles=2000 completed=2000 timeouts=0 poison_fail=0 ack_fail=0 pass=1
+{"test":"L16-rapid-reclaim","lang":"c","pass":true,"metrics":{"cycles":2000,"completed":2000,"timeouts":0,"poison_failures":0,"ack_failures":0}}
+
+--- L11-ffi-stress (script leg, 25 iterations) ---
+L11: JVM/Dart/Swift boundary legs are CI-gated (toolchains absent here — declared, not silent)
+L11 iterations=25 dir1_ok=25 dir1_fail=0 dir2_ok=25 dir2_fail=0 total_frames=592509 rust_leg=skipped-declared pass=1
+{"test":"L11-ffi-stress","lang":"c","pass":true,"metrics":{"iterations":25,"dir1_ok":25,"dir1_fail":0,"dir2_ok":25,"dir2_fail":0,"total_frames":592509,"rust_leg":"skipped-declared"}}
+
+--- TSAN legs (concurrent tests) ---
+{"test":"L9-cross-beam","lang":"c","pass":true,"metrics":{"beams":2,"frames":600,"torn":0,"beams_drained":2,"claims":538,"writer_hz":240}}
+{"test":"L10-nested-revocation","lang":"c","pass":true,"metrics":{"nested_reclaim_ok":true,"concurrent_reclaim_ok":true,"epoch_monotone":true,"poison_intact":true,"epoch_after_nested":8,"epoch_final":8}}
+{"test":"L13-claim-retry","lang":"c","pass":true,"metrics":{"claims":3000,"fresh":2890,"not_fresh":110,"torn_accepted":0,"future":0,"skips":0,"exhausted":0}}
+{"test":"L16-rapid-reclaim","lang":"c","pass":true,"metrics":{"cycles":300,"completed":300,"timeouts":0,"poison_failures":0,"ack_failures":0}}
+TSAN: no reports above = clean

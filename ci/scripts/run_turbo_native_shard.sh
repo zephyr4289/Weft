@@ -77,6 +77,15 @@ step "zero-regression: F-series (both regimes)"
 ./core/c/fanout-test 2>&1 | tail -1 | tee -a "$LOG" || fail=1
 ./core/c/fanout-test-seq 2>&1 | tail -1 | tee -a "$LOG" || fail=1
 
+# --- 6: Issue #15 hardware-adaptive layer (weft_hw) ---
+step "build weft-hw targets"
+make -C core/c weft-hw-test weft-hw-test-asan 2>&1 | tee -a "$LOG"
+
+step "weft-hw conformance (plain)"
+./core/c/weft-hw-test 2>&1 | tee -a "$LOG" || fail=1
+step "weft-hw conformance (ASAN)"
+./core/c/weft-hw-test-asan 2>&1 | tee -a "$LOG" || fail=1
+
 echo "" | tee -a "$LOG"
 if [ "$fail" -ne 0 ]; then
   echo "TURBO-NATIVE SHARD: FAIL" | tee -a "$LOG"

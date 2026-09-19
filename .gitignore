@@ -49,6 +49,13 @@ core/c/blend-test-asan
 core/c/blend-runner
 core/c/worklet-test
 core/c/qos-test
+core/c/weft-hw-test
+core/c/weft-hw-test-asan
+core/c/revoke-stress
+core/c/revoke-stress-asan
+core/c/revoke-stress-tsan
+core/c/ffi-fuzz
+core/c/ffi-fuzz-asan
 tools/weft-probe/weft_probe
 tools/weft-record/weft_record
 tools/weft-fanout-rec/weft-fanout-rec
@@ -104,3 +111,4 @@ tools/stranger-repro/build/
 tools/stranger-repro/STRANGER-REPRO-REPORT.*
 .tlc-cache/
 formal/*/states/
+nano/

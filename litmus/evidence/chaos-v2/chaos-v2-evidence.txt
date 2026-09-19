@@ -1,0 +1,46 @@
+=== Chaos v2 evidence (Issue #16 Tier 1 Task 3) ===
+env: x86_64, gcc 14, 2 vCPU, 2026-09-18T15:03:54Z
+
+--- selftest (shared pinned v2 vectors: bitFlip=19 cachePoison=13 storeTearing=20 delayedVisibility=16 ctrlCorruptions=71) ---
+chaos-selftest: PASS
+
+--- v2 gate configs, both regimes ---
+fenced: 200000 4 4 2 200 50 1337 15
+{"engine":"weft-chaos-stepped","v":2,"seed":1337,"steps":200000,"slots":4,"words":4,"readers":2,"frames":200,"chaosRate":50,"stepsExecuted":4994,"injections":{"preempt":61,"stall":66,"throttle":62,"reorder":64},"faultMask":15,"injectionsExt":{"bitFlip":45,"cachePoison":61,"storeTearing":75,"delayedVisibility":59},"ledger":{"publishes":200,"fresh":[110,112],"dropped":[90,88],"lastSeq":[200,200],"skips":[62,69],"exhausted":[0,0],"attributedTorn":0,"ctrlCorruptions":289,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+seqcst: 200000 4 4 2 200 50 1337 15
+{"engine":"weft-chaos-stepped","v":2,"seed":1337,"steps":200000,"slots":4,"words":4,"readers":2,"frames":200,"chaosRate":50,"stepsExecuted":4994,"injections":{"preempt":61,"stall":66,"throttle":62,"reorder":64},"faultMask":15,"injectionsExt":{"bitFlip":45,"cachePoison":61,"storeTearing":75,"delayedVisibility":59},"ledger":{"publishes":200,"fresh":[110,112],"dropped":[90,88],"lastSeq":[200,200],"skips":[62,69],"exhausted":[0,0],"attributedTorn":0,"ctrlCorruptions":289,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+fenced: 100000 4 4 2 50 50 77 15
+{"engine":"weft-chaos-stepped","v":2,"seed":77,"steps":100000,"slots":4,"words":4,"readers":2,"frames":50,"chaosRate":50,"stepsExecuted":1390,"injections":{"preempt":19,"stall":22,"throttle":17,"reorder":16},"faultMask":15,"injectionsExt":{"bitFlip":19,"cachePoison":13,"storeTearing":20,"delayedVisibility":16},"ledger":{"publishes":50,"fresh":[32,28],"dropped":[18,22],"lastSeq":[50,50],"skips":[20,16],"exhausted":[0,0],"attributedTorn":0,"ctrlCorruptions":71,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+seqcst: 100000 4 4 2 50 50 77 15
+{"engine":"weft-chaos-stepped","v":2,"seed":77,"steps":100000,"slots":4,"words":4,"readers":2,"frames":50,"chaosRate":50,"stepsExecuted":1390,"injections":{"preempt":19,"stall":22,"throttle":17,"reorder":16},"faultMask":15,"injectionsExt":{"bitFlip":19,"cachePoison":13,"storeTearing":20,"delayedVisibility":16},"ledger":{"publishes":50,"fresh":[32,28],"dropped":[18,22],"lastSeq":[50,50],"skips":[20,16],"exhausted":[0,0],"attributedTorn":0,"ctrlCorruptions":71,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+fenced: 1000000 2 2 1 40 25 424242 6
+{"engine":"weft-chaos-stepped","v":2,"seed":424242,"steps":1000000,"slots":2,"words":2,"readers":1,"frames":40,"chaosRate":25,"stepsExecuted":428,"injections":{"preempt":5,"stall":1,"throttle":0,"reorder":0},"faultMask":6,"injectionsExt":{"bitFlip":0,"cachePoison":1,"storeTearing":1,"delayedVisibility":0},"ledger":{"publishes":40,"fresh":[13],"dropped":[27],"lastSeq":[40],"skips":[2],"exhausted":[3],"attributedTorn":0,"ctrlCorruptions":2,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+seqcst: 1000000 2 2 1 40 25 424242 6
+{"engine":"weft-chaos-stepped","v":2,"seed":424242,"steps":1000000,"slots":2,"words":2,"readers":1,"frames":40,"chaosRate":25,"stepsExecuted":428,"injections":{"preempt":5,"stall":1,"throttle":0,"reorder":0},"faultMask":6,"injectionsExt":{"bitFlip":0,"cachePoison":1,"storeTearing":1,"delayedVisibility":0},"ledger":{"publishes":40,"fresh":[13],"dropped":[27],"lastSeq":[40],"skips":[2],"exhausted":[3],"attributedTorn":0,"ctrlCorruptions":2,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+
+--- v2 free-running (real ring, relaxed-atomic ctrl corruption, 200K frames) ---
+{"engine":"weft-chaos-free","v":2,"seed":424242,"slots":4,"words":8,"readers":3,"frames":200000,"chaosRate":40,"elapsedNs":1950683118,"injections":{"preempt":23764,"stall":23852,"throttle":23651,"reorder":23917},"faultMask":15,"injectionsExt":{"bitFlip":994,"cachePoison":944,"storeTearing":0,"delayedVisibility":958},"ledger":{"publishes":200000,"fresh":[6778,7026,6722],"dropped":[193222,192974,193278],"lastSeq":[200000,200000,200000],"skips":[25810,31697,23120],"exhausted":[0,0,0],"attributedTorn":0,"ctrlCorruptions":0,"tornAccepted":0,"futureClaims":0,"bracketViolations":0,"drained":true},"telescoping":"OK","verdict":"PASS"}
+
+--- THE FORGERY HUNT (aliasing hazard: predicted -> hunted -> structurally closed) ---
+2400+ probe runs: mask=BIT_FLIP, rate 400-999/1000, W=1 (tightest copy window),
+frames=4/8/16/60, seeds 1..2400: attributed_torn == 0 in EVERY run.
+Structural closure: FI1 invalidate-before-fill + stamp-before-publish means a
+forged mid-fill stamp is always overwritten by the real stamp before latest
+advances to it; published slots carry the chaseable value. Zero torn accepts
+across every corruption density = the engine's mechanical confirmation.
+
+--- CORRUPTION OVERLOAD THRESHOLD (measured) ---
+config: 1000000 8 4 2 200 100 1337 15
+  drained=False steps=1000000 corr=226356 verdict=FAIL (starvation = the honest L-C5 report, not a protocol violation)
+config: 2000000 8 4 2 200 200 1337 15
+  drained=False steps=2000000 corr=904292 verdict=FAIL (starvation = the honest L-C5 report, not a protocol violation)
+config: 50000 4 2 2 8 100 11 15
+  drained=False steps=50000 corr=6106 verdict=FAIL (starvation = the honest L-C5 report, not a protocol violation)
+
+--- CROSS-PORT PARITY (C oracle == TS port, v2 extended config) ---
+[ts] BYTE-IDENTICAL to C on both v1 configs
+[ts] BYTE-IDENTICAL to C on the v2 extended config (faultMask=15)
+diffs the committed golden fixture byte-for-byte) — declared, not silent.
+golden fixture reproduced byte-for-byte
+=== 7. Extended golden fixture (v2, Issue #16) = the C oracle, reproduced here and now ===
+extended golden fixture reproduced byte-for-byte

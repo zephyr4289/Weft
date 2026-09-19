@@ -23,7 +23,7 @@
  * yourself). The default export handles both.
  */
 
-export interface WasmExports {
+export interface WeftExports {
   /* eslint-disable @typescript-eslint/naming-convention */
   _wweft_new(payload_max: number): number;
   _wweft_free(w: number): void;
@@ -55,6 +55,8 @@ export interface WasmExports {
   HEAPU8: Uint8Array;
   HEAPU32: Uint32Array;
 }
+
+export type WasmExports = WeftExports;
 
 export interface WeftClaimResult {
   fresh: boolean;
@@ -277,9 +279,6 @@ export class WasmFanout {
 }
 
 export class WasmFanoutReader {
-  private readonly seqSlot: number;
-  private readonly droppedSlot: number;
-
   private readonly m: WeftExports;
   private readonly r: number;
   readonly payloadBytes: number;

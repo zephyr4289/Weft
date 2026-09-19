@@ -55,8 +55,8 @@ if ! command -v qemu-riscv64 >/dev/null 2>&1; then
 fi
 
 step "cross-compile spike (kernel litmus) + fanout-test (F-series) for RV64GC"
-riscv64-linux-gnu-gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE \
-  -o /tmp/spike-rv core/c/weft.c core/c/litmus_runner.c >> "$LOG" 2>&1 || fail=1
+riscv64-linux-gnu-gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -Icore/c \
+  -o /tmp/spike-rv core/c/weft.c core/c/fanout.c core/c/frame_cursor.c core/c/fanout_simd.c core/c/litmus_runner.c >> "$LOG" 2>&1 || fail=1
 riscv64-linux-gnu-gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE \
   -o /tmp/fanout-test-rv core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
   core/c/fanout_simd.c core/c/fanout_test.c >> "$LOG" 2>&1 || fail=1

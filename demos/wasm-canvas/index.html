@@ -87,7 +87,7 @@ for (const k of ["A", "B", "C"]) {
 const frame = W.frameBuffer(PAYLOAD);
 const words = new Uint32Array(frame.buffer, frame.byteOffset, PAYLOAD / 4);
 
-let seq = 0;
+let seq = 0n;
 let drawing = false, lastX = 0, lastY = 0, pending = 0;
 const strokes = [];
 
@@ -149,7 +149,8 @@ function publishTick() {
   words[0] = count;
   for (let i = 0; i < count * 4; i++) words[1 + i] = strokes[strokes.length - count*4 + i];
   const got = fan.publish(frame);
-  if (got > 0n) seq = got;
+  const s = typeof got === "bigint" ? got : BigInt(got || 0);
+  if (s > 0n) seq = s;
 }
 
 function consumeTick() {
@@ -175,17 +176,14 @@ let frameNo = 0;
 function loop() {
   publishTick();     // writer: one frame per tick (30 Hz)
   if ((frameNo & 1) === 0) consumeTick();  // consumers at ~15 Hz (independent)
-  if ((frameNo % 15) === 0) {
-    document.getElementById("seq").textContent = seq;
-    document.getElementById("fa").textContent = stats.fa;
-    document.getElementById("da").textContent = stats.da;
-    document.getElementById("fc").textContent = stats.fc;
-    document.getElementById("dc").textContent = stats.dc;
-  }
+  document.getElementById("seq").textContent = seq.toString();
+  document.getElementById("fa").textContent = stats.fa.toString();
+  document.getElementById("da").textContent = stats.da.toString();
+  document.getElementById("fc").textContent = stats.fc.toString();
+  document.getElementById("dc").textContent = stats.dc.toString();
   frameNo++;
-  requestAnimationFrame(loop);
 }
-requestAnimationFrame(loop);
+setInterval(loop, 1000 / 30);
 </script>
 </body>
 </html>

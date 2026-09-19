@@ -32,7 +32,8 @@ class Fanout {
     this.ringBytes = m._wfan_ring_bytes(payloadBytes, slotCount);
   }
   publish(payload) {   // payload: Uint8Array view inside wasm memory
-    return this.m._wfan_publish(this.f, payload.byteOffset, payload.length);
+    const s = this.m._wfan_publish(this.f, payload.byteOffset, payload.length);
+    return typeof s === "bigint" ? s : BigInt(s || 0);
   }
   reader() { return new Reader(this.m, this, this.payloadBytes); }
 }
@@ -47,8 +48,9 @@ class Reader {
   }
   claim() {
     const fresh = this.m._wfr_claim(this.r, this.seqSlot, this.dropSlot) === 1;
-    const seq = new BigUint64Array(this.m.HEAPU8.buffer, this.seqSlot, 1)[0];
-    const dropped = new BigUint64Array(this.m.HEAPU8.buffer, this.dropSlot, 1)[0];
+    const dv = new DataView(this.m.HEAPU8.buffer);
+    const seq = dv.getBigUint64(this.seqSlot, true);
+    const dropped = dv.getBigUint64(this.dropSlot, true);
     return { fresh, seq, dropped };
   }
   view() {

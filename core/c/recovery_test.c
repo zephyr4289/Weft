@@ -12,7 +12,8 @@ int main(void) {
     printf("=== Axis 3: Self-Stabilizing Ring Recovery Test ===\n");
     
     size_t ring_bytes = weft_fanout_ring_bytes(PAYLOAD_BYTES, SLOT_COUNT);
-    uint8_t* ring = (uint8_t*)aligned_alloc(64, ring_bytes);
+    size_t alloc_bytes = ((ring_bytes + 63) / 64) * 64;
+    uint8_t* ring = (uint8_t*)aligned_alloc(64, alloc_bytes);
     assert(ring != NULL);
     
     weft_fanout_t writer = {0};

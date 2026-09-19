@@ -24,6 +24,14 @@
 #include <stdatomic.h>
 
 // ---------------------------------------------------------------------------
+// Input validation bounds (TIER4 §5 — issue #19, input validation)
+// ---------------------------------------------------------------------------
+
+#ifndef WEFT_PAYLOAD_MAX_LIMIT
+#define WEFT_PAYLOAD_MAX_LIMIT ((size_t)1 << 20)
+#endif
+
+// ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
 
@@ -31,6 +39,9 @@
 typedef enum {
     WEFT_PUB_OK              = 0,  // publish succeeded
     WEFT_PUB_DROPPED_REVOKED = 1, // writer has been revoked; publish was a no-op
+    WEFT_PUB_INVALID         = 2, // input validation failed (TIER4 §5, issue #19):
+                                   // payload_len > payload_max; no byte written,
+                                   // no state changed (the frame is refused)
 } weft_pub_result_t;
 
 /// Decode result codes (03-ENVELOPE §2).
@@ -82,6 +93,7 @@ typedef struct weft {
     _Atomic uint64_t t_publish;       // incremented after each successful publish
     _Atomic uint64_t t_claim;         // incremented after each claim
     _Atomic uint64_t t_drop;          // incremented on each DROPPED_REVOKED
+    _Atomic uint64_t t_invalid;       // incremented on each INVALID publish (TIER4 §5)
     _Atomic uint64_t t_wsteps;       // incremented once per protocol RMW in w_publish (L2)
     _Atomic uint64_t t_rsteps;       // incremented once per protocol RMW in r_claim (L3)
 } weft_t;
@@ -91,7 +103,14 @@ typedef struct weft {
 // ---------------------------------------------------------------------------
 
 /// Allocate a Weft with the given payload_max. Returns 0 on success, -1 on
-/// alloc failure. Allocates 3 buffers via posix_memalign(64). May allocate
+/// invalid input or alloc failure.
+///
+/// Validation wall (TIER4 §5, issue #19 — validate BEFORE any allocation):
+///   - w == NULL                -> -1
+///   - payload_max == 0         -> -1 (a frameless triad is a config bug,
+///                                 not a degenerate ring)
+///   - payload_max > 1 MiB      -> -1 (WEFT_PAYLOAD_MAX_LIMIT; DoS bound)
+/// Allocates 3 buffers via posix_memalign(64). May allocate
 /// (only `init` may; Law 2 — zero is a contract in publish/claim).
 int weft_init(weft_t* w, size_t payload_max);
 
@@ -118,9 +137,14 @@ int weft_w_write_payload(weft_t* w, const uint8_t* src, size_t len);
 /// Publish the writer's working buffer with the given seq and payload_len.
 /// Per 02 §2 + §6:
 ///   1. if revoked.load(Relaxed): epoch.fetch_add(1, AcqRel); t_drop++;
-///      return DROPPED_REVOKED  (checked FIRST, before any byte write)
+///      return DROPPED_REVOKED  (checked FIRST, before any byte write —
+///      the normative §6 ordering; the ACK is load-bearing for reclaim)
+///   1.5. TIER4 §5 validation wall: if payload_len > payload_max,
+///      t_invalid++; return INVALID — BEFORE any byte write (the frame is
+///      refused whole; an oversized payload_len would poison the frame the
+///      reader copies and hand downstream consumers a bounds lie)
 ///   2. write envelope (v1, seq, payload_len) into buf[w_work]
-///   3. write canary = seq at buf[w_work].tail
+///   3. write canary (XOR boundary, TIER4 §3) at buf[w_work].tail
 ///   4. old = latest.exchange(w_work, AcqRel)   // THE atomic
 ///   5. w_work = old
 ///   6. t_publish++; t_wsteps++; return PUB_OK
@@ -177,6 +201,7 @@ int weft_reclaim(weft_t* w, uint32_t pre_revoke_epoch, uint32_t timeout_ms);
 uint64_t weft_t_publish(weft_t* w);
 uint64_t weft_t_claim(weft_t* w);
 uint64_t weft_t_drop(weft_t* w);
+uint64_t weft_t_invalid(weft_t* w);
 uint64_t weft_t_wsteps(weft_t* w);
 uint64_t weft_t_rsteps(weft_t* w);
 uint32_t weft_epoch(weft_t* w);
@@ -257,6 +282,7 @@ typedef struct {
     uint64_t t_publish;        ///< Telemetry (advisory)
     uint64_t t_claim;           ///< Telemetry (advisory)
     uint64_t t_drop;            ///< Telemetry (advisory)
+    uint64_t t_invalid;         ///< Telemetry (advisory) — TIER4 §5 refused publishes
     /// Two live buffer samples. Buffers with no live owner are reported by
     /// index/state only — NO dereference (I6 rule). The third buffer (if
     /// freed/poisoned) is reported as slot_idx=3, owner=0, all fields zero.

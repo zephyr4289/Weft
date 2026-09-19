@@ -48,6 +48,10 @@ pub mod verified;
 /// Magic "WEFT" little-endian: bytes 57 45 46 54 → u32 LE = 0x54464557.
 pub const WEFT_MAGIC: u32 = 0x54464557;
 
+/// Upper bound for payload_max (1 MiB) — the TIER4 §5 validation wall
+/// (issue #19). Mirrors WEFT_PAYLOAD_MAX_LIMIT (core/c/weft.h).
+pub const WEFT_PAYLOAD_MAX_LIMIT: usize = 1 << 20;
+
 /// Triad protocol version 1.
 pub const WEFT_VERSION_1: u16 = 1;
 
@@ -58,6 +62,9 @@ pub enum PubResult {
     Ok,
     /// Writer has been revoked; publish was a no-op.
     DroppedRevoked,
+    /// TIER4 §5 (issue #19): input validation failed (payload_len >
+    /// payload_max). No byte written, no state changed — counted in t_invalid.
+    Invalid,
 }
 
 /// Decode result (03-ENVELOPE §2).
@@ -110,6 +117,7 @@ pub struct Weft {
     t_publish: AtomicU64,
     t_claim: AtomicU64,
     t_drop: AtomicU64,
+    t_invalid: AtomicU64,
     t_wsteps: AtomicU64,
     t_rsteps: AtomicU64,
 }
@@ -135,6 +143,12 @@ impl Weft {
     /// Allocate a Weft with the given payload_max. Returns `None` on alloc failure.
     /// Per 02 §3: may allocate; nothing else may (Law 2).
     pub fn new(payload_max: usize) -> Option<Self> {
+        // TIER4 §5 validation wall (issue #19): mirror the C kernel's refusal —
+        // payload_max ∈ [1, 1 MiB]. A frameless or oversized triad is refused
+        // BEFORE any allocation.
+        if payload_max == 0 || payload_max > WEFT_PAYLOAD_MAX_LIMIT {
+            return None;
+        }
         let buf_size = compute_buf_size(payload_max);
         // SAFETY: buf_size > 0 (since payload_max >= 0 and we add 24); alignment 64
         // is a power of two. Layout::from_size_align is infallible for these inputs.
@@ -189,6 +203,7 @@ impl Weft {
             t_publish: AtomicU64::new(0),
             t_claim: AtomicU64::new(0),
             t_drop: AtomicU64::new(0),
+            t_invalid: AtomicU64::new(0),
             t_wsteps: AtomicU64::new(0),
             t_rsteps: AtomicU64::new(0),
         })
@@ -248,6 +263,13 @@ impl Weft {
             self.epoch.fetch_add(1, Ordering::AcqRel);
             self.t_drop.fetch_add(1, Ordering::Relaxed);
             return PubResult::DroppedRevoked;
+        }
+
+        // TIER4 §5 validation wall (issue #19): refuse the frame WHOLE before
+        // any byte write. Counted (t_invalid), never silent.
+        if payload_len > self.payload_max as u32 {
+            self.t_invalid.fetch_add(1, Ordering::Relaxed);
+            return PubResult::Invalid;
         }
 
         let w = self.w_work.load(Ordering::Relaxed) as usize;
@@ -402,6 +424,8 @@ impl Weft {
     pub fn t_claim(&self) -> u64 { self.t_claim.load(Ordering::Relaxed) }
     /// Total DROPPED_REVOKED results since revoke.
     pub fn t_drop(&self) -> u64 { self.t_drop.load(Ordering::Relaxed) }
+    /// Refused-publish counter (TIER4 §5 — issue #19).
+    pub fn t_invalid(&self) -> u64 { self.t_invalid.load(Ordering::Relaxed) }
     /// Total protocol RMWs in publish (L2 step counter).
     pub fn t_wsteps(&self) -> u64 { self.t_wsteps.load(Ordering::Relaxed) }
     /// Total protocol RMWs in claim (L3 step counter).

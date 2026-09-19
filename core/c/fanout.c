@@ -207,7 +207,17 @@ int weft_fanout_reader_init(weft_fanout_reader_t* r, const void* ring, size_t ri
 
 const weft_fanout_claim_t* weft_fanout_claim(weft_fanout_reader_t* r) {
     weft_fanout_claim_t* rec = &r->rec;
-    r->n_reads++;
+#ifndef NDEBUG
+    if (r->ring == NULL || r->ctrl == NULL || r->target == NULL ||
+        r->slot_count < 2 || r->slot_count > WEFT_FANOUT_MAX_SLOTS ||
+        r->payload_bytes == 0 || (r->payload_bytes & 3) != 0) {
+        rec->fresh = false;
+        rec->seq = r->last_seq;
+        rec->dropped = 0;
+        r->n_skip++;
+        return rec;
+    }
+#endif
     uint64_t L = fan_stamp_load(r->ctrl + FAN_IDX_LATEST);
     if (L == 0 || L == r->last_seq) {
         rec->fresh = false;

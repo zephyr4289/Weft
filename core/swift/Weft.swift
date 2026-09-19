@@ -15,8 +15,12 @@ import Atomics
 let WEFT_MAGIC: UInt32 = 0x54464557
 let WEFT_VERSION_1: UInt16 = 1
 
+/// Upper bound for payload_max (1 MiB) — the TIER4 §5 validation wall
+/// (issue #19). Mirrors WEFT_PAYLOAD_MAX_LIMIT (core/c/weft.h).
+let WEFT_PAYLOAD_MAX_LIMIT: Int = 1 << 20
+
 /// Publish result (02 §4).
-public enum PubResult { case ok, droppedRevoked }
+public enum PubResult { case ok, droppedRevoked, invalid }
 
 /// Decode result (03-ENVELOPE §2).
 public enum DecodeResult { case ok, short, badMagic, badHeader }
@@ -49,8 +53,14 @@ public final class Weft {
     private let tPublish = ManagedAtomic<UInt64>(0)
     private let tClaim = ManagedAtomic<UInt64>(0)
     private let tDrop = ManagedAtomic<UInt64>(0)
+    private let tInvalid = ManagedAtomic<UInt64>(0)
 
     public init(payloadMax: Int) {
+        // TIER4 §5 validation wall (issue #19): fail fast — an invalid triad
+        // geometry is a programmer error in the VM port (the C kernel's -1
+        // refusal maps to a precondition; never a half-built object).
+        precondition(payloadMax > 0 && payloadMax <= 1 << 20,
+                     "Weft: payloadMax must be in [1, \(1 << 20)] (TIER4 §5), got \(payloadMax)")
         self.payloadMax = payloadMax
         self.bufSize = ((16 + payloadMax + 8 + 63) / 64) * 64
 
@@ -92,6 +102,11 @@ public final class Weft {
             epoch.wrappingIncrement(by: 1, ordering: .acquiringAndReleasing)
             tDrop.wrappingIncrement(by: 1, ordering: .relaxed)
             return .droppedRevoked
+        }
+
+        if payloadLen < 0 || payloadLen > payloadMax {
+            tInvalid += 1
+            return .invalid
         }
 
         let buf = buffers[Int(wWork)]
@@ -150,6 +165,7 @@ public final class Weft {
     public func tPublishCount() -> UInt64 { tPublish.load(ordering: .relaxed) }
     public func tClaimCount() -> UInt64 { tClaim.load(ordering: .relaxed) }
     public func tDropCount() -> UInt64 { tDrop.load(ordering: .relaxed) }
+    public func tInvalidCount() -> UInt64 { tInvalid.load(ordering: .relaxed) }
 
     /// debug: API parity with C kernel (WO-P2 T1 mirror).
     public func debugState() -> [String: Any] {

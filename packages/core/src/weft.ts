@@ -18,8 +18,12 @@ export const WEFT_MAGIC = 0x54464557;
 export const WEFT_VERSION_1 = 1;
 
 /// Publish result (02 §4). Plain const object (TS enums not supported in strip-only mode).
-export const PubResult = { Ok: 0, DroppedRevoked: 1 } as const;
+export const PubResult = { Ok: 0, DroppedRevoked: 1, Invalid: 2 } as const;
 export type PubResult = (typeof PubResult)[keyof typeof PubResult];
+
+/// Upper bound for payload_max (1 MiB) — the TIER4 §5 validation wall
+/// (issue #19). Mirrors WEFT_PAYLOAD_MAX_LIMIT (core/c/weft.h).
+export const WEFT_PAYLOAD_MAX_LIMIT = 1 << 20;
 
 /// Decode result (03-ENVELOPE §2). Plain const object.
 export const DecodeResult = { Ok: 0, Short: 1, BadMagic: 2, BadHeader: 3 } as const;
@@ -132,11 +136,16 @@ export class Weft {
   static readonly SLOT_T_CLAIM_HI = 13;   // bytes 52-55
   static readonly SLOT_T_DROP_LO = 14;    // bytes 56-59
   static readonly SLOT_T_DROP_HI = 15;    // bytes 60-63
+  // TIER4 §5 (issue #19): refused-publish counter, in the reserved band
+  // (Int32 slots 8-9 = bytes 32-39 = BigInt64 slot 8).
+  static readonly SLOT_T_INVALID_LO = 8;  // bytes 32-35
+  static readonly SLOT_T_INVALID_HI = 9;  // bytes 36-39
   // u64 slots (BigInt64Array indices — the COLD read view; byte ranges
   // coincide with the Int32 halves above by construction).
   static readonly SLOT64_T_PUBLISH = 5;  // bytes 40-47
   static readonly SLOT64_T_CLAIM = 6;    // bytes 48-55
   static readonly SLOT64_T_DROP = 7;     // bytes 56-63
+  static readonly SLOT64_T_INVALID = 4;  // bytes 32-39
 
   // Note: t_wsteps and t_rsteps are writer-/reader-private advisory step
   // counters (single-threaded access by contract — wsteps by the writer,
@@ -176,7 +185,15 @@ export class Weft {
   private fillScratch: Uint8Array | null = null;
 
   /// Allocate a Weft with the given payload_max.
+  /// TIER4 §5 validation wall (issue #19): invalid geometry THROWS — a
+  /// frameless or oversized triad is a programmer error in the VM port
+  /// (the C kernel returns -1; this port is constructor-based, so the
+  /// refusal must be loud, not a half-built object).
   constructor(payloadMax: number) {
+    if (!Number.isInteger(payloadMax) || payloadMax <= 0 || payloadMax > WEFT_PAYLOAD_MAX_LIMIT) {
+      throw new RangeError(
+        `Weft: payloadMax must be an integer in [1, ${WEFT_PAYLOAD_MAX_LIMIT}] (TIER4 §5), got ${payloadMax}`);
+    }
     this.payloadMax = payloadMax;
     this.bufSize = computeBufSize(payloadMax);
     const ctrlSize = 64;  // 64-byte control block
@@ -323,6 +340,13 @@ export class Weft {
       Atomics.add(this.ctrl, Weft.SLOT_EPOCH, 1);
       this.bumpCounter(Weft.SLOT_T_DROP_LO, Weft.SLOT_T_DROP_HI);
       return PubResult.DroppedRevoked;
+    }
+
+    // TIER4 §5 validation wall (issue #19): refuse the frame WHOLE before
+    // any byte write. Counted (t_invalid), never silent.
+    if (payloadLen > this.payloadMax) {
+      this.bumpCounter(Weft.SLOT_T_INVALID_LO, Weft.SLOT_T_INVALID_HI);
+      return PubResult.Invalid;
     }
 
     const w = Atomics.load(this.ctrl, Weft.SLOT_W_WORK);
@@ -513,6 +537,8 @@ export class Weft {
   tPublish(): bigint { return Atomics.load(this.ctrlU64, Weft.SLOT64_T_PUBLISH); }
   tClaim(): bigint { return Atomics.load(this.ctrlU64, Weft.SLOT64_T_CLAIM); }
   tDrop(): bigint { return Atomics.load(this.ctrlU64, Weft.SLOT64_T_DROP); }
+  /// Refused-publish counter (TIER4 §5 — issue #19). Cold-path u64 read.
+  tInvalid(): bigint { return Atomics.load(this.ctrlU64, Weft.SLOT64_T_INVALID); }
   epoch(): number { return Atomics.load(this.ctrl, Weft.SLOT_EPOCH); }
 
   // ---------------------------------------------------------------------------

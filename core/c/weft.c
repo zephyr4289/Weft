@@ -41,6 +41,10 @@ static size_t canary_offset(size_t buf_size) { return buf_size - 8; }
 // ---------------------------------------------------------------------------
 
 int weft_init(weft_t* w, size_t payload_max) {
+    // TIER4 §5 validation wall — BEFORE any allocation or write.
+    if (w == NULL) return -1;
+    if (payload_max == 0 || payload_max > WEFT_PAYLOAD_MAX_LIMIT) return -1;
+
     memset(w, 0, sizeof(*w));
     w->payload_max = payload_max;
     w->buf_size = compute_buf_size(payload_max);
@@ -79,6 +83,7 @@ int weft_init(weft_t* w, size_t payload_max) {
     atomic_init(&w->t_publish, (uint64_t)0);
     atomic_init(&w->t_claim, (uint64_t)0);
     atomic_init(&w->t_drop, (uint64_t)0);
+    atomic_init(&w->t_invalid, (uint64_t)0);
     atomic_init(&w->t_wsteps, (uint64_t)0);
     atomic_init(&w->t_rsteps, (uint64_t)0);
 
@@ -90,6 +95,7 @@ void weft_destroy(weft_t* w) {
     // If revoke was never called, plain free is correct (no writer exists).
     // `destroy` without a prior `reclaim` while a writer may still run is a
     // caller error — documented here, not defended.
+    if (w == NULL) return;
     for (int i = 0; i < 3; i++) {
         free(w->buf[i]);
         w->buf[i] = NULL;
@@ -106,8 +112,10 @@ uint8_t* weft_w_begin(weft_t* w) {
 }
 
 int weft_w_write_payload(weft_t* w, const uint8_t* src, size_t len) {
+    if (w == NULL || w->buf[w->w_work] == NULL) return -1;
     if (len > w->payload_max) return -1;
-    memcpy(w->buf[w->w_work] + 16, src, len);
+    if (src == NULL && len > 0) return -1;  // TIER4 §5: NULL src with nonzero len
+    if (len > 0) memcpy(w->buf[w->w_work] + 16, src, len);
     return 0;
 }
 
@@ -120,6 +128,16 @@ weft_pub_result_t weft_publish(weft_t* w, uint32_t seq, uint32_t payload_len) {
         atomic_fetch_add_explicit(&w->epoch, 1, memory_order_acq_rel);
         atomic_fetch_add_explicit(&w->t_drop, 1, memory_order_relaxed);
         return WEFT_PUB_DROPPED_REVOKED;
+    }
+
+    // TIER4 §5 validation wall (issue #19): payload_len > payload_max refuses
+    // the frame WHOLE — before any byte write, before any state change. An
+    // oversized payload_len would poison the frame the reader copies (tail
+    // bytes surface as payload) and hand downstream consumers a bounds lie.
+    // Counted (t_invalid), never silent.
+    if (payload_len > (uint32_t)w->payload_max) {
+        atomic_fetch_add_explicit(&w->t_invalid, 1, memory_order_relaxed);
+        return WEFT_PUB_INVALID;
     }
 
     // 02 §2: write envelope (v1, seq, payload_len) into buf[w_work]
@@ -254,6 +272,7 @@ int weft_reclaim(weft_t* w, uint32_t pre_revoke_epoch, uint32_t timeout_ms) {
 uint64_t weft_t_publish(weft_t* w) { return atomic_load_explicit(&w->t_publish, memory_order_relaxed); }
 uint64_t weft_t_claim(weft_t* w)   { return atomic_load_explicit(&w->t_claim, memory_order_relaxed); }
 uint64_t weft_t_drop(weft_t* w)    { return atomic_load_explicit(&w->t_drop, memory_order_relaxed); }
+uint64_t weft_t_invalid(weft_t* w) { return atomic_load_explicit(&w->t_invalid, memory_order_relaxed); }
 uint64_t weft_t_wsteps(weft_t* w) { return atomic_load_explicit(&w->t_wsteps, memory_order_relaxed); }
 uint64_t weft_t_rsteps(weft_t* w) { return atomic_load_explicit(&w->t_rsteps, memory_order_relaxed); }
 uint32_t weft_epoch(weft_t* w)    { return atomic_load_explicit(&w->epoch, memory_order_acquire); }
@@ -373,6 +392,7 @@ void weft_debug_view(const weft_t* w, weft_debug_view_t* out) {
     out->t_publish = atomic_load_explicit(&w->t_publish, memory_order_relaxed);
     out->t_claim   = atomic_load_explicit(&w->t_claim, memory_order_relaxed);
     out->t_drop    = atomic_load_explicit(&w->t_drop, memory_order_relaxed);
+    out->t_invalid = atomic_load_explicit(&w->t_invalid, memory_order_relaxed);
 
     // Determine which two buffers are "live" (have an owner).
     // The three buffers are always in one of these states:

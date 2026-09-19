@@ -36,7 +36,7 @@ ownership, which is the table below's second column.
 
 | Route | Trigger paths | Shard(s) / workflow |
 |---|---|---|
-| `any_code` | `core/**`, `litmus/**`, `bench/**`, `tools/**`, `probes/**`, `packages/**`, `fixtures/**`, `heddles/**`, `android/**`, `apple/**`, `demos/**`, `scripts/**`, `Makefile`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `ci/**`, `.github/workflows/extreme-test.yml` | build gatekeeper, CodeQL, litmus-c/rust/ts, bench-b-c/rust/ts, wsuite, thermal-proxy, tools-interop, ports-validate, browser-sab, fanout-concurrent, fanout-native, turbo-native, gpu-native, verifiedweft, perf-regression, chaos, chaos-parity, simd-blend, qos-worklet, guardian |
+| `any_code` | `core/**`, `litmus/**`, `bench/**`, `tools/**`, `probes/**`, `packages/**`, `fixtures/**`, `heddles/**`, `android/**`, `apple/**`, `demos/**`, `scripts/**`, `Makefile`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `ci/**`, `.github/workflows/extreme-test.yml` | build gatekeeper, CodeQL, litmus-c/rust/ts, bench-b-c/rust/ts, wsuite, thermal-proxy, tools-interop, ports-validate, browser-sab, fanout-concurrent, fanout-native, turbo-native, gpu-native, verifiedweft, perf-regression, chaos, chaos-parity, simd-blend, qos-worklet, guardian, sanitizers, trace-standard, revoke-stress, ffi-fuzz, memory-model-formal, wcet-audit, recovery-self-stabilizing, ipc-mesh |
 | `formal` | `formal/**`, `core/**`, `ci/scripts/run_formal_shard.sh` | formal (TLA+ / TLC proofs) |
 | `forensic` | `reports/**`, `ci/scripts/run_forensic_scan_shard.sh` | forensic-scan (PAST-CROPBOX PDF scan) |
 | `site` | `tools/make_site.py`, `bench/results.json`, `bench/results/**`, `Makefile`, `ci/scripts/run_site_determinism_shard.sh` | site-determinism |

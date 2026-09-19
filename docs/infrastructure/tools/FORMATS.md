@@ -218,3 +218,53 @@ The in-sandbox tools link the kernel and operate on the handle directly. The sha
 - **The recorder is a protocol reader.** It is the sole reader during a capture session (Law 1 regime). It claims frames and serializes what it claimed, stale returns included. It can never block the writer (claim is one swap). Recording everything claimed — including dips — is the honest file.
 - **Probe never touches payload or dead buffers.** The debug surface reads only the two live buffers' 16-byte envelope headers and the kernel's own bookkeeping words.
 - **AXIOM T applies to tooling.** Probe output labels telemetry `advisory`; no tool logic branches on a telemetry counter (contracts v1.3).
+
+---
+
+## 5. IPC Mesh Registry (`/dev/shm/weft_registry_v1`) — RFC-0016
+
+A fixed-size shared object, created on first use and never unlinked
+(mesh infrastructure). Not a persisted artifact — a live coordination
+structure, documented here because every process in a mesh reads it and
+any debugging session will look at it.
+
+```
+offset 0   magic "WFRE" (u32)      0x45524657
+offset 4   version (u16)           1
+offset 6   header_size (u16)       64
+offset 8   flags (u32)             0 — unknown bits REJECT on open
+offset 12  entry_count (u32)       62
+offset 16  entry_bytes (u32)       160
+offset 20  registry_bytes (u64)    9984 — validated EXACTLY on open
+offset 28  creator_pid (u32)       advisory
+offset 32  created_unix_ns (u64)   advisory
+offset 40  reserved (24 bytes)     zero — nonzero REJECTS
+
+entry k at offset 64 + 160*k (little-endian; every field a relaxed
+                            atomic word — see RFC-0016 §Reference):
+  +0    state_gen  u64   CAS word: low u32 state (0 FREE, 1 ACTIVE,
+                              2 DEAD, 3 RESERVED), high u32 generation
+  +8    session_id u64   random (getrandom); immutable after activation
+  +16   epoch      u32   producer incarnation; 1 = fresh, +1 per successor
+  +20   transport  u32   1 = named shm (RFC-0011), 2 = memfd handshake
+  +24   producer_pid u32 (written first after reservation)
+  +28   n_consumers u32  ADVISORY attach count (crash-inflated, documented)
+  +32   heartbeat_seq u64 ADVISORY monotonic beat counter
+  +40   heartbeat_ns  u64 ADVISORY wall stamp (CLOCK_REALTIME)
+  +48   payload_bytes u32 (immutable)
+  +52   slot_count     u32 (immutable)
+  +56   latest_seq_pub u64 ADVISORY mirror of the ring's latestSeq
+  +64   name[40]           session name (immutable; NUL-padded)
+  +104  token_key_id  u32  ADVISORY capability cross-check plane
+  +112  token_tag[32]      ADVISORY: current token's HMAC tag
+  +144  pad[16]
+```
+
+Trust boundary, stated in the module header and repeated here: the
+registry is **cooperative discovery infrastructure, not a security
+boundary** — `/dev/shm` is writable by the mesh's user population. Its
+invariants (single-word CAS transitions, ABA-safe generation reaping,
+consistent ACTIVE snapshots of the immutable set) hold against correct
+peers; a hostile scribbler can degrade discovery but never the rings.
+Kernel-enforced protection lives one layer down: sealed memfd
+capability + open()-time access rights (RFC-0016 §Guide).

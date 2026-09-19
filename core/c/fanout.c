@@ -2,6 +2,7 @@
 // layout contract, the protocol, and the memory-ordering rationale).
 
 #include "fanout.h"
+#include "fanout_simd.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -236,9 +237,18 @@ const weft_fanout_claim_t* weft_fanout_claim(weft_fanout_reader_t* r) {
         // Stamp matches frame L: copy, then re-validate.
         const _Atomic uint32_t* src = r->slot_words[k];
         const size_t words = r->payload_bytes / 4;
+#if !defined(WEFT_FANOUT_SIMD_DISABLE)
+        // Issue #17-1 seam: the dispatching copy (fanout_simd.h) — same
+        // relaxed-atomic reference when the dispatcher resolves scalar;
+        // vector bodies sit inside the same P1/P2 stamp bracket (header
+        // argument; TSAN builds pin scalar). -DWEFT_FANOUT_SIMD_DISABLE=1
+        // restores the literal inline legacy loop (byte-exact bisects).
+        weft_fanout_copy_words(r->target, src, words);
+#else
         for (size_t w = 0; w < words; w++) {
             r->target[w] = atomic_load_explicit(src + w, memory_order_relaxed);
         }
+#endif
         // Property P2 (fanout.h): the copy is ordered before the
         // revalidation load by a SeqCst fence — if the copy observed any
         // word of an overwrite, the revalidation below must observe the

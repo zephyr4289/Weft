@@ -33,6 +33,7 @@
 #include "turbo.h"
 #include "uring_rx.h"
 #include "fanout.h"
+#include "fanout_simd.h"
 #include "weft.h"
 
 // ---------------------------------------------------------------------------
@@ -333,11 +334,13 @@ static void run_tl_reader(size_t payload_bytes, unsigned m,
     const double seconds = (double)(t_end - t_start) / 1e9;
     const dist_t d = dist_from_samples(samples, ns, seconds);
     printf("{\"bench\":\"TL-reader\",\"lang\":\"c\",\"variant\":\"%s\","
+           "\"copy_impl\":\"%s\","
            "\"payload_max\":%zu,\"slots\":%u,\"cadence_us\":%.0f,"
            "\"thrash_kib\":%zu,\"writer_hz\":%.0f,\"samples\":%lu,"
            "\"p50\":%lu,\"p90\":%lu,\"p99\":%lu,\"p999\":%lu,\"max\":%lu,"
            "\"clock_overhead_ns\":%lu}\n",
-           rv_name(variant), payload_bytes, m, cadence_us,
+           rv_name(variant), weft_fanout_copy_active_impl(),
+           payload_bytes, m, cadence_us,
            thrash_words * 4 / 1024, (double)wa.published / seconds,
            (unsigned long)d.n, d.p50, d.p90, d.p99, d.p999, d.pmax,
            clock_overhead_ns());
@@ -507,7 +510,10 @@ static void run_ing_uring(uint64_t total) {
 // ---------------------------------------------------------------------------
 
 static void usage(const char* argv0) {
-    fprintf(stderr, "usage: %s <caps|TL-writer|TL-reader|TL-ring|ING-uring> [key=value ...]\n", argv0);
+    fprintf(stderr, "usage: %s <caps|TL-writer|TL-reader|TL-ring|ING-uring> [key=value ...]\n"
+            "  keys: payload= slots= measure_s= cadence_us= thrash_kib= frames= variant=\n"
+            "  TL-reader only: copy=<scalar|sse2|avx2|avx512|neon> (pin the claim copy;\n"
+            "                  issue #17-1 A/B — auto = widest silicon path)\n", argv0);
     exit(2);
 }
 
@@ -521,6 +527,7 @@ int main(int argc, char** argv) {
     size_t thrash_kib = 1024;
     uint64_t frames = 200000;
     int variant = -1;  // -1 = all (diagnostic); evidence runs set variant=
+    const char* copy_impl = NULL;  // TL-reader only: pin the claim-copy impl
 
     for (int i = 2; i < argc; i++) {
         char* eq = strchr(argv[i], '=');
@@ -550,6 +557,7 @@ int main(int argc, char** argv) {
             else if (strcmp(v, "posix-alloc") == 0) variant = 0;
             else usage(argv[0]);
         }
+        else if (strcmp(k, "copy") == 0) copy_impl = v;
         else usage(argv[0]);
     }
 
@@ -579,6 +587,14 @@ int main(int argc, char** argv) {
         return 0;
     }
     if (strcmp(mode, "TL-reader") == 0) {
+        // Issue #17-1 A/B: pin the claim-copy implementation (the seam's
+        // dispatcher). Refused pins abort — a typo'd impl name must never
+        // silently bench the wrong path (honest measurement, Law 4).
+        if (copy_impl && weft_fanout_copy_force_impl(copy_impl) != 0) {
+            fprintf(stderr, "copy=%s refused (not compiled in or silicon lacks it)\n",
+                    copy_impl);
+            return 2;
+        }
         if (variant >= 0 && variant <= 3) {
             run_tl_reader(payload, slots, measure_s, cadence_us,
                           thrash_kib * 256 /* words */, (reader_variant_t)variant);
@@ -588,6 +604,7 @@ int main(int argc, char** argv) {
                               thrash_kib * 256 /* words */, (reader_variant_t)v);
             }
         }
+        weft_fanout_copy_force_auto();
         return 0;
     }
     if (strcmp(mode, "TL-ring") == 0) {

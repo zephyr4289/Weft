@@ -1,0 +1,40 @@
+ok: FS1 auto-resolve reports an impl name
+ok: FS1 pinned impl reports its own name
+ok: FS1 pinned impl reports its own name
+ok: FS1 pinned impl reports its own name
+ok: FS1 pinned impl reports its own name
+ok: FS1 refused pin leaves a working impl
+ok: FS1 unknown impl name refused
+ok: FS1 NULL name refused
+ok: FS1 force_scalar pins scalar
+ok: FS2 byte-identity sweep passed (one line per impl)
+ok: FS2 byte-identity sweep passed (one line per impl)
+ok: FS2 byte-identity sweep passed (one line per impl)
+ok: FS2 swept every compiled vector impl
+info: FS2 combos verified: 558 across 3 impls
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via scalar
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via sse2
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via avx2
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via avx512
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS4 reader init
+info: FS4 torturing with avx512 pinned, 1.0s
+ok: FS4 writer spawn
+ok: FS4 zero torn frames accepted as fresh
+ok: FS4 every fresh frame byte-exact
+ok: FS4 dropped+fresh telescopes to lastSeq exactly
+ok: FS5 sub-vector and odd-tail sizes identical
+ok: FS5 64 KiB tier identical
+active impl on this host: avx512
+FS-SERIES PASS

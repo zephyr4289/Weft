@@ -1,0 +1,61 @@
+{
+  "_meta": {
+    "endian": "little",
+    "note": "Single source of truth for cross-language parity tests. Floats are dyadic => bit-exact under IEEE-754 nearest rounding."
+  },
+  "imu_sample": {
+    "accel": [
+      0.25,
+      -0.5,
+      9.8125
+    ],
+    "gyro": [
+      0.125,
+      -0.0625,
+      3.5
+    ],
+    "timestampNs": 999999999
+  },
+  "telemetry_frame": {
+    "gpsCoordinates": [
+      37.5,
+      -122.25
+    ],
+    "payloadHash": [
+      222,
+      173,
+      190,
+      239,
+      202,
+      254,
+      186,
+      190
+    ],
+    "pressurePa": 1013.25,
+    "reserved": [
+      0,
+      0,
+      0
+    ],
+    "schemaId": "0x8f4c1120a9b30012",
+    "schemaIdLower": 10325646877637410834,
+    "state": 7,
+    "timestampNs": 1737504000123456789,
+    "velocity": [
+      1.5,
+      -2.25,
+      4000.125
+    ]
+  },
+  "weft_envelope": {
+    "headerSize": 16,
+    "magic": "WEFT",
+    "payloadLen": 64,
+    "seq": 48879,
+    "version": 1
+  },
+  "weft_frame_stack": {
+    "canarySeq": 48879,
+    "payloadOffset": 16
+  }
+}

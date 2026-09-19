@@ -353,12 +353,25 @@ static inline weft_error_t weft_validate_batch_camera_exposure(const void* buffe
                 vcreate_u32((uint64_t)weft_read_u32_le(base + (i + 2u) * stride)
                             | ((uint64_t)weft_read_u32_le(base + (i + 3u) * stride) << 32)));
             const uint32x4_t eq = vceqq_u32(got, want);
-            for (int lane = 0; lane < 4; lane++) {
-                if (vgetq_lane_u32(eq, lane) != 0xFFFFFFFFu) {
-                    if (out_count) { *out_count = i + (size_t)lane; }
-                    if (out_bad_index) { *out_bad_index = i + (size_t)lane; }
-                    return WEFT_ERR_SCHEMA_MISMATCH;
-                }
+            if (vgetq_lane_u32(eq, 0) != 0xFFFFFFFFu) {
+                if (out_count) { *out_count = i + 0u; }
+                if (out_bad_index) { *out_bad_index = i + 0u; }
+                return WEFT_ERR_SCHEMA_MISMATCH;
+            }
+            if (vgetq_lane_u32(eq, 1) != 0xFFFFFFFFu) {
+                if (out_count) { *out_count = i + 1u; }
+                if (out_bad_index) { *out_bad_index = i + 1u; }
+                return WEFT_ERR_SCHEMA_MISMATCH;
+            }
+            if (vgetq_lane_u32(eq, 2) != 0xFFFFFFFFu) {
+                if (out_count) { *out_count = i + 2u; }
+                if (out_bad_index) { *out_bad_index = i + 2u; }
+                return WEFT_ERR_SCHEMA_MISMATCH;
+            }
+            if (vgetq_lane_u32(eq, 3) != 0xFFFFFFFFu) {
+                if (out_count) { *out_count = i + 3u; }
+                if (out_bad_index) { *out_bad_index = i + 3u; }
+                return WEFT_ERR_SCHEMA_MISMATCH;
             }
         }
     }

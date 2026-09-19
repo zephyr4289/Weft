@@ -95,6 +95,24 @@ fanout-layout-test-asan: fanout.c fanout_simd.c fanout_layout_test.c fanout.h fa
 fanout-layout-test-smallline: fanout.c fanout_simd.c fanout_layout_test.c fanout.h fanout_simd.h weft.h
 	$(CC) $(CFLAGS) -DWEFT_FANOUT_SLOT_ALIGN_BYTES=32 -o fanout-layout-test-smallline $(FANOUT_SRC) fanout_layout_test.c
 
+# ---- Issue #17-3: writer batching (fanout_batch) --------------------------
+# FB-series: batch roundtrip, mixed-mode compat, dropped accounting under
+# n > M bursts (windowed stamping torture), atomic refusal, commit-only
+# API + --bench throughput A/B (100-frame batches vs 100 singles, idle
+# and reader-polling legs). Pure atomics: TSAN-clean by construction.
+
+fanout-batch-test: fanout.c fanout_simd.c fanout_batch.c fanout_batch_test.c fanout.h fanout_simd.h fanout_batch.h weft.h
+	$(CC) $(CFLAGS) -o fanout-batch-test $(FANOUT_SRC) fanout_batch.c fanout_batch_test.c
+
+fanout-batch-test-asan: fanout.c fanout_simd.c fanout_batch.c fanout_batch_test.c fanout.h fanout_simd.h fanout_batch.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o fanout-batch-test-asan $(FANOUT_SRC) fanout_batch.c fanout_batch_test.c
+
+fanout-batch-test-tsan: fanout.c fanout_simd.c fanout_batch.c fanout_batch_test.c fanout.h fanout_simd.h fanout_batch.h weft.h
+	$(CC) $(CFLAGS_DBG) -o fanout-batch-test-tsan $(FANOUT_SRC) fanout_batch.c fanout_batch_test.c
+
+fanout-batch-test-seq: fanout.c fanout_simd.c fanout_batch.c fanout_batch_test.c fanout.h fanout_simd.h fanout_batch.h weft.h
+	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 -o fanout-batch-test-seq $(FANOUT_SRC) fanout_batch.c fanout_batch_test.c
+
 # ---- RFC 0011 chaos engine ------------------------------------------------
 # fanout-chaos: stepped (deterministic scheduler -- the parity oracle) +
 #               free (real threads, seed-deterministic fault sequence).
@@ -314,6 +332,7 @@ clean:
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
 	      fanout-simd-test fanout-simd-test-asan fanout-simd-test-tsan fanout-simd-test-seq fanout-simd-test-legacy \
 	      fanout-layout-test fanout-layout-test-asan fanout-layout-test-smallline \
+	      fanout-batch-test fanout-batch-test-asan fanout-batch-test-tsan fanout-batch-test-seq \
 	      verified-test verified-test-asan verified-runner verified-runner-asan \
 	      verified-mb-test verified-mb-test-asan mb-bench \
 	      shm-test shm-test-asan shm-runner shm-runner-asan \

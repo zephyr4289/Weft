@@ -1,0 +1,47 @@
+# wasm-port.yml — WASM port gate (issue #18-1, Series 9)
+name: wasm-port
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  wasm-node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mymindstorm/setup-emscripten@v14
+        with:
+          version: 3.1.74   # pinned; the port builds with >= 3.1.x ESM glue
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Build libweft.wasm (single-threaded + pthreads flavors)
+        run: |
+          bash core/wasm/build.sh single
+          bash core/wasm/build.sh pthreads
+
+      - name: WL/WF battery (node --test: L1-L8 analogs + fan-out + batch + zero-copy)
+        run: node --test --experimental-strip-types core/wasm/test/litmus.ts
+
+      - name: Browser leg (headless chromium via agent-browser)
+        run: |
+          npm install -g agent-browser && agent-browser install --with-deps
+          cp core/wasm/dist/libweft.js core/wasm/dist/libweft.wasm demos/wasm-canvas/dist/
+          bash scripts/verify-wasm-demo-ci.sh
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-port-artifacts
+          path: |
+            core/wasm/dist/
+          if-no-files-found: warn

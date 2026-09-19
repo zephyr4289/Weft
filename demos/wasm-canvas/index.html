@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Weft-WASM — Collaborative Canvas (fan-out demo)</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #101418; color: #d8e0e8;
+         font: 14px/1.4 system-ui, sans-serif; }
+  header { padding: 10px 16px; background: #161c22; border-bottom: 1px solid #232c35; }
+  header h1 { font-size: 15px; margin: 0 0 2px; }
+  header p { margin: 0; color: #8fa0b0; font-size: 12px; }
+  main { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+         padding: 12px; }
+  .panel { background: #161c22; border: 1px solid #232c35; border-radius: 8px;
+           padding: 8px; }
+  .panel h2 { font-size: 12px; margin: 2px 0 6px; color: #8fa0b0;
+              font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+  canvas { width: 100%; aspect-ratio: 1; background: #0b0e11; border-radius: 6px;
+           display: block; touch-action: none; }
+  #paint { cursor: crosshair; border: 1px solid #2f6fab; }
+  footer { padding: 6px 16px 14px; color: #8fa0b0; font-size: 12px; }
+  code { color: #7ec3f0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Weft-WASM — Collaborative Canvas</h1>
+  <p>One painter publishes stroke frames into the RFC-0004 fan-out ring (compiled
+     C core, WebAssembly); three independent consumers claim from the SAME ring
+     at their own cadence — zero-copy views over wasm memory.</p>
+</header>
+<main>
+  <div class="panel">
+    <h2>Painter (writer)</h2>
+    <canvas id="paint" width="256" height="256"></canvas>
+  </div>
+  <div class="panel">
+    <h2>Consumer A — live view</h2>
+    <canvas id="cA" width="256" height="256"></canvas>
+  </div>
+  <div class="panel">
+    <h2>Consumer B — minimap (½ scale)</h2>
+    <canvas id="cB" width="128" height="128"></canvas>
+  </div>
+  <div class="panel">
+    <h2>Consumer C — trail view (persistent)</h2>
+    <canvas id="cC" width="256" height="256"></canvas>
+  </div>
+</main>
+<footer>
+  seq <span id="seq">0</span> · publishes <span id="pub">0</span> ·
+  A: fresh <span id="fa">0</span> dropped <span id="da">0</span> ·
+  C: fresh <span id="fc">0</span> dropped <span id="dc">0</span> ·
+  <span id="impl">copy: ?</span>
+</footer>
+
+<script type="module">
+// The collaborative-canvas demo (issue #18-1): the frozen C core, compiled
+// to WebAssembly, fanning stroke frames out to N consumers with zero copies.
+// Payload layout per frame (1024 B = 256 u32): [x, y, x2, y2] * 64 strokes
+// (a stroke batch accumulated between rAF ticks).
+import { loadWeftWasm } from "./binding.js";
+
+const W = await loadWeftWasm(new URL("./dist/libweft.js", location.href).href);
+const PAYLOAD = 1024, STROKES = 64;
+const fan = W.fanout(PAYLOAD, 8);
+const rA = fan.reader(), rB = fan.reader(), rC = fan.reader();
+document.getElementById("impl").textContent =
+  "wasm ring: 8 slots × 1 KiB — " + "single-flip batches";
+
+const paint = document.getElementById("paint");
+const ctxP = paint.getContext("2d");
+const bufs = {
+  A: document.getElementById("cA").getContext("2d"),
+  B: document.getElementById("cB").getContext("2d"),
+  C: document.getElementById("cC").getContext("2d"),
+};
+ctxP.fillStyle = "#0b0e11"; ctxP.fillRect(0, 0, 256, 256);
+for (const k of ["A", "B", "C"]) {
+  bufs[k].fillStyle = "#0b0e11";
+  bufs[k].fillRect(0, 0, bufs[k].canvas.width, bufs[k].canvas.height);
+}
+
+// A persistent frame buffer INSIDE wasm memory: the painter writes stroke
+// coordinates directly into wasm memory — publish() crosses no copies.
+const frame = W.frameBuffer(PAYLOAD);
+const words = new Uint32Array(frame.buffer, frame.byteOffset, PAYLOAD / 4);
+
+let seq = 0;
+let drawing = false, lastX = 0, lastY = 0, pending = 0;
+const strokes = [];
+
+function addStroke(x0, y0, x1, y1) {
+  strokes.push(x0 | 0, y0 | 0, x1 | 0, y1 | 0);
+  if (strokes.length > STROKES * 4) strokes.splice(0, 4);
+}
+
+function xy(ev) {
+  const r = paint.getBoundingClientRect();
+  return [ (ev.clientX - r.left) * 256 / r.width,
+           (ev.clientY - r.top) * 256 / r.height ];
+}
+paint.addEventListener("pointerdown", ev => {
+  drawing = true; [lastX, lastY] = xy(ev); ev.preventDefault();
+});
+paint.addEventListener("pointermove", ev => {
+  if (!drawing) return;
+  const [x, y] = xy(ev);
+  addStroke(lastX, lastY, x, y);
+  ctxP.strokeStyle = "#7ec3f0"; ctxP.lineWidth = 2;
+  ctxP.beginPath(); ctxP.moveTo(lastX, lastY); ctxP.lineTo(x, y); ctxP.stroke();
+  [lastX, lastY] = [x, y];
+  pending++;
+});
+addEventListener("pointerup", () => { drawing = false; });
+
+// Auto-painter so the demo runs hands-free too (a "collaborator" bot).
+let botAngle = 0;
+function botStroke() {
+  botAngle += 0.13;
+  const cx = 128 + 92 * Math.cos(botAngle), cy = 128 + 92 * Math.sin(botAngle * 1.31);
+  const px = 128 + 92 * Math.cos(botAngle - 0.09), py = 128 + 92 * Math.sin((botAngle - 0.09) * 1.31);
+  addStroke(px, py, cx, cy);
+  ctxP.strokeStyle = "rgba(126,195,240,.45)"; ctxP.lineWidth = 1.5;
+  ctxP.beginPath(); ctxP.moveTo(px, py); ctxP.lineTo(cx, cy); ctxP.stroke();
+}
+
+function drawStrokes(ctx, view, scale, clear) {
+  if (clear) { ctx.fillStyle = "#0b0e11"; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height); }
+  ctx.strokeStyle = "#e08f5a"; ctx.lineWidth = 2 * scale;
+  ctx.beginPath();
+  const n = view[0]; // word 0: stroke count this frame
+  for (let s = 0; s < n; s++) {
+    const x0 = view[1 + s*4], y0 = view[2 + s*4],
+          x1 = view[3 + s*4], y1 = view[4 + s*4];
+    ctx.moveTo(x0 * scale, y0 * scale);
+    ctx.lineTo(x1 * scale, y1 * scale);
+  }
+  ctx.stroke();
+}
+
+let stats = { fa: 0, da: 0, fc: 0, dc: 0 };
+function publishTick() {
+  botStroke();
+  if (strokes.length === 0) return;
+  // write the frame: [count, x0,y0,x1,y1, ...] into WASM memory directly
+  const count = Math.min(strokes.length / 4, STROKES);
+  words[0] = count;
+  for (let i = 0; i < count * 4; i++) words[1 + i] = strokes[strokes.length - count*4 + i];
+  const got = fan.publish(frame);
+  if (got > 0n) seq = got;
+}
+
+function consumeTick() {
+  // Consumer A: live view (clears + redraws the latest frame)
+  const a = rA.claim();
+  if (a.fresh) {
+    stats.fa++; stats.da += Number(a.dropped);
+    drawStrokes(bufs.A, rA.view(), 1, true);
+  }
+  // Consumer B: minimap — HALF the frames deliberately (a slow consumer:
+  // drops are accounted, never silent)
+  const b = rB.claim();
+  if (b.fresh) drawStrokes(bufs.B, rB.view(), 0.5, true);
+  // Consumer C: trail view — NEVER clears (accumulates every claimed frame)
+  const c = rC.claim();
+  if (c.fresh) {
+    stats.fc++; stats.dc += Number(c.dropped);
+    drawStrokes(bufs.C, rC.view(), 1, false);
+  }
+}
+
+let frameNo = 0;
+function loop() {
+  publishTick();     // writer: one frame per tick (30 Hz)
+  if ((frameNo & 1) === 0) consumeTick();  // consumers at ~15 Hz (independent)
+  if ((frameNo % 15) === 0) {
+    document.getElementById("seq").textContent = seq;
+    document.getElementById("fa").textContent = stats.fa;
+    document.getElementById("da").textContent = stats.da;
+    document.getElementById("fc").textContent = stats.fc;
+    document.getElementById("dc").textContent = stats.dc;
+  }
+  frameNo++;
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

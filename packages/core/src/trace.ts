@@ -7,7 +7,7 @@
 // cross-port byte-identity surface (fixtures/xlang-trace/): same scenario,
 // same bytes — a provable property, not a statistical one.
 
-import { Weft, PubResult, xorshift32 } from './weft.ts';
+import { Weft, PubResult, xorshift32 } from './weft';
 
 export const TraceKind = {
   Publish: 1,

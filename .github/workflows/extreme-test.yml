@@ -179,6 +179,7 @@ jobs:
               {"shard": "memory-model-formal", "description": "Axis 1: herd7 ARMv8 + RISC-V RVWMO CAT formal models + litmus7 ARM execution proofs", "script": "ci/scripts/run_memory_model_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "wcet-audit", "description": "Axis 2: Static instruction disassembly audit + WCET certificates + SCHED_DEADLINE TLA+ model", "script": "ci/scripts/run_wcet_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "recovery-self-stabilizing", "description": "Axis 3: Self-stabilizing ring recovery + health check + 10k fault injection cycles + TLA+ recovery proof", "script": "ci/scripts/run_recovery_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "series10", "description": "Series 10 Observability Fabric: RFC 0016 flight recorder, RFC 0017 flow operators, RFC 0018 sensor fusion, RFC 0019 replay, RFC 0020 trend", "script": "ci/scripts/run_series10_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)

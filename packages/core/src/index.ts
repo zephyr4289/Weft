@@ -6,3 +6,5 @@ export * from './cadence';
 export * from './blend';
 export * from './cursor';
 export * from './fanout_chaos';
+export * from './replay';
+export * from './trend';

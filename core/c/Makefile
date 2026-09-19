@@ -409,6 +409,62 @@ recovery-test: recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c fano
 recovery-test-asan: recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c fanout.h weft.h
 	$(CC) $(CFLAGS_ASAN) -o recovery-test-asan recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c
 
+# ---- flight recorder (RFC 0016) — core/c/weft_trace_* ---------------------
+
+trace-test: weft_trace.c weft_trace.h trace_rec.c trace_rec.h weft_trace_test.c
+	$(CC) $(CFLAGS) -o trace-test weft_trace_test.c weft_trace.c trace_rec.c
+
+trace-test-dbg: weft_trace.c weft_trace.h trace_rec.c trace_rec.h weft_trace_test.c
+	$(CC) $(CFLAGS) -DWEFT_TRACE_DEBUG -o trace-test-dbg weft_trace_test.c weft_trace.c trace_rec.c
+
+trace-test-asan: weft_trace.c weft_trace.h trace_rec.c trace_rec.h weft_trace_test.c
+	$(CC) $(CFLAGS_ASAN) -o trace-test-asan weft_trace_test.c weft_trace.c trace_rec.c
+
+# ---- time-travel replay (RFC 0019) — core/c/weft_replay_* -----------------
+
+replay-test: weft_replay.c weft_replay.h trace_rec.c trace_rec.h weft_replay_test.c
+	$(CC) $(CFLAGS) -o replay-test weft_replay_test.c weft_replay.c trace_rec.c
+
+replay-test-asan: weft_replay.c weft_replay.h trace_rec.c trace_rec.h weft_replay_test.c
+	$(CC) $(CFLAGS_ASAN) -o replay-test-asan weft_replay_test.c weft_replay.c trace_rec.c
+
+replay-runner: replay_runner.c weft_replay.c weft_replay.h trace_rec.c trace_rec.h
+	$(CC) $(CFLAGS) -o replay-runner replay_runner.c weft_replay.c trace_rec.c
+
+# ---- stream operators (RFC 0017) — core/c/weft_flow_* ----------------------
+
+flow-test: weft_flow.c weft_flow.h weft.c weft.h weft_flow_test.c
+	$(CC) $(CFLAGS) -o flow-test weft_flow_test.c weft_flow.c weft.c
+
+flow-test-asan: weft_flow.c weft_flow.h weft.c weft.h weft_flow_test.c
+	$(CC) $(CFLAGS_ASAN) -o flow-test-asan weft_flow_test.c weft_flow.c weft.c
+
+# ---- sensor fusion (RFC 0018) — core/c/weft_sync_* -------------------------
+
+sync-test: weft_sync.c weft_sync.h weft_flow.c weft_flow.h weft.c weft.h weft_sync_test.c
+	$(CC) $(CFLAGS) -o sync-test weft_sync_test.c weft_sync.c weft_flow.c weft.c
+
+sync-test-asan: weft_sync.c weft_sync.h weft_flow.c weft_flow.h weft.c weft.h weft_sync_test.c
+	$(CC) $(CFLAGS_ASAN) -o sync-test-asan weft_sync_test.c weft_sync.c weft_flow.c weft.c
+
+# ---- predictive trend (RFC 0020) — core/c/weft_trend_* ---------------------
+
+trend-test: weft_trend.c weft_trend.h weft_trend_test.c
+	$(CC) $(CFLAGS) -o trend-test weft_trend_test.c weft_trend.c
+
+trend-test-asan: weft_trend.c weft_trend.h weft_trend_test.c
+	$(CC) $(CFLAGS_ASAN) -o trend-test-asan weft_trend_test.c weft_trend.c
+
+trend-runner: trend_runner.c weft_trend.c weft_trend.h
+	$(CC) $(CFLAGS) -o trend-runner trend_runner.c weft_trend.c
+
+# ---- Series 10 full-fabric integration demo (RFC 0016 §8 evidence) ---------
+
+FLIGHT_SRC = flight_runner.c weft.c trace_rec.c weft_trace.c governor.c weft_trend.c
+
+flight-runner: $(FLIGHT_SRC) weft.h trace_rec.h weft_trace.h governor.h weft_trend.h
+	$(CC) $(CFLAGS) -o flight-runner $(FLIGHT_SRC)
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
@@ -423,7 +479,8 @@ clean:
 	      uring-test uring-test-asan uring-test-tsan \
 	      turbo-runner turbo-runner-sys bench \
 	      blend-test blend-test-asan blend-runner \
-	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench recovery-test recovery-test-asan
+	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench recovery-test recovery-test-asan \
+	      trace-test trace-test-dbg trace-test-asan replay-test replay-test-asan replay-runner flow-test flow-test-asan sync-test sync-test-asan trend-test trend-test-asan trend-runner flight-runner
 
 .PHONY: all clean
 

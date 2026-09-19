@@ -1,0 +1,6 @@
+weft-python binding: active claim-copy impl = avx512
+...........
+----------------------------------------------------------------------
+Ran 11 tests in 5.562s
+
+OK

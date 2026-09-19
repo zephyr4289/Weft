@@ -101,19 +101,19 @@ jobs:
             echo "compiler: $CC"
             # mingw-gcc on the windows runner; -static-libgcc keeps the DLL
             # self-contained. Named weft.dll — the loader's windows name.
-            "$CC" -shared -O3 -static-libgcc -include packages/flutter_weft/win_compat.h -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
+            "$CC" -shared -O3 -static-libgcc -include packages/flutter_weft/win_compat.h -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c core/c/fanout_simd.c \
               -o packages/flutter_weft/weft.dll 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
             cp packages/flutter_weft/weft.dll "${RUNNER_TEMP:-/tmp}/weft.dll" || true
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             CC="$(command -v clang || command -v gcc || command -v cc)"
             echo "compiler: $CC"
-            "$CC" -dynamiclib -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
+            "$CC" -dynamiclib -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c core/c/fanout_simd.c \
               -o packages/flutter_weft/libweft.dylib 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
             cp packages/flutter_weft/libweft.dylib "${RUNNER_TEMP:-/tmp}/libweft.dylib" || true
           else
             CC="$(command -v gcc || command -v clang || command -v cc)"
             echo "compiler: $CC"
-            "$CC" -shared -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
+            "$CC" -shared -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c core/c/fanout_simd.c \
               -o packages/flutter_weft/libweft.so 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
             cp packages/flutter_weft/libweft.so "${RUNNER_TEMP:-/tmp}/libweft.so" || true
           fi

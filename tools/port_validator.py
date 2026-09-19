@@ -375,10 +375,12 @@ def prove_c():
                            'SKIPPED (declared): no C compiler on host')
     with tempfile.TemporaryDirectory(prefix='weft-prove-') as td:
         so = Path(td) / 'libweft_prove.so'
+        c_files = [str(core_c / 'weft.c'), str(core_c / 'fanout.c'),
+                   str(core_c / 'frame_cursor.c')]
+        if (core_c / 'fanout_simd.c').exists():
+            c_files.append(str(core_c / 'fanout_simd.c'))
         build = subprocess.run(
-            [cc, '-shared', '-fPIC', '-O1', '-I', str(core_c),
-             str(core_c / 'weft.c'), str(core_c / 'fanout.c'),
-             str(core_c / 'frame_cursor.c'), '-o', str(so)],
+            [cc, '-shared', '-fPIC', '-O1', '-I', str(core_c)] + c_files + ['-o', str(so)],
             capture_output=True, text=True)
         if build.returncode != 0:
             return _emit_proof('c-compile-load', False,
@@ -578,10 +580,13 @@ def prove_torture():
     core_c = ROOT / 'core' / 'c'
     with tempfile.TemporaryDirectory(prefix='weft-torture-') as td:
         runner = Path(td) / 'fanout-runner'
+        c_files = [str(core_c / 'fanout_runner.c'), str(core_c / 'fanout.c'),
+                   str(core_c / 'frame_cursor.c'), str(core_c / 'weft.c')]
+        if (core_c / 'fanout_simd.c').exists():
+            c_files.append(str(core_c / 'fanout_simd.c'))
         build = subprocess.run(
-            [cc, '-O2', '-std=c11', '-D_POSIX_C_SOURCE=200809L', '-pthread',
-             str(core_c / 'fanout_runner.c'), str(core_c / 'fanout.c'),
-             str(core_c / 'weft.c'), '-o', str(runner)],
+            [cc, '-O2', '-std=c11', '-D_POSIX_C_SOURCE=200809L', '-D_GNU_SOURCE', '-pthread', '-I', str(core_c)] +
+            c_files + ['-o', str(runner)],
             capture_output=True, text=True)
         if build.returncode != 0:
             return _emit_proof('torture-f10', False,

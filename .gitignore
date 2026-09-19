@@ -112,3 +112,12 @@ tools/stranger-repro/STRANGER-REPRO-REPORT.*
 .tlc-cache/
 formal/*/states/
 nano/
+
+# Python binding in-tree build products (Series 9, issue #18-6)
+core/python/build/
+core/python/weft/_weft_c*.so
+core/python/weft.egg-info/
+
+# WASM port build products (Series 9, issue #18-1; CI builds from source)
+core/wasm/dist/
+demos/wasm-canvas/dist/

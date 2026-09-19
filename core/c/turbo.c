@@ -6,6 +6,7 @@
 #define _GNU_SOURCE
 #include "turbo.h"
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -344,6 +345,73 @@ void weft_turbo_fanout_destroy(weft_fanout_t* f, weft_turbo_ring_t* tr) {
 #if defined(__x86_64__) || defined(__i386__)
 #include <emmintrin.h>  // SSE2: _mm_stream_si128 + _mm_sfence (baseline ISA —
                         // no -mavx flag, no runtime dispatch, no target attr)
+
+// ---------------------------------------------------------------------------
+// Runtime prefetch distance (issue #17-4; the turbo.h contract)
+// ---------------------------------------------------------------------------
+
+#if defined(__x86_64__) || defined(_M_X64)
+#include <cpuid.h>  // weft_turbo_prefetch_tune vendor probe (issue #17-4)
+#endif
+_Atomic int _weft_turbo_pf_dist = WEFT_TURBO_PREFETCH_MAX_BYTES;
+
+int weft_turbo_prefetch_set_distance(int bytes) {
+    if (bytes < 0) return -1;
+    if (bytes > WEFT_TURBO_PREFETCH_DIST_HARD_MAX) {
+        bytes = WEFT_TURBO_PREFETCH_DIST_HARD_MAX;
+    }
+    atomic_store_explicit(&_weft_turbo_pf_dist, bytes, memory_order_relaxed);
+    return bytes;
+}
+
+int weft_turbo_prefetch_get_distance(void) {
+    return atomic_load_explicit(&_weft_turbo_pf_dist, memory_order_relaxed);
+}
+
+int weft_turbo_prefetch_tune(void) {
+    int dist = 128;  // conservative default (the documented starting point)
+#if defined(__x86_64__) || defined(_M_X64)
+    // AMD Zen (family 0x17+, Zen2/3/4/5) prefetchers favor a 256 B lead;
+    // Intel/other x86 keep 128 B (adjacent-line prefetcher pairing).
+    unsigned a = 0, b = 0, c = 0, d = 0;
+    char vendor[13] = {0};
+    unsigned family = 0;
+    if (__get_cpuid(1, &a, &b, &c, &d)) {
+        family = ((a >> 8) & 0xFu) + ((a >> 20) & 0xFFu);  // base + extended
+    }
+    if (__get_cpuid(0, &a, &b, &c, &d)) {
+        memcpy(vendor + 0, &b, 4);
+        memcpy(vendor + 4, &d, 4);
+        memcpy(vendor + 8, &c, 4);
+        if (strcmp(vendor, "AuthenticAMD") == 0 && family >= 0x17) {
+            dist = 256;
+        }
+    }
+#elif defined(__aarch64__)
+    // Apple silicon (MIDR implementer 0x61) -> 128 B; the default already
+    // matches, but the probe makes the intent explicit and the evidence
+    // line honest. MIDR is not user-readable on all kernels — /proc/cpuinfo
+    // parse, missing file keeps the default.
+    {
+        FILE* f = fopen("/proc/cpuinfo", "r");
+        if (f) {
+            char line[256];
+            while (fgets(line, sizeof(line), f)) {
+                if (strncmp(line, "CPU implementer", 15) == 0) {
+                    const char* eq = strchr(line, ':');
+                    if (eq) {
+                        const long impl = strtol(eq + 1, NULL, 0);
+                        if (impl == 0x61) dist = 128;  // Apple: explicit
+                    }
+                    break;
+                }
+            }
+            fclose(f);
+        }
+    }
+#endif
+    return weft_turbo_prefetch_set_distance(dist);
+}
 #define WEFT_TURBO_NT 1
 #else
 #define WEFT_TURBO_NT 0

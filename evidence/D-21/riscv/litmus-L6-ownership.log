@@ -1,0 +1,2 @@
+L6 trials=200 violations=0 seed=0x00C0FFEE pass=1
+{"test":"L6-ownership","lang":"c","pass":true,"metrics":{"trials":200,"frames_per_trial":64,"violations":0,"seed":"0x00C0FFEE"}}

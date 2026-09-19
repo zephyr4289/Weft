@@ -17,6 +17,9 @@ CFLAGS_ASAN = -O1 -g -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -fsanitize=ad
 INCLUDE  = -I$(ROOT)/core/c
 LIBS     = -lm
 FANOUT   = $(ROOT)/core/c/fanout.c
+# Issue #17-1: fanout.c's claim seam links fanout_simd.c (SIMD copy
+# dispatcher; scalar fallback when silicon refuses).
+FSIMD    = $(ROOT)/core/c/fanout_simd.c
 SHMRING  = $(ROOT)/core/c/shm_ring.c
 SRC      = weft_fanout_rec.c
 
@@ -30,16 +33,16 @@ e2e: weft-fanout-rec
 all: weft-fanout-rec weft-fanout-rec-seq
 
 weft-fanout-rec: $(SRC) $(FANOUT) $(SHMRING) $(ROOT)/core/c/fanout.h $(ROOT)/core/c/shm_ring.h
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $(SRC) $(FANOUT) $(SHMRING) $(LIBS) -lrt
+	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $(SRC) $(FANOUT) $(FSIMD) $(SHMRING) $(LIBS) -lrt
 
 weft-fanout-rec-seq: $(SRC) $(FANOUT) $(SHMRING) $(ROOT)/core/c/fanout.h $(ROOT)/core/c/shm_ring.h
-	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 $(INCLUDE) -o $@ $(SRC) $(FANOUT) $(SHMRING) $(LIBS) -lrt
+	$(CC) $(CFLAGS) -DWEFT_FANOUT_SEQ_CST=1 $(INCLUDE) -o $@ $(SRC) $(FANOUT) $(FSIMD) $(SHMRING) $(LIBS) -lrt
 
 weft-fanout-rec-asan: $(SRC) $(FANOUT) $(SHMRING) $(ROOT)/core/c/fanout.h $(ROOT)/core/c/shm_ring.h
-	$(CC) $(CFLAGS_ASAN) $(INCLUDE) -o $@ $(SRC) $(FANOUT) $(SHMRING) $(LIBS)
+	$(CC) $(CFLAGS_ASAN) $(INCLUDE) -o $@ $(SRC) $(FANOUT) $(FSIMD) $(SHMRING) $(LIBS)
 
 weft-fanout-rec-tsan: $(SRC) $(FANOUT) $(SHMRING) $(ROOT)/core/c/fanout.h $(ROOT)/core/c/shm_ring.h
-	$(CC) $(CFLAGS_DBG) $(INCLUDE) -o $@ $(SRC) $(FANOUT) $(SHMRING) $(LIBS)
+	$(CC) $(CFLAGS_DBG) $(INCLUDE) -o $@ $(SRC) $(FANOUT) $(FSIMD) $(SHMRING) $(LIBS)
 
 test: weft-fanout-rec
 	./weft-fanout-rec selftest --frames 20000 --words 64

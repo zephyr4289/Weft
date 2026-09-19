@@ -1,0 +1,2 @@
+L4 freshness_violations=0 future_violations=0 stale_returns=1 drain_exact=1 (last=2000) pass=1
+{"test":"L4-freshness","lang":"c","pass":true,"metrics":{"frames":2000,"freshness_violations":0,"future_violations":0,"drain_exact":true,"stale_returns":1}}

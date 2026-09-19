@@ -1,0 +1,2 @@
+L3 claims=2000 max_rsteps=1 bound=2 pass=1
+{"test":"L3-reader-steps","lang":"c","pass":true,"metrics":{"claims":2000,"max_rsteps":1,"bound":2}}

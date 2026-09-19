@@ -50,6 +50,7 @@ jobs:
       - name: Browser leg (headless chromium via agent-browser)
         run: |
           npm install -g agent-browser && agent-browser install --with-deps
+          mkdir -p demos/wasm-canvas/dist
           cp core/wasm/dist/libweft.js core/wasm/dist/libweft.wasm demos/wasm-canvas/dist/
           bash scripts/verify-wasm-demo-ci.sh
 

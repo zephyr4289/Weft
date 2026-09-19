@@ -34,8 +34,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install cffi + numpy
-        run: python3 -m pip install cffi "numpy>=1.22"
+      - name: Install cffi + numpy + setuptools
+        run: python3 -m pip install setuptools cffi "numpy>=1.22"
       - name: Build + PL-series battery + packaging sanity
         run: bash ci/scripts/run_python_binding_shard.sh
       - name: Upload shard artifacts

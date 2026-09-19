@@ -37,15 +37,20 @@ LOG=ci/run-artifacts/shard-riscv-litmus.log
 fail=0
 step() { echo "" | tee -a "$LOG"; echo "=== $1 ===" | tee -a "$LOG"; }
 
+SUDO=""
+if [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
+  SUDO="sudo"
+fi
+
 if ! command -v riscv64-linux-gnu-gcc >/dev/null 2>&1; then
   step "install cross toolchain + qemu (apt)"
-  apt-get update -qq >> "$LOG" 2>&1 || true
-  apt-get install -y --no-install-recommends gcc-riscv64-linux-gnu qemu-user >> "$LOG" 2>&1 \
+  $SUDO apt-get update -qq >> "$LOG" 2>&1 || true
+  $SUDO apt-get install -y --no-install-recommends gcc-riscv64-linux-gnu qemu-user >> "$LOG" 2>&1 \
     || { echo '{"shard":"riscv-litmus","status":"FAILED","reason":"toolchain install"}'; exit 1; }
 fi
 if ! command -v qemu-riscv64 >/dev/null 2>&1; then
   step "install qemu-user (apt)"
-  apt-get install -y --no-install-recommends qemu-user >> "$LOG" 2>&1 \
+  $SUDO apt-get install -y --no-install-recommends qemu-user >> "$LOG" 2>&1 \
     || { echo '{"shard":"riscv-litmus","status":"FAILED","reason":"qemu install"}'; exit 1; }
 fi
 

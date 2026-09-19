@@ -19,7 +19,7 @@ mkdir -p "$OUT"
 
 FLAVOR="${1:-single}"
 
-SOURCES="$CORE/weft.c $CORE/fanout.c $CORE/fanout_simd.c $CORE/fanout_batch.c $HERE/weft_wasm_glue.c"
+SOURCES="$CORE/weft.c $CORE/fanout.c $CORE/frame_cursor.c $CORE/fanout_simd.c $CORE/fanout_batch.c $HERE/weft_wasm_glue.c"
 
 EXPORTS="_wweft_new,_wweft_free,_wweft_publish,_wweft_claim_seq,_wweft_payload_ptr,_wweft_payload_len,_wweft_epoch,_wweft_revoke,_wweft_reclaim,_wweft_t_publish,_wweft_t_claim,_wweft_t_drop,_wweft_t_wsteps,_wweft_t_rsteps,_wfan_new,_wfan_free,_wfan_publish,_wfan_publish_batch,_wfan_ring,_wfan_ring_bytes,_wfr_new,_wfr_free,_wfr_claim,_wfr_view,_malloc,_free"
 

@@ -113,6 +113,7 @@ ffibuilder.set_source(
     sources=[
         os.path.join(CORE, "weft.c"),
         os.path.join(CORE, "fanout.c"),
+        os.path.join(CORE, "frame_cursor.c"),
         os.path.join(CORE, "fanout_simd.c"),
         os.path.join(CORE, "fanout_batch.c"),
         os.path.join(HERE, "weft_pyshim.c"),

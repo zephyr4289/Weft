@@ -36,7 +36,6 @@ int main(void) {
     
     // 3. Inject FUTURE_SEQ corruption (latestSeq > publishes)
     _Atomic uint64_t* ctrl = (_Atomic uint64_t*)ring;
-    uint64_t orig_latest = atomic_load(ctrl);
     atomic_store(ctrl, 9999);
     assert(weft_ring_health_check(ring, ring_bytes, PAYLOAD_BYTES, SLOT_COUNT) == WEFT_RING_CORRUPT_FUTURE_SEQ);
     rc = weft_ring_recover(ring, ring_bytes, PAYLOAD_BYTES, SLOT_COUNT);

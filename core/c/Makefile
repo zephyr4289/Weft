@@ -403,11 +403,11 @@ trace-dump: trace_dump.c trace_rec.c trace_rec.h weft.c weft.h
 	$(CC) $(CFLAGS) -o trace-dump trace_dump.c trace_rec.c weft.c
 
 # ---- Axis 3: Self-stabilizing ring recovery (doc-006) --------------------
-recovery-test: recovery_test.c fanout.c frame_cursor.c weft.c fanout.h weft.h
-	$(CC) $(CFLAGS) -o recovery-test recovery_test.c fanout.c frame_cursor.c weft.c
+recovery-test: recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c fanout.h weft.h
+	$(CC) $(CFLAGS) -o recovery-test recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c
 
-recovery-test-asan: recovery_test.c fanout.c frame_cursor.c weft.c fanout.h weft.h
-	$(CC) $(CFLAGS_ASAN) -o recovery-test-asan recovery_test.c fanout.c frame_cursor.c weft.c
+recovery-test-asan: recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o recovery-test-asan recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c
 
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \

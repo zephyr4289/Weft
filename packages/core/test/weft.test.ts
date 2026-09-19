@@ -490,3 +490,37 @@ describe('telemetry dual-half counters', () => {
     expect(typeof w.t_wsteps).toBe('number');
   });
 });
+
+// ---------------------------------------------------------------------------
+// TIER4 §5 input-validation wall (issue #19)
+// ---------------------------------------------------------------------------
+describe('TIER4 validation wall', () => {
+  it('constructor refuses payloadMax outside [1, 1 MiB] (loud, no half-built object)', () => {
+    expect(() => new Weft(0)).toThrow(RangeError);
+    expect(() => new Weft(-64)).toThrow(RangeError);
+    expect(() => new Weft(1.5)).toThrow(RangeError);
+    expect(() => new Weft((1 << 20) + 1)).toThrow(RangeError);
+    expect(() => new Weft(1 << 20)).not.toThrow();  // the limit itself is legal
+  });
+
+  it('publish refuses payloadLen > payloadMax: Invalid + t_invalid, no frame published', () => {
+    const w = new Weft(64);
+    const pubBefore = w.tPublish();
+    expect(w.publish(1, 65)).toBe(PubResult.Invalid);
+    expect(w.publish(1, 0xFFFFFFFF)).toBe(PubResult.Invalid);
+    expect(w.tInvalid()).toBe(2n);
+    expect(w.tPublish()).toBe(pubBefore);  // refused frames are not published
+    // A subsequent valid publish still works (the wall refuses, not poisons).
+    w.fillPayload(1, 64);
+    expect(w.publish(1, 64)).toBe(PubResult.Ok);
+    w.claim();
+    expect(w.verifyHeld(1, 64)).toBe(true);
+  });
+
+  it('revoked check still precedes the wall (normative 02 §6 ACK ordering)', () => {
+    const w = new Weft(64);
+    w.revoke();
+    expect(w.publish(1, 65)).toBe(PubResult.DroppedRevoked);  // ACK first
+    expect(w.tInvalid()).toBe(0n);
+  });
+});

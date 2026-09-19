@@ -22,8 +22,12 @@ import java.util.concurrent.atomic.AtomicReference
 const val WEFT_MAGIC: Int = 0x54464557
 const val WEFT_VERSION_1: Short = 1
 
+/// Upper bound for payload_max (1 MiB) — the TIER4 §5 validation wall
+/// (issue #19). Mirrors WEFT_PAYLOAD_MAX_LIMIT (core/c/weft.h).
+const val WEFT_PAYLOAD_MAX_LIMIT: Int = 1 shl 20
+
 /// Publish result (02 §4).
-enum class PubResult { OK, DROPPED_REVOKED }
+enum class PubResult { OK, DROPPED_REVOKED, INVALID }
 
 /// Decode result (03-ENVELOPE §2).
 enum class DecodeResult { OK, SHORT, BAD_MAGIC, BAD_HEADER }
@@ -35,6 +39,15 @@ enum class DecodeResult { OK, SHORT, BAD_MAGIC, BAD_HEADER }
 ///
 /// Per 02 §1: latest=0, w_work=1, r_work=2. JVM SC ≥ C AcqRel (decision 2).
 class Weft(val payloadMax: Int) {
+
+    init {
+        // TIER4 §5 validation wall (issue #19): fail fast on programmer error.
+        // require() throws IllegalArgumentException — loud, never a half-built
+        // object (the C kernel's -1 refusal maps to a throw in the VM port).
+        require(payloadMax in 1..WEFT_PAYLOAD_MAX_LIMIT) {
+            "Weft: payloadMax must be in [1, $WEFT_PAYLOAD_MAX_LIMIT] (TIER4 §5), got $payloadMax"
+        }
+    }
 
     val bufSize: Int = ((16 + payloadMax + 8 + 63) / 64) * 64
 
@@ -64,6 +77,7 @@ class Weft(val payloadMax: Int) {
     private val tPublish: AtomicLong = AtomicLong(0)
     private val tClaim: AtomicLong = AtomicLong(0)
     private val tDrop: AtomicLong = AtomicLong(0)
+    private val tInvalid: AtomicLong = AtomicLong(0)
 
     init {
         // Initialize all 3 buffers with null frames (seq=0, pat(0,i) payload).
@@ -106,6 +120,13 @@ class Weft(val payloadMax: Int) {
             return PubResult.DROPPED_REVOKED
         }
 
+        // TIER4 §5 validation wall (issue #19): refuse the frame WHOLE before
+        // any byte write. Counted (tInvalid), never silent.
+        if (payloadLen < 0 || payloadLen > payloadMax) {
+            tInvalid.incrementAndGet()
+            return PubResult.INVALID
+        }
+
         // Write envelope (v1, seq, payload_len) into buf[w_work].
         envelopeEncodeV1(buffers[wWork], seq, payloadLen)
         // Write canary = seq at buf[w_work].tail (u64 LE).
@@ -134,6 +155,7 @@ class Weft(val payloadMax: Int) {
     fun rSeq(): Int = buffers[rWork].getInt(8)
     fun rMagic(): Int = buffers[rWork].getInt(0)
     fun rPayloadLen(): Int = buffers[rWork].getInt(12)
+    fun rCanary(): Long = buffers[rWork].getLong(bufSize - 8)
 
     /// Read LIVE held-buffer bytes at call time (A3).
     /// Uses duplicate() so the shared ByteBuffer's position is never mutated
@@ -197,18 +219,34 @@ class Weft(val payloadMax: Int) {
     fun revoke() { revoked.set(true) }
 
     fun reclaim(preRevokeEpoch: Int, timeoutMs: Int): Boolean {
+        // TIER4 §4 (issue #19): effective bound = min(timeoutMs, ceiling).
+        // Ceiling 0 disables itself. Timeouts are counted, never silent; the
+        // caller must NOT poison/free after false (the writer has not ACKed).
+        val effectiveMs = if (maxReclaimTimeoutMs != 0 && timeoutMs > maxReclaimTimeoutMs)
+            maxReclaimTimeoutMs else timeoutMs
         val start = System.currentTimeMillis()
         while (true) {
             if (epoch.get() != preRevokeEpoch) return true
-            if (System.currentTimeMillis() - start >= timeoutMs) return false
+            if (System.currentTimeMillis() - start >= effectiveMs) {
+                tReclaimTimeouts.incrementAndGet()
+                return false
+            }
             Thread.sleep(1)
         }
     }
+
+    /// TIER4 §4: runtime-configurable reclaim ceiling (ms); 0 disables.
+    @Volatile var maxReclaimTimeoutMs: Int = 1000
+        private set
+    fun setMaxReclaimTimeout(maxMs: Int) { maxReclaimTimeoutMs = maxMs }
+    private val tReclaimTimeouts = AtomicLong(0)
+    fun tReclaimTimeoutsCount(): Long = tReclaimTimeouts.get()
 
     // --- Telemetry (advisory per AXIOM T) ---
     fun tPublishCount(): Long = tPublish.get()
     fun tClaimCount(): Long = tClaim.get()
     fun tDropCount(): Long = tDrop.get()
+    fun tInvalidCount(): Long = tInvalid.get()
     fun epochVal(): Int = epoch.get()
     /// Destroy: free resources (JVM GC handles it, but explicit destroy for API parity with C kernel).
     fun destroy() {

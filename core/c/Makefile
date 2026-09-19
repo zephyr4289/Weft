@@ -356,6 +356,52 @@ worklet-test: worklet.c worklet.h thread_qos.c thread_qos.h worklet_test.c blend
 qos-test: thread_qos.c thread_qos.h qos_test.c
 	$(CC) $(CFLAGS) -o qos-test thread_qos.c qos_test.c
 
+# ---- Issue #19 Tier 4: fuzz runner & bounded revocation ------------------
+
+fuzz-runner: fuzz_runner.c weft.c fanout.c frame_cursor.c weft.h fanout.h
+	$(CC) $(CFLAGS) -o fuzz-runner fuzz_runner.c weft.c fanout.c frame_cursor.c
+
+fuzz-runner-asan: fuzz_runner.c weft.c fanout.c frame_cursor.c weft.h fanout.h
+	$(CC) $(CFLAGS_ASAN) -o fuzz-runner-asan fuzz_runner.c weft.c fanout.c frame_cursor.c
+
+reclaim-test: weft.c reclaim_test.c weft.h
+	$(CC) $(CFLAGS) -o reclaim-test weft.c reclaim_test.c
+
+reclaim-test-asan: weft.c reclaim_test.c weft.h
+	$(CC) $(CFLAGS_ASAN) -o reclaim-test-asan weft.c reclaim_test.c
+
+# ---- Tier 4: FFI boundary isolation (issue #19 §2) ------------------------
+
+ffi_host-test: ffi_host.c ffi_host.h ffi_host_test.c
+	$(CC) $(CFLAGS) -o ffi_host-test ffi_host.c ffi_host_test.c
+
+ffi_host-test-asan: ffi_host.c ffi_host.h ffi_host_test.c
+	$(CC) $(CFLAGS_ASAN) -o ffi_host-test-asan ffi_host.c ffi_host_test.c
+
+# ---- Tier 5: .weftrec v4 trace standard (issue #20 §1, RFC 0014) ----------
+# trace_rec-test: T-series — codec conformance (round trip, CRC catch,
+#                  version gate, kind gate, exact size, JSON export, vector).
+# trace-dump: the deterministic scenario emitter + reference tools
+#             (hex = the cross-port byte-identity surface).
+
+# ---- Tier 5: Prometheus exposition (issue #20 §2) -------------------------
+# metrics-dump: kernel counters + live measured latency quantiles in the
+# Prometheus TEXT format (scraped by tools/prometheus/weft_exporter.py).
+
+# p99-bench: publish/claim latency quantiles (min-of-reps) for the
+# perf-regression gate baseline (issue #20 §4).
+p99-bench: p99_bench.c weft.c weft.h
+	$(CC) $(CFLAGS) -o p99-bench p99_bench.c weft.c
+
+metrics-dump: metrics_dump.c weft.c weft.h
+	$(CC) $(CFLAGS) -o metrics-dump metrics_dump.c weft.c
+
+trace_rec-test: trace_rec.c trace_rec.h trace_rec_test.c
+	$(CC) $(CFLAGS) -o trace_rec-test trace_rec.c trace_rec_test.c
+
+trace-dump: trace_dump.c trace_rec.c trace_rec.h weft.c weft.h
+	$(CC) $(CFLAGS) -o trace-dump trace_dump.c trace_rec.c weft.c
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
@@ -370,7 +416,7 @@ clean:
 	      uring-test uring-test-asan uring-test-tsan \
 	      turbo-runner turbo-runner-sys bench \
 	      blend-test blend-test-asan blend-runner \
-	      worklet-test qos-test
+	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench
 
 .PHONY: all clean
 

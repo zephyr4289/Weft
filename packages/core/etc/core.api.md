@@ -292,6 +292,7 @@ export interface PresentDecision {
 export const PubResult: {
     readonly Ok: 0;
     readonly DroppedRevoked: 1;
+    readonly Invalid: 2;
 };
 
 // @public (undocumented)
@@ -414,6 +415,10 @@ export class Weft {
     // (undocumented)
     fillPayload(seq: number, payloadLen: number): void;
     // (undocumented)
+    maxReclaimTimeout(): number;
+    // (undocumented)
+    maxReclaimTimeoutMs: number;
+    // (undocumented)
     payloadMax: number;
     // (undocumented)
     poisonAll(): void;
@@ -442,9 +447,13 @@ export class Weft {
     // (undocumented)
     scanPoison(): boolean;
     // (undocumented)
+    setMaxReclaimTimeout(maxMs: number): void;
+    // (undocumented)
     static readonly SLOT64_T_CLAIM = 6;
     // (undocumented)
     static readonly SLOT64_T_DROP = 7;
+    // (undocumented)
+    static readonly SLOT64_T_INVALID = 4;
     // (undocumented)
     static readonly SLOT64_T_PUBLISH = 5;
     // (undocumented)
@@ -464,11 +473,17 @@ export class Weft {
     // (undocumented)
     static readonly SLOT_T_DROP_LO = 14;
     // (undocumented)
+    static readonly SLOT_T_INVALID_HI = 9;
+    // (undocumented)
+    static readonly SLOT_T_INVALID_LO = 8;
+    // (undocumented)
     static readonly SLOT_T_PUBLISH_HI = 11;
     // (undocumented)
     static readonly SLOT_T_PUBLISH_LO = 10;
     // (undocumented)
     static readonly SLOT_W_WORK = 1;
+    // (undocumented)
+    t_reclaim_timeouts: number;
     // (undocumented)
     t_rsteps: number;
     // (undocumented)
@@ -477,6 +492,8 @@ export class Weft {
     tClaim(): bigint;
     // (undocumented)
     tDrop(): bigint;
+    // (undocumented)
+    tInvalid(): bigint;
     // (undocumented)
     tPublish(): bigint;
     // (undocumented)
@@ -491,6 +508,9 @@ export class Weft {
 
 // @public (undocumented)
 export const WEFT_MAGIC = 1413891415;
+
+// @public (undocumented)
+export const WEFT_PAYLOAD_MAX_LIMIT: number;
 
 // @public (undocumented)
 export const WEFT_VERSION_1 = 1;

@@ -200,3 +200,14 @@ The `weft_hw` module (`core/c/weft_hw.{h,c}`) establishes the project's thin har
 - **Bit-Identity by construction**: SIMD-accelerated kernels (`weft_hw_checksum32`, `weft_hw_xor_transform`) use strided lane layouts that guarantee identical byte output and checksums across scalar, SSE4.2/SSE2, AVX2, and AVX-512 ladders on all buffer lengths, including ragged tails.
 - **Dispatch Pattern Consolidation Roadmap**: The tree previously introduced module-local SIMD dispatch in `sha256_hw.c` (Series 6) and `sha256_mb.h` (Series 7 multi-buffer). `weft_hw` serves as the target common abstraction for silicon probing (ISA, cache lines, NUMA topology) and vector dispatch; subsequent maintenance refactors will delegate module-local dispatch to `weft_hw` to avoid duplicate CPUID/probe paths.
 
+---
+
+## 10. Security & Architecture Boundaries (Tier 4 Normative)
+
+### 1. The Validation Wall
+All external-facing entry points (FFI bindings, IPC attach, network bridges, package APIs) MUST route through the validation layer before touching kernel or ring APIs. Direct `weft_init` / `weft_fanout_init` calls with unvalidated parameters are caller-contract violations, not kernel bugs. The construction wall enforces fail-closed geometry validation (RFC 0015) prior to any allocation.
+
+### 2. Supported Platforms & Endianness
+- **Supported architectures**: ARM64 (aarch64), x86_64, and RISC-V (RV64GC).
+- **Endianness**: Big-endian hosts are explicitly unsupported. All wire formats, envelope encodings, and canaries assume Little-Endian byte order. Any future Big-Endian support requires a dedicated Tier-0 RFC.
+

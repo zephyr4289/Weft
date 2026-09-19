@@ -17,8 +17,12 @@ import 'dart:typed_data';
 const int weftMagic = 0x54464557;
 const int weftVersion1 = 1;
 
+/// Upper bound for payload_max (1 MiB) — the TIER4 §5 validation wall
+/// (issue #19). Mirrors WEFT_PAYLOAD_MAX_LIMIT (core/c/weft.h).
+const int weftPayloadMaxLimit = 1 << 20;
+
 /// Publish result (02 §4).
-enum PubResult { ok, droppedRevoked }
+enum PubResult { ok, droppedRevoked, invalid }
 
 /// Decode result (03-ENVELOPE §2).
 enum DecodeResult { ok, short, badMagic, badHeader }
@@ -48,15 +52,22 @@ class Weft {
   int _tPublish = 0;
   int _tClaim = 0;
   int _tDrop = 0;
+  int _tInvalid = 0;
 
     // init: constructor serves as init for API parity with C kernel.
   Weft(this.payloadMax) : bufSize = ((16 + payloadMax + 8 + 63) ~/ 64) * 64 {
+    // TIER4 §5 validation wall (issue #19): fail fast on programmer error —
+    // the C kernel's -1 refusal maps to a thrown ArgumentError in Dart.
+    if (payloadMax <= 0 || payloadMax > weftPayloadMaxLimit) {
+      throw ArgumentError.value(payloadMax, 'payloadMax',
+          'must be in [1, $weftPayloadMaxLimit] (TIER4 §5)');
+    }
     _buffers = List.generate(3, (_) => ByteData(bufSize));
     // Per 04-LITMUS §0.6: null frame with pat(0,i) payload.
     for (var i = 0; i < 3; i++) {
       _envelopeEncodeV1(_buffers[i], 0, payloadMax);
       for (var j = 0; j < payloadMax; j++) {
-        _buffers[i].setUint8(16 + j, _pat(0, j));
+        _buffers[i].setUint8(16 + j, pat(0, j));
       }
     }
   }
@@ -72,6 +83,11 @@ class Weft {
       _epoch += 1; // ACK (plain increment)
       _tDrop += 1;
       return PubResult.droppedRevoked;
+    }
+
+    if (payloadLen < 0 || payloadLen > payloadMax) {
+      _tInvalid++;
+      return PubResult.invalid;
     }
 
     _envelopeEncodeV1(_buffers[_wWork], seq, payloadLen);
@@ -100,6 +116,7 @@ class Weft {
   int rSeq() => _buffers[_rWork].getInt32(8, Endian.little);
   int rMagic() => _buffers[_rWork].getInt32(0, Endian.little);
   int rPayloadLen() => _buffers[_rWork].getInt32(12, Endian.little);
+  int rCanary() => _buffers[_rWork].getInt64(bufSize - 8, Endian.little);
 
   Uint8List rReadSlice(int offset, int len) {
     if (offset >= bufSize) return Uint8List(0);
@@ -120,34 +137,54 @@ class Weft {
   void destroy() { revoke(); }
 
   /// Single-isolate reclaim: the epoch can only advance when this event loop
-  /// runs other code — a synchronous busy-wait can NEVER observe a change.
-  /// (The previous revision either returned instantly or froze the entire
-  /// isolate for the full timeout and then failed.) So: check the epoch
-  /// once; if the writer has ACKed, reclaim succeeded; otherwise return
-  /// false immediately and await the ACK with [reclaimAsync] instead.
-  /// [timeoutMs] is accepted for API parity with the C kernel and ignored:
-  /// there is no time to wait in a synchronous check on a single isolate.
+  /// runs other code — a synchronous busy-wait can NEVER observe a change
+  /// (it would freeze the isolate for the whole bound and then fail, since
+  /// the writer lives on the same loop). So the sync path checks the epoch
+  /// ONCE and returns immediately — a zero-width bound, bounded by
+  /// construction — and directs the caller to [reclaimAsync] for a real
+  /// bounded wait. [timeoutMs] is honored where waiting is real: on the
+  /// async path (clamped by [maxReclaimTimeoutMs], TIER4 §4, issue #19).
   bool reclaim(int preRevokeEpoch, int timeoutMs) {
+    // The bound is trivially satisfied: a single check waits for nothing.
+    // Declared: sync reclaim NEVER waits and NEVER spins — the anti-hang
+    // property issue #19 task 4 demands, achieved by not waiting at all.
     return _epoch != preRevokeEpoch;
   }
 
   /// Async reclaim: yields to the event loop between checks so a pending
   /// writer turn can ACK. Returns true once the epoch advances past
-  /// [preRevokeEpoch]; false after [timeoutMs] milliseconds. This is the
-  /// correct I6 wait primitive for a single-isolate runtime.
+  /// [preRevokeEpoch]; false after the EFFECTIVE bound (min of [timeoutMs]
+  /// and the [maxReclaimTimeoutMs] ceiling — TIER4 §4, issue #19)
+  /// milliseconds. Timeouts are counted ([tReclaimTimeoutsCount]), never
+  /// silent; after false the caller must NOT poison/free (no ACK, A1).
   Future<bool> reclaimAsync(int preRevokeEpoch, int timeoutMs) async {
+    var effectiveMs = timeoutMs;
+    if (maxReclaimTimeoutMs != 0 && effectiveMs > maxReclaimTimeoutMs) {
+      effectiveMs = maxReclaimTimeoutMs;
+    }
     final sw = Stopwatch()..start();
     while (_epoch == preRevokeEpoch) {
-      if (sw.elapsedMilliseconds >= timeoutMs) return false;
+      if (sw.elapsedMilliseconds >= effectiveMs) {
+        _tReclaimTimeouts += 1;
+        return false;
+      }
       await Future<void>.delayed(Duration.zero);
     }
     return true;
   }
 
+  /// TIER4 §4: runtime-configurable reclaim ceiling (ms); 0 disables.
+  int maxReclaimTimeoutMs = 1000;
+  void setMaxReclaimTimeout(int maxMs) { maxReclaimTimeoutMs = maxMs; }
+  int _tReclaimTimeouts = 0;
+  int get tReclaimTimeoutsCount => _tReclaimTimeouts;
+
   // --- Telemetry (advisory) ---
   int get tPublishCount => _tPublish;
   int get tClaimCount => _tClaim;
   int get tDropCount => _tDrop;
+  int get tInvalidCount => _tInvalid;
+  int get epochVal => _epoch;
 
   /// debug: API parity with C kernel.
   Map<String, dynamic> debugState() => {'latest': _latest, 'wWork': _wWork, 'rWork': _rWork, 'revoked': _revoked, 'epoch': _epoch,'tPublish': _tPublish, 'tClaim': _tClaim, 'tDrop': _tDrop,'advisory': true};
@@ -199,7 +236,7 @@ int _mix32(int x) {
   return x & 0xFFFFFFFF;
 }
 
-int _pat(int seq, int i) {
+int pat(int seq, int i) {
   final x = (seq * 2654435761 + i * 2246822519) & 0xFFFFFFFF;
   return _mix32(x) & 0xFF;
 }

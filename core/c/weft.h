@@ -24,6 +24,14 @@
 #include <stdatomic.h>
 
 // ---------------------------------------------------------------------------
+// Input validation bounds (TIER4 §5 — issue #19, input validation)
+// ---------------------------------------------------------------------------
+
+#ifndef WEFT_PAYLOAD_MAX_LIMIT
+#define WEFT_PAYLOAD_MAX_LIMIT ((size_t)1 << 20)
+#endif
+
+// ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
 
@@ -31,6 +39,9 @@
 typedef enum {
     WEFT_PUB_OK              = 0,  // publish succeeded
     WEFT_PUB_DROPPED_REVOKED = 1, // writer has been revoked; publish was a no-op
+    WEFT_PUB_INVALID         = 2, // input validation failed (TIER4 §5, issue #19):
+                                   // payload_len > payload_max; no byte written,
+                                   // no state changed (the frame is refused)
 } weft_pub_result_t;
 
 /// Decode result codes (03-ENVELOPE §2).
@@ -40,6 +51,15 @@ typedef enum {
     WEFT_DECODE_BAD_MAGIC      = 2,  // magic != "WEFT"
     WEFT_DECODE_BAD_HEADER     = 3,  // header_size < 16 or > avail
 } weft_decode_result_t;
+
+/// Revocation reclaim verdicts (TIER4 §4 — issue #19, revocation timeout
+/// bounds). Legacy callers checking `rc == 0` / `rc != 0` remain correct:
+/// ACK is 0, every failure is nonzero.
+typedef enum {
+    WEFT_RECLAIM_ACK      = 0,  // writer ACKed (epoch advanced past pre-revoke)
+    WEFT_RECLAIM_TIMEOUT  = 1,  // bounded wait exhausted — caller may NOT poison/free
+    WEFT_RECLAIM_INVALID  = 2,  // invalid arguments (NULL w)
+} weft_reclaim_result_t;
 
 /// Weft instance — one writer + one reader, three off-heap buffers, one atomic.
 ///
@@ -82,8 +102,18 @@ typedef struct weft {
     _Atomic uint64_t t_publish;       // incremented after each successful publish
     _Atomic uint64_t t_claim;         // incremented after each claim
     _Atomic uint64_t t_drop;          // incremented on each DROPPED_REVOKED
+    _Atomic uint64_t t_invalid;       // incremented on each INVALID publish (TIER4 §5)
     _Atomic uint64_t t_wsteps;       // incremented once per protocol RMW in w_publish (L2)
     _Atomic uint64_t t_rsteps;       // incremented once per protocol RMW in r_claim (L3)
+
+    // TIER4 §4 (issue #19): bounded revocation. Runtime-configurable ceiling
+    // for weft_reclaim waits (default 1000 ms) + the advisory count of
+    // reclaim timeouts. A reclaim that hits the ceiling returns
+    // WEFT_RECLAIM_TIMEOUT and the caller MUST NOT poison/free (the writer
+    // may still be inside its final publish — the exact A1 hazard).
+    uint32_t max_reclaim_timeout_ms;  // immutable unless set via
+                                      // weft_set_max_reclaim_timeout
+    _Atomic uint64_t t_reclaim_timeouts; // advisory (Relaxed)
 } weft_t;
 
 // ---------------------------------------------------------------------------
@@ -91,7 +121,14 @@ typedef struct weft {
 // ---------------------------------------------------------------------------
 
 /// Allocate a Weft with the given payload_max. Returns 0 on success, -1 on
-/// alloc failure. Allocates 3 buffers via posix_memalign(64). May allocate
+/// invalid input or alloc failure.
+///
+/// Validation wall (TIER4 §5, issue #19 — validate BEFORE any allocation):
+///   - w == NULL                -> -1
+///   - payload_max == 0         -> -1 (a frameless triad is a config bug,
+///                                 not a degenerate ring)
+///   - payload_max > 1 MiB      -> -1 (WEFT_PAYLOAD_MAX_LIMIT; DoS bound)
+/// Allocates 3 buffers via posix_memalign(64). May allocate
 /// (only `init` may; Law 2 — zero is a contract in publish/claim).
 int weft_init(weft_t* w, size_t payload_max);
 
@@ -118,9 +155,14 @@ int weft_w_write_payload(weft_t* w, const uint8_t* src, size_t len);
 /// Publish the writer's working buffer with the given seq and payload_len.
 /// Per 02 §2 + §6:
 ///   1. if revoked.load(Relaxed): epoch.fetch_add(1, AcqRel); t_drop++;
-///      return DROPPED_REVOKED  (checked FIRST, before any byte write)
+///      return DROPPED_REVOKED  (checked FIRST, before any byte write —
+///      the normative §6 ordering; the ACK is load-bearing for reclaim)
+///   1.5. TIER4 §5 validation wall: if payload_len > payload_max,
+///      t_invalid++; return INVALID — BEFORE any byte write (the frame is
+///      refused whole; an oversized payload_len would poison the frame the
+///      reader copies and hand downstream consumers a bounds lie)
 ///   2. write envelope (v1, seq, payload_len) into buf[w_work]
-///   3. write canary = seq at buf[w_work].tail
+///   3. write canary (XOR boundary, TIER4 §3) at buf[w_work].tail
 ///   4. old = latest.exchange(w_work, AcqRel)   // THE atomic
 ///   5. w_work = old
 ///   6. t_publish++; t_wsteps++; return PUB_OK
@@ -164,11 +206,25 @@ const uint8_t* weft_r_live_ptr(weft_t* w, size_t offset);
 void weft_revoke(weft_t* w);
 
 /// Steps 2-3: poll epoch (Acquire) until it advances past the pre-revoke value,
-/// bounded by timeout_ms. Returns 0 on ACK received, -1 on timeout.
+/// bounded by timeout_ms AND by the instance ceiling `max_reclaim_timeout_ms`
+/// (default 1000 ms, runtime-configurable via
+/// weft_set_max_reclaim_timeout — the EFFECTIVE bound is min of the two).
+/// Returns WEFT_RECLAIM_ACK on ACK received, WEFT_RECLAIM_TIMEOUT when the
+/// bounded wait is exhausted (a warning is logged advisory-wise and
+/// t_reclaim_timeouts increments), WEFT_RECLAIM_INVALID on NULL w.
+///
+/// Bound honesty (TIER4 §4): the poll granularity is 100 µs, so the call
+/// returns within effective_timeout + one poll tick — declared, not assumed.
 ///
 /// After ACK is observed, the caller may poison (memset 0xDE) or free.
-/// Poison-before-ACK is the bug this handshake prevents (A1).
-int weft_reclaim(weft_t* w, uint32_t pre_revoke_epoch, uint32_t timeout_ms);
+/// Poison-before-ACK is the bug this handshake prevents (A1). A TIMED-OUT
+/// reclaim is NOT an ACK: poison/free after TIMEOUT is the caller's bug.
+weft_reclaim_result_t weft_reclaim(weft_t* w, uint32_t pre_revoke_epoch, uint32_t timeout_ms);
+
+/// TIER4 §4: runtime-configurable reclaim ceiling (ms). 0 disables the
+/// ceiling (callers then own the bound entirely — declared, not assumed).
+void weft_set_max_reclaim_timeout(weft_t* w, uint32_t max_ms);
+uint32_t weft_max_reclaim_timeout(const weft_t* w);
 
 // ---------------------------------------------------------------------------
 // Telemetry (Relaxed loads; statistics only, never synchronization)
@@ -177,6 +233,8 @@ int weft_reclaim(weft_t* w, uint32_t pre_revoke_epoch, uint32_t timeout_ms);
 uint64_t weft_t_publish(weft_t* w);
 uint64_t weft_t_claim(weft_t* w);
 uint64_t weft_t_drop(weft_t* w);
+uint64_t weft_t_invalid(weft_t* w);
+uint64_t weft_t_reclaim_timeouts(weft_t* w);
 uint64_t weft_t_wsteps(weft_t* w);
 uint64_t weft_t_rsteps(weft_t* w);
 uint32_t weft_epoch(weft_t* w);
@@ -257,6 +315,7 @@ typedef struct {
     uint64_t t_publish;        ///< Telemetry (advisory)
     uint64_t t_claim;           ///< Telemetry (advisory)
     uint64_t t_drop;            ///< Telemetry (advisory)
+    uint64_t t_invalid;         ///< Telemetry (advisory) — TIER4 §5 refused publishes
     /// Two live buffer samples. Buffers with no live owner are reported by
     /// index/state only — NO dereference (I6 rule). The third buffer (if
     /// freed/poisoned) is reported as slot_idx=3, owner=0, all fields zero.

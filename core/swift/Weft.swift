@@ -15,8 +15,12 @@ import Atomics
 let WEFT_MAGIC: UInt32 = 0x54464557
 let WEFT_VERSION_1: UInt16 = 1
 
+/// Upper bound for payload_max (1 MiB) — the TIER4 §5 validation wall
+/// (issue #19). Mirrors WEFT_PAYLOAD_MAX_LIMIT (core/c/weft.h).
+let WEFT_PAYLOAD_MAX_LIMIT: Int = 1 << 20
+
 /// Publish result (02 §4).
-public enum PubResult { case ok, droppedRevoked }
+public enum PubResult { case ok, droppedRevoked, invalid }
 
 /// Decode result (03-ENVELOPE §2).
 public enum DecodeResult { case ok, short, badMagic, badHeader }
@@ -49,8 +53,14 @@ public final class Weft {
     private let tPublish = ManagedAtomic<UInt64>(0)
     private let tClaim = ManagedAtomic<UInt64>(0)
     private let tDrop = ManagedAtomic<UInt64>(0)
+    private let tInvalid = ManagedAtomic<UInt64>(0)
 
     public init(payloadMax: Int) {
+        // TIER4 §5 validation wall (issue #19): fail fast — an invalid triad
+        // geometry is a programmer error in the VM port (the C kernel's -1
+        // refusal maps to a precondition; never a half-built object).
+        precondition(payloadMax > 0 && payloadMax <= 1 << 20,
+                     "Weft: payloadMax must be in [1, \(1 << 20)] (TIER4 §5), got \(payloadMax)")
         self.payloadMax = payloadMax
         self.bufSize = ((16 + payloadMax + 8 + 63) / 64) * 64
 
@@ -92,6 +102,11 @@ public final class Weft {
             epoch.wrappingIncrement(by: 1, ordering: .acquiringAndReleasing)
             tDrop.wrappingIncrement(by: 1, ordering: .relaxed)
             return .droppedRevoked
+        }
+
+        if payloadLen > UInt32(payloadMax) {
+            tInvalid.wrappingIncrement(by: 1, ordering: .relaxed)
+            return .invalid
         }
 
         let buf = buffers[Int(wWork)]
@@ -138,18 +153,37 @@ public final class Weft {
     public func revoke() { revoked.store(true, ordering: .releasing) }
 
     public func reclaim(preRevokeEpoch: UInt32, timeoutMs: Int) -> Bool {
+        // TIER4 §4 (issue #19): effective bound = min(timeoutMs, ceiling).
+        // Ceiling 0 disables itself. Timeouts are counted, never silent; the
+        // caller must NOT poison/free after false (the writer has not ACKed).
+        var effectiveMs = timeoutMs
+        if maxReclaimTimeoutMs != 0 && effectiveMs > maxReclaimTimeoutMs {
+            effectiveMs = maxReclaimTimeoutMs
+        }
         let start = Date()
         while true {
             if epoch.load(ordering: .acquiring) != preRevokeEpoch { return true }
-            if Date().timeIntervalSince(start) > Double(timeoutMs) / 1000.0 { return false }
+            if Date().timeIntervalSince(start) > Double(effectiveMs) / 1000.0 {
+                tReclaimTimeouts.wrappingIncrement(by: 1, ordering: .relaxed)
+                return false
+            }
             usleep(100)
         }
     }
+
+    /// TIER4 §4: runtime-configurable reclaim ceiling (ms); 0 disables.
+    /// Mirrors weft_set_max_reclaim_timeout (core/c/weft.h).
+    private var maxReclaimTimeoutMs: Int = 1000
+    public func setMaxReclaimTimeout(_ maxMs: Int) { maxReclaimTimeoutMs = maxMs }
+    public func maxReclaimTimeout() -> Int { maxReclaimTimeoutMs }
+    private let tReclaimTimeouts = ManagedAtomic<UInt64>(0)
+    public func tReclaimTimeoutsCount() -> UInt64 { tReclaimTimeouts.load(ordering: .relaxed) }
 
     // --- Telemetry (advisory) ---
     public func tPublishCount() -> UInt64 { tPublish.load(ordering: .relaxed) }
     public func tClaimCount() -> UInt64 { tClaim.load(ordering: .relaxed) }
     public func tDropCount() -> UInt64 { tDrop.load(ordering: .relaxed) }
+    public func tInvalidCount() -> UInt64 { tInvalid.load(ordering: .relaxed) }
 
     /// debug: API parity with C kernel (WO-P2 T1 mirror).
     public func debugState() -> [String: Any] {

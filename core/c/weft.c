@@ -16,12 +16,16 @@
 #include "weft.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 
 // Magic "WEFT" little-endian: bytes 57 45 46 54 → u32 LE = 0x54464557
 #define WEFT_MAGIC  0x54464557u
 #define WEFT_VERSION_1  1u
+
+// TIER4 §4 (issue #19): default ceiling for reclaim waits.
+#define WEFT_RECLAIM_MAX_TIMEOUT_MS_DEFAULT 1000u
 
 // ---------------------------------------------------------------------------
 // Buffer layout helpers
@@ -41,6 +45,10 @@ static size_t canary_offset(size_t buf_size) { return buf_size - 8; }
 // ---------------------------------------------------------------------------
 
 int weft_init(weft_t* w, size_t payload_max) {
+    // TIER4 §5 validation wall — BEFORE any allocation or write.
+    if (w == NULL) return -1;
+    if (payload_max == 0 || payload_max > WEFT_PAYLOAD_MAX_LIMIT) return -1;
+
     memset(w, 0, sizeof(*w));
     w->payload_max = payload_max;
     w->buf_size = compute_buf_size(payload_max);
@@ -79,8 +87,12 @@ int weft_init(weft_t* w, size_t payload_max) {
     atomic_init(&w->t_publish, (uint64_t)0);
     atomic_init(&w->t_claim, (uint64_t)0);
     atomic_init(&w->t_drop, (uint64_t)0);
+    atomic_init(&w->t_invalid, (uint64_t)0);
     atomic_init(&w->t_wsteps, (uint64_t)0);
     atomic_init(&w->t_rsteps, (uint64_t)0);
+    // TIER4 §4: bounded revocation defaults (issue #19).
+    w->max_reclaim_timeout_ms = WEFT_RECLAIM_MAX_TIMEOUT_MS_DEFAULT;
+    atomic_init(&w->t_reclaim_timeouts, (uint64_t)0);
 
     return 0;
 }
@@ -90,6 +102,7 @@ void weft_destroy(weft_t* w) {
     // If revoke was never called, plain free is correct (no writer exists).
     // `destroy` without a prior `reclaim` while a writer may still run is a
     // caller error — documented here, not defended.
+    if (w == NULL) return;
     for (int i = 0; i < 3; i++) {
         free(w->buf[i]);
         w->buf[i] = NULL;
@@ -106,8 +119,10 @@ uint8_t* weft_w_begin(weft_t* w) {
 }
 
 int weft_w_write_payload(weft_t* w, const uint8_t* src, size_t len) {
+    if (w == NULL || w->buf[w->w_work] == NULL) return -1;
     if (len > w->payload_max) return -1;
-    memcpy(w->buf[w->w_work] + 16, src, len);
+    if (src == NULL && len > 0) return -1;  // TIER4 §5: NULL src with nonzero len
+    if (len > 0) memcpy(w->buf[w->w_work] + 16, src, len);
     return 0;
 }
 
@@ -120,6 +135,16 @@ weft_pub_result_t weft_publish(weft_t* w, uint32_t seq, uint32_t payload_len) {
         atomic_fetch_add_explicit(&w->epoch, 1, memory_order_acq_rel);
         atomic_fetch_add_explicit(&w->t_drop, 1, memory_order_relaxed);
         return WEFT_PUB_DROPPED_REVOKED;
+    }
+
+    // TIER4 §5 validation wall (issue #19): payload_len > payload_max refuses
+    // the frame WHOLE — before any byte write, before any state change. An
+    // oversized payload_len would poison the frame the reader copies (tail
+    // bytes surface as payload) and hand downstream consumers a bounds lie.
+    // Counted (t_invalid), never silent.
+    if (payload_len > (uint32_t)w->payload_max) {
+        atomic_fetch_add_explicit(&w->t_invalid, 1, memory_order_relaxed);
+        return WEFT_PUB_INVALID;
     }
 
     // 02 §2: write envelope (v1, seq, payload_len) into buf[w_work]
@@ -211,9 +236,9 @@ void weft_revoke(weft_t* w) {
     atomic_store_explicit(&w->revoked, true, memory_order_release);
 }
 
-int weft_reclaim(weft_t* w, uint32_t pre_revoke_epoch, uint32_t timeout_ms) {
+weft_reclaim_result_t weft_reclaim(weft_t* w, uint32_t pre_revoke_epoch, uint32_t timeout_ms) {
     // Steps 2-3: poll epoch (Acquire) until it advances past pre_revoke_epoch,
-    // bounded by timeout_ms.
+    // bounded by min(timeout_ms, max_reclaim_timeout_ms) — TIER4 §4 (issue #19).
     //
     // Why the ACK is load-bearing (02 §6): between the writer's revocation check
     // and its envelope write there is a window; freeing in that window is a
@@ -221,16 +246,26 @@ int weft_reclaim(weft_t* w, uint32_t pre_revoke_epoch, uint32_t timeout_ms) {
     // observes the ACK's fetch_add, which is ordered after the writer's final
     // byte write. Poison-before-ACK is the bug; poison-after-ACK is the protocol.
 
+    if (w == NULL) return WEFT_RECLAIM_INVALID;
+
+    // Effective bound = min(requested, ceiling). Ceiling 0 disables itself
+    // (declared: the caller then owns the bound entirely); a caller bound of
+    // 0 stays an instant timeout (legacy contract).
+    uint64_t effective_ms = timeout_ms;
+    if (w->max_reclaim_timeout_ms != 0 && effective_ms > w->max_reclaim_timeout_ms) {
+        effective_ms = w->max_reclaim_timeout_ms;
+    }
+
     struct timespec ts_start;
     clock_gettime(CLOCK_MONOTONIC, &ts_start);
     uint64_t deadline_ns = (uint64_t)ts_start.tv_sec * 1000000000ull
                           + (uint64_t)ts_start.tv_nsec
-                          + (uint64_t)timeout_ms * 1000000ull;
+                          + effective_ms * 1000000ull;
 
     while (true) {
         uint32_t e = atomic_load_explicit(&w->epoch, memory_order_acquire);
         if (e != pre_revoke_epoch) {
-            return 0;  // ACK received
+            return WEFT_RECLAIM_ACK;
         }
         // Check timeout
         struct timespec ts_now;
@@ -238,13 +273,31 @@ int weft_reclaim(weft_t* w, uint32_t pre_revoke_epoch, uint32_t timeout_ms) {
         uint64_t now_ns = (uint64_t)ts_now.tv_sec * 1000000000ull
                          + (uint64_t)ts_now.tv_nsec;
         if (now_ns >= deadline_ns) {
-            return -1;  // timeout
+            // TIER4 §4: a timeout is an ADVISORY event, never a silent one.
+            atomic_fetch_add_explicit(&w->t_reclaim_timeouts, 1, memory_order_relaxed);
+            if (getenv("WEFT_WARN_RECLAIM") != NULL) {
+                fprintf(stderr,
+                        "weft_reclaim: TIMEOUT after %llu ms (ceiling %u ms, caller bound %u ms) "
+                        "— writer has NOT ACKed; poison/free is FORBIDDEN (A1)\n",
+                        (unsigned long long)effective_ms,
+                        (unsigned)w->max_reclaim_timeout_ms, (unsigned)timeout_ms);
+            }
+            return WEFT_RECLAIM_TIMEOUT;
         }
         // Brief sleep to avoid burning CPU. 100µs is fine — the writer ACKs
         // within one publish, which is < 1ms at our test rates.
         struct timespec sleep_ts = { .tv_sec = 0, .tv_nsec = 100 * 1000 };
         nanosleep(&sleep_ts, NULL);
     }
+}
+
+void weft_set_max_reclaim_timeout(weft_t* w, uint32_t max_ms) {
+    if (w == NULL) return;
+    w->max_reclaim_timeout_ms = max_ms;
+}
+
+uint32_t weft_max_reclaim_timeout(const weft_t* w) {
+    return w ? w->max_reclaim_timeout_ms : 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -254,6 +307,8 @@ int weft_reclaim(weft_t* w, uint32_t pre_revoke_epoch, uint32_t timeout_ms) {
 uint64_t weft_t_publish(weft_t* w) { return atomic_load_explicit(&w->t_publish, memory_order_relaxed); }
 uint64_t weft_t_claim(weft_t* w)   { return atomic_load_explicit(&w->t_claim, memory_order_relaxed); }
 uint64_t weft_t_drop(weft_t* w)    { return atomic_load_explicit(&w->t_drop, memory_order_relaxed); }
+uint64_t weft_t_invalid(weft_t* w) { return atomic_load_explicit(&w->t_invalid, memory_order_relaxed); }
+uint64_t weft_t_reclaim_timeouts(weft_t* w) { return atomic_load_explicit(&w->t_reclaim_timeouts, memory_order_relaxed); }
 uint64_t weft_t_wsteps(weft_t* w) { return atomic_load_explicit(&w->t_wsteps, memory_order_relaxed); }
 uint64_t weft_t_rsteps(weft_t* w) { return atomic_load_explicit(&w->t_rsteps, memory_order_relaxed); }
 uint32_t weft_epoch(weft_t* w)    { return atomic_load_explicit(&w->epoch, memory_order_acquire); }
@@ -373,6 +428,7 @@ void weft_debug_view(const weft_t* w, weft_debug_view_t* out) {
     out->t_publish = atomic_load_explicit(&w->t_publish, memory_order_relaxed);
     out->t_claim   = atomic_load_explicit(&w->t_claim, memory_order_relaxed);
     out->t_drop    = atomic_load_explicit(&w->t_drop, memory_order_relaxed);
+    out->t_invalid = atomic_load_explicit(&w->t_invalid, memory_order_relaxed);
 
     // Determine which two buffers are "live" (have an owner).
     // The three buffers are always in one of these states:

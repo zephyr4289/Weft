@@ -1,0 +1,38 @@
+==================================================
+SHARD: bench-b-ts
+DESCRIPTION: B1-B5 benchmarks, TS kernel
+STATUS: PASSED ✅
+COMMIT: f5f227503e035834900e22c4a5afdcac9dcf90f5
+RUN: 140
+==================================================
+
+# Loaded bench catalog: weft-bench v1
+  running ts B1-pub-throughput...
+    -> exit=0 elapsed=6.2s pass=True
+  running ts B2-contended...
+    -> exit=0 elapsed=3.1s pass=True
+  running ts B3-scaling-fingerprint...
+    -> exit=0 elapsed=0.7s pass=True
+  running ts B4-display-adversarial...
+    -> exit=0 elapsed=10.1s pass=True
+  running ts B5-memory-contract...
+    -> exit=0 elapsed=0.8s pass=True
+Wrote /home/runner/work/Weft/Weft/bench/REPORT.md
+Wrote /home/runner/work/Weft/Weft/bench/results.json (sha256: 6bc7c2d79d7efd3b...)
+er/work/Weft/Weft/bench/REPORT.md
+Wrote /home/runner/work/Weft/Weft/bench/results.json (sha256: 6bc7c2d79d7efd3b...)
+Canonical bundle restored: 16b5c663433a37540c77f9dd6e4b83abe3eed929cc4c142813ad0b684f5498f8
+{
+  "shard": "bench-b-ts",
+  "status": "PASSED",
+  "cells_pass": 5,
+  "cells_total": 5,
+  "cells": {
+    "ts/B1-pub-throughput": true,
+    "ts/B2-contended": true,
+    "ts/B3-scaling-fingerprint": true,
+    "ts/B4-display-adversarial": true,
+    "ts/B5-memory-contract": true
+  },
+  "canonical_sha256_prefix": "16b5c663"
+}

@@ -55,6 +55,8 @@ core/c/ffi_host-test
 core/c/ffi_host-test-asan
 core/c/fuzz-runner
 core/c/fuzz-runner-asan
+core/c/trace-dump
+core/c/trace_rec-test
 tools/weft-probe/weft_probe
 tools/weft-record/weft_record
 tools/weft-fanout-rec/weft-fanout-rec

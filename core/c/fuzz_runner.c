@@ -45,6 +45,18 @@
 #include "weft.h"
 #include "fanout.h"
 
+typedef enum {
+    WEFT_CANARY_OK = 0,
+    WEFT_CANARY_MISMATCH = 1,
+} weft_canary_result_t;
+
+static inline weft_canary_result_t weft_r_canary_check(weft_t* w) {
+    if (!w || !w->buf[w->r_work]) return WEFT_CANARY_MISMATCH;
+    uint64_t canary;
+    memcpy(&canary, (const uint8_t*)w->buf[w->r_work] + w->buf_size - 8, 8);
+    return (canary == (uint64_t)weft_r_seq(w)) ? WEFT_CANARY_OK : WEFT_CANARY_MISMATCH;
+}
+
 static uint32_t rng_state;
 static uint32_t rng(void) { return weft_xorshift32(&rng_state); }
 

@@ -183,6 +183,7 @@ class Weft {
   int get tClaimCount => _tClaim;
   int get tDropCount => _tDrop;
   int get tInvalidCount => _tInvalid;
+  int get epochVal => _epoch;
 
   /// debug: API parity with C kernel.
   Map<String, dynamic> debugState() => {'latest': _latest, 'wWork': _wWork, 'rWork': _rWork, 'revoked': _revoked, 'epoch': _epoch,'tPublish': _tPublish, 'tClaim': _tClaim, 'tDrop': _tDrop,'advisory': true};
@@ -234,7 +235,7 @@ int _mix32(int x) {
   return x & 0xFFFFFFFF;
 }
 
-int _pat(int seq, int i) {
+int pat(int seq, int i) {
   final x = (seq * 2654435761 + i * 2246822519) & 0xFFFFFFFF;
   return _mix32(x) & 0xFF;
 }

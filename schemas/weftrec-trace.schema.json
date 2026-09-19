@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weft.dev/schemas/weftrec-trace.schema.json",
+  "title": ".weftrec v4 kernel trace — JSON-lines export",
+  "description": "RFC 0014 (issue #20 task 1): the human-readable contract for kernel trace events. One header line, then one line per event. The binary container (header + CRC'd 12-byte records) is the storage format; this schema governs the export every tool and port must agree on.",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/header" },
+    { "$ref": "#/$defs/event" }
+  ],
+  "$defs": {
+    "header": {
+      "type": "object",
+      "required": ["format", "version", "kind", "events"],
+      "properties": {
+        "format": { "const": "weftrec" },
+        "version": { "const": 4 },
+        "kind": { "const": "trace" },
+        "events": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "event": {
+      "type": "object",
+      "required": ["i", "kind", "aux", "data"],
+      "properties": {
+        "i": { "type": "integer", "minimum": 0, "description": "event ordinal (logical clock; NO wall-clock in the stream)" },
+        "kind": {
+          "enum": ["publish", "claim", "drop", "revoke", "ack", "stall", "tear", "canary_fail"]
+        },
+        "aux": {
+          "type": "integer", "minimum": 0, "maximum": 65535,
+          "description": "kind-scoped: publish = payload_len; else 0"
+        },
+        "data": {
+          "type": "integer", "minimum": 0, "maximum": 4294967295,
+          "description": "kind-scoped: seq (publish/claim/drop/tear/canary_fail), epoch (revoke/ack), attempts (stall)"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

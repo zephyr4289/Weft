@@ -4,9 +4,23 @@ name: python-binding
 on:
   push:
     branches: [main, develop]
+    paths:
+      - 'core/python/**'
+      - 'core/c/**'
+      - 'ci/scripts/run_python_binding_shard.sh'
+      - '.github/workflows/python-binding.yml'
   pull_request:
     branches: [main, develop]
+    paths:
+      - 'core/python/**'
+      - 'core/c/**'
+      - 'ci/scripts/run_python_binding_shard.sh'
+      - '.github/workflows/python-binding.yml'
   workflow_dispatch:
+
+concurrency:
+  group: python-binding-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   python-binding:

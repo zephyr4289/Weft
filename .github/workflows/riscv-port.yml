@@ -9,9 +9,25 @@ name: riscv-port
 on:
   push:
     branches: [main, develop]
+    paths:
+      - 'ci/riscv/**'
+      - 'core/c/**'
+      - 'ci/scripts/run_riscv_litmus_shard.sh'
+      - 'docs/riscv-port.md'
+      - '.github/workflows/riscv-port.yml'
   pull_request:
     branches: [main, develop]
+    paths:
+      - 'ci/riscv/**'
+      - 'core/c/**'
+      - 'ci/scripts/run_riscv_litmus_shard.sh'
+      - 'docs/riscv-port.md'
+      - '.github/workflows/riscv-port.yml'
   workflow_dispatch:
+
+concurrency:
+  group: riscv-port-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   riscv-litmus:

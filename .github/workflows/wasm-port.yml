@@ -4,9 +4,25 @@ name: wasm-port
 on:
   push:
     branches: [main, develop]
+    paths:
+      - 'core/wasm/**'
+      - 'core/c/**'
+      - 'demos/wasm-canvas/**'
+      - 'scripts/verify-wasm-demo-ci.sh'
+      - '.github/workflows/wasm-port.yml'
   pull_request:
     branches: [main, develop]
+    paths:
+      - 'core/wasm/**'
+      - 'core/c/**'
+      - 'demos/wasm-canvas/**'
+      - 'scripts/verify-wasm-demo-ci.sh'
+      - '.github/workflows/wasm-port.yml'
   workflow_dispatch:
+
+concurrency:
+  group: wasm-port-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   wasm-node:
@@ -28,7 +44,7 @@ jobs:
           bash core/wasm/build.sh single
           bash core/wasm/build.sh pthreads
 
-      - name: WL/WF battery (node --test: L1-L8 analogs + fan-out + batch + zero-copy)
+      - name: "WL/WF battery (node --test: L1-L8 analogs + fan-out + batch + zero-copy)"
         run: node --test --experimental-strip-types core/wasm/test/litmus.ts
 
       - name: Browser leg (headless chromium via agent-browser)

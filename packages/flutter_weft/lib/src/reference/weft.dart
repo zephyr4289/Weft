@@ -116,6 +116,7 @@ class Weft {
   int rSeq() => _buffers[_rWork].getInt32(8, Endian.little);
   int rMagic() => _buffers[_rWork].getInt32(0, Endian.little);
   int rPayloadLen() => _buffers[_rWork].getInt32(12, Endian.little);
+  int rCanary() => _buffers[_rWork].getInt64(bufSize - 8, Endian.little);
 
   Uint8List rReadSlice(int offset, int len) {
     if (offset >= bufSize) return Uint8List(0);

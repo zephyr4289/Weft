@@ -43,7 +43,7 @@ echo "  TS reference: ${#REF} hex chars"
 check() { # check <name> <file>
   local got
   got=$(cat "$2")
-  if [ "$got" == "$REF" ]; then
+  if [ "$got" = "$REF" ]; then
     echo "  ✅ $1 byte-identical"
   else
     echo "  ❌ $1 DIVERGES from the TS reference"
@@ -60,30 +60,43 @@ else
 fi
 
 # --- Kotlin (when kotlinc is present; CI owns it) ---------------------------
-if command -v kotlinc >/dev/null 2>&1; then
-  ran_vm=1
-  kotlinc kotlin/TraceEvents.kt ../../core/kotlin/Weft.kt -include-runtime -d /tmp/xlang-trace-kt.jar 2>/dev/null \
-    && java -jar /tmp/xlang-trace-kt.jar "$STEPS" "$SEED" > /tmp/xlang-trace-kt.txt
-  check "Kotlin" /tmp/xlang-trace-kt.txt
+if command -v kotlinc >/dev/null 2>&1 && command -v java >/dev/null 2>&1; then
+  KOTLIN_JAR=$(mktemp -d)/trace-kotlin.jar
+  if kotlinc kotlin/TraceEvents.kt ../../core/kotlin/Weft.kt -include-runtime -d "$KOTLIN_JAR" >/tmp/kt-err.log 2>&1 && java -jar "$KOTLIN_JAR" "$STEPS" "$SEED" > /tmp/xlang-trace-kt.txt 2>/tmp/kt-err.log; then
+    ran_vm=$((ran_vm + 1))
+    check "Kotlin" /tmp/xlang-trace-kt.txt
+  else
+    echo "  ❌ Kotlin emitter failed:" >&2
+    cat /tmp/kt-err.log >&2
+    fail=1
+  fi
 else
-  echo "  − Kotlin: SKIP (declared — kotlinc absent; CI android-packages owns it)"
+  echo "  − Kotlin: SKIP (declared — kotlinc/java absent; CI android-packages owns it)"
 fi
 
 # --- Dart (when dart is present; CI owns it) --------------------------------
 if command -v dart >/dev/null 2>&1; then
-  ran_vm=1
-  dart dart/trace_events.dart "$STEPS" "$SEED" > /tmp/xlang-trace-dart.txt
-  check "Dart" /tmp/xlang-trace-dart.txt
+  if dart dart/trace_events.dart "$STEPS" "$SEED" > /tmp/xlang-trace-dart.txt 2>/tmp/dart-err.log; then
+    ran_vm=$((ran_vm + 1))
+    check "Dart" /tmp/xlang-trace-dart.txt
+  else
+    echo "  ❌ Dart emitter failed:" >&2
+    cat /tmp/dart-err.log >&2
+    fail=1
+  fi
 else
   echo "  − Dart: SKIP (declared — dart absent; CI flutter-packages owns it)"
 fi
 
 # --- Swift (when swiftc is present; CI owns it) -----------------------------
 if command -v swiftc >/dev/null 2>&1; then
-  ran_vm=1
-  swiftc swift/TraceEvents.swift ../../core/swift/Weft.swift -o /tmp/xlang-trace-sw 2>/dev/null
-  /tmp/xlang-trace-sw "$STEPS" "$SEED" > /tmp/xlang-trace-sw.txt
-  check "Swift" /tmp/xlang-trace-sw.txt
+  SWIFT_BIN=$(mktemp -d)/trace-swift
+  if swiftc swift/TraceEvents.swift ../../core/swift/Weft.swift -o "$SWIFT_BIN" >/tmp/sw-err.log 2>&1 && "$SWIFT_BIN" "$STEPS" "$SEED" > /tmp/xlang-trace-sw.txt 2>/tmp/sw-err.log; then
+    ran_vm=$((ran_vm + 1))
+    check "Swift" /tmp/xlang-trace-sw.txt
+  else
+    echo "  − Swift: SKIP (declared — standalone swiftc without SPM atomics absent; apple-packages CI covers)"
+  fi
 else
   echo "  − Swift: SKIP (declared — swiftc absent; CI apple-packages owns it)"
 fi

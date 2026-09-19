@@ -155,6 +155,7 @@ class Weft(val payloadMax: Int) {
     fun rSeq(): Int = buffers[rWork].getInt(8)
     fun rMagic(): Int = buffers[rWork].getInt(0)
     fun rPayloadLen(): Int = buffers[rWork].getInt(12)
+    fun rCanary(): Long = buffers[rWork].getLong(bufSize - 8)
 
     /// Read LIVE held-buffer bytes at call time (A3).
     /// Uses duplicate() so the shared ByteBuffer's position is never mutated

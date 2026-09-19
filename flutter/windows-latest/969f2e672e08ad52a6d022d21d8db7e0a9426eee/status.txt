@@ -1,0 +1,8 @@
+workflow: flutter-packages
+job:      Flutter & Dart FFI (windows-latest)
+status:   failure
+sha:      969f2e672e08ad52a6d022d21d8db7e0a9426eee
+event:    pull_request
+run:      125
+date:     Sat Sep 19 09:17:29 UTC 2026
+ref:      refs/pull/35/merge

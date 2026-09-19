@@ -13,7 +13,7 @@
 # report is a hard failure — no suppression files exist, none are allowed.
 #
 # Output: ci/run-artifacts/shard-sanitizers.log + shard-sanitizers-results.json
-set -uo pipefail
+set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 mkdir -p ci/run-artifacts
@@ -21,25 +21,21 @@ LOG="$ROOT/ci/run-artifacts/shard-sanitizers.log"
 : > "$LOG"
 
 FAIL=0
-CELLS=()
 
 step() { echo "" >> "$LOG"; echo "=== $* ===" | tee -a "$LOG"; }
 
-record() { # record <name> <rc>
-  local status
-  if [ "$2" -eq 0 ]; then
-    status="PASS"
-    echo "  PASS $1" | tee -a "$LOG"
+record() {
+  local name="$1"; local status="$2"
+  if [ "$status" -eq 0 ]; then
+    echo "  PASS $name" | tee -a "$LOG"
   else
-    status="FAIL"
+    echo "  FAIL $name" | tee -a "$LOG"
     FAIL=1
-    echo "  FAIL $1 (rc=$2)" | tee -a "$LOG"
   fi
-  CELLS+=("$1=$status")
 }
 
-ASAN_FLAGS="-O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE"
-TSAN_FLAGS="-O1 -g -fsanitize=thread -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE"
+ASAN_FLAGS="-O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -fsanitize=address,undefined -fno-sanitize-recover=all -g"
+TSAN_FLAGS="-O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -fsanitize=thread -g"
 
 step "Build: ASan+UBSan matrix"
 (cd core/c && gcc $ASAN_FLAGS -o asan-litmus weft.c litmus_runner.c 2>>"$LOG" && \
@@ -60,19 +56,18 @@ done
 record "asan-litmus" $LIT
 
 step "ASan+UBSan: kernel conformance batteries"
-(cd core/c && ./asan-reclaim)  >> "$LOG" 2>&1; record "asan-reclaim"  $?
-(cd core/c && ./asan-fanout)   >> "$LOG" 2>&1; record "asan-fanout"   $?
-(cd core/c && ./asan-governor) >> "$LOG" 2>&1; record "asan-governor" $?
-(cd core/c && ./asan-verified) >> "$LOG" 2>&1; record "asan-verified" $?
-(cd core/c && ./asan-blend)    >> "$LOG" 2>&1; record "asan-blend"    $?
+(cd core/c && ./asan-reclaim)  >> "$LOG" 2>&1 && record "asan-reclaim" 0 || record "asan-reclaim" 1
+(cd core/c && ./asan-fanout)   >> "$LOG" 2>&1 && record "asan-fanout" 0 || record "asan-fanout" 1
+(cd core/c && ./asan-governor) >> "$LOG" 2>&1 && record "asan-governor" 0 || record "asan-governor" 1
+(cd core/c && ./asan-verified) >> "$LOG" 2>&1 && record "asan-verified" 0 || record "asan-verified" 1
+(cd core/c && ./asan-blend)    >> "$LOG" 2>&1 && record "asan-blend" 0 || record "asan-blend" 1
 
 step "ASan+UBSan: FFI isolation host (in-process + fork containment)"
-(cd core/c && ./asan-ffihost)      >> "$LOG" 2>&1; record "asan-ffihost"      $?
-(cd core/c && ./asan-ffihost fork) >> "$LOG" 2>&1; record "asan-ffihost-fork" $?
+(cd core/c && ./asan-ffihost)      >> "$LOG" 2>&1 && record "asan-ffihost" 0 || record "asan-ffihost" 1
+(cd core/c && ./asan-ffihost fork) >> "$LOG" 2>&1 && record "asan-ffihost-fork" 0 || record "asan-ffihost-fork" 1
 
 step "ASan+UBSan: fuzz-runner 200k ops seed 0x00C0FFEE"
-(cd core/c && ./asan-fuzz 200000 0x00C0FFEE) >> "$LOG" 2>&1
-record "asan-fuzz" $?
+(cd core/c && ./asan-fuzz 200000 0x00C0FFEE) >> "$LOG" 2>&1 && record "asan-fuzz" 0 || record "asan-fuzz" 1
 
 step "TSan: kernel litmus L1-L8 + fanout"
 TS=0

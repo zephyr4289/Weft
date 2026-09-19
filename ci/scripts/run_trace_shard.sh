@@ -11,7 +11,7 @@
 #    shape check against schemas/weftrec-trace.schema.json
 #
 # Output: ci/run-artifacts/shard-trace.log + shard-trace-results.json
-set -uo pipefail
+set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 mkdir -p ci/run-artifacts

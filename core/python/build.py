@@ -59,7 +59,8 @@ ffibuilder.cdef(
                                                  size_t payload_bytes, unsigned slot_count);
     void weft_fanout_reader_free(weft_fanout_reader_t* r);
     void weft_fanout_reader_destroy(weft_fanout_reader_t* r);
-    uint64_t weft_publish_batch(weft_fanout_t* f, const void* frames, size_t n);
+    typedef struct { const void* src; size_t len; } weft_batch_frame_t;
+    uint64_t weft_publish_batch(weft_fanout_t* f, const weft_batch_frame_t* frames, size_t n);
     const char* weft_fanout_copy_active_impl(void);
     unsigned weft_fanout_slot_line_align(void);
 
@@ -111,14 +112,14 @@ ffibuilder.set_source(
     "void    weft_py_free(weft_t* w);\n"
     + FRAME_HELPER,
     sources=[
-        os.path.join(CORE, "weft.c"),
-        os.path.join(CORE, "fanout.c"),
-        os.path.join(CORE, "frame_cursor.c"),
-        os.path.join(CORE, "fanout_simd.c"),
-        os.path.join(CORE, "fanout_batch.c"),
-        os.path.join(HERE, "weft_pyshim.c"),
+        os.path.join("..", "c", "weft.c"),
+        os.path.join("..", "c", "fanout.c"),
+        os.path.join("..", "c", "frame_cursor.c"),
+        os.path.join("..", "c", "fanout_simd.c"),
+        os.path.join("..", "c", "fanout_batch.c"),
+        "weft_pyshim.c",
     ],
-    include_dirs=[CORE],
+    include_dirs=[os.path.join("..", "c")],
     extra_compile_args=["-O2", "-std=c11", "-D_GNU_SOURCE"],
 )
 

@@ -27,7 +27,6 @@ test = ["numpy>=1.22"]
 
 [tool.setuptools]
 packages = ["weft"]
-py-modules = ["build"]
 
 [tool.setuptools.package-data]
 weft = ["py.typed"]

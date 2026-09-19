@@ -30,7 +30,7 @@ step "PL-series battery (11 tests: kernel/litmus/fanout/batch/numpy/torture/rss)
 
 step "pip packaging sanity (sdist metadata builds)"
 if python3 -m pip --version >/dev/null 2>&1; then
-  (cd core/python && python3 -m pip install --no-build-isolation --no-deps . \
+  (cd core/python && PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install --no-build-isolation --no-deps . \
      && python3 -c "import weft, sys; sys.exit(0) if weft.__version__ else sys.exit(1)") \
      2>&1 | tee -a "$LOG" || fail=1
   # NOTE: PyPI upload itself is a maintainer step (credentials) — declared.

@@ -45,22 +45,24 @@ fi
 if ! command -v riscv64-linux-gnu-gcc >/dev/null 2>&1; then
   step "install cross toolchain + qemu (apt)"
   $SUDO apt-get update -qq >> "$LOG" 2>&1 || true
-  $SUDO apt-get install -y --no-install-recommends gcc-riscv64-linux-gnu qemu-user >> "$LOG" 2>&1 \
+  $SUDO apt-get install -y gcc-riscv64-linux-gnu libc6-dev-riscv64-cross qemu-user qemu-user-static >> "$LOG" 2>&1 \
     || { echo '{"shard":"riscv-litmus","status":"FAILED","reason":"toolchain install"}'; exit 1; }
 fi
 if ! command -v qemu-riscv64 >/dev/null 2>&1; then
   step "install qemu-user (apt)"
-  $SUDO apt-get install -y --no-install-recommends qemu-user >> "$LOG" 2>&1 \
+  $SUDO apt-get install -y qemu-user qemu-user-static >> "$LOG" 2>&1 \
     || { echo '{"shard":"riscv-litmus","status":"FAILED","reason":"qemu install"}'; exit 1; }
 fi
+
+export QEMU_LD_PREFIX=/usr/riscv64-linux-gnu
 
 step "cross-compile spike (kernel litmus) + fanout-test (F-series) for RV64GC"
 riscv64-linux-gnu-gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -Icore/c \
   -o /tmp/spike-rv core/c/weft.c core/c/fanout.c core/c/frame_cursor.c core/c/fanout_simd.c core/c/litmus_runner.c >> "$LOG" 2>&1 || fail=1
-riscv64-linux-gnu-gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE \
+riscv64-linux-gnu-gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -Icore/c \
   -o /tmp/fanout-test-rv core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
   core/c/fanout_simd.c core/c/fanout_test.c >> "$LOG" 2>&1 || fail=1
-riscv64-linux-gnu-gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE \
+riscv64-linux-gnu-gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -Icore/c \
   -DWEFT_FANOUT_SEQ_CST=1 \
   -o /tmp/fanout-test-rv-seq core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
   core/c/fanout_simd.c core/c/fanout_test.c >> "$LOG" 2>&1 || fail=1
@@ -77,7 +79,7 @@ step "F-series fan-out conformance (all-seq_cst regime)"
 qemu-riscv64 /tmp/fanout-test-rv-seq >> "$LOG" 2>&1 || fail=1
 
 step "atomics/fence audit (the emitted mapping must match the proofs)"
-riscv64-linux-gnu-gcc -O2 -S -o /tmp/audit-rv.s ci/riscv/audit_rv.c >> "$LOG" 2>&1 || fail=1
+riscv64-linux-gnu-gcc -O2 -Icore/c -S -o /tmp/audit-rv.s ci/riscv/audit_rv.c >> "$LOG" 2>&1 || fail=1
 for want in "amoswap.d.aqrl" "fence rw,w" "fence r,rw" "fence rw,rw"; do
   if grep -q "$want" /tmp/audit-rv.s; then
     echo "audit: found '$want'" | tee -a "$LOG"

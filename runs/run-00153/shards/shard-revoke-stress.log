@@ -1,0 +1,41 @@
+==================================================
+SHARD: revoke-stress
+DESCRIPTION: Issue #16 Tier 1 Task 5 — revocation handshake stress: 100K handshakes + measured ceiling + ASAN + TSAN
+STATUS: FAILED ❌
+COMMIT: cc37a53519f8db453f4c09f0a9353fed99fb0d09
+RUN: 153
+==================================================
+
+
+=== Build: revoke-stress, revoke-stress-asan, revoke-stress-tsan ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o revoke-stress revoke_stress.c weft.c
+revoke_stress.c:32: warning: "_GNU_SOURCE" redefined
+   32 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o revoke-stress-asan revoke_stress.c weft.c
+revoke_stress.c:32: warning: "_GNU_SOURCE" redefined
+   32 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O0 -g -fsanitize=thread -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o revoke-stress-tsan revoke_stress.c weft.c
+revoke_stress.c:32: warning: "_GNU_SOURCE" redefined
+   32 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+
+=== 1. plain 100,000 handshakes (concurrency 256) ===

@@ -142,7 +142,8 @@ export class WasmKernel {
   }
 
   claim(): bigint {
-    return this.m._wweft_claim_seq(this.w);
+    const s = this.m._wweft_claim_seq(this.w);
+    return typeof s === "bigint" ? s : BigInt(s);
   }
 
   /** Zero-copy view of the claimed frame's payload (valid until the next
@@ -163,12 +164,13 @@ export class WasmKernel {
 
   telemetry(): Record<string, bigint> {
     const m = this.m;
+    const toBigInt = (v: number | bigint) => (typeof v === "bigint" ? v : BigInt(v));
     return {
-      publish: m._wweft_t_publish(this.w),
-      claim: m._wweft_t_claim(this.w),
-      drop: m._wweft_t_drop(this.w),
-      wsteps: m._wweft_t_wsteps(this.w),
-      rsteps: m._wweft_t_rsteps(this.w),
+      publish: toBigInt(m._wweft_t_publish(this.w)),
+      claim: toBigInt(m._wweft_t_claim(this.w)),
+      drop: toBigInt(m._wweft_t_drop(this.w)),
+      wsteps: toBigInt(m._wweft_t_wsteps(this.w)),
+      rsteps: toBigInt(m._wweft_t_rsteps(this.w)),
     };
   }
 
@@ -213,7 +215,7 @@ export class WasmFanout {
     if (!inWasm) this.m.HEAPU8.set(u8, src);
     const seq = this.m._wfan_publish(this.f, src, u8.length);
     if (!inWasm) this.m._free(src);
-    return seq;
+    return typeof seq === "bigint" ? seq : BigInt(seq);
   }
 
   /** Single-flip batch publish (issue #17-3). Frames are copied into a
@@ -247,7 +249,7 @@ export class WasmFanout {
     m._free(srcsPtr);
     m._free(lensPtr);
     m._free(bodyPtr);
-    return last;
+    return typeof last === "bigint" ? last : BigInt(last);
   }
 
   /** Zero-copy view of the WHOLE ring (the byte-layout contract: latestSeq

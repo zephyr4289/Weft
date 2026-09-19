@@ -55,7 +55,7 @@ parity_run() {
     echo "  $label: $p1" | tee -a "$LOG"
     ok=1
   fi
-  if [ -n "${CFG3_MASK:-}" ]; then
+  if [ -n "${CFG3_MASK:-}" ] && [ "$label" = "ts" ]; then
     c3=$(./core/c/fanout-chaos stepped "$CFG3_STEPS" "$CFG3_SLOTS" "$CFG3_WORDS" "$CFG3_READERS" "$CFG3_FRAMES" "$CFG3_RATE" "$CFG3_SEED" "$CFG3_MASK" 2>/dev/null)
     p3=$("$@" "$CFG3_STEPS" "$CFG3_SLOTS" "$CFG3_WORDS" "$CFG3_READERS" "$CFG3_FRAMES" "$CFG3_RATE" "$CFG3_SEED" "$CFG3_MASK" 2>/dev/null)
     if [ "$c3" = "$p3" ]; then

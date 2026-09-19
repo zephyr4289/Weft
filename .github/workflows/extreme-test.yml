@@ -354,16 +354,16 @@ jobs:
         if: matrix.needs_rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache pnpm store (fanout-native, browser-sab, simd-blend, verifiedweft)
-        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'verifiedweft'
+      - name: Cache pnpm store (fanout-native, browser-sab, simd-blend, verifiedweft, ffi-fuzz, litmus-c)
+        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'verifiedweft' || matrix.shard == 'ffi-fuzz' || matrix.shard == 'litmus-c'
         uses: actions/cache@v4
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-store-${{ runner.os }}-
 
-      - name: Set up pnpm + build @weft/core dist (fanout-native, browser-sab, simd-blend)
-        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend'
+      - name: Set up pnpm + build @weft/core dist (fanout-native, browser-sab, simd-blend, ffi-fuzz, litmus-c)
+        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'ffi-fuzz' || matrix.shard == 'litmus-c'
         run: |
           npm i -g pnpm@9
           pnpm install --frozen-lockfile

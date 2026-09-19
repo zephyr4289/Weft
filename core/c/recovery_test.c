@@ -1,9 +1,11 @@
-// recovery_test.c — Axis 3: Self-stabilizing ring health check & recovery test
-#include "fanout.h"
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "fanout.h"
 
 #define PAYLOAD_BYTES 64
 #define SLOT_COUNT 4
@@ -13,8 +15,10 @@ int main(void) {
     
     size_t ring_bytes = weft_fanout_ring_bytes(PAYLOAD_BYTES, SLOT_COUNT);
     size_t alloc_bytes = ((ring_bytes + 63) / 64) * 64;
-    uint8_t* ring = (uint8_t*)aligned_alloc(64, alloc_bytes);
-    assert(ring != NULL);
+    void* ring_ptr = NULL;
+    int rc_alloc = posix_memalign(&ring_ptr, 64, alloc_bytes);
+    assert(rc_alloc == 0 && ring_ptr != NULL);
+    uint8_t* ring = (uint8_t*)ring_ptr;
     memset(ring, 0, alloc_bytes);
     
     weft_fanout_t writer = {0};

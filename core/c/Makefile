@@ -28,11 +28,11 @@ FANOUT_SRC = fanout.c frame_cursor.c weft.c $(FSIMD_SRC)
 
 all: $(TARGET)
 
-$(TARGET): weft.c fanout.c frame_cursor.c litmus_runner.c weft.h fanout.h frame_cursor.h
-	$(CC) $(CFLAGS) -o $(TARGET) weft.c fanout.c frame_cursor.c litmus_runner.c
+$(TARGET): weft.c fanout.c frame_cursor.c fanout_simd.c litmus_runner.c weft.h fanout.h frame_cursor.h fanout_simd.h
+	$(CC) $(CFLAGS) -o $(TARGET) weft.c fanout.c frame_cursor.c $(FSIMD_SRC) litmus_runner.c
 
-$(TARGET_TSAN): weft.c fanout.c frame_cursor.c litmus_runner.c weft.h fanout.h frame_cursor.h
-	$(CC) $(CFLAGS_DBG) -o $(TARGET_TSAN) weft.c fanout.c frame_cursor.c litmus_runner.c
+$(TARGET_TSAN): weft.c fanout.c frame_cursor.c fanout_simd.c litmus_runner.c weft.h fanout.h frame_cursor.h fanout_simd.h
+	$(CC) $(CFLAGS_DBG) -o $(TARGET_TSAN) weft.c fanout.c frame_cursor.c $(FSIMD_SRC) litmus_runner.c
 
 # ---- fan-out driver layer (RFC 0004 + RFC 0008) --------------------------
 

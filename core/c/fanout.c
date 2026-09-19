@@ -304,7 +304,7 @@ const weft_fanout_claim_t* weft_fanout_claim(weft_fanout_reader_t* r) {
             // Consistent frame L (FI2: per-slot stamps are strictly
             // monotonic, so an unchanged stamp proves no overwrite began
             // during the copy).
-            const uint64_t dropped = L - r->last_seq - 1;
+            const uint64_t dropped = (L > r->last_seq) ? (L - r->last_seq - 1) : 0;
             r->n_drops += dropped;
             r->last_seq = L;
             r->n_fresh++;

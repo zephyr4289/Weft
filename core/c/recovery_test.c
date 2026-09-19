@@ -15,6 +15,7 @@ int main(void) {
     size_t alloc_bytes = ((ring_bytes + 63) / 64) * 64;
     uint8_t* ring = (uint8_t*)aligned_alloc(64, alloc_bytes);
     assert(ring != NULL);
+    memset(ring, 0, alloc_bytes);
     
     weft_fanout_t writer = {0};
     int rc = weft_fanout_attach_writer(&writer, ring, ring_bytes, PAYLOAD_BYTES, SLOT_COUNT);
@@ -90,6 +91,10 @@ int main(void) {
             rc = weft_ring_recover(ring, ring_bytes, PAYLOAD_BYTES, SLOT_COUNT);
             assert(rc == 0);
             assert(weft_ring_health_check(ring, ring_bytes, PAYLOAD_BYTES, SLOT_COUNT) == WEFT_RING_HEALTHY);
+            uint64_t rec_lat = atomic_load(ctrl);
+            if (writer.w_seq < rec_lat) {
+                writer.w_seq = rec_lat;
+            }
         }
     }
     printf("  [PASS] 10,000 randomized corruption + recovery cycles passed\n");

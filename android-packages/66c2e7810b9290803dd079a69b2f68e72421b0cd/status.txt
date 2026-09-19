@@ -1,0 +1,8 @@
+workflow: android-packages
+job:      Android Gradle Matrix
+status:   cancelled
+sha:      66c2e7810b9290803dd079a69b2f68e72421b0cd
+event:    pull_request
+run:      139
+date:     Sat Sep 19 08:20:46 UTC 2026
+ref:      refs/pull/34/merge

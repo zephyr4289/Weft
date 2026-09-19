@@ -1,0 +1,25 @@
+{
+  "shard": "sanitizers",
+  "status": "FAILED",
+  "cells": {
+    "asan-build": true,
+    "asan-litmus": true,
+    "asan-reclaim": true,
+    "asan-fanout": false,
+    "asan-governor": true,
+    "asan-verified": true,
+    "asan-blend": true,
+    "asan-ffihost": true,
+    "asan-ffihost-fork": true,
+    "asan-fuzz": true,
+    "tsan-suite": false,
+    "rfc4231-tc1": true,
+    "rfc4231-tc2": true,
+    "rfc4231-tc3": true,
+    "rfc4231-tc4": true,
+    "rfc4231-tc6": true,
+    "rfc4231-tc7": true,
+    "weft-empty-payload": true,
+    "weft-one-byte": true
+  }
+}

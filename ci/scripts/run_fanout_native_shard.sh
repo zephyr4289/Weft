@@ -51,6 +51,15 @@ make -C core/c fanout-simd-test fanout-simd-test-seq fanout-simd-test-legacy fan
 ./core/c/fanout-simd-test-legacy torture_s=1.0 2>&1 | tee -a "$LOG" || fail=1
 ./core/c/fanout-simd-test-asan torture_s=1.0 2>&1 | tee -a "$LOG" || fail=1
 
+# --- 2c (issue #17-2): cache-aware slot layout — FL-series (split theory
+# vs brute force, allocation guarantee, latency A/B, interop byte-layout
+# equality) + the 32B-line no-regression leg.
+step "FL-series cache-aware layout gate (64B + 32B-line legs)"
+make -C core/c fanout-layout-test fanout-layout-test-smallline fanout-layout-test-asan 2>&1 | tee -a "$LOG"
+./core/c/fanout-layout-test 2>&1 | tee -a "$LOG" || fail=1
+./core/c/fanout-layout-test-smallline 2>&1 | tee -a "$LOG" || fail=1
+./core/c/fanout-layout-test-asan 2>&1 | tee -a "$LOG" || fail=1
+
 # --- 3: Rust suite ---
 step "Rust suite (F-series + cursor + torture + Loom model, bound 2)"
 if command -v cargo >/dev/null 2>&1; then
@@ -180,5 +189,5 @@ if [ "$fail" -ne 0 ]; then
   echo '{"shard":"fanout-native","status":"FAILED"}' > ci/run-artifacts/shard-fanout-native-results.json
   exit 1
 fi
-echo '{"shard":"fanout-native","status":"PASSED","gates":"C F-series+torture x2 regimes + FS-series SIMD claim-copy x4 regimes + rust suite + loom(bound 2) + xlang TS<->C + jni-harness JVM + flight-rec selftest x2 regimes + governor G-series C/Rust + G5 trace parity (TS/C/Rust + VM) + cadence PC3 trace parity (TS + VM) + v3-compression e2e + shm S-series + shm torture x2 roads + shm rust + shm zero-syscall strace + shm produce->daemon + F10 cross-port parity"}' > ci/run-artifacts/shard-fanout-native-results.json
+echo '{"shard":"fanout-native","status":"PASSED","gates":"C F-series+torture x2 regimes + FS-series SIMD claim-copy x4 regimes + FL-series layout x3 builds + rust suite + loom(bound 2) + xlang TS<->C + jni-harness JVM + flight-rec selftest x2 regimes + governor G-series C/Rust + G5 trace parity (TS/C/Rust + VM) + cadence PC3 trace parity (TS + VM) + v3-compression e2e + shm S-series + shm torture x2 roads + shm rust + shm zero-syscall strace + shm produce->daemon + F10 cross-port parity"}' > ci/run-artifacts/shard-fanout-native-results.json
 echo "✅ fanout-native shard PASSED" | tee -a "$LOG"

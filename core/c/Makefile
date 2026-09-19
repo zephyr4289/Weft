@@ -79,6 +79,22 @@ fanout-simd-test-seq: fanout.c fanout_simd.c fanout_simd_test.c fanout.h fanout_
 fanout-simd-test-legacy: fanout.c fanout_simd.c fanout_simd_test.c fanout.h fanout_simd.h weft.h
 	$(CC) $(CFLAGS) -DWEFT_FANOUT_SIMD_DISABLE=1 -o fanout-simd-test-legacy $(FANOUT_SRC) fanout_simd_test.c
 
+# ---- Issue #17-2: cache-aware slot layout (fanout_layout gate) ------------
+# FL-series: split-theory (validated vs brute force), allocation guarantee,
+# latency A/B (base- vs slot-aligned), interop byte-layout equality, foreign
+# ring tolerance. -smallline builds the 32B-line leg (ARMv7/embedded class
+# CPUs; a 64B-aligned payload base is 32B-aligned too — the no-regression
+# claim exercised at its own line size).
+
+fanout-layout-test: fanout.c fanout_simd.c fanout_layout_test.c fanout.h fanout_simd.h weft.h
+	$(CC) $(CFLAGS) -o fanout-layout-test $(FANOUT_SRC) fanout_layout_test.c
+
+fanout-layout-test-asan: fanout.c fanout_simd.c fanout_layout_test.c fanout.h fanout_simd.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o fanout-layout-test-asan $(FANOUT_SRC) fanout_layout_test.c
+
+fanout-layout-test-smallline: fanout.c fanout_simd.c fanout_layout_test.c fanout.h fanout_simd.h weft.h
+	$(CC) $(CFLAGS) -DWEFT_FANOUT_SLOT_ALIGN_BYTES=32 -o fanout-layout-test-smallline $(FANOUT_SRC) fanout_layout_test.c
+
 # ---- RFC 0011 chaos engine ------------------------------------------------
 # fanout-chaos: stepped (deterministic scheduler -- the parity oracle) +
 #               free (real threads, seed-deterministic fault sequence).
@@ -297,6 +313,7 @@ clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
 	      fanout-simd-test fanout-simd-test-asan fanout-simd-test-tsan fanout-simd-test-seq fanout-simd-test-legacy \
+	      fanout-layout-test fanout-layout-test-asan fanout-layout-test-smallline \
 	      verified-test verified-test-asan verified-runner verified-runner-asan \
 	      verified-mb-test verified-mb-test-asan mb-bench \
 	      shm-test shm-test-asan shm-runner shm-runner-asan \

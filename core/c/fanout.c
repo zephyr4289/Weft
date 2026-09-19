@@ -54,6 +54,21 @@ size_t weft_fanout_ring_bytes(size_t payload_bytes, unsigned slot_count) {
 }
 
 // ---------------------------------------------------------------------------
+// Slot-line alignment (issue #17-2; rationale + per-arch table in fanout.h)
+// ---------------------------------------------------------------------------
+// Payload base (16 + 8M) is never a line multiple, so a base-aligned ring
+// makes every slot straddle lines. Over-allocate one line and shift so
+// SLOT 0's payload is line-aligned; ctrl absorbs the shift. Wire layout
+// (offsets relative to `ring`) is unchanged. 0 disables (legacy bisect).
+#ifndef WEFT_FANOUT_SLOT_ALIGN_BYTES
+#define WEFT_FANOUT_SLOT_ALIGN_BYTES 64
+#endif
+
+unsigned weft_fanout_slot_line_align(void) {
+    return (unsigned)WEFT_FANOUT_SLOT_ALIGN_BYTES;
+}
+
+// ---------------------------------------------------------------------------
 // Broadcaster
 // ---------------------------------------------------------------------------
 
@@ -63,7 +78,21 @@ int weft_fanout_init(weft_fanout_t* f, size_t payload_bytes, unsigned slot_count
     if (!fan_geometry_ok(payload_bytes, slot_count)) return -1;
     const size_t bytes = weft_fanout_ring_bytes(payload_bytes, slot_count);
     void* ring = NULL;
+#if WEFT_FANOUT_SLOT_ALIGN_BYTES > 0
+    // Shift so the payload base (16 + 8M) lands line-aligned: raw is
+    // posix_memalign(64)-aligned; ring = raw + ((line - base%line) % line).
+    // Every slot cursor then starts on a line boundary; the ctrl block
+    // absorbs the offset (1-2 cold lines). Slack bytes are never read.
+    const size_t line = (size_t)WEFT_FANOUT_SLOT_ALIGN_BYTES;
+    const size_t shift = (line - (fan_payload_base(slot_count) % line)) % line;
+    void* raw = NULL;
+    if (posix_memalign(&raw, 64, bytes + line) != 0) return -1;
+    ring = (uint8_t*)raw + shift;
+    f->alloc_base = (uint8_t*)raw;
+#else
     if (posix_memalign(&ring, 64, bytes) != 0) return -1;
+    f->alloc_base = (uint8_t*)ring;
+#endif
     memset(ring, 0, bytes); // latestSeq=0, publishes=0, all slotSeq=0 (invalidated)
     f->ring = (uint8_t*)ring;
     f->ctrl = (_Atomic uint64_t*)ring;
@@ -142,11 +171,16 @@ uint64_t weft_fanout_publish(weft_fanout_t* f) {
 
 void weft_fanout_destroy(weft_fanout_t* f) {
     if (!f || !f->ring) return;
-    if (f->owns_ring) free(f->ring);
+    if (f->owns_ring) {
+        // Slot-line-aligned rings are shifted inside an over-allocated
+        // block: free the RAW base, never the shifted `ring` pointer.
+        free(f->alloc_base ? f->alloc_base : f->ring);
+    }
     f->ring = NULL;
     f->ctrl = NULL;
     f->w_cursor = NULL;
     f->owns_ring = 0;
+    f->alloc_base = NULL;
 }
 
 weft_fanout_t* weft_fanout_new(size_t payload_bytes, unsigned slot_count) {

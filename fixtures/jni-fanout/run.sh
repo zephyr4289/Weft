@@ -46,6 +46,7 @@ gcc -shared -fPIC -O2 -std=c11 -Wall -D_GNU_SOURCE \
   "$ROOT/android/weft-core/src/main/cpp/weft_jni.c" \
   "$ROOT/core/c/weft.c" \
   "$ROOT/core/c/fanout.c" \
+  "$ROOT/core/c/fanout_simd.c" \
   -o "$SO"
 
 "$JAVAC" -d "$HERE/build" "$HERE/FanoutJniHarness.java"

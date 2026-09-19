@@ -1,0 +1,233 @@
+==================================================
+SHARD: wsuite
+DESCRIPTION: W1-W5 × A/B/C/D = 20 cells, P99 + alloc assertions
+STATUS: PASSED ✅
+COMMIT: 13331b1957499ac1179e15e6f1b4bd3f72cd09b8
+RUN: 142
+==================================================
+
+→ W1/A ... P99=79.0 alloc/frame=0.0 [PASS]
+→ W1/B ... P99=87.3 alloc/frame=0.0 [PASS]
+→ W1/C .../home/runner/work/Weft/Weft/core/c/weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+→ compiling Weft C kernel to /home/runner/work/Weft/Weft/core/c/libweft.so
+ P99=89.6 alloc/frame=0.0 [PASS]
+→ W1/D ... P99=57.6 alloc/frame=0.0 [PASS]
+→ W2/A ... P99=52.6 alloc/frame=0.0 [PASS]
+→ W2/B ... P99=71.5 alloc/frame=0.0 [PASS]
+→ W2/C ... P99=71.1 alloc/frame=0.0 [PASS]
+→ W2/D ... P99=21.6 alloc/frame=0.0 [PASS]
+→ W3/A ... P99=6.2 alloc/frame=0.0 [PASS]
+→ W3/B ... P99=7.7 alloc/frame=0.0 [PASS]
+→ W3/C ... P99=7.7 alloc/frame=0.0 [PASS]
+→ W3/D ... P99=4.3 alloc/frame=0.0 [PASS]
+→ W4/A ... P99=1812.2 alloc/frame=0.0 [PASS]
+→ W4/B ... P99=1850.8 alloc/frame=0.0 [PASS]
+→ W4/C ... P99=1784.2 alloc/frame=0.0 [PASS]
+→ W4/D ... P99=1669.1 alloc/frame=0.0 [PASS]
+→ W5/A ... P99=12.1 alloc/frame=0.0 [PASS]
+→ W5/B ... P99=16.3 alloc/frame=0.0 [PASS]
+→ W5/C ... P99=15.3 alloc/frame=0.0 [PASS]
+→ W5/D ... P99=8.0 alloc/frame=0.0 [PASS]
+
+✓ W-suite bundle: /home/runner/work/Weft/Weft/bench/results/wsuite-x86_64-sandbox.json
+  cells: 20 (target: 20 = 5 workloads × 4 backends)
+  pass: 20/20
+./home/runner/work/Weft/Weft/core/c/weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+→ compiling Weft C kernel to /home/runner/work/Weft/Weft/core/c/libweft.so
+ P99=89.6 alloc/frame=0.0 [PASS]
+→ W1/D ... P99=57.6 alloc/frame=0.0 [PASS]
+→ W2/A ... P99=52.6 alloc/frame=0.0 [PASS]
+→ W2/B ... P99=71.5 alloc/frame=0.0 [PASS]
+→ W2/C ... P99=71.1 alloc/frame=0.0 [PASS]
+→ W2/D ... P99=21.6 alloc/frame=0.0 [PASS]
+→ W3/A ... P99=6.2 alloc/frame=0.0 [PASS]
+→ W3/B ... P99=7.7 alloc/frame=0.0 [PASS]
+→ W3/C ... P99=7.7 alloc/frame=0.0 [PASS]
+→ W3/D ... P99=4.3 alloc/frame=0.0 [PASS]
+→ W4/A ... P99=1812.2 alloc/frame=0.0 [PASS]
+→ W4/B ... P99=1850.8 alloc/frame=0.0 [PASS]
+→ W4/C ... P99=1784.2 alloc/frame=0.0 [PASS]
+→ W4/D ... P99=1669.1 alloc/frame=0.0 [PASS]
+→ W5/A ... P99=12.1 alloc/frame=0.0 [PASS]
+→ W5/B ... P99=16.3 alloc/frame=0.0 [PASS]
+→ W5/C ... P99=15.3 alloc/frame=0.0 [PASS]
+→ W5/D ... P99=8.0 alloc/frame=0.0 [PASS]
+
+✓ W-suite bundle: /home/runner/work/Weft/Weft/bench/results/wsuite-x86_64-sandbox.json
+  cells: 20 (target: 20 = 5 workloads × 4 backends)
+  pass: 20/20
+{
+  "shard": "wsuite",
+  "status": "PASSED",
+  "cells_pass": 20,
+  "cells_total": 20,
+  "alloc_violations": 0,
+  "cells": [
+    {
+      "workload": "W1",
+      "backend": "A",
+      "pass": true,
+      "p99": 79.0,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W1",
+      "backend": "B",
+      "pass": true,
+      "p99": 87.3,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W1",
+      "backend": "C",
+      "pass": true,
+      "p99": 89.6,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W1",
+      "backend": "D",
+      "pass": true,
+      "p99": 57.6,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W2",
+      "backend": "A",
+      "pass": true,
+      "p99": 52.6,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W2",
+      "backend": "B",
+      "pass": true,
+      "p99": 71.5,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W2",
+      "backend": "C",
+      "pass": true,
+      "p99": 71.1,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W2",
+      "backend": "D",
+      "pass": true,
+      "p99": 21.6,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W3",
+      "backend": "A",
+      "pass": true,
+      "p99": 6.2,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W3",
+      "backend": "B",
+      "pass": true,
+      "p99": 7.7,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W3",
+      "backend": "C",
+      "pass": true,
+      "p99": 7.7,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W3",
+      "backend": "D",
+      "pass": true,
+      "p99": 4.3,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W4",
+      "backend": "A",
+      "pass": true,
+      "p99": 1812.2,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W4",
+      "backend": "B",
+      "pass": true,
+      "p99": 1850.8,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W4",
+      "backend": "C",
+      "pass": true,
+      "p99": 1784.2,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W4",
+      "backend": "D",
+      "pass": true,
+      "p99": 1669.1,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W5",
+      "backend": "A",
+      "pass": true,
+      "p99": 12.1,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W5",
+      "backend": "B",
+      "pass": true,
+      "p99": 16.3,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W5",
+      "backend": "C",
+      "pass": true,
+      "p99": 15.3,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    },
+    {
+      "workload": "W5",
+      "backend": "D",
+      "pass": true,
+      "p99": 8.0,
+      "alloc_per_frame": 0.0,
+      "alloc_violation": false
+    }
+  ]
+}

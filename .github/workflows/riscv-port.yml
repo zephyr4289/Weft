@@ -36,6 +36,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install RISC-V Cross Toolchain & QEMU
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc-riscv64-linux-gnu libc6-dev-riscv64-cross qemu-user qemu-user-static
+
       - name: Cross toolchain + QEMU + gates
         run: bash ci/scripts/run_riscv_litmus_shard.sh
 

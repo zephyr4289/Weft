@@ -190,9 +190,6 @@ export class WasmKernel {
 }
 
 export class WasmFanout {
-  private readonly ringPtr: number;
-  readonly ringBytes: number;
-
   private readonly m: WeftExports;
   private readonly f: number;
   private readonly ringPtr: number;

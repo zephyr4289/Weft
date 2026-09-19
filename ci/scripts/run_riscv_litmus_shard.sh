@@ -48,10 +48,28 @@ if ! command -v riscv64-linux-gnu-gcc >/dev/null 2>&1; then
   $SUDO apt-get install -y gcc-riscv64-linux-gnu libc6-dev-riscv64-cross qemu-user qemu-user-static >> "$LOG" 2>&1 \
     || { echo '{"shard":"riscv-litmus","status":"FAILED","reason":"toolchain install"}'; exit 1; }
 fi
-if ! command -v qemu-riscv64 >/dev/null 2>&1; then
-  step "install qemu-user (apt)"
-  $SUDO apt-get install -y qemu-user qemu-user-static >> "$LOG" 2>&1 \
-    || { echo '{"shard":"riscv-litmus","status":"FAILED","reason":"qemu install"}'; exit 1; }
+
+QEMU_BIN="qemu-riscv64"
+if ! command -v "$QEMU_BIN" >/dev/null 2>&1; then
+  if command -v qemu-riscv64-static >/dev/null 2>&1; then
+    QEMU_BIN="qemu-riscv64-static"
+  else
+    step "install qemu-user (apt)"
+    $SUDO apt-get update -qq >> "$LOG" 2>&1 || true
+    $SUDO apt-get install -y qemu-user qemu-user-static >> "$LOG" 2>&1 \
+      || { echo '{"shard":"riscv-litmus","status":"FAILED","reason":"qemu install"}'; exit 1; }
+    if command -v qemu-riscv64 >/dev/null 2>&1; then
+      QEMU_BIN="qemu-riscv64"
+    elif command -v qemu-riscv64-static >/dev/null 2>&1; then
+      QEMU_BIN="qemu-riscv64-static"
+    fi
+  fi
+fi
+
+if [ -n "$SUDO" ] || [ "$(id -u)" -eq 0 ]; then
+  if ! command -v qemu-riscv64 >/dev/null 2>&1 && command -v qemu-riscv64-static >/dev/null 2>&1; then
+    $SUDO ln -sf "$(command -v qemu-riscv64-static)" /usr/local/bin/qemu-riscv64 || true
+  fi
 fi
 
 export QEMU_LD_PREFIX=/usr/riscv64-linux-gnu
@@ -70,21 +88,21 @@ riscv64-linux-gnu-gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -Icore/c
 step "L1-L8 kernel litmus under qemu-riscv64"
 for t in L1-tear L2-writer-steps L3-reader-steps L4-freshness L5-progress \
          L6-ownership L7-revocation L8-envelope; do
-  timeout 300 qemu-riscv64 /tmp/spike-rv "$t" >> "$LOG" 2>&1 || fail=1
+  timeout 300 "$QEMU_BIN" /tmp/spike-rv "$t" >> "$LOG" 2>&1 || fail=1
 done
 
 step "F-series fan-out conformance (fenced acq/rel regime)"
-qemu-riscv64 /tmp/fanout-test-rv >> "$LOG" 2>&1 || fail=1
+"$QEMU_BIN" /tmp/fanout-test-rv >> "$LOG" 2>&1 || fail=1
 step "F-series fan-out conformance (all-seq_cst regime)"
-qemu-riscv64 /tmp/fanout-test-rv-seq >> "$LOG" 2>&1 || fail=1
+"$QEMU_BIN" /tmp/fanout-test-rv-seq >> "$LOG" 2>&1 || fail=1
 
 step "atomics/fence audit (the emitted mapping must match the proofs)"
 riscv64-linux-gnu-gcc -O2 -Icore/c -S -o /tmp/audit-rv.s ci/riscv/audit_rv.c >> "$LOG" 2>&1 || fail=1
-for want in "amoswap.d.aqrl" "fence rw,w" "fence r,rw" "fence rw,rw"; do
-  if grep -q "$want" /tmp/audit-rv.s; then
-    echo "audit: found '$want'" | tee -a "$LOG"
+for pat in "amoswap\.d\.aqrl" "fence[[:space:]]+rw,[[:space:]]*w" "fence[[:space:]]+r,[[:space:]]*rw" "fence[[:space:]]+rw,[[:space:]]*rw"; do
+  if grep -Eq "$pat" /tmp/audit-rv.s; then
+    echo "audit: found '$pat'" | tee -a "$LOG"
   else
-    echo "audit: MISSING '$want'" | tee -a "$LOG"
+    echo "audit: MISSING '$pat'" | tee -a "$LOG"
     fail=1
   fi
 done

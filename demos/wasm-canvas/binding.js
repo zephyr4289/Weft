@@ -5,7 +5,8 @@
  * Same zero-copy contract: views over wasm linear memory, no copies.
  */
 export async function loadWeftWasm(glueUrl) {
-  const init = (await import(glueUrl)).default;
+  const mod = await import(glueUrl);
+  const init = mod.default ?? mod.initWeftWasm ?? mod;
   const m = await init();
   if (typeof m._wfan_new !== "function") throw new Error("libweft exports missing");
   return {

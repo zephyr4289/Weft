@@ -59,6 +59,8 @@ core/c/trace-dump
 core/c/trace_rec-test
 core/c/metrics-dump
 core/c/p99-bench
+core/c/recovery-test
+core/c/recovery-test-asan
 tools/weft-probe/weft_probe
 tools/weft-record/weft_record
 tools/weft-fanout-rec/weft-fanout-rec

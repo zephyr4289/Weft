@@ -315,6 +315,13 @@ trace_rec-test: trace_rec.c trace_rec.h trace_rec_test.c
 trace-dump: trace_dump.c trace_rec.c trace_rec.h weft.c weft.h
 	$(CC) $(CFLAGS) -o trace-dump trace_dump.c trace_rec.c weft.c
 
+# ---- Axis 3: Self-stabilizing ring recovery (doc-006) --------------------
+recovery-test: recovery_test.c fanout.c frame_cursor.c weft.c fanout.h weft.h
+	$(CC) $(CFLAGS) -o recovery-test recovery_test.c fanout.c frame_cursor.c weft.c
+
+recovery-test-asan: recovery_test.c fanout.c frame_cursor.c weft.c fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o recovery-test-asan recovery_test.c fanout.c frame_cursor.c weft.c
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
@@ -326,7 +333,7 @@ clean:
 	      uring-test uring-test-asan uring-test-tsan \
 	      turbo-runner turbo-runner-sys bench \
 	      blend-test blend-test-asan blend-runner \
-	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench
+	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench recovery-test recovery-test-asan
 
 .PHONY: all clean
 

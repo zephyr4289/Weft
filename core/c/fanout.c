@@ -314,3 +314,82 @@ void weft_fanout_reader_free(weft_fanout_reader_t* r) {
     weft_fanout_reader_destroy(r);
     free(r);
 }
+
+// ---------------------------------------------------------------------------
+// Axis 3: Self-Stabilizing Ring Health & Recovery (doc-006)
+// ---------------------------------------------------------------------------
+
+weft_ring_health_t weft_ring_health_check(const void* ring, size_t ring_bytes,
+                                          size_t payload_bytes, unsigned slot_count) {
+    if (!ring) return WEFT_RING_CORRUPT_NULL;
+    if (!fan_geometry_ok(payload_bytes, slot_count)) return WEFT_RING_CORRUPT_BAD_GEOMETRY;
+    size_t need = weft_fanout_ring_bytes(payload_bytes, slot_count);
+    if (ring_bytes < need) return WEFT_RING_CORRUPT_BAD_GEOMETRY;
+
+    const _Atomic uint64_t* ctrl = (const _Atomic uint64_t*)ring;
+    uint64_t latest = fan_stamp_load(ctrl + FAN_IDX_LATEST);
+    uint64_t publishes = fan_stamp_load(ctrl + FAN_IDX_PUBLISHES);
+
+    if (latest > publishes) {
+        return WEFT_RING_CORRUPT_FUTURE_SEQ;
+    }
+
+    unsigned match_latest_count = 0;
+    for (unsigned k = 0; k < slot_count; k++) {
+        uint64_t s = fan_stamp_load(ctrl + FAN_IDX_SLOTSEQ + k);
+        if (s > latest) {
+            return WEFT_RING_CORRUPT_IMPOSSIBLE_STAMP;
+        }
+        if (latest > 0 && s == latest) {
+            match_latest_count++;
+        }
+    }
+
+    if (latest > 0 && match_latest_count > 1) {
+        return WEFT_RING_CORRUPT_SPLIT_BRAIN;
+    }
+
+    return WEFT_RING_HEALTHY;
+}
+
+int weft_ring_recover(void* ring, size_t ring_bytes,
+                      size_t payload_bytes, unsigned slot_count) {
+    if (!ring || !fan_geometry_ok(payload_bytes, slot_count)) return -1;
+    size_t need = weft_fanout_ring_bytes(payload_bytes, slot_count);
+    if (ring_bytes < need) return -1;
+
+    _Atomic uint64_t* ctrl = (_Atomic uint64_t*)ring;
+    uint64_t publishes = fan_stamp_load(ctrl + FAN_IDX_PUBLISHES);
+
+    // Find the highest valid stamp <= publishes that sits in its mathematically expected slot
+    uint64_t max_valid_stamp = 0;
+    for (unsigned k = 0; k < slot_count; k++) {
+        uint64_t s = fan_stamp_load(ctrl + FAN_IDX_SLOTSEQ + k);
+        if (s <= publishes && s > 0) {
+            unsigned expected_k = (unsigned)((s - 1) % slot_count);
+            if (k == expected_k && s > max_valid_stamp) {
+                max_valid_stamp = s;
+            }
+        }
+    }
+
+    // Invalidate any slots with impossible/corrupted stamps, wrong slot index, or duplicates
+    for (unsigned k = 0; k < slot_count; k++) {
+        uint64_t s = fan_stamp_load(ctrl + FAN_IDX_SLOTSEQ + k);
+        if (s > 0) {
+            unsigned expected_k = (unsigned)((s - 1) % slot_count);
+            if (s > max_valid_stamp || k != expected_k || (max_valid_stamp > slot_count && s + slot_count <= max_valid_stamp)) {
+                fan_stamp_store(ctrl + FAN_IDX_SLOTSEQ + k, 0);
+            }
+        }
+    }
+
+    // Atomically reset latestSeq to the highest valid stamp
+    fan_stamp_store(ctrl + FAN_IDX_LATEST, max_valid_stamp);
+    if (publishes < max_valid_stamp) {
+        fan_stamp_store(ctrl + FAN_IDX_PUBLISHES, max_valid_stamp);
+    }
+
+    atomic_thread_fence(memory_order_seq_cst);
+    return (weft_ring_health_check(ring, ring_bytes, payload_bytes, slot_count) == WEFT_RING_HEALTHY) ? 0 : -1;
+}

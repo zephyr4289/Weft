@@ -1,0 +1,75 @@
+{
+  "title": "Weft — Triad kernel live metrics",
+  "uid": "weft-triad-live",
+  "schemaVersion": 39,
+  "editable": true,
+  "refresh": "5s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Publish / claim throughput (ops/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "rate(weft_publish_total[1m])", "legendFormat": "publish {{host}}" },
+        { "expr": "rate(weft_claim_total[1m])", "legendFormat": "claim {{host}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] }
+    },
+    {
+      "id": 2,
+      "title": "Publish latency (µs) — P50 / P90 / P99",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "weft_publish_latency_us{quantile=\"0.5\"}", "legendFormat": "P50 {{host}}" },
+        { "expr": "weft_publish_latency_us{quantile=\"0.9\"}", "legendFormat": "P90 {{host}}" },
+        { "expr": "weft_publish_latency_us{quantile=\"0.99\"}", "legendFormat": "P99 {{host}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "µs" }, "overrides": [] }
+    },
+    {
+      "id": 3,
+      "title": "Claim latency (µs) — P50 / P90 / P99",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "weft_claim_latency_us{quantile=\"0.5\"}", "legendFormat": "P50 {{host}}" },
+        { "expr": "weft_claim_latency_us{quantile=\"0.9\"}", "legendFormat": "P90 {{host}}" },
+        { "expr": "weft_claim_latency_us{quantile=\"0.99\"}", "legendFormat": "P99 {{host}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "µs" }, "overrides": [] }
+    },
+    {
+      "id": 4,
+      "title": "Dropped frames (total)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "weft_dropped_total", "legendFormat": "dropped {{host}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+    },
+    {
+      "id": 5,
+      "title": "Validation wall refusals (TIER4)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 8 },
+      "targets": [
+        { "expr": "weft_invalid_total", "legendFormat": "invalid {{host}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+    },
+    {
+      "id": 6,
+      "title": "Reclaim timeouts (TIER4 bounded revocation)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 16 },
+      "targets": [
+        { "expr": "sum(weft_reclaim_timeouts_total)", "legendFormat": "timeouts" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } }, "overrides": [] }
+    }
+  ]
+}

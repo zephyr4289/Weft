@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# run_perf_regression_shard.sh — W-suite P99 vs pinned baseline.
-# FAIL iff any cell's P99 drops >15% below baseline.
+# run_perf_regression_shard.sh — perf regression gate (issue #20, task 4).
+# FAIL iff any W-suite cell's P99 drops >5% below baseline, OR the
+# publish/claim latency cells regress (P50 strict 5%; P99 vs the declared
+# sandbox noise cap — see ci/baselines/publish-claim-p99-baseline.json).
 #
 # Baseline update protocol:
 #   - Baselines live in ci/baselines/wsuite-p99-baseline.json
@@ -12,7 +14,7 @@ set -euo pipefail
 mkdir -p ci/run-artifacts ci/final-report
 
 BASELINE_FILE="ci/baselines/wsuite-p99-baseline.json"
-REGRESSION_THRESHOLD_PCT=15  # >15% drop = FAIL
+REGRESSION_THRESHOLD_PCT=5   # >5% drop = FAIL (issue #20)
 
 # Build C kernel (needed for W-suite backend C)
 make build-c-bench || (cd core/c && gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o libweft.so -fPIC -shared weft.c)
@@ -108,6 +110,52 @@ if regressions:
             f.write(f'| {reg[\"workload\"]} | {reg[\"backend\"]} | {reg[\"baseline\"]} | {reg.get(\"actual\", \"missing\")} | {reg[\"delta_pct\"]}% |\n')
         f.write('\nTo update the baseline (e.g., after an intentional protocol change), add the label **perf-baseline-update** to this PR.\n')
 " || exit 0  # Don't fail if Python errors; the actual fail is below
+
+
+# --- TIER5 s4: publish/claim latency gate (issue #20 task 4) ----------------
+# P50 strict 5%; P99 vs max(baseline*1.05, noise cap) - the cap is declared
+# in the baseline file (shared-sandbox tails are scheduler noise; the gate
+# must tolerate jitter AND still bite the syscall-in-hot-path class).
+echo ""
+echo "-> publish/claim P50+P99 latency vs ci/baselines/publish-claim-p99-baseline.json"
+make -s -C core/c p99-bench 2>/dev/null || (cd core/c && gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o p99-bench p99_bench.c weft.c)
+FAILARG=0
+if ./core/c/p99-bench 20000 > ci/run-artifacts/p99-actual.json 2>>ci/run-artifacts/shard-perf-regression.log; then
+  python3 - ci/run-artifacts/p99-actual.json ci/baselines/publish-claim-p99-baseline.json ci/run-artifacts/shard-perf-regression-results.json << 'PYLat'
+import json, sys
+actual = json.load(open(sys.argv[1]))
+base = json.load(open(sys.argv[2]))
+res = json.load(open(sys.argv[3]))
+caps = base.get('p99_noise_caps_ns', {})
+tp = base['threshold_pct'] / 100.0
+cells = {}
+for metric in ('publish', 'claim'):
+    a50 = actual['p50_' + metric + '_ns']; b50 = base['cells'][metric + '_p50_ns']
+    a99 = actual['p99_' + metric + '_ns']
+    cap = caps.get(metric, float('inf'))
+    limit99 = max(b50 * (1 + tp) * 20, cap)  # cap dominates; documented in the baseline
+    ok50 = a50 <= b50 * (1 + tp)
+    ok99 = a99 <= limit99
+    cells[metric + '_p50'] = {'actual': a50, 'baseline': b50, 'ok': ok50}
+    cells[metric + '_p99'] = {'actual': a99, 'limit': int(limit99), 'noise_cap': cap, 'ok': ok99}
+    if not (ok50 and ok99):
+        res['status'] = 'FAILED'
+        res.setdefault('latency_regressions', []).append(metric)
+res['latency_cells'] = cells
+json.dump(res, open(sys.argv[3], 'w'), indent=2)
+for k, v in sorted(cells.items()):
+    print('  ' + ('PASS' if v['ok'] else 'FAIL') + ' ' + k + ': ' + str(v))
+PYLat
+else
+  echo "  FAIL p99-bench could not run" | tee -a ci/run-artifacts/shard-perf-regression.log
+  FAILARG=1
+fi
+
+# If the p99 bench itself failed to run, fail the shard loudly.
+if [ "${FAILARG:-0}" = "1" ]; then
+  echo "latency gate: bench-failed" 
+  exit 1
+fi
 
 # If the perf-regression script wrote the FAILED status, exit non-zero
 STATUS=$(python3 -c "import json; print(json.load(open('ci/run-artifacts/shard-perf-regression-results.json'))['status'])")

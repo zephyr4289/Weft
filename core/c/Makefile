@@ -297,6 +297,18 @@ ffi_host-test-asan: ffi_host.c ffi_host.h ffi_host_test.c
 # trace-dump: the deterministic scenario emitter + reference tools
 #             (hex = the cross-port byte-identity surface).
 
+# ---- Tier 5: Prometheus exposition (issue #20 §2) -------------------------
+# metrics-dump: kernel counters + live measured latency quantiles in the
+# Prometheus TEXT format (scraped by tools/prometheus/weft_exporter.py).
+
+# p99-bench: publish/claim latency quantiles (min-of-reps) for the
+# perf-regression gate baseline (issue #20 §4).
+p99-bench: p99_bench.c weft.c weft.h
+	$(CC) $(CFLAGS) -o p99-bench p99_bench.c weft.c
+
+metrics-dump: metrics_dump.c weft.c weft.h
+	$(CC) $(CFLAGS) -o metrics-dump metrics_dump.c weft.c
+
 trace_rec-test: trace_rec.c trace_rec.h trace_rec_test.c
 	$(CC) $(CFLAGS) -o trace_rec-test trace_rec.c trace_rec_test.c
 
@@ -314,10 +326,7 @@ clean:
 	      uring-test uring-test-asan uring-test-tsan \
 	      turbo-runner turbo-runner-sys bench \
 	      blend-test blend-test-asan blend-runner \
-	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump
-
-.PHONY: all clean
-
+	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench
 
 .PHONY: all clean
 

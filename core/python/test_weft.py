@@ -22,10 +22,8 @@ every other port's optional-toolchain legs.
 
 Run: python3 -m unittest test_weft -v   (from core/python, after pip install -e .)
 """
-import os
 import struct
 import threading
-import time
 import unittest
 
 from weft import Weft, Fanout, FanoutReader, active_copy_impl

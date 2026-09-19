@@ -18,13 +18,12 @@ weft_pyshim.c). No struct layouts are exposed.
 """
 from __future__ import annotations
 
-import threading
 from typing import Optional, Sequence
 
 from ._weft_c import ffi, lib
 
 __version__ = "0.1.0"
-__all__ = ["Weft", "Fanout", "FanoutReader", "BatchFrame", "active_copy_impl"]
+__all__ = ["Weft", "Fanout", "FanoutReader", "active_copy_impl"]
 
 
 def active_copy_impl() -> str:

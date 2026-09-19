@@ -105,6 +105,9 @@ void weft_fanout_copy_force_auto(void);
 #define WEFT_FANOUT_COPY_INLINE_WORDS 32
 #endif
 
+extern _Atomic weft_fanout_copy_fn _weft_fanout_copy_dispatch;
+weft_fanout_copy_fn _weft_fanout_copy_resolve(void);
+
 /// The dispatching copy. Hot path: tiny payloads (< INLINE_WORDS) run the
 /// exact inline scalar loop the claim always ran — zero dispatch cost, zero
 /// behavior delta; larger payloads take the resolved-once function pointer
@@ -119,19 +122,15 @@ static inline void weft_fanout_copy_words(uint32_t* dst,
         }
         return;
     }
-    {
-        extern _Atomic weft_fanout_copy_fn _weft_fanout_copy_dispatch;
-        extern weft_fanout_copy_fn _weft_fanout_copy_resolve(void);
-        weft_fanout_copy_fn fn =
-            atomic_load_explicit(&_weft_fanout_copy_dispatch, memory_order_relaxed);
-        if (__builtin_expect(fn != NULL, 1)) {
-            fn(dst, src, words);
-            return;
-        }
-        // Cold: first call (or after force_auto) resolves and stores.
-        fn = _weft_fanout_copy_resolve();
+    weft_fanout_copy_fn fn =
+        atomic_load_explicit(&_weft_fanout_copy_dispatch, memory_order_relaxed);
+    if (__builtin_expect(fn != NULL, 1)) {
         fn(dst, src, words);
+        return;
     }
+    // Cold: first call (or after force_auto) resolves and stores.
+    fn = _weft_fanout_copy_resolve();
+    fn(dst, src, words);
 }
 
 /// Always-dispatched variant (no tiny-payload inline shortcut): the

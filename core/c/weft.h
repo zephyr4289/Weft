@@ -52,6 +52,15 @@ typedef enum {
     WEFT_DECODE_BAD_HEADER     = 3,  // header_size < 16 or > avail
 } weft_decode_result_t;
 
+/// Revocation reclaim verdicts (TIER4 §4 — issue #19, revocation timeout
+/// bounds). Legacy callers checking `rc == 0` / `rc != 0` remain correct:
+/// ACK is 0, every failure is nonzero.
+typedef enum {
+    WEFT_RECLAIM_ACK      = 0,  // writer ACKed (epoch advanced past pre-revoke)
+    WEFT_RECLAIM_TIMEOUT  = 1,  // bounded wait exhausted — caller may NOT poison/free
+    WEFT_RECLAIM_INVALID  = 2,  // invalid arguments (NULL w)
+} weft_reclaim_result_t;
+
 /// Weft instance — one writer + one reader, three off-heap buffers, one atomic.
 ///
 /// Field access discipline (02 §1):
@@ -96,6 +105,15 @@ typedef struct weft {
     _Atomic uint64_t t_invalid;       // incremented on each INVALID publish (TIER4 §5)
     _Atomic uint64_t t_wsteps;       // incremented once per protocol RMW in w_publish (L2)
     _Atomic uint64_t t_rsteps;       // incremented once per protocol RMW in r_claim (L3)
+
+    // TIER4 §4 (issue #19): bounded revocation. Runtime-configurable ceiling
+    // for weft_reclaim waits (default 1000 ms) + the advisory count of
+    // reclaim timeouts. A reclaim that hits the ceiling returns
+    // WEFT_RECLAIM_TIMEOUT and the caller MUST NOT poison/free (the writer
+    // may still be inside its final publish — the exact A1 hazard).
+    uint32_t max_reclaim_timeout_ms;  // immutable unless set via
+                                      // weft_set_max_reclaim_timeout
+    _Atomic uint64_t t_reclaim_timeouts; // advisory (Relaxed)
 } weft_t;
 
 // ---------------------------------------------------------------------------
@@ -188,11 +206,25 @@ const uint8_t* weft_r_live_ptr(weft_t* w, size_t offset);
 void weft_revoke(weft_t* w);
 
 /// Steps 2-3: poll epoch (Acquire) until it advances past the pre-revoke value,
-/// bounded by timeout_ms. Returns 0 on ACK received, -1 on timeout.
+/// bounded by timeout_ms AND by the instance ceiling `max_reclaim_timeout_ms`
+/// (default 1000 ms, runtime-configurable via
+/// weft_set_max_reclaim_timeout — the EFFECTIVE bound is min of the two).
+/// Returns WEFT_RECLAIM_ACK on ACK received, WEFT_RECLAIM_TIMEOUT when the
+/// bounded wait is exhausted (a warning is logged advisory-wise and
+/// t_reclaim_timeouts increments), WEFT_RECLAIM_INVALID on NULL w.
+///
+/// Bound honesty (TIER4 §4): the poll granularity is 100 µs, so the call
+/// returns within effective_timeout + one poll tick — declared, not assumed.
 ///
 /// After ACK is observed, the caller may poison (memset 0xDE) or free.
-/// Poison-before-ACK is the bug this handshake prevents (A1).
-int weft_reclaim(weft_t* w, uint32_t pre_revoke_epoch, uint32_t timeout_ms);
+/// Poison-before-ACK is the bug this handshake prevents (A1). A TIMED-OUT
+/// reclaim is NOT an ACK: poison/free after TIMEOUT is the caller's bug.
+weft_reclaim_result_t weft_reclaim(weft_t* w, uint32_t pre_revoke_epoch, uint32_t timeout_ms);
+
+/// TIER4 §4: runtime-configurable reclaim ceiling (ms). 0 disables the
+/// ceiling (callers then own the bound entirely — declared, not assumed).
+void weft_set_max_reclaim_timeout(weft_t* w, uint32_t max_ms);
+uint32_t weft_max_reclaim_timeout(const weft_t* w);
 
 // ---------------------------------------------------------------------------
 // Telemetry (Relaxed loads; statistics only, never synchronization)
@@ -202,6 +234,7 @@ uint64_t weft_t_publish(weft_t* w);
 uint64_t weft_t_claim(weft_t* w);
 uint64_t weft_t_drop(weft_t* w);
 uint64_t weft_t_invalid(weft_t* w);
+uint64_t weft_t_reclaim_timeouts(weft_t* w);
 uint64_t weft_t_wsteps(weft_t* w);
 uint64_t weft_t_rsteps(weft_t* w);
 uint32_t weft_epoch(weft_t* w);

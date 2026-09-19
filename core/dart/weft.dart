@@ -136,29 +136,47 @@ class Weft {
   void destroy() { revoke(); }
 
   /// Single-isolate reclaim: the epoch can only advance when this event loop
-  /// runs other code — a synchronous busy-wait can NEVER observe a change.
-  /// (The previous revision either returned instantly or froze the entire
-  /// isolate for the full timeout and then failed.) So: check the epoch
-  /// once; if the writer has ACKed, reclaim succeeded; otherwise return
-  /// false immediately and await the ACK with [reclaimAsync] instead.
-  /// [timeoutMs] is accepted for API parity with the C kernel and ignored:
-  /// there is no time to wait in a synchronous check on a single isolate.
+  /// runs other code — a synchronous busy-wait can NEVER observe a change
+  /// (it would freeze the isolate for the whole bound and then fail, since
+  /// the writer lives on the same loop). So the sync path checks the epoch
+  /// ONCE and returns immediately — a zero-width bound, bounded by
+  /// construction — and directs the caller to [reclaimAsync] for a real
+  /// bounded wait. [timeoutMs] is honored where waiting is real: on the
+  /// async path (clamped by [maxReclaimTimeoutMs], TIER4 §4, issue #19).
   bool reclaim(int preRevokeEpoch, int timeoutMs) {
+    // The bound is trivially satisfied: a single check waits for nothing.
+    // Declared: sync reclaim NEVER waits and NEVER spins — the anti-hang
+    // property issue #19 task 4 demands, achieved by not waiting at all.
     return _epoch != preRevokeEpoch;
   }
 
   /// Async reclaim: yields to the event loop between checks so a pending
   /// writer turn can ACK. Returns true once the epoch advances past
-  /// [preRevokeEpoch]; false after [timeoutMs] milliseconds. This is the
-  /// correct I6 wait primitive for a single-isolate runtime.
+  /// [preRevokeEpoch]; false after the EFFECTIVE bound (min of [timeoutMs]
+  /// and the [maxReclaimTimeoutMs] ceiling — TIER4 §4, issue #19)
+  /// milliseconds. Timeouts are counted ([tReclaimTimeoutsCount]), never
+  /// silent; after false the caller must NOT poison/free (no ACK, A1).
   Future<bool> reclaimAsync(int preRevokeEpoch, int timeoutMs) async {
+    var effectiveMs = timeoutMs;
+    if (maxReclaimTimeoutMs != 0 && effectiveMs > maxReclaimTimeoutMs) {
+      effectiveMs = maxReclaimTimeoutMs;
+    }
     final sw = Stopwatch()..start();
     while (_epoch == preRevokeEpoch) {
-      if (sw.elapsedMilliseconds >= timeoutMs) return false;
+      if (sw.elapsedMilliseconds >= effectiveMs) {
+        _tReclaimTimeouts += 1;
+        return false;
+      }
       await Future<void>.delayed(Duration.zero);
     }
     return true;
   }
+
+  /// TIER4 §4: runtime-configurable reclaim ceiling (ms); 0 disables.
+  int maxReclaimTimeoutMs = 1000;
+  void setMaxReclaimTimeout(int maxMs) { maxReclaimTimeoutMs = maxMs; }
+  int _tReclaimTimeouts = 0;
+  int get tReclaimTimeoutsCount => _tReclaimTimeouts;
 
   // --- Telemetry (advisory) ---
   int get tPublishCount => _tPublish;

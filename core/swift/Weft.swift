@@ -153,13 +153,31 @@ public final class Weft {
     public func revoke() { revoked.store(true, ordering: .releasing) }
 
     public func reclaim(preRevokeEpoch: UInt32, timeoutMs: Int) -> Bool {
+        // TIER4 §4 (issue #19): effective bound = min(timeoutMs, ceiling).
+        // Ceiling 0 disables itself. Timeouts are counted, never silent; the
+        // caller must NOT poison/free after false (the writer has not ACKed).
+        var effectiveMs = timeoutMs
+        if maxReclaimTimeoutMs != 0 && effectiveMs > maxReclaimTimeoutMs {
+            effectiveMs = maxReclaimTimeoutMs
+        }
         let start = Date()
         while true {
             if epoch.load(ordering: .acquiring) != preRevokeEpoch { return true }
-            if Date().timeIntervalSince(start) > Double(timeoutMs) / 1000.0 { return false }
+            if Date().timeIntervalSince(start) > Double(effectiveMs) / 1000.0 {
+                tReclaimTimeouts.wrappingIncrement(by: 1, ordering: .relaxed)
+                return false
+            }
             usleep(100)
         }
     }
+
+    /// TIER4 §4: runtime-configurable reclaim ceiling (ms); 0 disables.
+    /// Mirrors weft_set_max_reclaim_timeout (core/c/weft.h).
+    private var maxReclaimTimeoutMs: Int = 1000
+    public func setMaxReclaimTimeout(_ maxMs: Int) { maxReclaimTimeoutMs = maxMs }
+    public func maxReclaimTimeout() -> Int { maxReclaimTimeoutMs }
+    private let tReclaimTimeouts = ManagedAtomic<UInt64>(0)
+    public func tReclaimTimeoutsCount() -> UInt64 { tReclaimTimeouts.load(ordering: .relaxed) }
 
     // --- Telemetry (advisory) ---
     public func tPublishCount() -> UInt64 { tPublish.load(ordering: .relaxed) }

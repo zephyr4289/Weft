@@ -49,6 +49,8 @@ core/c/blend-test-asan
 core/c/blend-runner
 core/c/worklet-test
 core/c/qos-test
+core/c/reclaim-test
+core/c/reclaim-test-asan
 core/c/fuzz-runner
 core/c/fuzz-runner-asan
 tools/weft-probe/weft_probe

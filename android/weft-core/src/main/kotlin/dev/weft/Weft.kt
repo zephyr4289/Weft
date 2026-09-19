@@ -218,13 +218,28 @@ class Weft(val payloadMax: Int) {
     fun revoke() { revoked.set(true) }
 
     fun reclaim(preRevokeEpoch: Int, timeoutMs: Int): Boolean {
+        // TIER4 §4 (issue #19): effective bound = min(timeoutMs, ceiling).
+        // Ceiling 0 disables itself. Timeouts are counted, never silent; the
+        // caller must NOT poison/free after false (the writer has not ACKed).
+        val effectiveMs = if (maxReclaimTimeoutMs != 0 && timeoutMs > maxReclaimTimeoutMs)
+            maxReclaimTimeoutMs else timeoutMs
         val start = System.currentTimeMillis()
         while (true) {
             if (epoch.get() != preRevokeEpoch) return true
-            if (System.currentTimeMillis() - start >= timeoutMs) return false
+            if (System.currentTimeMillis() - start >= effectiveMs) {
+                tReclaimTimeouts.incrementAndGet()
+                return false
+            }
             Thread.sleep(1)
         }
     }
+
+    /// TIER4 §4: runtime-configurable reclaim ceiling (ms); 0 disables.
+    @Volatile var maxReclaimTimeoutMs: Int = 1000
+        private set
+    fun setMaxReclaimTimeout(maxMs: Int) { maxReclaimTimeoutMs = maxMs }
+    private val tReclaimTimeouts = AtomicLong(0)
+    fun tReclaimTimeoutsCount(): Long = tReclaimTimeouts.get()
 
     // --- Telemetry (advisory per AXIOM T) ---
     fun tPublishCount(): Long = tPublish.get()

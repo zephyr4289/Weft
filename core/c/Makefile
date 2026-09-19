@@ -269,6 +269,14 @@ worklet-test: worklet.c worklet.h thread_qos.c thread_qos.h worklet_test.c blend
 qos-test: thread_qos.c thread_qos.h qos_test.c
 	$(CC) $(CFLAGS) -o qos-test thread_qos.c qos_test.c
 
+# ---- Issue #19 Tier 4: bounded revocation (reclaim_test) -----------------
+
+reclaim-test: weft.c reclaim_test.c weft.h
+	$(CC) $(CFLAGS) -o reclaim-test weft.c reclaim_test.c
+
+reclaim-test-asan: weft.c reclaim_test.c weft.h
+	$(CC) $(CFLAGS_ASAN) -o reclaim-test-asan weft.c reclaim_test.c
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \

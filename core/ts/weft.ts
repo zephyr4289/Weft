@@ -155,6 +155,9 @@ export class Weft {
   // telemetry cost this regime closes).
   t_wsteps: number = 0;
   t_rsteps: number = 0;
+  /// TIER4 §4 (issue #19): reclaim-ceiling + advisory timeout count.
+  maxReclaimTimeoutMs: number = 1000;
+  t_reclaim_timeouts: number = 0;
 
   /// Hot-path u64-counter bump: lo + 1 with carry into hi when the lo half
   /// wraps (Atomics.add returns the OLD signed value; -1 == 0xFFFFFFFF).
@@ -491,11 +494,22 @@ export class Weft {
   /// Steps 2-3: poll epoch until it advances past `preRevokeEpoch`, bounded by `timeoutMs`.
   /// Returns true on ACK received, false on timeout.
   reclaim(preRevokeEpoch: number, timeoutMs: number): boolean {
+    // TIER4 §4 (issue #19): the effective bound is min(timeoutMs, the
+    // instance ceiling maxReclaimTimeoutMs, default 1000). Ceiling 0 disables
+    // the ceiling (caller owns the bound). A timeout here is counted and the
+    // caller MUST NOT poison/free — the writer has not ACKed (A1).
+    let effectiveMs = timeoutMs;
+    if (this.maxReclaimTimeoutMs !== 0 && effectiveMs > this.maxReclaimTimeoutMs) {
+      effectiveMs = this.maxReclaimTimeoutMs;
+    }
     const start = Date.now();
     while (true) {
       const e = Atomics.load(this.ctrl, Weft.SLOT_EPOCH);
       if (e !== preRevokeEpoch) return true;
-      if (Date.now() - start >= timeoutMs) return false;
+      if (Date.now() - start >= effectiveMs) {
+        this.t_reclaim_timeouts += 1;
+        return false;
+      }
       // Yield the core where the platform allows: Atomics.wait parks the
       // thread (workers) — it THROWS on the main thread, where we fall back
       // to a bounded busy-loop. 1 ms parks approximate the C kernel's
@@ -507,6 +521,11 @@ export class Weft {
       }
     }
   }
+
+  /// TIER4 §4: runtime-configurable reclaim ceiling (ms). 0 disables the
+  /// ceiling. Mirrors weft_set_max_reclaim_timeout (core/c/weft.h).
+  setMaxReclaimTimeout(maxMs: number): void { this.maxReclaimTimeoutMs = maxMs; }
+  maxReclaimTimeout(): number { return this.maxReclaimTimeoutMs; }
 
   /// Poison all 3 buffers with 0xDE (for L7).
   poisonAll(): void {

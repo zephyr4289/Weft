@@ -118,6 +118,10 @@ pub struct Weft {
     t_claim: AtomicU64,
     t_drop: AtomicU64,
     t_invalid: AtomicU64,
+    /// TIER4 §4 (issue #19): reclaim ceiling (ms; 0 = caller owns the bound)
+    /// and the advisory timeout count.
+    max_reclaim_timeout_ms: AtomicU32,
+    t_reclaim_timeouts: AtomicU64,
     t_wsteps: AtomicU64,
     t_rsteps: AtomicU64,
 }
@@ -204,6 +208,8 @@ impl Weft {
             t_claim: AtomicU64::new(0),
             t_drop: AtomicU64::new(0),
             t_invalid: AtomicU64::new(0),
+            max_reclaim_timeout_ms: AtomicU32::new(1000),
+            t_reclaim_timeouts: AtomicU64::new(0),
             t_wsteps: AtomicU64::new(0),
             t_rsteps: AtomicU64::new(0),
         })
@@ -402,20 +408,40 @@ impl Weft {
     /// After ACK is observed, the caller may poison (memset 0xDE) or free.
     /// Poison-before-ACK is the bug this handshake prevents (A1).
     pub fn reclaim(&self, pre_revoke_epoch: u32, timeout_ms: u32) -> Result<(), ()> {
+        // TIER4 §4 (issue #19): effective bound = min(timeout_ms, ceiling).
+        // Ceiling 0 disables itself. Timeouts are counted, never silent; the
+        // caller must NOT poison/free after Err (the writer has not ACKed).
+        let effective_ms = if self.max_reclaim_timeout_ms != 0
+            && timeout_ms > self.max_reclaim_timeout_ms
+        {
+            self.max_reclaim_timeout_ms
+        } else {
+            timeout_ms
+        };
         let start = std::time::Instant::now();
-        let timeout = std::time::Duration::from_millis(timeout_ms as u64);
+        let timeout = std::time::Duration::from_millis(effective_ms as u64);
         loop {
             let e = self.epoch.load(Ordering::Acquire);
             if e != pre_revoke_epoch {
                 return Ok(());
             }
             if start.elapsed() >= timeout {
+                self.t_reclaim_timeouts.fetch_add(1, Ordering::Relaxed);
                 return Err(());
             }
             // Brief sleep to avoid burning CPU. The writer ACKs within one publish.
             std::thread::sleep(std::time::Duration::from_micros(100));
         }
     }
+
+    /// TIER4 §4: runtime-configurable reclaim ceiling (ms); 0 disables.
+    /// Mirrors weft_set_max_reclaim_timeout (core/c/weft.h).
+    pub fn set_max_reclaim_timeout(&self, max_ms: u32) {
+        self.max_reclaim_timeout_ms.store(max_ms, Ordering::Relaxed);
+    }
+    pub fn max_reclaim_timeout(&self) -> u32 { self.max_reclaim_timeout_ms.load(Ordering::Relaxed) }
+    /// Advisory reclaim-timeout count (TIER4 §4).
+    pub fn t_reclaim_timeouts(&self) -> u64 { self.t_reclaim_timeouts.load(Ordering::Relaxed) }
 
     // Telemetry (Relaxed loads; statistics only, never synchronization)
     /// Total successful publishes since init.

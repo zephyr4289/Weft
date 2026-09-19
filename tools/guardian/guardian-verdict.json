@@ -1,6 +1,8 @@
 {
-  "watch": "crash",
+  "watch": "wire",
   "status": "PASS",
-  "findings": [],
-  "artifacts_audited": 21
+  "findings": [
+    "observed layout matches manifest (52 fields)"
+  ],
+  "fields_checked": 52
 }

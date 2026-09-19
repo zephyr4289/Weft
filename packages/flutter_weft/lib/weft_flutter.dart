@@ -2,6 +2,7 @@
 library weft_flutter;
 
 export 'src/bindings.dart';
+export 'src/weft_notifier.dart';
 export 'src/fanout_ffi.dart';
 export 'src/fanout_cross_isolate.dart';
 export 'src/fanout_painter.dart';

@@ -48,6 +48,11 @@ core/c/blend-test
 core/c/blend-test-asan
 core/c/blend-runner
 core/c/worklet-test
+core/c/fanout-simd-test*
+core/c/fanout-layout-test*
+core/c/fanout-batch-test*
+core/c/asan-*
+core/c/tsan-*
 core/c/reclaim-test
 core/c/reclaim-test-asan
 core/c/ffi_host-test
@@ -65,6 +70,7 @@ core/c/revoke-stress-asan
 core/c/revoke-stress-tsan
 core/c/ffi-fuzz
 core/c/ffi-fuzz-asan
+tools/weft-probe/weft_probe
 tools/weft-record/weft_record
 tools/weft-fanout-rec/weft-fanout-rec
 tools/weft-fanout-rec/weft-fanout-rec-seq

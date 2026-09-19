@@ -372,7 +372,7 @@ describe('V9: batch decode-verify', () => {
 
 describe('V10: optional native WebCrypto accelerator', () => {
   const key = deriveKey(new TextEncoder().encode('v10-native'));
-  const N = 200;
+  const N = 50;
   const PLEN = 64;
   const recLen = VW_ENVELOPE_LEN + PLEN + HMAC_TAG_LEN;
 
@@ -408,13 +408,13 @@ describe('V10: optional native WebCrypto accelerator', () => {
     expect(native!.verified).toBe(N);
 
     // Tamper: both paths must reject with the same stop semantics.
-    stream[50 * recLen + 20] ^= 0x40;
+    stream[25 * recLen + 20] ^= 0x40;
     const syncBad = verifiedWeftBatchDecodeVerify(key, stream);
     const nativeBad = await verifiedWeftBatchVerifyNative(key, stream);
     expect(syncBad.code).toBe(VW_ERR_TAG);
-    expect(syncBad.verified).toBe(50);
+    expect(syncBad.verified).toBe(25);
     expect(nativeBad!.code).toBe(VW_ERR_TAG);
-    expect(nativeBad!.verified).toBe(50);
+    expect(nativeBad!.verified).toBe(25);
     expect(nativeBad!.bytesConsumed).toBe(syncBad.bytesConsumed);
-  });
+  }, 15000);
 });

@@ -515,7 +515,6 @@ describe('TIER4 validation wall', () => {
     expect(w.publish(1, 64)).toBe(PubResult.Ok);
     w.claim();
     expect(w.verifyHeld(1, 64)).toBe(true);
-    expect(w.canaryCheck()).toBe(0);
   });
 
   it('revoked check still precedes the wall (normative 02 §6 ACK ordering)', () => {

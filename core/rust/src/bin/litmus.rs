@@ -729,6 +729,9 @@ fn run_l7(c: &Cli) -> i32 {
                     if n < 100 { pr2.fetch_add(1, Ordering::Relaxed); }
                     if n + 1 >= 100 { stop2.store(true, Ordering::Relaxed); break; }
                 }
+                PubResult::Invalid => {
+                    panic!("unexpected PubResult::Invalid in L7 litmus");
+                }
             }
             seq += 1;
         }

@@ -1,0 +1,36 @@
+==================================================
+SHARD: ffi-fuzz
+DESCRIPTION: Issue #16 Tier 1 Task 4 — FFI-boundary structured fuzz: C kernel API 200K ops + ASAN + C<->TS boundary
+STATUS: FAILED ❌
+COMMIT: 98853883d9dd68d33d508de10f79408a6618ba16
+RUN: 136
+==================================================
+
+
+=== Build: ffi-fuzz, ffi-fuzz-asan, fanout-runner ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o ffi-fuzz ffi_fuzz.c weft.c
+ffi_fuzz.c:34: warning: "_GNU_SOURCE" redefined
+   34 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o ffi-fuzz-asan ffi_fuzz.c weft.c
+ffi_fuzz.c:34: warning: "_GNU_SOURCE" redefined
+   34 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o fanout-runner fanout.c frame_cursor.c weft.c fanout_runner.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+ffi-fuzz: packages/core/dist missing (pnpm --filter @weft/core build) — boundary legs need it

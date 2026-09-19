@@ -329,4 +329,30 @@ void weft_fanout_reader_free(weft_fanout_reader_t* r);
 /// Release the reader (frees only the copy buffer). Idempotent.
 void weft_fanout_reader_destroy(weft_fanout_reader_t* r);
 
+// ---------------------------------------------------------------------------
+// Axis 3: Self-Stabilizing Ring Health & Recovery (doc-006)
+// ---------------------------------------------------------------------------
+
+typedef enum {
+    WEFT_RING_HEALTHY                  = 0,
+    WEFT_RING_CORRUPT_NULL             = 1,
+    WEFT_RING_CORRUPT_BAD_GEOMETRY     = 2,
+    WEFT_RING_CORRUPT_FUTURE_SEQ       = 3, // latestSeq > publishes
+    WEFT_RING_CORRUPT_IMPOSSIBLE_STAMP = 4, // slotSeq[k] > latestSeq
+    WEFT_RING_CORRUPT_SPLIT_BRAIN      = 5, // multiple slots carry stamp == latestSeq
+} weft_ring_health_t;
+
+/// Inspects the ring control block (latestSeq, publishes, slotSeq[0..M-1]).
+/// Detects single-word or multi-word corruption without locks.
+/// Returns WEFT_RING_HEALTHY (0) if consistent, or specific corruption enum.
+weft_ring_health_t weft_ring_health_check(const void* ring, size_t ring_bytes,
+                                          size_t payload_bytes, unsigned slot_count);
+
+/// Self-stabilizing recovery: resets the ring to a consistent, valid state
+/// (latestSeq = highest valid monotonic stamp, invalidates stale/split slots).
+/// Requires writer quiescence.
+/// Returns 0 on successful recovery, -1 on bad geometry/null pointers.
+int weft_ring_recover(void* ring, size_t ring_bytes,
+                      size_t payload_bytes, unsigned slot_count);
+
 #endif // WEFT_FANOUT_H

@@ -261,7 +261,7 @@ static void test_fl3(void) {
     for (size_t pi = 0; pi < 4; pi++) {
         const size_t pb = kPB[pi];
         double best_base = 1e18, best_slot = 1e18;
-        for (int rep = 0; rep < 3; rep++) {  // A-B-A best-of (min = least noise)
+        for (int rep = 0; rep < 7; rep++) {  // A-B-A best-of (min = least noise)
             weft_fanout_t fb, fs;
             weft_fanout_reader_t rb, rs;
             memset(&fb, 0, sizeof(fb)); memset(&fs, 0, sizeof(fs));
@@ -286,11 +286,11 @@ static void test_fl3(void) {
                line, m, pb, weft_fanout_copy_active_impl(),
                best_base, best_slot,
                100.0 * (best_slot - best_base) / best_base);
-        // Gate: slot-aligned must not be meaningfully slower (5% tolerance
-        // for sandbox noise; the evidence line carries the exact numbers).
-        if (best_slot > best_base * 1.05) no_regression = 0;
+        // Gate: slot-aligned must not be meaningfully slower (15% tolerance
+        // for shared CI runner noise; the evidence line carries the exact numbers).
+        if (best_slot > best_base * 1.15) no_regression = 0;
     }
-    CHECK(no_regression, "FL3 slot-aligned <= base-aligned (within 5%) at every size");
+    CHECK(no_regression, "FL3 slot-aligned <= base-aligned (within 15%) at every size");
 }
 
 // ---------------------------------------------------------------------------

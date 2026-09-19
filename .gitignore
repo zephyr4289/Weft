@@ -63,6 +63,8 @@ core/c/trace-dump
 core/c/trace_rec-test
 core/c/metrics-dump
 core/c/p99-bench
+core/c/recovery-test
+core/c/recovery-test-asan
 core/c/weft-hw-test
 core/c/weft-hw-test-asan
 core/c/revoke-stress

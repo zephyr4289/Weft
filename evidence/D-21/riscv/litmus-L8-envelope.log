@@ -1,0 +1,2 @@
+L8 roundtrip=1 unknown=1 negotiation=1 coexist=1 pass=1
+{"test":"L8-envelope","lang":"c","pass":true,"metrics":{"roundtrip":true,"unknown_fields":true,"negotiation":true,"coexist":true}}

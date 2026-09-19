@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# run_riscv_litmus_shard.sh — RISC-V RV64GC portability gate (issue #18-2).
+#
+# Cross-compiles the C kernel + driver layer for riscv64-linux-gnu (RV64GC)
+# and runs the FULL litmus matrix (L1-L8) + the F-series fan-out conformance
+# (both ordering regimes) under qemu-riscv64 user-mode emulation.
+#
+# Toolchain (ubuntu-latest, root): apt packages gcc-riscv64-linux-gnu +
+# qemu-user. On hosts WITHOUT root (evidence sandboxes), the rootless recipe
+# is: apt-get download {gcc-riscv64-linux-gnu cpp-riscv64-linux-gnu
+# cpp-14-riscv64-linux-gnu gcc-14-riscv64-linux-gnu
+# gcc-14-riscv64-linux-gnu-base libgcc-14-dev-riscv64-cross
+# libgcc-s1-riscv64-cross binutils-riscv64-linux-gnu libc6-dev-riscv64-cross
+# libc6-riscv64-cross linux-libc-dev-riscv64-cross qemu-user} then
+# dpkg-deb -x into a prefix, LD_LIBRARY_PATH=<prefix>/usr/lib/x86_64-linux-gnu
+# for the cross binutils, and --sysroot=<prefix>/usr/riscv64-linux-gnu (the
+# sysroot's libc.so linker scripts hardcode /usr/riscv64-linux-gnu — sed them
+# to sysroot-relative). Documented in docs/riscv-port.md.
+#
+# Gates:
+#   1. L1-L8 kernel litmus under QEMU (the issue's acceptance criterion)
+#   2. F-series fan-out conformance, fenced acq/rel + all-seq_cst regimes
+#   3. The atomics/fence AUDIT: the emitted instruction mapping must contain
+#      amoswap.d.aqrl (the kernel's exchange), fence rw,w / r,rw (release/
+#      acquire) and fence rw,rw (SeqCst) — the contract the memory-ordering
+#      proofs assume on RV64GC.
+#
+# Output: ci/run-artifacts/shard-riscv-litmus.log + -results.json
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+mkdir -p ci/run-artifacts
+LOG=ci/run-artifacts/shard-riscv-litmus.log
+: > "$LOG"
+
+fail=0
+step() { echo "" | tee -a "$LOG"; echo "=== $1 ===" | tee -a "$LOG"; }
+
+if ! command -v riscv64-linux-gnu-gcc >/dev/null 2>&1; then
+  step "install cross toolchain + qemu (apt)"
+  apt-get update -qq >> "$LOG" 2>&1 || true
+  apt-get install -y --no-install-recommends gcc-riscv64-linux-gnu qemu-user >> "$LOG" 2>&1 \
+    || { echo '{"shard":"riscv-litmus","status":"FAILED","reason":"toolchain install"}'; exit 1; }
+fi
+if ! command -v qemu-riscv64 >/dev/null 2>&1; then
+  step "install qemu-user (apt)"
+  apt-get install -y --no-install-recommends qemu-user >> "$LOG" 2>&1 \
+    || { echo '{"shard":"riscv-litmus","status":"FAILED","reason":"qemu install"}'; exit 1; }
+fi
+
+step "cross-compile spike (kernel litmus) + fanout-test (F-series) for RV64GC"
+riscv64-linux-gnu-gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE \
+  -o /tmp/spike-rv core/c/weft.c core/c/litmus_runner.c >> "$LOG" 2>&1 || fail=1
+riscv64-linux-gnu-gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE \
+  -o /tmp/fanout-test-rv core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
+  core/c/fanout_simd.c core/c/fanout_test.c >> "$LOG" 2>&1 || fail=1
+riscv64-linux-gnu-gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE \
+  -DWEFT_FANOUT_SEQ_CST=1 \
+  -o /tmp/fanout-test-rv-seq core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
+  core/c/fanout_simd.c core/c/fanout_test.c >> "$LOG" 2>&1 || fail=1
+
+step "L1-L8 kernel litmus under qemu-riscv64"
+for t in L1-tear L2-writer-steps L3-reader-steps L4-freshness L5-progress \
+         L6-ownership L7-revocation L8-envelope; do
+  timeout 300 qemu-riscv64 /tmp/spike-rv "$t" >> "$LOG" 2>&1 || fail=1
+done
+
+step "F-series fan-out conformance (fenced acq/rel regime)"
+qemu-riscv64 /tmp/fanout-test-rv >> "$LOG" 2>&1 || fail=1
+step "F-series fan-out conformance (all-seq_cst regime)"
+qemu-riscv64 /tmp/fanout-test-rv-seq >> "$LOG" 2>&1 || fail=1
+
+step "atomics/fence audit (the emitted mapping must match the proofs)"
+riscv64-linux-gnu-gcc -O2 -S -o /tmp/audit-rv.s ci/riscv/audit_rv.c >> "$LOG" 2>&1 || fail=1
+for want in "amoswap.d.aqrl" "fence rw,w" "fence r,rw" "fence rw,rw"; do
+  if grep -q "$want" /tmp/audit-rv.s; then
+    echo "audit: found '$want'" | tee -a "$LOG"
+  else
+    echo "audit: MISSING '$want'" | tee -a "$LOG"
+    fail=1
+  fi
+done
+
+if [ "$fail" -ne 0 ]; then
+  echo '{"shard":"riscv-litmus","status":"FAILED"}' > ci/run-artifacts/shard-riscv-litmus-results.json
+  exit 1
+fi
+echo '{"shard":"riscv-litmus","status":"PASSED","gates":"L1-L8 qemu-rv64 + F-series x2 regimes + atomics audit (amoswap.aqrl / fences)"}' > ci/run-artifacts/shard-riscv-litmus-results.json
+echo "✅ riscv-litmus shard PASSED" | tee -a "$LOG"

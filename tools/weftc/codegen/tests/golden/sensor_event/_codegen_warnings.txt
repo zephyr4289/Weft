@@ -1,0 +1,4 @@
+weftc-codegen: warning: [wgsl] axis_sample: storage variant withheld (Law 4) — field x (scalar): WGSL and GLSL expose no 16-bit integer buffer types; widen to u32 (or keep this struct CPU-side)
+weftc-codegen: warning: [wgsl] sensor_event: storage variant withheld (Law 4) — field imu (aggregate): embedded struct axis_sample is not GPU-exact: field x (scalar): WGSL and GLSL expose no 16-bit integer buffer types; widen to u32 (or keep this struct CPU-side)
+weftc-codegen: warning: [glsl] axis_sample: std430 variant withheld (Law 4) — field x (scalar): WGSL and GLSL expose no 16-bit integer buffer types; widen to u32 (or keep this struct CPU-side)
+weftc-codegen: warning: [glsl] sensor_event: std430 variant withheld (Law 4) — field imu (aggregate): embedded struct axis_sample is not GPU-exact: field x (scalar): WGSL and GLSL expose no 16-bit integer buffer types; widen to u32 (or keep this struct CPU-side)

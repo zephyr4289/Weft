@@ -1,0 +1,24 @@
+{
+  "weft_ir": 1,
+  "module": "telemetry",
+  "types": [
+    {
+      "kind": "struct",
+      "name": "telemetry_frame",
+      "schema_id": "0x8F4C1120A9B30012",
+      "align": 8,
+      "size": 64,
+      "doc": "Canonical 64-byte GPU-exact telemetry frame (the Pillar 1 example ABI: sizeof 64, velocity at offset 8).",
+      "fields": [
+        { "name": "schema_id", "type": "u64", "offset": 0, "doc": "cryptographic schema hash header" },
+        { "name": "velocity", "type": "f32", "offset": 8, "doc": "m/s" },
+        { "name": "altitude", "type": "f32", "offset": 12, "doc": "meters MSL" },
+        { "name": "accel", "type": "vec3<f32>", "offset": 16, "doc": "m/s^2 body frame" },
+        { "name": "pad0", "type": "u32", "offset": 28, "doc": "explicit GPU-alignment pad (std430 vec3 tail)" },
+        { "name": "gyro", "type": "vec3<f32>", "offset": 32, "doc": "rad/s body frame" },
+        { "name": "baro_pressure", "type": "f32", "offset": 44, "doc": "Pa" },
+        { "name": "quaternion", "type": "vec4<f32>", "offset": 48, "doc": "attitude w x y z" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "weft_ir": 1,
+  "module": "sensors",
+  "types": [
+    {
+      "kind": "struct",
+      "name": "axis_sample",
+      "root": false,
+      "align": 2,
+      "size": 8,
+      "doc": "Embedded layout type: packed 3-axis i16 sample (GPU targets refuse i16 — Law 4).",
+      "fields": [
+        { "name": "x", "type": "i16", "offset": 0 },
+        { "name": "y", "type": "i16", "offset": 2 },
+        { "name": "z", "type": "i16", "offset": 4 },
+        { "name": "pad", "type": "u16", "offset": 6 }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "sensor_event",
+      "schema_id": "auto",
+      "align": 8,
+      "size": 32,
+      "doc": "Batch-validated sensor event with an embedded axis_sample. The SIMD batch-validation fixture.",
+      "fields": [
+        { "name": "schema_id", "type": "u64", "offset": 0 },
+        { "name": "timestamp_ns", "type": "u64", "offset": 8 },
+        { "name": "imu", "type": "axis_sample", "offset": 16 },
+        { "name": "quality", "type": "u32", "offset": 24 },
+        { "name": "crc32", "type": "u32", "offset": 28 }
+      ]
+    }
+  ]
+}

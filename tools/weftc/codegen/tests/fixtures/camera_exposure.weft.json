@@ -1,0 +1,28 @@
+{
+  "weft_ir": 1,
+  "module": "camera",
+  "types": [
+    {
+      "kind": "struct",
+      "name": "camera_exposure",
+      "schema_id": "auto",
+      "schema_id_width": 32,
+      "align": 16,
+      "size": 128,
+      "doc": "Uniform-safe exposure block: every member satisfies std140 (16-aligned vectors/matrices, 16-stride arrays, u32 header).",
+      "fields": [
+        { "name": "schema_id", "type": "u32", "offset": 0 },
+        { "name": "mode", "type": "u32", "offset": 4,
+          "bits": [
+            { "name": "ae_lock", "lo": 0, "hi": 0 },
+            { "name": "sensor", "lo": 1, "hi": 3 }
+          ] },
+        { "name": "gain", "type": "f32", "offset": 8, "doc": "ISO gain multiplier" },
+        { "name": "exposure_us", "type": "f32", "offset": 12, "doc": "microseconds" },
+        { "name": "position", "type": "vec4<f32>", "offset": 16, "doc": "camera world position" },
+        { "name": "projection", "type": "[f32; 16]", "gpu_type": "mat4x4<f32>", "offset": 32, "doc": "column-major projection matrix" },
+        { "name": "roi", "type": "[vec4<f32>; 2]", "offset": 96, "doc": "region of interest rect x2" }
+      ]
+    }
+  ]
+}

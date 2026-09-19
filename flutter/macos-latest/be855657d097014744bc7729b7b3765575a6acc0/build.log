@@ -1,0 +1,33 @@
+=== Starting Flutter CI (macos-latest) ===
+[PASS] core/kotlin/FrameCursor.kt  <->  android/weft-core/src/main/kotlin/dev/weft/FrameCursor.kt
+[PASS] core/kotlin/Fanout.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Fanout.kt
+[PASS] core/kotlin/FanoutCompat.kt  <->  android/weft-core/src/main/kotlin/dev/weft/FanoutCompat.kt
+[PASS] core/kotlin/Steward.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Steward.kt
+[PASS] core/kotlin/TriadNative.kt  <->  android/weft-core/src/main/kotlin/dev/weft/TriadNative.kt
+[FAIL] core/kotlin/Weft.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Weft.kt
+        reason: hash drift (502d5dd1118ff3ccd3bd7c73101422ee4bcf3925a7a870c7bc719cebade7cfab != ebc857a244fe8ce6158c6d030a2bf5ccaf3cc33af4bb77e87be96df4d7e00b27)
+[PASS] core/kotlin/Governor.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Governor.kt
+[PASS] core/kotlin/Recycler.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Recycler.kt
+[PASS] core/kotlin/GovernedFanoutConsumer.kt  <->  android/weft-core/src/main/kotlin/dev/weft/GovernedFanoutConsumer.kt
+[PASS] core/kotlin/FanoutVhBridge.java  <->  android/weft-core/src/main/java/dev/weft/FanoutVhBridge.java
+[PASS] core/dart/frame_cursor.dart  <->  packages/flutter_weft/lib/src/reference/frame_cursor.dart
+[PASS] core/dart/fanout.dart  <->  packages/flutter_weft/lib/src/reference/fanout.dart
+[PASS] core/dart/heddle.dart  <->  packages/flutter_weft/lib/src/reference/heddle.dart
+[PASS] core/dart/steward.dart  <->  packages/flutter_weft/lib/src/reference/steward.dart
+[PASS] core/dart/weft.dart  <->  packages/flutter_weft/lib/src/reference/weft.dart
+[PASS] core/ts/weft.ts  <->  packages/core/src/weft.ts
+[PASS] core/ts/fanout.ts  <->  packages/core/src/fanout.ts
+[PASS] core/ts/verified.ts  <->  packages/core/src/verified.ts
+[PASS] core/kotlin/Verified.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Verified.kt
+[PASS] core/dart/verified.dart  <->  packages/flutter_weft/lib/src/reference/verified.dart
+[PASS] core/dart/governor.dart  <->  packages/flutter_weft/lib/src/reference/governor.dart
+[PASS] core/dart/recycler.dart  <->  packages/flutter_weft/lib/src/reference/recycler.dart
+[PASS] core/dart/governed_consumer.dart  <->  packages/flutter_weft/lib/src/reference/governed_consumer.dart
+[PASS] core/kotlin/BlendQ12.kt  <->  android/weft-core/src/main/kotlin/dev/weft/BlendQ12.kt
+[PASS] core/kotlin/RenderQos.kt  <->  android/weft-core/src/main/kotlin/dev/weft/RenderQos.kt
+[PASS] core/dart/blend_q12.dart  <->  packages/flutter_weft/lib/src/reference/blend_q12.dart
+[PASS] core/dart/render_qos.dart  <->  packages/flutter_weft/lib/src/reference/render_qos.dart
+{"shard":"binding-parity","passed":26,"failed":1,"total":27,"cells":{"core/kotlin/FrameCursor.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Fanout.kt":{"status":"PASS","detail":"identical"},"core/kotlin/FanoutCompat.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Steward.kt":{"status":"PASS","detail":"identical"},"core/kotlin/TriadNative.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Weft.kt":{"status":"FAIL","detail":"hash drift (502d5dd1118ff3ccd3bd7c73101422ee4bcf3925a7a870c7bc719cebade7cfab != ebc857a244fe8ce6158c6d030a2bf5ccaf3cc33af4bb77e87be96df4d7e00b27)"},"core/kotlin/Governor.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Recycler.kt":{"status":"PASS","detail":"identical"},"core/kotlin/GovernedFanoutConsumer.kt":{"status":"PASS","detail":"identical"},"core/kotlin/FanoutVhBridge.java":{"status":"PASS","detail":"identical"},"core/dart/frame_cursor.dart":{"status":"PASS","detail":"identical"},"core/dart/fanout.dart":{"status":"PASS","detail":"identical"},"core/dart/heddle.dart":{"status":"PASS","detail":"identical"},"core/dart/steward.dart":{"status":"PASS","detail":"identical"},"core/dart/weft.dart":{"status":"PASS","detail":"identical"},"core/ts/weft.ts":{"status":"PASS","detail":"identical"},"core/ts/fanout.ts":{"status":"PASS","detail":"identical"},"core/ts/verified.ts":{"status":"PASS","detail":"identical"},"core/kotlin/Verified.kt":{"status":"PASS","detail":"identical"},"core/dart/verified.dart":{"status":"PASS","detail":"identical"},"core/dart/governor.dart":{"status":"PASS","detail":"identical"},"core/dart/recycler.dart":{"status":"PASS","detail":"identical"},"core/dart/governed_consumer.dart":{"status":"PASS","detail":"identical"},"core/kotlin/BlendQ12.kt":{"status":"PASS","detail":"identical"},"core/kotlin/RenderQos.kt":{"status":"PASS","detail":"identical"},"core/dart/blend_q12.dart":{"status":"PASS","detail":"identical"},"core/dart/render_qos.dart":{"status":"PASS","detail":"identical"}}}
+
+❌ BINDING PARITY DRIFT: 1 of 27 pairs diverged.
+   Rule: edit the canonical (core/*) side, then copy byte-identical to the mirror.

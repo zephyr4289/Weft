@@ -1,0 +1,8 @@
+==================================================
+SHARD: perf-regression
+DESCRIPTION: W-suite P99 vs pinned baseline; >15% drop = FAIL
+STATUS: FAILED ❌
+COMMIT: 2e76e478859c79ae12a418f5810f240810759f02
+RUN: 144
+==================================================
+

@@ -1,0 +1,8 @@
+==================================================
+SHARD: turbo-native
+DESCRIPTION: RFC-0012 TLEL: T/U-series x sanitizers + seq_cst, T-bench smoke, zero-regression guardrail
+STATUS: FAILED ❌
+COMMIT: 2e76e478859c79ae12a418f5810f240810759f02
+RUN: 144
+==================================================
+

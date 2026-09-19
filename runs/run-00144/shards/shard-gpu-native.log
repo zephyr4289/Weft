@@ -1,0 +1,8 @@
+==================================================
+SHARD: gpu-native
+DESCRIPTION: RFC-0003 spike: GPU-series + gpu-probe full dispatch (lavapipe ICD)
+STATUS: FAILED ❌
+COMMIT: 2e76e478859c79ae12a418f5810f240810759f02
+RUN: 144
+==================================================
+

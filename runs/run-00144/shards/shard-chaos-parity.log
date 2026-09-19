@@ -1,0 +1,8 @@
+==================================================
+SHARD: chaos-parity
+DESCRIPTION: Cross-language chaos parity — C==TS==JVM==Dart byte-identical verdicts
+STATUS: FAILED ❌
+COMMIT: 2e76e478859c79ae12a418f5810f240810759f02
+RUN: 144
+==================================================
+

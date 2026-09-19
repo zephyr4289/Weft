@@ -76,6 +76,14 @@ struct weft_gpu_stream {
     int (*vkQueueSubmit)(void*, uint32_t, const VkSubmitInfo_*, void*);
     int (*vkDeviceWaitIdle)(void*);
     void (*vkDestroyDevice)(void*, const void*);
+    // issue #17-5: fence-scoped sync (dispatch waits ITS fence, not the
+    // whole device; async pipelines 4 deep).
+    int (*vkCreateFence)(void*, const VkFenceCreateInfo_*, const void*, void**);
+    void (*vkDestroyFence)(void*, void*, const void*);
+    int (*vkResetFences)(void*, uint32_t, void* const*);
+    int (*vkWaitForFences)(void*, uint32_t, void* const*, uint32_t, uint64_t);
+    void* fences[4];      // submit-fence ring (async depth 4)
+    unsigned fence_next;
 
     // kit-owned objects
     void* module;
@@ -180,6 +188,10 @@ weft_gpu_stream_err_t weft_gpu_stream_init(weft_gpu_stream_t** out,
     KRESOLVE(vkGetDeviceQueue, "vkGetDeviceQueue")
     KRESOLVE(vkQueueSubmit, "vkQueueSubmit")
     KRESOLVE(vkDeviceWaitIdle, "vkDeviceWaitIdle")
+    KRESOLVE(vkCreateFence, "vkCreateFence")
+    KRESOLVE(vkDestroyFence, "vkDestroyFence")
+    KRESOLVE(vkResetFences, "vkResetFences")
+    KRESOLVE(vkWaitForFences, "vkWaitForFences")
 
     // Memory-type scan: query the ring's OWN physical device (exported by
     // gpu_ring precisely so consumers never re-create instances).
@@ -478,6 +490,18 @@ weft_gpu_stream_err_t weft_gpu_stream_init(weft_gpu_stream_t** out,
     }
     s->vkGetDeviceQueue(s->device, weft_gpu_vk_queue_family(g), 0, &s->queue);
 
+    // issue #17-5: the fence ring, created PRE-SIGNALED so the first
+    // flush/wait passes without a prior submit.
+    for (unsigned i = 0; i < 4; i++) {
+        VkFenceCreateInfo_ fc = {0};
+        fc.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fc.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+        if (s->vkCreateFence(s->device, &fc, NULL, &s->fences[i]) != VK_SUCCESS) {
+            s->fences[i] = NULL;
+        }
+    }
+    s->fence_next = 0;
+
     *out = s;
     return WEFT_GPU_STREAM_OK;
 }
@@ -487,23 +511,51 @@ weft_gpu_stream_err_t weft_gpu_stream_dispatch(weft_gpu_stream_t* s,
                                                unsigned push_bytes,
                                                unsigned gx, unsigned gy,
                                                unsigned gz) {
+    // issue #17-5: dispatch is now async-submit + flush — IDENTICAL return
+    // semantics (work complete when this returns), but the wait is
+    // fence-scoped instead of a whole-device DeviceWaitIdle stall. The
+    // recording lives once, in dispatch_async.
+    const weft_gpu_stream_err_t a =
+        weft_gpu_stream_dispatch_async(s, push, push_bytes, gx, gy, gz);
+    if (a != WEFT_GPU_STREAM_OK) return a;
+    return weft_gpu_stream_flush(s);
+
+}
+
+weft_gpu_stream_err_t weft_gpu_stream_dispatch_async(weft_gpu_stream_t* s,
+                                                     const void* push,
+                                                     unsigned push_bytes,
+                                                     unsigned gx, unsigned gy,
+                                                     unsigned gz) {
     if (s == NULL || push_bytes > 16u) return WEFT_GPU_STREAM_ERR_BAD_ARG;
     if (s->cmd == NULL || s->queue == NULL) return WEFT_GPU_STREAM_ERR_COMMAND;
 
-    static int trace = -1;
-    if (trace < 0) trace = (getenv("WEFT_GPU_STREAM_TRACE") != NULL);
-#define STRACE(msg) do { if (trace) fprintf(stderr, "stream-dispatch: %s\n", msg); } while (0)
+    static int atrace = -1;
+    if (atrace < 0) atrace = (getenv("WEFT_GPU_STREAM_TRACE") != NULL);
+#define ATRACE(msg) do { if (atrace) fprintf(stderr, "stream-async: %s\n", msg); } while (0)
 
-    STRACE("begin");
+    // Reuse is single-command-buffer: the PREVIOUS submit must be complete
+    // before this begin() re-records it. Wait on the ring slot's fence
+    // (fence-scoped — NOT a whole-device stall; unrelated queues keep
+    // running), then reset it for this submission.
+    const unsigned fi = s->fence_next;
+    if (s->fences[fi] != NULL) {
+        if (s->vkWaitForFences(s->device, 1, &s->fences[fi], 1u, UINT64_MAX)
+                != VK_SUCCESS) {
+            return WEFT_GPU_STREAM_ERR_SUBMIT;
+        }
+        if (s->vkResetFences(s->device, 1, &s->fences[fi]) != VK_SUCCESS) {
+            return WEFT_GPU_STREAM_ERR_SUBMIT;
+        }
+    }
+
+    ATRACE("begin");
     VkCommandBufferBeginInfo_ bi = {0};
     bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     if (s->vkBeginCommandBuffer(s->cmd, &bi) != VK_SUCCESS) {
         return WEFT_GPU_STREAM_ERR_SUBMIT;
     }
-
-    // One-time UNDEFINED -> GENERAL transition (discard is fine: the
-    // streaming path rewrites and self-verifies every pixel it reads).
     if (s->image != NULL && !s->image_barriered) {
         VkImageMemoryBarrier_ bar = {0};
         bar.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -522,8 +574,7 @@ weft_gpu_stream_err_t weft_gpu_stream_dispatch(weft_gpu_stream_t* s,
                                 0, NULL, 0, NULL, 1, &bar);
         s->image_barriered = 1;
     }
-
-    STRACE("bind-pipeline");
+    ATRACE("bind");
     s->vkCmdBindPipeline(s->cmd, VK_PIPELINE_BIND_POINT_COMPUTE, s->pipeline);
     s->vkCmdBindDescriptorSets(s->cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
                                s->pipeline_layout, 0, 1,
@@ -532,7 +583,7 @@ weft_gpu_stream_err_t weft_gpu_stream_dispatch(weft_gpu_stream_t* s,
         s->vkCmdPushConstants(s->cmd, s->pipeline_layout,
                               VK_SHADER_STAGE_COMPUTE_BIT, 0, push_bytes, push);
     }
-    STRACE("dispatch-cmd");
+    ATRACE("dispatch-cmd");
     s->vkCmdDispatch(s->cmd, gx, gy, gz);
     if (s->vkEndCommandBuffer(s->cmd) != VK_SUCCESS) {
         return WEFT_GPU_STREAM_ERR_SUBMIT;
@@ -542,13 +593,26 @@ weft_gpu_stream_err_t weft_gpu_stream_dispatch(weft_gpu_stream_t* s,
     si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     si.commandBufferCount = 1;
     si.pCommandBuffers = (const void* const*)(const void*)&s->cmd;
-    STRACE("submit");
-    if (s->vkQueueSubmit(s->queue, 1, &si, NULL) != VK_SUCCESS) {
+    ATRACE("submit-fenced");
+    if (s->vkQueueSubmit(s->queue, 1, &si, s->fences[fi]) != VK_SUCCESS) {
         return WEFT_GPU_STREAM_ERR_SUBMIT;
     }
-    STRACE("wait-idle");
-    if (s->vkDeviceWaitIdle(s->device) != VK_SUCCESS) {
-        return WEFT_GPU_STREAM_ERR_SUBMIT;
+    s->fence_next = (fi + 1) % 4;   // NOTE: single cmd buffer serializes the
+                                    // GPU work; the ring keeps fence waits
+                                    // short and the device UNSTALLED between
+                                    // dispatches (the measured win).
+    return WEFT_GPU_STREAM_OK;
+}
+
+weft_gpu_stream_err_t weft_gpu_stream_flush(weft_gpu_stream_t* s) {
+    if (s == NULL) return WEFT_GPU_STREAM_ERR_BAD_ARG;
+    if (s->device == NULL) return WEFT_GPU_STREAM_ERR_COMMAND;
+    for (unsigned i = 0; i < 4; i++) {
+        if (s->fences[i] == NULL) continue;
+        if (s->vkWaitForFences(s->device, 1, &s->fences[i], 1u, UINT64_MAX)
+                != VK_SUCCESS) {
+            return WEFT_GPU_STREAM_ERR_SUBMIT;
+        }
     }
     return WEFT_GPU_STREAM_OK;
 }
@@ -572,6 +636,11 @@ void weft_gpu_stream_destroy(weft_gpu_stream_t* s) {
         if (s->image && s->vkDestroyImage) s->vkDestroyImage(s->device, s->image, NULL);
         if (s->image_memory && s->vkFreeMemory) s->vkFreeMemory(s->device, s->image_memory, NULL);
         if (s->texel_view && s->vkDestroyBufferView) s->vkDestroyBufferView(s->device, s->texel_view, NULL);
+        for (unsigned i = 0; i < 4; i++) {
+            if (s->fences[i] && s->vkDestroyFence) {
+                s->vkDestroyFence(s->device, s->fences[i], NULL);
+            }
+        }
         if (s->res_mapped && s->vkUnmapMemory) s->vkUnmapMemory(s->device, s->res_memory);
         if (s->res_buffer && s->vkDestroyBuffer) s->vkDestroyBuffer(s->device, s->res_buffer, NULL);
         if (s->res_memory && s->vkFreeMemory) s->vkFreeMemory(s->device, s->res_memory, NULL);

@@ -15,6 +15,9 @@ add_library(weft_core SHARED
     # RFC 0004 fan-out ring (driver layer — the JNI fanout* surface in
     # weft_jni.c binds it; byte-compatible with core/ts/fanout.ts).
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../core/c/fanout.c
+    # Issue #17-1: the claim seam's SIMD copy dispatcher (runtime
+    # probe: NEON on aarch64, scalar elsewhere — no NDK flags needed).
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../core/c/fanout_simd.c
 )
 
 target_link_libraries(weft_core

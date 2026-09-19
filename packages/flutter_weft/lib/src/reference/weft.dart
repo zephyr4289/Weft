@@ -67,7 +67,7 @@ class Weft {
     for (var i = 0; i < 3; i++) {
       _envelopeEncodeV1(_buffers[i], 0, payloadMax);
       for (var j = 0; j < payloadMax; j++) {
-        _buffers[i].setUint8(16 + j, _pat(0, j));
+        _buffers[i].setUint8(16 + j, pat(0, j));
       }
     }
   }
@@ -116,6 +116,7 @@ class Weft {
   int rSeq() => _buffers[_rWork].getInt32(8, Endian.little);
   int rMagic() => _buffers[_rWork].getInt32(0, Endian.little);
   int rPayloadLen() => _buffers[_rWork].getInt32(12, Endian.little);
+  int rCanary() => _buffers[_rWork].getInt64(bufSize - 8, Endian.little);
 
   Uint8List rReadSlice(int offset, int len) {
     if (offset >= bufSize) return Uint8List(0);

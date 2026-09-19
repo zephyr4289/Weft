@@ -81,7 +81,7 @@ static int cfg_validate(const weft_chaos_config_t* c) {
 // STEPPED engine — the deterministic scheduler
 // ---------------------------------------------------------------------------
 
-typedef enum { W_IDLE = 0, W_FILL, W_STAMP, W_PUBLISH, W_DONE } w_state_t;
+typedef enum { W_IDLE = 0, W_FILL, W_STAMP, W_STAMP_HI, W_PUBLISH, W_DONE } w_state_t;
 
 typedef enum {
     R_IDLE = 0, R_STAMP_B, R_COPY, R_STAMP_A,
@@ -95,6 +95,12 @@ typedef struct {
     uint64_t slot_seq[WEFT_FANOUT_MAX_SLOTS];
     uint32_t payload[WEFT_FANOUT_MAX_SLOTS][64];
     bool     bracket_open[WEFT_FANOUT_MAX_SLOTS];
+
+    // v2 (Issue #16): control-plane corruption + fault arming state
+    bool     stamp_dirty[WEFT_FANOUT_MAX_SLOTS]; // corrupted since last writer stamp
+    bool     tear_pending[5];      // STORE_TEARING armed per thread (writer uses [0])
+    uint64_t tear_value;           // full new value of the split stamp store
+    uint32_t delay_pending[5];     // DELAYED_VISIBILITY armed (writer ctrl stores)
 
     // Writer SM
     w_state_t ws;
@@ -138,6 +144,55 @@ static void fault_draw(stepped_t* s) {
     s->led->injected[kind]++;
 }
 
+/// V2 extended fault draw (Issue #16 Tier 1) — runs ONLY when fault_mask
+/// != 0, AFTER the legacy draw of the same step, in the documented order
+/// (see fanout_chaos.h V2 CONTRACT). fault_mask == 0 never reaches here:
+/// the v1 PRNG stream and schedule are bit-exactly preserved.
+static void fault_draw_ext(stepped_t* s) {
+    chaos_rng_t* rng = &s->m.rng;
+    if (chaos_next(rng) % 1000u >= s->cfg->chaos_rate) return;
+    uint32_t kind = chaos_next(rng) % 4u;
+    if (!((s->cfg->fault_mask >> kind) & 1u)) return; // masked out: no param draws
+    switch (kind) {
+    case WEFT_CHAOS_EXT_BIT_FLIP: {
+        uint32_t cell = chaos_next(rng) % s->cfg->slots;
+        uint32_t bit  = chaos_next(rng) % 64u;
+        s->m.slot_seq[cell] ^= (1ull << bit);
+        s->m.stamp_dirty[cell] = true;
+        s->led->ctrl_corruptions++;
+        break;
+    }
+    case WEFT_CHAOS_EXT_CACHE_POISON: {
+        // One 64-byte "cache line" of the ctrl block = 8 consecutive u64
+        // stamps (clamped to the ring, wrapping).
+        uint32_t cell = chaos_next(rng) % s->cfg->slots;
+        uint32_t n    = s->cfg->slots < 8u ? s->cfg->slots : 8u;
+        for (uint32_t k = 0; k < n; k++) {
+            s->m.slot_seq[(cell + k) % s->cfg->slots] = 0xDEDEDEDEDEDEDEDEull;
+            s->m.stamp_dirty[(cell + k) % s->cfg->slots] = true;
+        }
+        s->led->ctrl_corruptions += n;
+        break;
+    }
+    case WEFT_CHAOS_EXT_STORE_TEARING: {
+        // Arm the split-store on the victim. Readers perform no shared ctrl
+        // stores, so an armed reader is a counted no-op (documented).
+        uint32_t victim = chaos_next(rng) % (s->cfg->readers + 1u);
+        s->m.tear_pending[victim] = true;
+        break;
+    }
+    case WEFT_CHAOS_EXT_DELAYED_VISIBILITY: {
+        // Arm the post-store freeze on the victim (writer ctrl stores are
+        // the visibility-relevant ones; an armed reader is a counted no-op).
+        uint32_t victim = chaos_next(rng) % (s->cfg->readers + 1u);
+        uint32_t n      = chaos_next(rng) % 8u + 1u;
+        s->m.delay_pending[victim] = n;
+        break;
+    }
+    }
+    s->led->injected_ext[kind]++;
+}
+
 static void writer_step(stepped_t* s) {
     chaos_model_t* m = &s->m;
     weft_chaos_ledger_t* led = s->led;
@@ -154,6 +209,7 @@ static void writer_step(stepped_t* s) {
             led->bracket_violations++;
         }
         m->slot_seq[m->w_slot] = 0;                    // FI1a: invalidate FIRST
+        m->stamp_dirty[m->w_slot] = false;             // v2: writer store heals
         m->bracket_open[m->w_slot] = true;
         m->w_rev = m->rev_flag[0];                     // fault axis: reorder
         m->w_word = m->w_rev ? (W - 1) : 0;
@@ -170,15 +226,55 @@ static void writer_step(stepped_t* s) {
         }
         return;
     case W_STAMP:
+        if (m->tear_pending[0]) {
+            // v2 STORE_TEARING: the u64 stamp store splits into LO then HI
+            // half-stores with a preemptible gap between (two SM steps).
+            // Value-range note (fanout_chaos.h): stamps < 2^32 in any legal
+            // config, so the mid-store value equals the completed store —
+            // the split is modeled faithfully and is mechanically benign.
+            m->tear_pending[0] = false;
+            m->tear_value = m->w_seq;
+            m->slot_seq[m->w_slot] =
+                (m->slot_seq[m->w_slot] & 0xFFFFFFFF00000000ull)
+                | (m->w_seq & 0xFFFFFFFFull);
+            m->ws = W_STAMP_HI;
+            return;
+        }
         m->slot_seq[m->w_slot] = m->w_seq;             // FI1b: stamp (Release)
+        m->stamp_dirty[m->w_slot] = false;             // v2: writer store heals
         m->bracket_open[m->w_slot] = false;
         m->ws = W_PUBLISH;
+        // v2 DELAYED_VISIBILITY: a store-buffer drain stall AFTER the ctrl
+        // store (the "freeze N cycles after write" analog).
+        if (m->delay_pending[0] > 0) {
+            m->freeze[0] += m->delay_pending[0];
+            m->delay_pending[0] = 0;
+        }
+        return;
+    case W_STAMP_HI:
+        // Completes the torn store: the HI half lands (== the full value for
+        // < 2^32 stamps; the LO half already wrote the low bits).
+        m->slot_seq[m->w_slot] =
+            (m->slot_seq[m->w_slot] & 0x00000000FFFFFFFFull)
+            | (m->tear_value & 0xFFFFFFFF00000000ull);
+        m->stamp_dirty[m->w_slot] = false;             // v2: writer store heals
+        m->bracket_open[m->w_slot] = false;
+        m->ws = W_PUBLISH;
+        if (m->delay_pending[0] > 0) {
+            m->freeze[0] += m->delay_pending[0];
+            m->delay_pending[0] = 0;
+        }
         return;
     case W_PUBLISH:
         m->latest = m->w_seq;                          // the publication point
         m->publishes++;
         m->w_seq++;
         m->ws = W_IDLE;
+        // v2 DELAYED_VISIBILITY on the publication store.
+        if (m->delay_pending[0] > 0) {
+            m->freeze[0] += m->delay_pending[0];
+            m->delay_pending[0] = 0;
+        }
         return;
     case W_DONE:
         return;
@@ -244,6 +340,10 @@ static void reader_step(stepped_t* s, uint32_t i) {
         for (uint32_t w = 0; w < W; w++) {
             if (m->r_target[i][w] != tword((uint32_t)L, w)) {
                 led->torn_accepted++;                       // L-C1
+                // v2 L-C7: a tear on a corruption-dirty slot is ATTRIBUTED
+                // (the forged-frame aliasing hazard — measured, not hidden);
+                // a tear on a CLEAN slot is a spontaneous protocol bug.
+                if (m->stamp_dirty[m->r_slot[i]]) led->attributed_torn++;
                 break;
             }
         }
@@ -307,6 +407,7 @@ int weft_chaos_run_stepped(const weft_chaos_config_t* cfg,
     while (s.led->steps_executed < cfg->steps && !all_done(&s)) {
         uint32_t tid = chaos_next(&m->rng) % (cfg->readers + 1u);
         fault_draw(&s);
+        if (cfg->fault_mask != 0) fault_draw_ext(&s);   // v2 (Issue #16)
         if (m->freeze[tid] > 0) {
             m->freeze[tid]--;               // scheduled, but made no progress
         } else {
@@ -349,8 +450,16 @@ int weft_chaos_run_stepped(const weft_chaos_config_t* cfg,
     }
     if (out->ledger.publishes != cfg->frames) telescoping_ok = false; // L-C4
 
+    // L-C7 (v2): when extended faults are armed, a torn accept is a
+    // PROTOCOL bug only if it is NOT attributable to an injected
+    // control-plane corruption (torn == attributed). fault_mask == 0
+    // reduces this to the v1 L-C1 (attributed is always 0).
+    bool torn_ok = (cfg->fault_mask == 0)
+        ? (out->ledger.torn_accepted == 0)
+        : (out->ledger.torn_accepted == out->ledger.attributed_torn);
+
     out->pass = telescoping_ok &&
-                out->ledger.torn_accepted == 0 &&
+                torn_ok &&
                 out->ledger.future_claims == 0 &&
                 out->ledger.bracket_violations == 0;
     return out->pass ? 0 : 1;
@@ -371,10 +480,15 @@ typedef struct {
     uint32_t    rate;
     bool        reorder;
     uint64_t    injected[WEFT_CHAOS_KINDS];
+    // v2 (Issue #16): extended fault state (faultMask 0 => the v1 stream,
+    // bit-exact — the free engine's legacy parity is untouched evidence).
+    uint32_t    fault_mask;
+    uint32_t    slots;
+    uint64_t    injected_ext[WEFT_CHAOS_EXT_KINDS];
 } chaos_tls_t;
 
 static void chaos_tls_seed(chaos_tls_t* t, uint32_t seed, uint32_t tid,
-                           uint32_t rate) {
+                           uint32_t rate, uint32_t fault_mask, uint32_t slots) {
     // Per-thread stream derivation (normative): fold the thread id into the
     // same constants the master derivation uses, so thread k's stream is
     // reproducible from (seed, k) alone.
@@ -385,6 +499,9 @@ static void chaos_tls_seed(chaos_tls_t* t, uint32_t seed, uint32_t tid,
     t->rate = rate;
     t->reorder = false;
     memset(t->injected, 0, sizeof(t->injected));
+    t->fault_mask = fault_mask;
+    t->slots = slots;
+    memset(t->injected_ext, 0, sizeof(t->injected_ext));
 }
 
 static uint64_t now_ns(void) {
@@ -397,7 +514,7 @@ static uint64_t now_ns(void) {
 /// classes with wall-clock analogs: PREEMPT yields the CPU, STALL spins on
 /// an acquire load (a cache-line round-trip storm), THROTTLE sleeps a
 /// seeded sub-millisecond slice, REORDER flips this thread's word order.
-static void chaos_point(chaos_tls_t* t) {
+static void chaos_point(chaos_tls_t* t, _Atomic uint64_t* ctrl) {
     if (chaos_next(&t->rng) % 1000u >= t->rate) return;
     uint32_t kind = chaos_next(&t->rng) % 4u;
     t->injected[kind]++;
@@ -426,6 +543,60 @@ static void chaos_point(chaos_tls_t* t) {
     default:
         break;
     }
+
+    // v2 extended classes (Issue #16) — faultMask 0 never enters: the v1
+    // per-thread PRNG streams are bit-exactly preserved. Injection targets
+    // the REAL ring's ctrl plane through relaxed atomic u64 stores (TSAN-
+    // clean; the ring's stamps are _Atomic u64 by construction — exactly the
+    // surface the stepped model corrupts).
+    //   BIT_FLIP / CACHE_POISON — corrupt slot stamps; the production readers
+    //     see garbage -> graceful skip/retry; the writer heals on wrap.
+    //   DELAYED_VISIBILITY — a short post-store stall (store-buffer drain).
+    //   STORE_TEARING — STRUCTURALLY NOT INJECTABLE here: the real stamps are
+    //     atomic u64 stores, and atomicity is precisely what tearing attacks;
+    //     modeling it would require introducing a genuine data race. The
+    //     stepped engine owns that class (and proves it value-range benign);
+    //     the free engine reports storeTearing=0 under any mask — the honest
+    //     count, documented, never silent.
+    if (t->fault_mask != 0 && ctrl != NULL &&
+        chaos_next(&t->rng) % 1000u < t->rate) {
+        uint32_t ext_kind = chaos_next(&t->rng) % 4u;
+        if ((t->fault_mask >> ext_kind) & 1u) {
+            switch (ext_kind) {
+            case WEFT_CHAOS_EXT_BIT_FLIP: {
+                uint32_t cell = chaos_next(&t->rng) % t->slots;
+                uint32_t bit  = chaos_next(&t->rng) % 64u;
+                // slotSeq[k] lives at ctrl[2 + k] (latestSeq, publishes, M stamps)
+                atomic_fetch_xor_explicit(ctrl + 2 + cell, 1ull << bit,
+                                          memory_order_relaxed);
+                break;
+            }
+            case WEFT_CHAOS_EXT_CACHE_POISON: {
+                uint32_t cell = chaos_next(&t->rng) % t->slots;
+                uint32_t n    = t->slots < 8u ? t->slots : 8u;
+                for (uint32_t k = 0; k < n; k++) {
+                    atomic_store_explicit(ctrl + 2 + ((cell + k) % t->slots),
+                                          0xDEDEDEDEDEDEDEDEull,
+                                          memory_order_relaxed);
+                }
+                break;
+            }
+            case WEFT_CHAOS_EXT_DELAYED_VISIBILITY: {
+                uint32_t us = chaos_next(&t->rng) % 100u;
+                struct timespec ts = { 0, (long)us * 1000L };
+                nanosleep(&ts, NULL);
+                break;
+            }
+            case WEFT_CHAOS_EXT_STORE_TEARING:
+                // Structurally impossible on the real ring (atomic u64
+                // stamps) — the draw is consumed but NOT counted as an
+                // injection: the ledger's storeTearing stays the honest 0
+                // in free mode (the stepped engine owns the class).
+                return;
+            }
+            t->injected_ext[ext_kind]++;
+        }
+    }
 }
 
 /// A shared, process-lifetime stall line for the bus-stall analog (one
@@ -439,6 +610,7 @@ typedef struct {
     chaos_tls_t            tls;
     uint32_t*              src;        // writer pattern buffer
     uint64_t               injected[WEFT_CHAOS_KINDS];
+    uint64_t               injected_ext[WEFT_CHAOS_EXT_KINDS];
 } free_writer_t;
 
 typedef struct {
@@ -447,6 +619,7 @@ typedef struct {
     chaos_tls_t            tls;
     uint64_t               torn_accepted, future_claims;
     uint64_t               injected[WEFT_CHAOS_KINDS];
+    uint64_t               injected_ext[WEFT_CHAOS_EXT_KINDS];
     int                    converged;
 } free_reader_t;
 
@@ -454,9 +627,9 @@ static void* free_writer_fn(void* argp) {
     free_writer_t* a = (free_writer_t*)argp;
     const uint32_t W = a->cfg.words;
     for (uint32_t seq = 1; seq <= a->cfg.frames; seq++) {
-        chaos_point(&a->tls);
+        chaos_point(&a->tls, a->f->ctrl);
         uint8_t* cur = weft_fanout_begin(a->f);
-        chaos_point(&a->tls); // faults BETWEEN begin and publish: mid-bracket
+        chaos_point(&a->tls, a->f->ctrl); // faults BETWEEN begin and publish: mid-bracket
         for (uint32_t w = 0; w < W; w++) a->src[w] = tword(seq, w);
         if (a->tls.reorder) {
             // REORDER axis: store the frame's words in REVERSED order via
@@ -472,10 +645,11 @@ static void* free_writer_fn(void* argp) {
         } else {
             (void)weft_fanout_fill(a->f, a->src, (size_t)W * 4);
         }
-        chaos_point(&a->tls);
+        chaos_point(&a->tls, a->f->ctrl);
         (void)weft_fanout_publish(a->f);
     }
     for (uint32_t k = 0; k < WEFT_CHAOS_KINDS; k++) a->injected[k] = a->tls.injected[k];
+    for (uint32_t k = 0; k < WEFT_CHAOS_EXT_KINDS; k++) a->injected_ext[k] = a->tls.injected_ext[k];
     return NULL;
 }
 
@@ -485,7 +659,7 @@ static void* free_reader_fn(void* argp) {
     const uint32_t* view;
     uint64_t quiet_ticks = 0;
     while (a->r->last_seq < a->cfg.frames && quiet_ticks < 1000000u) {
-        chaos_point(&a->tls);
+        chaos_point(&a->tls, a->r->ctrl);
         const weft_fanout_claim_t* c = weft_fanout_claim(a->r);
         if (!c->fresh) {
             // quiet-tick watchdog: a reader that can never converge with a
@@ -502,6 +676,7 @@ static void* free_reader_fn(void* argp) {
     }
     a->converged = (a->r->last_seq == a->cfg.frames);
     for (uint32_t k = 0; k < WEFT_CHAOS_KINDS; k++) a->injected[k] = a->tls.injected[k];
+    for (uint32_t k = 0; k < WEFT_CHAOS_EXT_KINDS; k++) a->injected_ext[k] = a->tls.injected_ext[k];
     return NULL;
 }
 
@@ -521,7 +696,7 @@ int weft_chaos_run_free(const weft_chaos_config_t* cfg,
     free_writer_t w;
     memset(&w, 0, sizeof(w));
     w.f = f; w.cfg = *cfg;
-    chaos_tls_seed(&w.tls, cfg->seed, 0, cfg->chaos_rate);
+    chaos_tls_seed(&w.tls, cfg->seed, 0, cfg->chaos_rate, cfg->fault_mask, cfg->slots);
     w.src = (uint32_t*)malloc((size_t)cfg->words * 4);
     if (!w.src) { fprintf(stderr, "chaos-free: src alloc failed\n"); weft_fanout_free(f); return 2; }
 
@@ -542,7 +717,7 @@ int weft_chaos_run_free(const weft_chaos_config_t* cfg,
     for (uint32_t i = 0; i < cfg->readers; i++) {
         memset(&rd[i], 0, sizeof(rd[i]));
         rd[i].r = readers[i]; rd[i].cfg = *cfg;
-        chaos_tls_seed(&rd[i].tls, cfg->seed, i + 1, cfg->chaos_rate);
+        chaos_tls_seed(&rd[i].tls, cfg->seed, i + 1, cfg->chaos_rate, cfg->fault_mask, cfg->slots);
     }
 
     if (pthread_create(&wth, NULL, free_writer_fn, &w) != 0) {
@@ -588,11 +763,19 @@ int weft_chaos_run_free(const weft_chaos_config_t* cfg,
         for (uint32_t k = 0; k < WEFT_CHAOS_KINDS; k++) {
             led->injected[k] += rd[i].injected[k];
         }
+        for (uint32_t k = 0; k < WEFT_CHAOS_EXT_KINDS; k++) {
+            led->injected_ext[k] += rd[i].injected_ext[k];
+        }
         weft_fanout_reader_free(readers[i]);
     }
     for (uint32_t k = 0; k < WEFT_CHAOS_KINDS; k++) led->injected[k] += w.injected[k];
+    for (uint32_t k = 0; k < WEFT_CHAOS_EXT_KINDS; k++) led->injected_ext[k] += w.injected_ext[k];
 
     out->ledger.drained = converged_all;
+    // v2 L-C7 note: the free engine has no model-level attribution (the
+    // injected_ext counters are the honest report); a torn accept under a
+    // corruption mask is rare (aliasing) and FAILS loudly here — the
+    // stepped engine owns the attributed tier. faultMask 0 = v1 semantics.
     out->pass = converged_all && telescoping_ok &&
                 led->torn_accepted == 0 && led->future_claims == 0 &&
                 led->publishes == cfg->frames;
@@ -644,9 +827,12 @@ int weft_chaos_verdict_json(const weft_chaos_config_t* cfg,
     const weft_chaos_ledger_t* led = &v->ledger;
     bool stepped = strcmp(v->engine, "stepped") == 0;
 
+    // v identifies the ledger generation: 1 = the RFC 0011 contract
+    // (fault_mask == 0 — byte-identical to every committed golden fixture);
+    // 2 = the Issue #16 extended fault classes (fault_mask != 0).
     n = snprintf(buf + pos, cap - pos,
-                 "{\"engine\":\"weft-chaos-%s\",\"v\":1,\"seed\":%u,",
-                 v->engine, cfg->seed);
+                 "{\"engine\":\"weft-chaos-%s\",\"v\":%d,\"seed\":%u,",
+                 v->engine, cfg->fault_mask != 0 ? 2 : 1, cfg->seed);
     if (n < 0 || (size_t)n >= cap - pos) return -1;
     pos += (size_t)n;
 
@@ -684,6 +870,19 @@ int weft_chaos_verdict_json(const weft_chaos_config_t* cfg,
                  (unsigned long long)led->injected[3]);
     if (n < 0 || (size_t)n >= cap - pos) return -1;
     pos += (size_t)n;
+    if (cfg->fault_mask != 0) {
+        n = snprintf(buf + pos, cap - pos,
+                     "\"faultMask\":%u,\"injectionsExt\":{\"bitFlip\":%llu,"
+                     "\"cachePoison\":%llu,\"storeTearing\":%llu,"
+                     "\"delayedVisibility\":%llu},",
+                     cfg->fault_mask,
+                     (unsigned long long)led->injected_ext[0],
+                     (unsigned long long)led->injected_ext[1],
+                     (unsigned long long)led->injected_ext[2],
+                     (unsigned long long)led->injected_ext[3]);
+        if (n < 0 || (size_t)n >= cap - pos) return -1;
+        pos += (size_t)n;
+    }
 
     n = snprintf(buf + pos, cap - pos, "\"ledger\":{\"publishes\":%llu",
                  (unsigned long long)led->publishes);
@@ -698,6 +897,14 @@ int weft_chaos_verdict_json(const weft_chaos_config_t* cfg,
     pos = put_u64_arr(buf, cap, pos, "skips", led->skips, cfg->readers);
     pos = put_u64_arr(buf, cap, pos, "exhausted", led->exhausted, cfg->readers);
 
+    if (cfg->fault_mask != 0) {
+        n = snprintf(buf + pos, cap - pos,
+                     ",\"attributedTorn\":%llu,\"ctrlCorruptions\":%llu",
+                     (unsigned long long)led->attributed_torn,
+                     (unsigned long long)led->ctrl_corruptions);
+        if (n < 0 || (size_t)n >= cap - pos) return -1;
+        pos += (size_t)n;
+    }
     n = snprintf(buf + pos, cap - pos,
                  ",\"tornAccepted\":%llu,\"futureClaims\":%llu,"
                  "\"bracketViolations\":%llu,\"drained\":%s},",
@@ -748,7 +955,30 @@ int weft_chaos_selftest(void) {
     chaos_seed(&r, 42u);
     if (d2 == chaos_next(&r)) return 1;
 
-    // 3. Tiny stepped run with known-good shape (2 readers, 2 slots,
+    // 3. v2 extended-fault run (Issue #16 Tier 1): all four classes armed,
+    //    meaningful injection counts, drained, zero torn, zero attributed —
+    //    the L-C7 shape. Pinned totals are SHARED CONSTANTS with the TS
+    //    port's selftest (a port that drifts from these numbers has a
+    //    different v2 contract).
+    {
+        weft_chaos_config_t cfg = {
+            .seed = 77u, .steps = 100000u, .slots = 4u, .words = 4u,
+            .readers = 2u, .frames = 50u, .chaos_rate = 50u,
+            .fault_mask = WEFT_CHAOS_MASK_ALL_EXT,
+        };
+        weft_chaos_verdict_t v;
+        if (weft_chaos_run_stepped(&cfg, &v) != 0) return 1;
+        if (!v.pass) return 1;
+        if (v.ledger.injected_ext[0] != 19u) return 1;  // bitFlip
+        if (v.ledger.injected_ext[1] != 13u) return 1;  // cachePoison
+        if (v.ledger.injected_ext[2] != 20u) return 1;  // storeTearing
+        if (v.ledger.injected_ext[3] != 16u) return 1;  // delayedVisibility
+        if (v.ledger.ctrl_corruptions != 71u) return 1;
+        if (v.ledger.torn_accepted != 0u) return 1;
+        if (v.ledger.attributed_torn != 0u) return 1;
+    }
+
+    // 4. Tiny stepped run with known-good shape (2 readers, 2 slots,
     //    2 words, 4 frames, heavy chaos): all properties must hold.
     weft_chaos_config_t cfg = {
         .seed = 7u, .steps = 4000u, .slots = 2u, .words = 2u,

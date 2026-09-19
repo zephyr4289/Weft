@@ -1,0 +1,8 @@
+gpu-stream-probe: backend=vulkan device='SwiftShader Device (Subzero)' payload=256 slots=4 frames=512
+stream-1: mismatches=0 seq=256 xor=0x76e059cb slots=4 magic=0x54464557 (window after 256 frames)
+stream-2: mismatches=0 seq=512 xor=0x6d96082f slots=4 magic=0x54464557 (window advanced to 512)
+STREAM gate: PASS — whole-ring GPU consumption advanced across dispatches
+raster:   mismatches=0 seq=512 pixels=64/64 magic=0x54464557 (frame -> 8x8 rgba8ui texture) [diag load r/g/a=83/236/255 want_r=83]
+RASTER gate: PASS — frames became a self-verified GPU texture
+{"bench":"gpu-stream-fps","lang":"c","frames_window":512,"payload_bytes":256,"slots":4,"dispatches":256,"sync_ns_per_dispatch":34326.9,"async_ns_per_dispatch":27745.6,"sync_fps":29132,"async_fps":36042,"speedup":1.237,"correct":"yes","device":"SwiftShader Device (Subzero)"}
+gpu-stream-probe: ALL APPLICABLE PROOFS PASSED (fd leg: not requested)

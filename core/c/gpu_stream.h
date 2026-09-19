@@ -89,6 +89,20 @@ weft_gpu_stream_err_t weft_gpu_stream_dispatch(weft_gpu_stream_t* s,
 /// dispatch. Points at kit-owned memory — do not free; valid until destroy.
 const uint32_t* weft_gpu_stream_result(const weft_gpu_stream_t* s);
 
+/// Pipelined dispatch (issue #17-5): submit with a fence from a 4-deep ring
+/// and return WITHOUT waiting — up to 4 dispatches in flight before an
+/// internal fence wait paces the ring. Follow with weft_gpu_stream_flush()
+/// before reading results. Same command recording as dispatch(); only the
+/// wait discipline differs.
+weft_gpu_stream_err_t weft_gpu_stream_dispatch_async(weft_gpu_stream_t* s,
+                                                     const void* push,
+                                                     unsigned push_bytes,
+                                                     unsigned gx, unsigned gy,
+                                                     unsigned gz);
+
+/// Wait for every in-flight dispatch's fence (the async completion point).
+weft_gpu_stream_err_t weft_gpu_stream_flush(weft_gpu_stream_t* s);
+
 /// Release everything the kit created (the ring is NOT touched). NULL-safe.
 void weft_gpu_stream_destroy(weft_gpu_stream_t* s);
 

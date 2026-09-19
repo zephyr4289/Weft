@@ -71,14 +71,14 @@ run_leg() { # run_leg <name> <cmd...>
 echo ""
 echo "=== building the C kernel (from source, no deps) ==="
 "$CC" -O2 -std=c11 -D_POSIX_C_SOURCE=200809L -pthread -Icore/c \
-  core/c/litmus_runner.c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
+  core/c/litmus_runner.c core/c/weft.c core/c/fanout.c core/c/fanout_simd.c core/c/frame_cursor.c \
   -o "$BUILD/weft-litmus" 2> "$BUILD/cc-errors.log" || {
   echo "FATAL: kernel build failed:" >&2
   cat "$BUILD/cc-errors.log" >&2
   exit 2
 }
 "$CC" -O2 -std=c11 -D_POSIX_C_SOURCE=200809L -pthread -Icore/c \
-  core/c/fanout_test.c core/c/fanout.c core/c/weft.c core/c/frame_cursor.c -o "$BUILD/fanout-test" || exit 2
+  core/c/fanout_test.c core/c/fanout.c core/c/fanout_simd.c core/c/weft.c core/c/frame_cursor.c -o "$BUILD/fanout-test" || exit 2
 "$CC" -O2 -std=c11 -D_POSIX_C_SOURCE=200809L -pthread -Icore/c \
   core/c/fanout_runner.c core/c/fanout.c core/c/weft.c -o "$BUILD/fanout-runner" || exit 2
 "$CC" -O2 -std=c11 -D_POSIX_C_SOURCE=200809L -pthread -Icore/c \

@@ -1,0 +1,10 @@
+# WASM port browser evidence (issue #18-1)
+# engine: headless chromium via agent-browser (same engine as Chrome)
+✓ Weft-WASM — Collaborative Canvas (fan-out demo)
+=== page errors ===
+=== counters (DOM footer) ===
+"{\"seq\":\"241\",\"fa\":\"121\",\"da\":\"120\",\"fc\":\"121\",\"dc\":\"120\"}"
+=== counters again (must ADVANCE) ===
+"{\"seq\":\"421\",\"fa\":\"211\",\"fc\":\"211\"}"
+✓ Screenshot saved to /tmp/wasm-canvas-demo.png
+✓ Browser closed

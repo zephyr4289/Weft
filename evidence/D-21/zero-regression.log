@@ -1,0 +1,15 @@
+# P1 zero-regression gate (SIMD seam live, auto=avx512 on this host)
+# date: 2026-09-18T14:33:15Z  env: x86_64 Xeon, gcc 14.2.0, 2 cpu, AVX2+AVX512F
+PASS ./fanout-test
+PASS ./fanout-test-seq
+PASS ./turbo-test
+PASS ./fanout-runner torture
+PASS ./fanout-runner-seq torture
+PASS spike L1-tear
+PASS spike L2-writer-steps
+PASS spike L3-reader-steps
+PASS spike L4-freshness
+PASS spike L5-progress
+PASS spike L6-ownership
+PASS spike L7-revocation
+PASS spike L8-envelope

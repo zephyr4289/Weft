@@ -1,0 +1,398 @@
+ok: F1 payload_bytes=0 rejected
+ok: F1 payload_bytes%4!=0 rejected
+ok: F1 slot_count<2 rejected
+ok: F1 slot_count=1 rejected
+ok: F1 slot_count>64 rejected
+ok: F1 ring_bytes formula (TS parity)
+ok: F1 reader geometry mismatch rejected
+ok: F2 init succeeds
+ok: F2 reader init succeeds
+ok: F2 claim before any publish: null frame
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F2 publish returns frame 1
+ok: F2 first publish: fresh, dropped=0
+ok: payload words intact
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F3 three unseen publishes: dropped=2
+ok: payload words intact
+ok: F4 ring init
+ok: F4 reader init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F4 telescoping identity exact
+ok: F4 reader converged to the last frame
+ok: F4 stats agree with the loop
+ok: F5 M=2 ring init
+ok: F5 reader init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F5 reader holds frame 1
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F5 mid-overwrite: keeps last consistent frame
+ok: F5 skip counted, never silent
+ok: F5 converges after the overwrite completes
+ok: F6 ring init
+ok: F6 publish with no begin returns 0
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F6 publish after begin returns 1
+ok: F6 fill len%4!=0 rejected
+ok: F7 producer init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F7 reader attaches to the copy
+ok: F7 handoff: fresh final frame, dropped = N-1
+ok: payload words intact
+ok: F7 writer attach
+ok: F7 second attach on the live broadcaster is refused
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F7 attached writer continues numbering
+ok: F7 second reader attach
+ok: F7 cross-producer accounting telescopes
+ok: F8 debug latest/publishes/slots
+ok: F8 slot stamps populated and in range
+ok: F9 new rejects bad geometry (slots, mod-4)
+ok: F9 new allocates
+ok: F9 ring accessor non-NULL
+ok: F9 new ring publishes frame 1
+ok: F9 raw latestSeq == 1 at offset 0
+ok: F9 raw publishes == 1 at offset 8
+ok: F9 reader_new attaches to the ring pointer
+ok: F9 reader on the new/free ring claims frame 1
+ok: F9 reader_new rejects ring_bytes mismatch
+ok: F9 free pair NULL-safe, no crash
+ok: FC kernel init
+ok: FC1 null frame baseline: first, behind 0
+ok: FC2 first real frame: behind 0, not first
+ok: FC3 gap accounting: behind 2
+ok: FC4 idle claim: recycled hold, reset rule, behind 0
+ok: FC4 idle claim adds no drops
+ok: FC5 kernel init
+ok: FC5 baseline seq 10
+ok: FC5 decreasing seq resets accounting (no burst)
+ok: FC5 reset adds no drops
+ok: FC6 accumulators: totalDropped=2, claims=4
+ok: FC6 reset: next update is first again
+ok: FC6 reset zeroed the counters
+
+PASS: 0 failure(s)

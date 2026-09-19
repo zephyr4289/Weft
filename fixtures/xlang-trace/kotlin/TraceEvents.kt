@@ -14,19 +14,21 @@
 //   kotlinc fixtures/xlang-trace/kotlin/TraceEvents.kt core/kotlin/Weft.kt \
 //     -include-runtime -d /tmp/trace.jar && java -jar /tmp/trace.jar 2000 0x00C0FFEE
 
+package dev.weft
+
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 val xsSeed = java.util.concurrent.atomic.AtomicInteger(0)
 
-fun xorshift32(): Int {
+fun xorshift32(): Long {
     var x = xsSeed.get()
     if (x == 0) x = 0x9E3779B9.toInt()
     x = x xor (x shl 13)
     x = x xor (x ushr 17)
     x = x xor (x shl 5)
     xsSeed.set(x)
-    return x
+    return x.toLong() and 0xFFFFFFFFL
 }
 
 fun packEvent(kind: Int, aux: Int, data: Int): ByteArray {
@@ -41,7 +43,8 @@ fun hex(bytes: ByteArray): String = bytes.joinToString("") { "%02x".format(it) }
 
 fun main(args: Array<String>) {
     val n = if (args.isNotEmpty()) args[0].toInt() else 2000
-    val seed = if (args.size > 1) args[1].removePrefix("0x").toInt(16) else 0x00C0FFEE
+    val seedRaw = if (args.size > 1) args[1] else "0x00C0FFEE"
+    val seed = if (seedRaw.startsWith("0x")) seedRaw.removePrefix("0x").toLong(16).toInt() else seedRaw.toLong().toInt()
     val out = StringBuilder()
 
     val w = Weft(64)
@@ -50,7 +53,7 @@ fun main(args: Array<String>) {
     val revokeStep = n / 2
 
     for (step in 0 until n) {
-        val plen = xorshift32() % 65
+        val plen = (xorshift32() % 65L).toInt()
         seq += 1
         val cursor = w.wBegin()
         for (i in 0 until plen) cursor.put(i, pat(seq, i))
@@ -62,11 +65,11 @@ fun main(args: Array<String>) {
         } else {
             out.append(hex(packEvent(1, plen, seq))) // PUBLISH
         }
-        if (xorshift32() % 3 == 0) {
+        if (xorshift32() % 3L == 0L) {
             w.claim()
             out.append(hex(packEvent(2, 0, w.rSeq()))) // CLAIM
-            val canary = w.buffers[w.rWork()].getLong(w.bufSize - 8)
-            check(canary == w.rSeq().toLong()) { "canary check FAILED at step $step" }
+            val canary = w.rCanary()
+            check(canary == (w.rSeq().toLong() and 0xFFFFFFFFL)) { "canary check FAILED at step $step" }
         }
         if (step == revokeStep) {
             val e0 = w.epochVal()

@@ -1,0 +1,6 @@
+L2 hold=0ms published=2000 max_wsteps=1 ok=1
+L2 hold=10ms published=2000 max_wsteps=1 ok=1
+L2 hold=25ms published=2000 max_wsteps=1 ok=1
+L2 hold=50ms published=2000 max_wsteps=1 ok=1
+L2 hold=100ms published=2000 max_wsteps=1 ok=1
+{"test":"L2-writer-steps","lang":"c","pass":true,"metrics":{"holds_ms":[0,10,25,50,100],"publishes":10000,"max_wsteps":1,"bound":2}}

@@ -1,9 +1,11 @@
-// recovery_test.c — Axis 3: Self-stabilizing ring health check & recovery test
-#include "fanout.h"
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "fanout.h"
 
 #define PAYLOAD_BYTES 64
 #define SLOT_COUNT 4
@@ -12,8 +14,12 @@ int main(void) {
     printf("=== Axis 3: Self-Stabilizing Ring Recovery Test ===\n");
     
     size_t ring_bytes = weft_fanout_ring_bytes(PAYLOAD_BYTES, SLOT_COUNT);
-    uint8_t* ring = (uint8_t*)aligned_alloc(64, ring_bytes);
-    assert(ring != NULL);
+    size_t alloc_bytes = ((ring_bytes + 63) / 64) * 64;
+    void* ring_ptr = NULL;
+    int rc_alloc = posix_memalign(&ring_ptr, 64, alloc_bytes);
+    assert(rc_alloc == 0 && ring_ptr != NULL);
+    uint8_t* ring = (uint8_t*)ring_ptr;
+    memset(ring, 0, alloc_bytes);
     
     weft_fanout_t writer = {0};
     int rc = weft_fanout_attach_writer(&writer, ring, ring_bytes, PAYLOAD_BYTES, SLOT_COUNT);
@@ -36,7 +42,6 @@ int main(void) {
     
     // 3. Inject FUTURE_SEQ corruption (latestSeq > publishes)
     _Atomic uint64_t* ctrl = (_Atomic uint64_t*)ring;
-    uint64_t orig_latest = atomic_load(ctrl);
     atomic_store(ctrl, 9999);
     assert(weft_ring_health_check(ring, ring_bytes, PAYLOAD_BYTES, SLOT_COUNT) == WEFT_RING_CORRUPT_FUTURE_SEQ);
     rc = weft_ring_recover(ring, ring_bytes, PAYLOAD_BYTES, SLOT_COUNT);
@@ -90,6 +95,10 @@ int main(void) {
             rc = weft_ring_recover(ring, ring_bytes, PAYLOAD_BYTES, SLOT_COUNT);
             assert(rc == 0);
             assert(weft_ring_health_check(ring, ring_bytes, PAYLOAD_BYTES, SLOT_COUNT) == WEFT_RING_HEALTHY);
+            uint64_t rec_lat = atomic_load(ctrl);
+            if (writer.w_seq < rec_lat) {
+                writer.w_seq = rec_lat;
+            }
         }
     }
     printf("  [PASS] 10,000 randomized corruption + recovery cycles passed\n");

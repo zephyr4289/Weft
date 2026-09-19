@@ -1,0 +1,49 @@
+# python-binding.yml — Python bindings gate (issue #18-6, Series 9)
+name: python-binding
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'core/python/**'
+      - 'core/c/**'
+      - 'ci/scripts/run_python_binding_shard.sh'
+      - '.github/workflows/python-binding.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'core/python/**'
+      - 'core/c/**'
+      - 'ci/scripts/run_python_binding_shard.sh'
+      - '.github/workflows/python-binding.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: python-binding-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  python-binding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install cffi + numpy + setuptools + wheel
+        run: python3 -m pip install setuptools wheel cffi "numpy>=1.22"
+      - name: Build + PL-series battery + packaging sanity
+        run: bash ci/scripts/run_python_binding_shard.sh
+      - name: Upload shard artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-binding-artifacts-py${{ matrix.python-version }}
+          path: |
+            ci/run-artifacts/shard-python-binding.log
+            ci/run-artifacts/shard-python-binding-results.json
+          if-no-files-found: warn

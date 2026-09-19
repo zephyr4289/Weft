@@ -1,0 +1,55 @@
+# riscv-port.yml — RISC-V RV64GC portability gate (issue #18-2, Series 9)
+#
+# Cross-builds the C kernel + fan-out driver for riscv64 and runs the full
+# litmus matrix + F-series under QEMU user-mode emulation on ubuntu-latest
+# (real RISC-V hardware is hardware-gated and declared — see
+# docs/riscv-port.md for the honesty boundary).
+name: riscv-port
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'ci/riscv/**'
+      - 'core/c/**'
+      - 'ci/scripts/run_riscv_litmus_shard.sh'
+      - 'docs/riscv-port.md'
+      - '.github/workflows/riscv-port.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'ci/riscv/**'
+      - 'core/c/**'
+      - 'ci/scripts/run_riscv_litmus_shard.sh'
+      - 'docs/riscv-port.md'
+      - '.github/workflows/riscv-port.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: riscv-port-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  riscv-litmus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install RISC-V Cross Toolchain & QEMU
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc-riscv64-linux-gnu libc6-dev-riscv64-cross qemu-user qemu-user-static
+
+      - name: Cross toolchain + QEMU + gates
+        run: bash ci/scripts/run_riscv_litmus_shard.sh
+
+      - name: Upload shard artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riscv-litmus-artifacts
+          path: |
+            ci/run-artifacts/shard-riscv-litmus.log
+            ci/run-artifacts/shard-riscv-litmus-results.json
+          if-no-files-found: warn

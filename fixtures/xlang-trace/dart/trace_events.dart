@@ -10,7 +10,7 @@
 // Build & run (no pub get — the kernel module has zero imports):
 //   dart fixtures/xlang-trace/dart/trace_events.dart [N [SEED]]
 
-import '../../../core/dart/weft.dart';
+import '../../core/dart/weft.dart';
 
 int _seed = 0;
 
@@ -65,7 +65,7 @@ void main(List<String> args) {
     if (_xorshift32() % 3 == 0) {
       w.claim();
       out.write(_packEvent(2, 0, w.rSeq() & 0xFFFFFFFF)); // CLAIM
-      final canary = w.buffers[w.rWork].getInt64(w.bufSize - 8, Endian.little);
+      final canary = w.rCanary();
       if (canary != w.rSeq()) {
         throw StateError('canary check FAILED at step $step');
       }

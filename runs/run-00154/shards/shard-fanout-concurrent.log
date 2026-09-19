@@ -1,0 +1,8 @@
+==================================================
+SHARD: fanout-concurrent
+DESCRIPTION: 1 writer + 4 reader workers, integrity-gated + daisy-chain
+STATUS: FAILED ❌
+COMMIT: 81970268507158ca5f9faa65a95af8ac918cd53e
+RUN: 154
+==================================================
+

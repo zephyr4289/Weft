@@ -1,0 +1,51 @@
+==================================================
+SHARD: sanitizers
+DESCRIPTION: TIER4 memory-safety audit: ASan+UBSan + TSan, zero findings
+STATUS: FAILED ❌
+COMMIT: 81970268507158ca5f9faa65a95af8ac918cd53e
+RUN: 154
+==================================================
+
+=== Build: ASan+UBSan matrix ===
+  PASS asan-build
+=== ASan+UBSan: kernel litmus L1-L8 ===
+ne _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+litmus_runner.c:17: warning: "_GNU_SOURCE" redefined
+   17 | #define _GNU_SOURCE  // for nanosleep, posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+verified_test.c: In function ‘test_v7_perf’:
+verified_test.c:334:40: warning: unused variable ‘tag’ [-Wunused-variable]
+  334 |     uint8_t envelope[16], payload[64], tag[WEFT_VW_TAG_LEN];
+      |                                        ^~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+  PASS asan-build
+
+=== ASan+UBSan: kernel litmus L1-L8 ===
+L1 hold=5ms claims=495 torn=0 drain_ok=1 claims_per_s=197.5
+L1 hold=10ms claims=250 torn=0 drain_ok=1 claims_per_s=99.6
+L1 hold=50ms claims=52 torn=0 drain_ok=1 claims_per_s=20.3
+{"test":"L1-tear","lang":"c","pass":true,"metrics":{"holds_ms":[5,10,50],"claims":797,"claims_per_s":105.8,"torn":0,"drain_ok":true}}
+L2 hold=0ms published=2000 max_wsteps=1 ok=1
+L2 hold=10ms published=2000 max_wsteps=1 ok=1
+L2 hold=25ms published=2000 max_wsteps=1 ok=1
+L2 hold=50ms published=2000 max_wsteps=1 ok=1
+L3 claims=2000 max_rsteps=1 bound=2 pass=1
+{"test":"L3-reader-steps","lang":"c","pass":true,"metrics":{"claims":2000,"max_rsteps":1,"bound":2}}

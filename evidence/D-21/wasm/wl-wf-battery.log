@@ -1,0 +1,20 @@
+✔ setup: module loads (wasm C core + BigInt seqs) (7.7358ms)
+✔ WL1-tear: held payload views stay byte-exact across overwrites (5.318594ms)
+✔ WL2-writer-steps / WL3-reader-steps: step budgets hold (2.423696ms)
+✔ WL4-freshness: newest complete wins, drops telescope (0.19959ms)
+✔ WL5-progress: unpaced bursts all surface (1.638832ms)
+✔ WL6-ownership: seeded randomized interleave agrees (2.433304ms)
+✔ WL7-revocation: revoke drops, reclaim ACKs (I6) (1.199561ms)
+✔ WL8-envelope: payload bytes exact + zero-copy identity (0.263355ms)
+✔ WF-roundtrip: fresh claims carry exact bytes; drops telescope (8.496817ms)
+✔ WF-layout: ring bytes follow the cross-port wire contract (0.343048ms)
+✔ WF-batch: 100-frame single-flip batch (issue #17-3) (0.566482ms)
+✔ WF-zero-copy: frameBuffer lives in wasm memory (no boundary copy) (0.791892ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 159.107899

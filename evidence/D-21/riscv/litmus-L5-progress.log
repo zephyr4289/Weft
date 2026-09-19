@@ -1,0 +1,7 @@
+L5 hold=0ms rate=2000.0 Hz
+L5 hold=10ms rate=2000.0 Hz
+L5 hold=50ms rate=1991.0 Hz
+L5 hold=100ms rate=1994.0 Hz
+L5 suspended-reader rate=1992.0 Hz
+L5 ratio=1.005 tolerance=1.50 pass=1
+{"test":"L5-progress","lang":"c","pass":true,"metrics":{"rates_hz":[2000.0,2000.0,1991.0,1994.0,1992.0],"ratio":1.005,"tolerance":1.50,"configs":5}}

@@ -47,6 +47,22 @@ if (!c.fresh || c.seq !== frames || c.dropped !== frames - 1) {
 }
 
 const tword = (seq, w) => mix32((Math.imul(seq, 2654435761) + w) >>> 0);
+// FINDING (Issue #16 Tier 1, surfaced by the L11 sweep): the TS reader's copy
+// path is Float32Array element-wise, and the f32 load/store round-trip
+// canonicalizes SIGNALING-NaN bit patterns — deterministically: payload
+// preserved, quiet bit (0x00400000) set (x86-64 SSE quieting; V8). The C
+// reader copies u32 atomics and is bit-exact. P(a random u32 is an sNaN) =
+// 2^-9, so fixed-geometry gates (the original 5000-frame fixture shape) can
+// sit on an sNaN-free frame for years while swept geometries hit it in
+// minutes. The honest comparator applies the SAME documented lens to the
+// expected bits: an sNaN pattern is expected to arrive quieted. Ports that
+// need bit-exact u32 transport use the C raw-cursor path (or Int32Array
+// views) — the float-typed TS view owns this boundary, now declared.
+const quietSNan = (b) => {
+  const isNan = ((b >>> 23) & 0xff) === 0xff && (b & 0x7fffff) !== 0;
+  const isSignaling = isNan && ((b >>> 22) & 1) === 0;
+  return isSignaling ? ((b | 0x00400000) >>> 0) : b;
+};
 const cvt = new ArrayBuffer(4);
 const f32 = new Float32Array(cvt);
 const u32 = new Uint32Array(cvt);
@@ -54,8 +70,8 @@ const view = r.view();
 let wordOk = true;
 for (let w = 0; w < payloadFloats; w++) {
   f32[0] = view[w]; // f32 -> u32 bits through the shared conversion buffer
-  if (u32[0] !== tword(frames, w)) {
-    console.error(`reader: FAIL word ${w} torn across ports (bits ${u32[0]} != ${tword(frames, w)})`);
+  if (u32[0] !== quietSNan(tword(frames, w))) {
+    console.error(`reader: FAIL word ${w} torn across ports (bits ${u32[0]} != ${quietSNan(tword(frames, w))})`);
     wordOk = false;
     failures++;
     break;

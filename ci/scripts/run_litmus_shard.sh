@@ -18,6 +18,19 @@ esac
 # Run litmus for the requested language only
 python3 tools/litmus_driver.py --langs "$LANG_ARG" --timeout 180 2>&1 | tee ci/run-artifacts/shard-litmus-${LANG_ARG}.log
 
+# Issue #16 Tier 1 (catalog v3): the L11-ffi-stress script leg — cross-process
+# node<->C boundaries are not a single-binary runner cell. Runs for the C shard
+# (it drives BOTH directions of the boundary from C tooling).
+if [ "$LANG_ARG" = "c" ]; then
+  echo "=== L11-ffi-stress (script leg) ===" | tee -a ci/run-artifacts/shard-litmus-${LANG_ARG}.log
+  if bash litmus/ffi_stress/run.sh 2>>ci/run-artifacts/shard-litmus-${LANG_ARG}.log       | tee -a ci/run-artifacts/shard-litmus-${LANG_ARG}.log; then
+    echo "L11-ffi-stress: PASS" | tee -a ci/run-artifacts/shard-litmus-${LANG_ARG}.log
+  else
+    echo "L11-ffi-stress: RED" | tee -a ci/run-artifacts/shard-litmus-${LANG_ARG}.log
+    exit 1
+  fi
+fi
+
 # Write structured results JSON for the aggregator
 python3 -c "
 import json, sys

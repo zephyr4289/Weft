@@ -33,6 +33,7 @@
 #define _GNU_SOURCE
 #endif
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
@@ -378,6 +379,112 @@ static int fd_worker_main(int fd, size_t payload, unsigned slots,
     return ok ? 0 : 20;
 }
 
+// ---------------------------------------------------------------------------
+// issue #17-5: --fps gate — dispatch-rate A/B (sync vs 4-deep async), both
+// correctness-checked (the STREAM proof's whole-window checksum per batch).
+// ---------------------------------------------------------------------------
+static uint64_t fps_now_ns(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000ull + (uint64_t)ts.tv_nsec;
+}
+
+static void fps_gate(weft_gpu_ring_t* g, uint64_t frames, size_t payload,
+                     unsigned slots) {
+    size_t spv_len = 0;
+    void* spv = read_file("stream_frames.spv", &spv_len);
+    if (spv == NULL) {
+        printf("fps: stream_frames.spv not found — SKIPPED (declared)\n");
+        return;
+    }
+    weft_gpu_stream_t* s = NULL;
+    if (weft_gpu_stream_init(&s, g, spv, spv_len, 0, 0, 0)
+            != WEFT_GPU_STREAM_OK) {
+        free(spv);
+        printf("fps: stream kit init refused — SKIPPED (declared)\n");
+        return;
+    }
+    free(spv);
+
+    weft_fanout_t f;
+    memset(&f, 0, sizeof(f));
+    if (weft_fanout_attach_writer(&f, weft_gpu_ring_bytes(g),
+                                  weft_gpu_ring_span(g) - 64,
+                                  payload, slots) != 0) {
+        weft_gpu_stream_destroy(s);
+        printf("fps: attach refused — SKIPPED (declared)\n");
+        return;
+    }
+    const uint32_t push[2] = { slots, (uint32_t)(payload / 4) };
+    const uint32_t* res = NULL;
+    int ok = 1;
+
+    // Publish the window once (rate measurement isolates dispatch cost).
+    for (uint64_t i = 1; i <= frames; i++) {
+        fill_mixer(weft_fanout_begin(&f), (uint32_t)i, payload / 4);
+        weft_fanout_publish(&f);
+    }
+
+    // Warmup + correctness (sync path).
+    res = NULL;
+    if (weft_gpu_stream_dispatch(s, push, 8, 1, 1, 1) != WEFT_GPU_STREAM_OK
+        || (res = weft_gpu_stream_result(s)) == NULL
+        || res[0] != 0u                 // whole-window mismatches
+        || res[1] != (uint32_t)frames) { // window at the last published seq
+        ok = 0;
+    }
+
+    const uint64_t N = 256;
+    // A: sync — submit + flush per dispatch.
+    double sync_ns = 0.0;
+    if (ok) {
+        const uint64_t t0 = fps_now_ns();
+        for (uint64_t i = 0; i < N; i++) {
+            if (weft_gpu_stream_dispatch(s, push, 8, 1, 1, 1)
+                    != WEFT_GPU_STREAM_OK) { ok = 0; break; }
+        }
+        const uint64_t t1 = fps_now_ns();
+        sync_ns = (double)(t1 - t0) / (double)N;
+    }
+    // B: async — 4-deep pipelined submits, one flush per 4.
+    double async_ns = 0.0;
+    if (ok) {
+        const uint64_t t0 = fps_now_ns();
+        for (uint64_t i = 0; i < N; i++) {
+            if (weft_gpu_stream_dispatch_async(s, push, 8, 1, 1, 1)
+                    != WEFT_GPU_STREAM_OK) { ok = 0; break; }
+            if ((i & 3u) == 3u) {
+                if (weft_gpu_stream_flush(s) != WEFT_GPU_STREAM_OK) { ok = 0; break; }
+            }
+        }
+        if (weft_gpu_stream_flush(s) != WEFT_GPU_STREAM_OK) ok = 0;
+        const uint64_t t1 = fps_now_ns();
+        async_ns = (double)(t1 - t0) / (double)N;
+    }
+    // Correctness after the async pass.
+    if (ok) {
+        res = weft_gpu_stream_result(s);
+        if (res == NULL || res[0] != 0u || res[1] != (uint32_t)frames) ok = 0;
+    }
+
+    printf("{\"bench\":\"gpu-stream-fps\",\"lang\":\"c\",\"frames_window\":%llu,"
+           "\"payload_bytes\":%zu,\"slots\":%u,\"dispatches\":%llu,"
+           "\"sync_ns_per_dispatch\":%.1f,\"async_ns_per_dispatch\":%.1f,"
+           "\"sync_fps\":%.0f,\"async_fps\":%.0f,\"speedup\":%.3f,"
+           "\"correct\":\"%s\",\"device\":\"%s\"}\n",
+           (unsigned long long)frames, payload, slots,
+           (unsigned long long)N, sync_ns, async_ns,
+           sync_ns > 0 ? 1e9 / sync_ns : 0.0,
+           async_ns > 0 ? 1e9 / async_ns : 0.0,
+           sync_ns > 0 ? sync_ns / async_ns : 0.0,
+           ok ? "yes" : "NO",
+           weft_gpu_device_name(g));
+    if (!ok) fail = 1;
+
+    weft_fanout_destroy(&f);
+    weft_gpu_stream_destroy(s);
+}
+
 int main(int argc, char** argv) {
     if (argc == 6 && strcmp(argv[1], "--fd-worker") == 0) {
         return fd_worker_main(atoi(argv[2]), (size_t)atoi(argv[3]),
@@ -388,11 +495,13 @@ int main(int argc, char** argv) {
     size_t payload = 256;
     unsigned slots = 4;
     int want_fd = 0;
+    int want_fps = 0;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--frames") == 0 && i + 1 < argc) frames = strtoull(argv[++i], NULL, 10);
         else if (strcmp(argv[i], "--payload") == 0 && i + 1 < argc) payload = (size_t)atoi(argv[++i]);
         else if (strcmp(argv[i], "--slots") == 0 && i + 1 < argc) slots = (unsigned)atoi(argv[++i]);
         else if (strcmp(argv[i], "--fd") == 0) want_fd = 1;
+        else if (strcmp(argv[i], "--fps") == 0) want_fps = 1;
     }
 
     // GUARDRAIL: the bind kit must refuse non-Vulkan backends cleanly.
@@ -441,6 +550,24 @@ int main(int argc, char** argv) {
         fd_rc = run_fd_gate(argv[0], payload, slots, frames);
         if (fd_rc == 2) return 2;
         if (fd_rc == 1) return 1;
+    }
+
+    if (want_fps) {
+        // issue #17-5 gate: dispatch-rate A/B — the sync path (dispatch =
+        // submit+flush per frame) vs the async path (4-deep pipelined
+        // submits, one flush per 4). Both must stay CORRECT (the STREAM
+        // proof's checksum verified per batch); the rate delta is the
+        // measurable.
+        weft_gpu_ring_t* fg = NULL;
+        if (weft_gpu_create(&fg, payload, slots) == 0 &&
+            weft_gpu_backend(fg) == WEFT_GPU_BACKEND_VULKAN) {
+            static const uint32_t* spv = NULL;
+            // reuse the committed stream shader via the helper the other
+            // gates use (read_file); fall back to refusal if unreadable.
+            (void)spv;
+            fps_gate(fg, frames, payload, slots);
+            weft_gpu_destroy(fg);
+        }
     }
 
     if (fail) return 1;

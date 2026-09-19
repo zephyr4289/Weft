@@ -181,13 +181,43 @@ void weft_turbo_fanout_destroy(weft_fanout_t* f, weft_turbo_ring_t* tr);
 #define WEFT_TURBO_PREFETCH_MAX_BYTES 4096
 #endif
 
-/// Prefetch the leading `min(len, cap)` bytes at `p` for a near-future READ
-/// (one T0 hint per 64-byte line). Architecturally a no-op — issued for its
-/// latency-hiding side effect only; correctness never depends on it.
+/// RUNTIME-CONFIGURABLE DISTANCE (issue #17-4): the compile-time macro is
+/// the STARTUP DEFAULT; set_distance() changes it live (0 = hints off) and
+/// tune() applies the per-vendor starting point (AMD Zen family -> 256 B,
+/// Apple silicon -> 128 B, everything else -> 128 B). The TL-reader pf=
+/// sweep is the per-host refinement tool and produced this build's default.
+/// Hard ceiling: a runaway value would issue huge hint batches per frame.
+#define WEFT_TURBO_PREFETCH_DIST_HARD_MAX (1 << 20)
+
+/// The runtime distance (turbo.c; initialized to the compile default).
+/// Relaxed: a stale read only issues a hint batch of yesterday's size —
+/// architecturally a no-op either way.
+extern _Atomic int _weft_turbo_pf_dist;
+
+/// Set the prefetch distance in leading bytes. 0 disables prefetch hints
+/// entirely (the wrappers stay legal — hints only). Negative refused (-1);
+/// above the hard max clamps to it. Returns the effective distance set.
+int weft_turbo_prefetch_set_distance(int bytes);
+
+/// The current effective distance (leading bytes; 0 = hints off).
+int weft_turbo_prefetch_get_distance(void);
+
+/// Vendor autotune (AMD Zen >= 0x17 -> 256; Apple aarch64 -> 128; other
+/// x86/aarch64/RISC-V -> 128). A documented STARTING POINT, not a verdict —
+/// the TL-reader pf= sweep refines it per host. Returns the distance set.
+int weft_turbo_prefetch_tune(void);
+
+/// Prefetch the leading `min(len, runtime distance)` bytes at `p` for a
+/// near-future READ (one T0 hint per 64-byte line). Architecturally a
+/// no-op — issued for its latency-hiding side effect only; correctness
+/// never depends on it. Distance 0 short-circuits to nothing.
 static inline void weft_turbo_prefetch_read(const void* p, size_t len) {
     const char* q = (const char*)p;
-    if (len > (size_t)WEFT_TURBO_PREFETCH_MAX_BYTES) {
-        len = (size_t)WEFT_TURBO_PREFETCH_MAX_BYTES;
+    const int dist = atomic_load_explicit(&_weft_turbo_pf_dist,
+                                          memory_order_relaxed);
+    if (dist <= 0) return;
+    if (len > (size_t)dist) {
+        len = (size_t)dist;
     }
     for (size_t off = 0; off < len; off += 64) {
         __builtin_prefetch(q + off, 0 /* read */, 3 /* high temporal locality */);

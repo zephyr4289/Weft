@@ -1,0 +1,24 @@
+ok: FB1 batch returns the tail seq, w_seq continuity exact
+ok: FB1 freshest claim carries the LAST frame's bytes; dropped == n-1
+ok: FB1 publishes telemetry counts every frame (n per batch)
+ok: FB1 short + begin-only frames accepted
+ok: FB1 begin-only tail frame claims (empty payload valid)
+ok: FB2 single publishes interleave with batches seamlessly
+ok: FB3 100-frame batch returns 100
+ok: FB3 dropped == 99 behind a 100-frame batch (M=4)
+ok: FB3 tail frame bytes exact after windowed stamping
+ok: FB4 writer spawn
+ok: FB4 ZERO torn frames accepted under batch bursts
+ok: FB4 dropped+fresh telescopes to lastSeq exactly under batching
+info: FB4 30986 batches (991552 frames) vs reader: fresh=29491
+ok: FB5 malformed batch refused (returns 0)
+ok: FB5 refusal is ATOMIC: latestSeq and publishes unchanged
+ok: FB5 refusal leaves w_seq untouched (no half-begun state)
+ok: FB5 NULL src with len refused
+ok: FB5 NULL frames refused
+ok: FB5 n == 0 is a detectable no-op
+ok: FB6 commit publishes the 5 begun frames
+ok: FB6 reader view identical to the batch API
+ok: FB6 tail frame bytes exact
+ok: FB6 commit > w_seq refused
+FB-SERIES PASS

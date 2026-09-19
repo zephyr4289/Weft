@@ -519,6 +519,82 @@ static void t8_torture(void) {
 // main
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// T10 — runtime prefetch distance (issue #17-4)
+// ---------------------------------------------------------------------------
+
+static void t10_prefetch_distance(void) {
+    const int saved = weft_turbo_prefetch_get_distance();
+
+    // Knob semantics: round-trip, refusal, clamping.
+    CHECK(weft_turbo_prefetch_get_distance() == WEFT_TURBO_PREFETCH_MAX_BYTES,
+          "T10 startup default == compile-time macro");
+    CHECK(weft_turbo_prefetch_set_distance(256) == 256 &&
+              weft_turbo_prefetch_get_distance() == 256,
+          "T10 set/get round-trip");
+    CHECK(weft_turbo_prefetch_set_distance(0) == 0 &&
+              weft_turbo_prefetch_get_distance() == 0,
+          "T10 0 disables hints");
+    CHECK(weft_turbo_prefetch_set_distance(-64) == -1 &&
+              weft_turbo_prefetch_get_distance() == 0,
+          "T10 negative refused, distance unchanged");
+    CHECK(weft_turbo_prefetch_set_distance(1 << 24) ==
+              WEFT_TURBO_PREFETCH_DIST_HARD_MAX,
+          "T10 runaway values clamp to the hard max");
+
+    // tune() lands on a documented starting point and reports it.
+    const int tuned = weft_turbo_prefetch_tune();
+    CHECK(tuned == 128 || tuned == 256,
+          "T10 tune() picks a documented starting point (128/256)");
+    CHECK(weft_turbo_prefetch_get_distance() == tuned,
+          "T10 tune() sets what it returns");
+
+    // Ordering-neutrality with hints OFF and at 256: claims byte-identical
+    // to a plain ring across an interleave (hints never change results).
+    {
+        enum { WORDS = 64, M = 8, N = 4000 };
+        const size_t PB = WORDS * 4;
+        weft_fanout_t plain, tf;
+        CHECK(weft_fanout_init(&plain, PB, M) == 0, "T10 plain init");
+        weft_turbo_ring_opts_t o;
+        weft_turbo_ring_opts_default(&o);
+        o.slot_count = M;
+        o.payload_bytes = PB;
+        weft_turbo_ring_t tr;
+        CHECK(weft_turbo_fanout_create(&tf, &tr, &o) == 0, "T10 turbo ring");
+        weft_fanout_reader_t ra, rb;
+        weft_fanout_reader_init(&ra, plain.ring, weft_fanout_ring_bytes(PB, M), PB, M);
+        weft_fanout_reader_init(&rb, tr.ring, tr.ring_bytes, PB, M);
+        uint32_t buf[WORDS];
+        int all_ok = 1;
+        for (int dist_i = 0; dist_i < 2; dist_i++) {
+            weft_turbo_prefetch_set_distance(dist_i == 0 ? 0 : 256);
+            for (uint32_t seq = 1; seq <= N; seq++) {
+                for (size_t w = 0; w < WORDS; w++) buf[w] = tword(seq, (uint32_t)w);
+                (void)weft_fanout_begin(&plain);
+                (void)weft_fanout_fill(&plain, buf, PB);
+                (void)weft_fanout_publish(&plain);
+                (void)weft_turbo_begin(&tf);
+                (void)weft_turbo_fill(&tf, buf, PB);
+                (void)weft_turbo_publish(&tf);
+                const weft_fanout_claim_t* ca = weft_fanout_claim(&ra);
+                const weft_fanout_claim_t* cb = weft_turbo_claim(&rb);
+                if (ca->fresh != cb->fresh || ca->seq != cb->seq ||
+                    memcmp(weft_fanout_view(&ra), weft_fanout_view(&rb), PB) != 0) {
+                    all_ok = 0;
+                }
+            }
+        }
+        CHECK(all_ok, "T10 claims byte-identical at distance 0 and 256");
+        weft_fanout_reader_destroy(&ra);
+        weft_fanout_reader_destroy(&rb);
+        weft_fanout_destroy(&plain);
+        weft_turbo_fanout_destroy(&tf, &tr);
+    }
+
+    (void)weft_turbo_prefetch_set_distance(saved);  // restore for later tests
+}
+
 int main(void) {
     t1_caps();
     t2_ring_equivalence();
@@ -529,6 +605,7 @@ int main(void) {
     t6_pin();
     t7_refusals();
     t9_numa();
+    t10_prefetch_distance();
     t8_torture();
 
     if (g_failures == 0) {

@@ -48,7 +48,8 @@ step "Build: ASan+UBSan matrix"
               gcc $ASAN_FLAGS -o asan-governor governor.c governor_test.c 2>>"$LOG" && \
               gcc $ASAN_FLAGS -o asan-verified weft.c verified.c verified_test.c hmac.c sha256.c sha256_hw.c 2>>"$LOG" && \
               gcc $ASAN_FLAGS -o asan-blend blend_q12.c blend_test.c 2>>"$LOG" && \
-              gcc $ASAN_FLAGS -o asan-fuzz fuzz_runner.c weft.c fanout.c frame_cursor.c 2>>"$LOG") \
+              gcc $ASAN_FLAGS -o asan-fuzz fuzz_runner.c weft.c fanout.c frame_cursor.c 2>>"$LOG" && \
+              gcc $ASAN_FLAGS -o asan-ffihost ffi_host.c ffi_host_test.c 2>>"$LOG") \
   && record "asan-build" 0 || record "asan-build" 1
 
 step "ASan+UBSan: kernel litmus L1-L8"
@@ -64,6 +65,10 @@ step "ASan+UBSan: kernel conformance batteries"
 (cd core/c && ./asan-governor) >> "$LOG" 2>&1; record "asan-governor" $?
 (cd core/c && ./asan-verified) >> "$LOG" 2>&1; record "asan-verified" $?
 (cd core/c && ./asan-blend)    >> "$LOG" 2>&1; record "asan-blend"    $?
+
+step "ASan+UBSan: FFI isolation host (in-process + fork containment)"
+(cd core/c && ./asan-ffihost)      >> "$LOG" 2>&1; record "asan-ffihost"      $?
+(cd core/c && ./asan-ffihost fork) >> "$LOG" 2>&1; record "asan-ffihost-fork" $?
 
 step "ASan+UBSan: fuzz-runner 200k ops seed 0x00C0FFEE"
 (cd core/c && ./asan-fuzz 200000 0x00C0FFEE) >> "$LOG" 2>&1

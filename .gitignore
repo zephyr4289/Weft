@@ -51,6 +51,8 @@ core/c/worklet-test
 core/c/qos-test
 core/c/reclaim-test
 core/c/reclaim-test-asan
+core/c/ffi_host-test
+core/c/ffi_host-test-asan
 core/c/fuzz-runner
 core/c/fuzz-runner-asan
 tools/weft-probe/weft_probe

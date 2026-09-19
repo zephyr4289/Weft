@@ -277,6 +277,14 @@ reclaim-test: weft.c reclaim_test.c weft.h
 reclaim-test-asan: weft.c reclaim_test.c weft.h
 	$(CC) $(CFLAGS_ASAN) -o reclaim-test-asan weft.c reclaim_test.c
 
+# ---- Tier 4: FFI boundary isolation (issue #19 §2) ------------------------
+
+ffi_host-test: ffi_host.c ffi_host.h ffi_host_test.c
+	$(CC) $(CFLAGS) -o ffi_host-test ffi_host.c ffi_host_test.c
+
+ffi_host-test-asan: ffi_host.c ffi_host.h ffi_host_test.c
+	$(CC) $(CFLAGS_ASAN) -o ffi_host-test-asan ffi_host.c ffi_host_test.c
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \

@@ -89,6 +89,8 @@ export interface ChaosConfig {
     // (undocumented)
     chaosRate: number;
     // (undocumented)
+    faultMask?: number;
+    // (undocumented)
     frames: number;
     // (undocumented)
     readers: number;

@@ -33,7 +33,7 @@ static int write_json(const char* path, const char* json) {
 
 static int run_stepped(int argc, char** argv) {
     if (argc < 8) {
-        fprintf(stderr, "stepped <steps> <slots> <words> <readers> <frames> <chaosRate> <seed> [out.json]\n");
+        fprintf(stderr, "stepped <steps> <slots> <words> <readers> <frames> <chaosRate> <seed> [faultMask] [out.json]\n");
         return 2;
     }
     weft_chaos_config_t cfg;
@@ -45,7 +45,10 @@ static int run_stepped(int argc, char** argv) {
     cfg.frames     = (uint32_t)strtoul(argv[6], NULL, 10);
     cfg.chaos_rate = (uint32_t)strtoul(argv[7], NULL, 10);
     cfg.seed       = (uint32_t)strtoul(argv[8], NULL, 10);
-    const char* out = argc > 9 ? argv[9] : NULL;
+    // v2 (Issue #16): optional 9th arg = fault_mask (extended classes);
+    // default 0 = the v1 contract. [out.json] moves to the 10th position.
+    cfg.fault_mask = argc > 9 ? (uint32_t)strtoul(argv[9], NULL, 0) : 0u;
+    const char* out = argc > 10 ? argv[10] : NULL;
 
     weft_chaos_verdict_t v;
     int rc = weft_chaos_run_stepped(&cfg, &v);
@@ -70,7 +73,7 @@ static int run_stepped(int argc, char** argv) {
 
 static int run_free(int argc, char** argv) {
     if (argc < 7) {
-        fprintf(stderr, "free <frames> <slots> <words> <readers> <chaosRate> <seed> [out.json]\n");
+        fprintf(stderr, "free <frames> <slots> <words> <readers> <chaosRate> <seed> [faultMask] [out.json]\n");
         return 2;
     }
     weft_chaos_config_t cfg;
@@ -82,7 +85,9 @@ static int run_free(int argc, char** argv) {
     cfg.readers    = (uint32_t)strtoul(argv[5], NULL, 10);
     cfg.chaos_rate = (uint32_t)strtoul(argv[6], NULL, 10);
     cfg.seed       = (uint32_t)strtoul(argv[7], NULL, 10);
-    const char* out = argc > 8 ? argv[8] : NULL;
+    // v2 (Issue #16): optional 8th arg = fault_mask; [out.json] moves to 9th.
+    cfg.fault_mask = argc > 8 ? (uint32_t)strtoul(argv[8], NULL, 0) : 0u;
+    const char* out = argc > 9 ? argv[9] : NULL;
 
     weft_chaos_verdict_t v;
     int rc = weft_chaos_run_free(&cfg, &v);

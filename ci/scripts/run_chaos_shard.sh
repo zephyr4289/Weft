@@ -48,8 +48,29 @@ if ./core/c/fanout-chaos-asan stepped 60000 4 2 2 60 400 777 >>"$LOG" 2>&1; then
 step "4. free-running (real threads, seed-deterministic faults, 2M frames)"
 if ./core/c/fanout-chaos free 2000000 4 8 3 40 424242 >>"$LOG" 2>&1; then :; else fail=1; echo "free 2M RED" | tee -a "$LOG"; fi
 
+step "5. v2 extended fault classes (Issue #16 Tier 1) — stepped, both regimes"
+# faultMask 15 = BIT_FLIP + CACHE_POISON + STORE_TEARING + DELAYED_VISIBILITY at
+# a corruption density below the measured starvation threshold (slots=8 +
+# rate>=100 whole-ring-poisons faster than the writer heals — that overload
+# regime is evidence-filed, not gated; see litmus/evidence/chaos-v2/).
+for cfg in "200000 4 4 2 200 50 1337 15" "100000 4 4 2 50 50 77 15" "1000000 2 2 1 40 25 424242 6"; do
+  read -r steps slots words readers frames rate seed mask <<< "$cfg"
+  echo "--- stepped-v2 $steps/$slots/$words/$readers/$frames/$rate seed=$seed mask=$mask (fenced) ---" | tee -a "$LOG"
+  if ./core/c/fanout-chaos stepped "$steps" "$slots" "$words" "$readers" "$frames" "$rate" "$seed" "$mask" >>"$LOG" 2>&1; then :; else fail=1; echo "stepped-v2(fenced) RED: $cfg" | tee -a "$LOG"; fi
+  echo "--- stepped-v2 $steps/$slots/$words/$readers/$frames/$rate seed=$seed mask=$mask (all-seq_cst) ---" | tee -a "$LOG"
+  if ./core/c/fanout-chaos-seq stepped "$steps" "$slots" "$words" "$readers" "$frames" "$rate" "$seed" "$mask" >>"$LOG" 2>&1; then :; else fail=1; echo "stepped-v2(seqcst) RED: $cfg" | tee -a "$LOG"; fi
+done
+
+step "6. v2 free-running (real ring, real corruption, 200K frames)"
+# BIT_FLIP/CACHE_POISON land as relaxed atomic u64 stores on the production
+# ring's ctrl stamps; DELAYED_VISIBILITY stalls post-store; STORE_TEARING is
+# structurally impossible on the real ring (atomic stamps) — counted as the
+# honest 0 and documented. A torn accept under corruption FAILS loudly here
+# (rare aliasing); the stepped engine owns the attributed tier.
+if ./core/c/fanout-chaos free 200000 4 8 3 40 424242 15 >>"$LOG" 2>&1; then :; else fail=1; echo "free-v2 200K RED" | tee -a "$LOG"; fi
+
 if [ "$fail" -eq 0 ]; then
-  echo '{"shard":"chaos","status":"PASSED","gates":"selftest + stepped shapes x2 regimes + asan + free 2M"}' > "$RESULTS"
+  echo '{"shard":"chaos","status":"PASSED","gates":"selftest + stepped shapes x2 regimes + asan + free 2M + v2 extended x2 regimes + v2 free 200K"}' > "$RESULTS"
   echo "chaos shard: PASS" | tee -a "$LOG"
 else
   echo '{"shard":"chaos","status":"FAILED"}' > "$RESULTS"

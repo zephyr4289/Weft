@@ -192,3 +192,11 @@ These design questions are evaluated via formal RFC memos and prototypes (Direct
 - **Q3 — Compose Multiplatform.** Evaluated in [RFC 0007: Compose Multiplatform on iOS Evaluation](rfcs/0007-compose-mp-ios-eval.md). CMP iOS supports deferred draw-phase reads over Skiko; 120 Hz ProMotion favors native Swift/Metal.
 - **Q4 — Authenticated Wefts.** Evaluated in [RFC 0005: VerifiedWeft Authenticated Frames](rfcs/0005-verifiedweft.md). HMAC-SHA256 frame signing benchmarked at 2.1 µs encode / decode.
 - **Q5 — Process-death policy.** Evaluated in [RFC 0006: Android Process-Death ReattachPolicy](rfcs/0006-reattach-policy.md). Explicit `ReattachPolicy` state machine for clean re-allocation vs. shared memory re-hydration.
+
+## 9. Hardware-adaptive acceleration & SIMD dispatch roadmap (Issue #15)
+
+The `weft_hw` module (`core/c/weft_hw.{h,c}`) establishes the project's thin hardware-adaptive layer:
+- **Zero per-frame capability checks**: Probe once at library load (constructor); function pointers are selected once and invoked directly with zero runtime branches on the hot path.
+- **Bit-Identity by construction**: SIMD-accelerated kernels (`weft_hw_checksum32`, `weft_hw_xor_transform`) use strided lane layouts that guarantee identical byte output and checksums across scalar, SSE4.2/SSE2, AVX2, and AVX-512 ladders on all buffer lengths, including ragged tails.
+- **Dispatch Pattern Consolidation Roadmap**: The tree previously introduced module-local SIMD dispatch in `sha256_hw.c` (Series 6) and `sha256_mb.h` (Series 7 multi-buffer). `weft_hw` serves as the target common abstraction for silicon probing (ISA, cache lines, NUMA topology) and vector dispatch; subsequent maintenance refactors will delegate module-local dispatch to `weft_hw` to avoid duplicate CPUID/probe paths.
+

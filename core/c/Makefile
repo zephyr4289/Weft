@@ -1,7 +1,9 @@
 # core/c/Makefile — local C build target (also driven by the root Makefile)
 #
 # Kernel targets (weft.c/weft.h — frozen):
-#   spike, spike-tsan            — the kernel litmus runner (unchanged)
+#   spike, spike-tsan            — the kernel litmus runner (L1-L8) + the
+#                                  Issue #16 Tier 1 L9-L16 suite (L13 needs
+#                                  the fan-out driver layer linked in)
 # Fan-out driver-layer targets (fanout.{h,c}, frame_cursor.{h,c} — RFC 0004/0008):
 #   fanout-test{,-asan,-tsan,-seq}   — F-series + FrameCursor conformance
 #   fanout-runner{,-asan,-tsan,-seq} — torture + xlang dump/validate runner
@@ -26,11 +28,11 @@ FANOUT_SRC = fanout.c frame_cursor.c weft.c $(FSIMD_SRC)
 
 all: $(TARGET)
 
-$(TARGET): weft.c litmus_runner.c weft.h
-	$(CC) $(CFLAGS) -o $(TARGET) weft.c litmus_runner.c
+$(TARGET): weft.c fanout.c frame_cursor.c litmus_runner.c weft.h fanout.h frame_cursor.h
+	$(CC) $(CFLAGS) -o $(TARGET) weft.c fanout.c frame_cursor.c litmus_runner.c
 
-$(TARGET_TSAN): weft.c litmus_runner.c weft.h
-	$(CC) $(CFLAGS_DBG) -o $(TARGET_TSAN) weft.c litmus_runner.c
+$(TARGET_TSAN): weft.c fanout.c frame_cursor.c litmus_runner.c weft.h fanout.h frame_cursor.h
+	$(CC) $(CFLAGS_DBG) -o $(TARGET_TSAN) weft.c fanout.c frame_cursor.c litmus_runner.c
 
 # ---- fan-out driver layer (RFC 0004 + RFC 0008) --------------------------
 
@@ -289,6 +291,33 @@ turbo-runner: turbo_runner.c $(TRUNNER_SRC) turbo.h uring_rx.h fanout.h weft.h
 
 turbo-runner-sys: turbo_runner.c $(TRUNNER_SRC) turbo.h uring_rx.h fanout.h weft.h
 	$(CC) $(CFLAGS) -DWEFT_URING_FORCE_SYSCALL=1 -o turbo-runner-sys $(TRUNNER_SRC) turbo_runner.c
+
+# ---- Issue #16 Tier 1: revocation handshake stress (Task 5) --------------
+
+revoke-stress: revoke_stress.c weft.c weft.h
+	$(CC) $(CFLAGS) -o revoke-stress revoke_stress.c weft.c
+
+revoke-stress-asan: revoke_stress.c weft.c weft.h
+	$(CC) $(CFLAGS_ASAN) -o revoke-stress-asan revoke_stress.c weft.c
+
+revoke-stress-tsan: revoke_stress.c weft.c weft.h
+	$(CC) $(CFLAGS_DBG) -o revoke-stress-tsan revoke_stress.c weft.c
+
+# ---- Issue #16 Tier 1: FFI-boundary structured fuzz (Task 4) -------------
+
+ffi-fuzz: ffi_fuzz.c weft.c weft.h
+	$(CC) $(CFLAGS) -o ffi-fuzz ffi_fuzz.c weft.c
+
+ffi-fuzz-asan: ffi_fuzz.c weft.c weft.h
+	$(CC) $(CFLAGS_ASAN) -o ffi-fuzz-asan ffi_fuzz.c weft.c
+
+# ---- Issue #15: thin hardware-adaptive layer (weft_hw) --------------------
+
+weft-hw-test: weft_hw.c weft_hw_test.c weft_hw.h weft.c weft.h
+	$(CC) $(CFLAGS) -o weft-hw-test weft_hw.c weft_hw_test.c weft.c
+
+weft-hw-test-asan: weft_hw.c weft_hw_test.c weft_hw.h weft.c weft.h
+	$(CC) $(CFLAGS_ASAN) -o weft-hw-test-asan weft_hw.c weft_hw_test.c weft.c
 
 bench: bench_runner.c weft.c weft.h
 	$(CC) $(CFLAGS) -o bench bench_runner.c weft.c

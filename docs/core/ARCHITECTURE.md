@@ -192,3 +192,15 @@ These design questions are evaluated via formal RFC memos and prototypes (Direct
 - **Q3 — Compose Multiplatform.** Evaluated in [RFC 0007: Compose Multiplatform on iOS Evaluation](rfcs/0007-compose-mp-ios-eval.md). CMP iOS supports deferred draw-phase reads over Skiko; 120 Hz ProMotion favors native Swift/Metal.
 - **Q4 — Authenticated Wefts.** Evaluated in [RFC 0005: VerifiedWeft Authenticated Frames](rfcs/0005-verifiedweft.md). HMAC-SHA256 frame signing benchmarked at 2.1 µs encode / decode.
 - **Q5 — Process-death policy.** Evaluated in [RFC 0006: Android Process-Death ReattachPolicy](rfcs/0006-reattach-policy.md). Explicit `ReattachPolicy` state machine for clean re-allocation vs. shared memory re-hydration.
+
+---
+
+## Security & Architecture Boundaries (Tier 4 Normative)
+
+### 1. The Validation Wall
+All external-facing entry points (FFI bindings, IPC attach, network bridges, package APIs) MUST route through the validation layer before touching kernel or ring APIs. Direct `weft_init` / `weft_fanout_init` calls with unvalidated parameters are caller-contract violations, not kernel bugs. The construction wall enforces fail-closed geometry validation (RFC 0015) prior to any allocation.
+
+### 2. Supported Platforms & Endianness
+- **Supported architectures**: ARM64 (aarch64), x86_64, and RISC-V (RV64GC).
+- **Endianness**: Big-endian hosts are explicitly unsupported. All wire formats, envelope encodings, and canaries assume Little-Endian byte order. Any future Big-Endian support requires a dedicated Tier-0 RFC.
+

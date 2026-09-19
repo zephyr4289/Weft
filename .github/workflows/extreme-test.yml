@@ -175,6 +175,7 @@ jobs:
               {"shard": "sanitizers", "description": "TIER4 memory-safety audit: ASan+UBSan + TSan, zero findings", "script": "ci/scripts/run_sanitizers_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "trace-standard", "description": "RFC 0014 .weftrec v4: codec conformance + cross-port trace byte-identity (C==TS, VM legs via toolchain workflows) + JSON schema shape", "script": "ci/scripts/run_trace_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "memory-model-formal", "description": "Axis 1: herd7 ARMv8 + RISC-V RVWMO CAT formal models + litmus7 ARM execution proofs", "script": "ci/scripts/run_memory_model_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "wcet-audit", "description": "Axis 2: Static instruction disassembly audit + WCET certificates + SCHED_DEADLINE TLA+ model", "script": "ci/scripts/run_wcet_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)

@@ -1,7 +1,7 @@
 {
   "_meta": {
     "endian": "little",
-    "note": "Single source of truth for cross-language parity tests. Floats are dyadic => bit-exact under IEEE-754 nearest rounding."
+    "note": "Single source of truth for cross-language parity tests. Floats are dyadic => bit-exact under IEEE-754 nearest rounding. u64 fields are stored as 0x-prefixed hex STRINGS: JSON numbers cannot represent u64 losslessly past 2^53 (double mantissa)."
   },
   "imu_sample": {
     "accel": [
@@ -14,7 +14,7 @@
       -0.0625,
       3.5
     ],
-    "timestampNs": 999999999
+    "timestampNs": "0x000000003b9ac9ff"
   },
   "telemetry_frame": {
     "gpsCoordinates": [
@@ -38,9 +38,8 @@
       0
     ],
     "schemaId": "0x8f4c1120a9b30012",
-    "schemaIdLower": 10325646877637410834,
     "state": 7,
-    "timestampNs": 1737504000123456789,
+    "timestampNs": "0x181cdaaeb32dcd15",
     "velocity": [
       1.5,
       -2.25,

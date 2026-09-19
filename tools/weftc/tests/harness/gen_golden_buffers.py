@@ -95,7 +95,9 @@ def main() -> None:
     expected = {
         "_meta": {
             "note": "Single source of truth for cross-language parity tests. "
-                    "Floats are dyadic => bit-exact under IEEE-754 nearest rounding.",
+                    "Floats are dyadic => bit-exact under IEEE-754 nearest rounding. "
+                    "u64 fields are stored as 0x-prefixed hex STRINGS: JSON numbers "
+                    "cannot represent u64 losslessly past 2^53 (double mantissa).",
             "endian": "little",
         },
         "weft_envelope": {
@@ -107,8 +109,7 @@ def main() -> None:
         },
         "telemetry_frame": {
             "schemaId": "0x8f4c1120a9b30012",
-            "schemaIdLower": SCHEMA_ID,
-            "timestampNs": TS_TELEMETRY,
+            "timestampNs": format(TS_TELEMETRY, "#018x"),
             "velocity": list(VELOCITY),
             "pressurePa": PRESSURE_PA,
             "state": STATE,
@@ -117,7 +118,7 @@ def main() -> None:
             "payloadHash": list(PAYLOAD_HASH),
         },
         "imu_sample": {
-            "timestampNs": TS_IMU,
+            "timestampNs": format(TS_IMU, "#018x"),
             "accel": list(ACCEL),
             "gyro": list(GYRO),
         },

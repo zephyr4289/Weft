@@ -1,0 +1,20 @@
+cd core/c && make
+make[1]: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o spike weft.c fanout.c frame_cursor.c litmus_runner.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+litmus_runner.c:17: warning: "_GNU_SOURCE" redefined
+   17 | #define _GNU_SOURCE  // for nanosleep, posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+/usr/bin/ld: /tmp/ccaxIAnC.o: warning: relocation against `_weft_fanout_copy_dispatch' in read-only section `.text'
+/usr/bin/ld: /tmp/ccaxIAnC.o: in function `weft_fanout_claim':
+fanout.c:(.text+0x72b): undefined reference to `_weft_fanout_copy_dispatch'
+/usr/bin/ld: fanout.c:(.text+0x748): undefined reference to `_weft_fanout_copy_resolve'
+/usr/bin/ld: warning: creating DT_TEXTREL in a PIE
+collect2: error: ld returned 1 exit status
+make[1]: *** [Makefile:32: spike] Error 1
+make[1]: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+make: *** [Makefile:27: build-c] Error 2

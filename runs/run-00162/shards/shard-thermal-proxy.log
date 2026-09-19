@@ -1,0 +1,8 @@
+==================================================
+SHARD: thermal-proxy
+DESCRIPTION: W2 × 4 backends × 120s sustained, decay curves
+STATUS: FAILED ❌
+COMMIT: b156819d0e0a5c460234d179d8ce68970b3e67f4
+RUN: 162
+==================================================
+

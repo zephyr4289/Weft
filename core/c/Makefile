@@ -527,6 +527,18 @@ tensor-test-tsan:
 tensor-clean:
 	$(MAKE) -C tensor clean
 
+# ---- Device Spectrum Driver Optimizations (doc-007) ----------------------
+DEV_SPECTRUM_SRC = weft_device_profile.c weft_f16_codec.c weft_render_bridge.c fanout.c frame_cursor.c fanout_simd.c weft.c
+
+device-spectrum-test: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
+	$(CC) $(CFLAGS) -o device-spectrum-test $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
+
+device-spectrum-test-asan: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o device-spectrum-test-asan $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
+
+device-spectrum-test-tsan: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
+	$(CC) $(CFLAGS_DBG) -o device-spectrum-test-tsan $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
@@ -546,4 +558,5 @@ clean:
 	$(MAKE) -C tensor clean
 
 .PHONY: all clean
+
 

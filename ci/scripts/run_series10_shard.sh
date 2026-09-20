@@ -23,7 +23,7 @@ mkdir -p ci/run-artifacts
   ./core/c/trace-test-dbg > /dev/null   # binding-discipline build (quiet)
   ./core/c/trace-test-asan > /dev/null  # ASan-clean assertion
   make -C core/c replay-test replay-test-asan flow-test flow-test-asan \
-    sync-test sync-test-asan trend-test trend-test-asan
+    sync-test sync-test-asan trend-test trend-test-asan replay-runner trend-runner
   ./core/c/replay-test
   ./core/c/replay-test-asan > /dev/null
   ./core/c/flow-test

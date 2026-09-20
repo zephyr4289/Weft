@@ -137,7 +137,7 @@ pub fn trend_observe(t: &mut WeftTrend, behind: u32) -> TrendOut {
     t.level_q16 = (t.level_q16 as i64 + ((t.alpha_q8 as i64 * level_err) >> 8)) as u32;
 
     // slope += beta * (delta - slope)  (Q16 per step).
-    let delta_q16: i64 = delta_raw as i64 << 16;
+    let delta_q16: i64 = (delta_raw as i64) << 16;
     t.slope_q16 = (t.slope_q16 as i64
         + ((t.beta_q8 as i64 * (delta_q16 - t.slope_q16 as i64)) >> 8)) as i32;
 

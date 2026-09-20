@@ -1,7 +1,13 @@
 // index.js — @weft/cluster public surface.
 export { ClusterClient, Subscription } from './client.js';
+export { ClusterMesh } from './mesh.js';
 export { ShmFabric, LoopbackShmTransport, ShmRing } from './transport/shm.js';
 export { UdpTransport, CTL_SUB, CTL_UNSUB } from './transport/udp.js';
+export {
+  MembershipTable, GossipEngine, NodeHandle,
+  NODE_FLAG_ALIVE, NODE_FLAG_LEAVING, ipToU32,
+} from './topology.js';
+export { ShardRouter } from './router.js';
 export { WC, wcName, WeftClusterError, hasCode } from './errors.js';
 export { crc32, crc32Range } from './crc32.js';
 export {

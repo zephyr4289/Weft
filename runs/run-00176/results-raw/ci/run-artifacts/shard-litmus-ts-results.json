@@ -1,0 +1,16 @@
+{
+  "shard": "litmus-ts",
+  "status": "PASSED",
+  "cells_pass": 8,
+  "cells_total": 8,
+  "cells": {
+    "ts/L1-tear": true,
+    "ts/L2-writer-steps": true,
+    "ts/L3-reader-steps": true,
+    "ts/L4-freshness": true,
+    "ts/L5-progress": true,
+    "ts/L6-ownership": true,
+    "ts/L7-revocation": true,
+    "ts/L8-envelope": true
+  }
+}

@@ -10,13 +10,13 @@
   "publishedFrames": 2000000,
   "ingestedFrames": 6000000,
   "expectedIngest": 6000000,
-  "achievedFps": 1015819,
-  "fanoutWritesPerSec": 3047458,
+  "achievedFps": 1014723,
+  "fanoutWritesPerSec": 3044168,
   "elapsedSec": 1.97,
   "sequenceGaps": 0,
   "hopLatencyNs": {
     "p50": 1024,
     "p99": 3072
   },
-  "at": "2026-09-20T07:25:30.145Z"
+  "at": "2026-09-20T07:28:49.786Z"
 }

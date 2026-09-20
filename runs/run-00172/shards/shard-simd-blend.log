@@ -1,0 +1,39 @@
+==================================================
+SHARD: simd-blend
+DESCRIPTION: Q12 raster blend: C golden gates + xlang-blend cross-language digests + bench
+STATUS: PASSED ✅
+COMMIT: 845d48a6fa311c3ca7d79691c1e9f7e64d944768
+RUN: 172
+==================================================
+
+== simd-blend shard: env x86_64/Linux ==
+-- C kernel gates --
+== blend_test: impl=avx2 (2) ==
+B1 boundaries: OK
+B2 parity sweep: OK (154 path-checks, all == scalar)
+B3 alpha sweep 0..4096 (dispatched): OK
+B4 in-place aliasing: OK
+blend_test: ALL GATES GREEN
+blend-test: ALL GATES GREEN
+-- xlang-blend golden gate --
+== xlang-blend golden parity: env x86_64/Linux ==
+-- C kernel (golden source) --
+   blend-test gates GREEN
+   golden-vectors.csv matches the kernel
+-- TS verifier (reference port) --
+xlang-blend TS verifier: 63/63 golden digests match
+-- Kotlin verifier --
+xlang-blend Kotlin verifier: 63/63 golden digests match
+-- Dart verifier: DECLARED skip (no dart; flutter-packages leg owns it) --
+-- Swift port: DECLARED skip (no swiftc; apple-packages compiles + golden-gates it) --
+
+xlang-blend: ran=3 declared_skips=2
+✅ xlang-blend parity: every executed port byte-identical to the C kernel
+xlang-blend parity GREEN
+-- blend_runner benchmark --
+== blend_runner: dispatch=avx2 ==
+256x256-hot (65536 words): scalar   140172 ns/frame (  5.6 GB/s) | avx2    14112 ns/frame ( 55.7 GB/s) | speedup 9.93x
+1080p (2073600 words): scalar  4596265 ns/frame (  5.4 GB/s) | avx2   458731 ns/frame ( 54.2 GB/s) | speedup 10.02x
+4K (8294400 words): scalar 18228917 ns/frame (  5.5 GB/s) | avx2  2149413 ns/frame ( 46.3 GB/s) | speedup 8.48x
+8K (33177600 words): scalar 73240869 ns/frame (  5.4 GB/s) | avx2 10012414 ns/frame ( 39.8 GB/s) | speedup 7.32x
+✅ simd-blend shard GREEN

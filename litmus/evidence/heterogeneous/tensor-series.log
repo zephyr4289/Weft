@@ -1,0 +1,51 @@
+# T-series: weft_tensor WTS1 conformance (RFC-0016 s5)
+## T1 format identity
+  PASS magic is 'WTS1' LE
+  PASS header is 32 bytes
+  PASS ring
+  PASS reader
+  PASS all 11 dtypes: publish -> claim -> parse roundtrip with exact header fields
+## T2 parse refusals
+  PASS baseline frame begun
+  PASS baseline parses
+  PASS u32 x7: words==7 (no pad)
+  PASS bad magic refused
+  PASS bad version refused
+  PASS nonzero flags refused (version discipline)
+  PASS rank 5 refused
+  PASS rank 0 refused
+  PASS unknown dtype refused
+  PASS dims beyond rank nonzero refused
+  PASS dims-product != elem_count refused
+  PASS truncated extent refused
+  PASS payload extent short refused
+  PASS NULL refused
+## T3 F16 embeddings (the llama.cpp/ONNX seam)
+  PASS f16 embedding published
+  PASS claimed
+  PASS parsed
+  PASS f16 header exact (words include the 1-word pad)
+  PASS every element bit-identical to the codec dialect
+## T4/T5 tokens + audio
+  PASS token stream published
+  PASS parsed
+  PASS all 64 tokens bit-exact
+  PASS audio chunk published
+  PASS parsed
+  PASS all 256 samples bit-exact
+## T6 fit refusal
+  PASS oversize tensor refused
+  PASS no seq burned (refused BEFORE begin)
+  PASS ring healthy after refusal
+  PASS zero dim refused
+  PASS bad dtype refused
+## T7 stream + rank-4
+  PASS 200-frame tensor stream, every sampled claim parses
+  PASS rank-4 frame begun
+  PASS rank-4 [1,4,8,8] header exact
+## T8 cross-surface (dmabuf substrate)
+  PASS session over the substrate
+  PASS tensor frame through the substrate
+  PASS cross-view claim parses
+  PASS f16 payload bit-exact across the mapping boundary
+verdict: PASS (42 passed, 0 failed)

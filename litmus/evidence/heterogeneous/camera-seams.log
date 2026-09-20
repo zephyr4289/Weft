@@ -1,0 +1,18 @@
+# V-series: camera/compositor seams (RFC-0016 s6)
+## V1 v4l2 probe
+  v4l2: unsupported (no /dev/video* capture device)
+  PASS probe ran once
+  PASS no device -> UNSUPPORTED
+  PASS no phantom device
+## V2 capture
+  PASS no capture device: ENODEV refusal
+  PASS out frame left clean
+  PASS NULL out refused
+## V3 ahb
+  ahb: unsupported (non-android build; the NDK leg compiles this module via android/weft-core)
+  PASS non-android build: UNSUPPORTED (compile-everywhere stub)
+  PASS alloc refused ENOTSUP, out fd cleaned
+  PASS export refused ENOTSUP
+## V4 composition identities
+  PASS session span identity holds for camera-size frames
+verdict: PASS (10 passed, 0 failed)

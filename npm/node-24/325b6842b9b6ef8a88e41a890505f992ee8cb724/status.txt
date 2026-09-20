@@ -1,0 +1,9 @@
+workflow: npm-packages
+job:      Node 24 Matrix
+node:     24
+status:   success
+sha:      325b6842b9b6ef8a88e41a890505f992ee8cb724
+event:    pull_request
+run:      162
+date:     Sun Sep 20 20:20:30 UTC 2026
+ref:      refs/pull/45/merge

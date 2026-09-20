@@ -1,0 +1,8 @@
+AC-X2 SIMD == scalar (bit-exact, the contract): PASS
+  (simd-isa=avx2)
+AC-X3: SKIP (no Vulkan ICD (the AC-K series carries the refusal legs))
+AC-X4 ONNX wrap carries the SAME bytes (no copy): PASS
+AC-X5 ggml shape maps the same bytes (ne reversed, nbytes): PASS
+AC-X6 Metal geometry maps the same frame (64-aligned rows): PASS
+AC-X7 Metal MSL and Vulkan SPIR-V share the contract: PASS
+AC-X (cross-domain capstone): 5 passed, 0 failed, 1 skipped

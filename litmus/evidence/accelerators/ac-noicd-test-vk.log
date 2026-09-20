@@ -1,0 +1,7 @@
+AC-K1 committed SPIR-V present + frozen ID self-consistent: PASS
+AC-K2 NULL dev refuses BAD_ARG: PASS
+  (ctx refused: no-vulkan-loader — the no-ICD leg)
+AC-K3 no-ICD ctx refusal is named and honest: PASS
+AC-K4..AC-K9: SKIP (no Vulkan ICD on this host (declared))
+AC-K10 non-session memory refuses Road A: PASS
+AC-K (vulkan bridge): 4 passed, 0 failed, 1 skipped

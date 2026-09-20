@@ -1,0 +1,23 @@
+=== weft-tensor accelerator bench (RFC-0017 §7) ===
+simd-isa=avx2  audit=malloc(3) interposed (gate active)
+preprocess-road: [FALLBACK-COPY] SIMD normalize (no usable ICD road)
+onnx-road: [SIM-EP] no libonnxruntime (the deterministic software EP runs, labeled)
+ggml-road: absent (plan layer still gates in AC-G)
+
+--- latency (n=512) ---
+stage                 p50        p95        p99  road
+produce              6.5us      10.0us      13.5us  [SIM-DMA]
+preprocess          32.6us      38.5us      43.8us  [FALLBACK-COPY]
+execute              1.2us       1.4us       1.7us  [SIM-EP]
+write-back           0.1us       0.3us       3.0us  [WTS1]
+TOTAL               40.9us      48.7us      60.7us  (a->d wall clock)
+dispatch             0.0us          -          -  (minimal dispatch)
+
+--- gates ---
+G1 total-p50 < 1.0 ms        : PASS (measured: 40.9 us)
+G2 dispatch-p50 < 500 us     : PASS (0.0 us)
+G3 bit-exact prep+exec       : PASS (prep=1 exec=1)
+G4 zero-alloc hot loop       : PASS (0 allocs across 512 iterations)
+
+JSON {"total_p50_us":40.9,"total_p99_us":60.7,"dispatch_p50_us":0.0,"prep_road":"fallback-copy","exec_road":"sim-ep","simd":"avx2","allocs_per_iter":0,"gpu_prep_p50_us":32.6,"simd_prep_p50_us":0.0,"floor_total_p50_us":40.9,"gpu_is_software_icd":0,"g1":1,"g2":1,"g3":1,"g4":1}
+bench: PASSED

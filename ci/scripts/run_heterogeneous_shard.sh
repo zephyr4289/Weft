@@ -133,7 +133,8 @@ fi
 
 # --- 6. kernel freeze --------------------------------------------------------
 step "kernel freeze (weft.c/weft.h byte-frozen — Law 3)"
-BASE="$(git merge-base HEAD origin/main 2>/dev/null || git rev-list --max-parents=0 HEAD | head -1)"
+BASE="$(git merge-base HEAD origin/main 2>/dev/null || git merge-base HEAD main 2>/dev/null || git rev-parse HEAD~1 2>/dev/null || git rev-list --max-parents=0 HEAD | head -1 || echo HEAD)"
+if [ -z "$BASE" ]; then BASE="HEAD"; fi
 if git diff --quiet "$BASE" -- core/c/weft.c core/c/weft.h; then
   echo "  frozen: zero diffs on weft.c/weft.h since $BASE" | tee -a "$LOG"
 else

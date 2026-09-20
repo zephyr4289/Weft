@@ -1,0 +1,138 @@
+=== R-series: Weft IPC mesh registry + tokens (RFC-0016) ===
+  [PASS] R1a create-or-attach (creator)
+  [PASS] R1b exact registry size
+  [PASS] R1c second opener attaches
+  [PASS] R1d garbage object refused
+  [PASS] R1e zeroed-right-size decoy refused
+  [PASS] R1f absent registry, create disabled -> explicit failure
+  [PASS] R1g recreate
+  [PASS] R2a register (epoch 1)
+  [PASS] R2b fresh epoch = 1
+  [PASS] R2c heartbeat ok
+  [PASS] R2d second heartbeat
+  [PASS] R2e discover by exact name
+  [PASS] R2f immutable fields verbatim
+  [PASS] R2g advisory heartbeat + mirror
+  [PASS] R2h liveness verdict fresh+alive
+  [PASS] R2i clean unregister
+  [PASS] R2j unregister idempotent
+  [PASS] R2k DEAD entry not discovered
+  [PASS] R3a 8 threads x 30 register/unregister: zero duplicate names
+  [PASS] R3b registry empty after heal
+  [PASS] R4a producer crashed (SIGKILL)
+  [PASS] R4b fresh-heartbeat entry NOT crashed out (staleness gate)
+  [PASS] R4c stale + dead pid -> crashed out (both legs)
+  [PASS] R4d crashed session no longer discoverable
+  [PASS] R5a successor takeover from DEAD incumbent (epoch 2)
+=== R-series: Weft IPC mesh registry + tokens (RFC-0016) ===
+  [PASS] R1a create-or-attach (creator)
+  [PASS] R1b exact registry size
+  [PASS] R1c second opener attaches
+  [PASS] R1d garbage object refused
+  [PASS] R1e zeroed-right-size decoy refused
+  [PASS] R1f absent registry, create disabled -> explicit failure
+  [PASS] R1g recreate
+  [PASS] R2a register (epoch 1)
+  [PASS] R2b fresh epoch = 1
+  [PASS] R2c heartbeat ok
+  [PASS] R2d second heartbeat
+  [PASS] R2e discover by exact name
+  [PASS] R2f immutable fields verbatim
+  [PASS] R2g advisory heartbeat + mirror
+  [PASS] R2h liveness verdict fresh+alive
+  [PASS] R2i clean unregister
+  [PASS] R2j unregister idempotent
+  [PASS] R2k DEAD entry not discovered
+  [PASS] R3a 8 threads x 30 register/unregister: zero duplicate names
+  [PASS] R3b registry empty after heal
+  [PASS] R4a producer crashed (SIGKILL)
+  [PASS] R4b fresh-heartbeat entry NOT crashed out (staleness gate)
+  [PASS] R4c stale + dead pid -> crashed out (both legs)
+  [PASS] R4d crashed session no longer discoverable
+  [PASS] R5a successor takeover from DEAD incumbent (epoch 2)
+  [PASS] R5b live incumbent refuses duplicate producer
+  [PASS] R5c tombstone reaped after clean detach
+  [PASS] R5d post-reap registration: fresh epoch (tombstone gone)
+  [PASS] R6a issue
+  [PASS] R6b verify happy path
+  [PASS] R6c claims codec round trip
+  [PASS] R6d tampered tag -> bad HMAC
+  [PASS] R6e tampered claims refused
+  [PASS] R6f wrong session
+  [PASS] R6g expired
+  [PASS] R6h epoch mismatch
+  [PASS] R6i all-zero token malformed
+  [PASS] R6j adapter grants WRITE from valid token
+  [PASS] R6k adapter denies tampered token
+  [PASS] R7a attach 1
+  [PASS] R7b advisory count = 3
+  [PASS] R7c clean leaves decrement exactly
+  [PASS] R7d leave-at-zero never wraps
+  [PASS] R7e unknown session refused
+=== R-series: Weft IPC mesh registry + tokens (RFC-0016) ===
+  [PASS] R1a create-or-attach (creator)
+  [PASS] R1b exact registry size
+  [PASS] R1c second opener attaches
+  [PASS] R1d garbage object refused
+  [PASS] R1e zeroed-right-size decoy refused
+  [PASS] R1f absent registry, create disabled -> explicit failure
+  [PASS] R1g recreate
+  [PASS] R2a register (epoch 1)
+  [PASS] R2b fresh epoch = 1
+  [PASS] R2c heartbeat ok
+  [PASS] R2d second heartbeat
+  [PASS] R2e discover by exact name
+  [PASS] R2f immutable fields verbatim
+  [PASS] R2g advisory heartbeat + mirror
+  [PASS] R2h liveness verdict fresh+alive
+  [PASS] R2i clean unregister
+  [PASS] R2j unregister idempotent
+  [PASS] R2k DEAD entry not discovered
+  [PASS] R3a 8 threads x 30 register/unregister: zero duplicate names
+  [PASS] R3b registry empty after heal
+  [PASS] R4a producer crashed (SIGKILL)
+  [PASS] R4b fresh-heartbeat entry NOT crashed out (staleness gate)
+  [PASS] R4c stale + dead pid -> crashed out (both legs)
+  [PASS] R4d crashed session no longer discoverable
+  [PASS] R5a successor takeover from DEAD incumbent (epoch 2)
+  [PASS] R5b live incumbent refuses duplicate producer
+  [PASS] R5c tombstone reaped after clean detach
+  [PASS] R5d post-reap registration: fresh epoch (tombstone gone)
+  [PASS] R6a issue
+  [PASS] R6b verify happy path
+  [PASS] R6c claims codec round trip
+  [PASS] R6d tampered tag -> bad HMAC
+  [PASS] R6e tampered claims refused
+  [PASS] R6f wrong session
+  [PASS] R6g expired
+  [PASS] R6h epoch mismatch
+  [PASS] R6i all-zero token malformed
+  [PASS] R6j adapter grants WRITE from valid token
+  [PASS] R6k adapter denies tampered token
+  [PASS] R7a attach 1
+  [PASS] R7b advisory count = 3
+  [PASS] R7c clean leaves decrement exactly
+  [PASS] R7d leave-at-zero never wraps
+  [PASS] R7e unknown session refused
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8b child clean detach
+  [PASS] R8c cross-process discovery + live heartbeats observed
+  [PASS] R8d entry gone after clean detach
+  [PASS] R9a heal idempotent (second pass has nothing to do)
+  [PASS] R9b stale+dead pid crashed out
+  [PASS] R9c healed-out handle fails loudly (no silent zombie)
+  [PASS] R9d re-registration succeeds (gen+1)
+  [PASS] R10a monitor (read-only) view opens
+  [PASS] R10b monitor discovers
+  [PASS] R10c monitor refuses registration
+  [PASS] R10d monitor refuses consumer attach
+  [PASS] R10e monitor refuses healing (CAS would fault)
+  [PASS] R11a session for heal
+  [PASS] R11b healthy ring passes through
+  [PASS] R11c corrupted ring detected + Axis-3 recovered
+=== R-series: 65 pass, 0 fail ===

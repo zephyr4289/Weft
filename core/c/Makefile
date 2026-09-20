@@ -508,6 +508,52 @@ recovery-test: recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c fano
 recovery-test-asan: recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c fanout.h weft.h
 	$(CC) $(CFLAGS_ASAN) -o recovery-test-asan recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c
 
+# ---- RFC-0016: Zero-Copy IPC Mesh (weft_shm + weft_ipc) --------------------
+# weft_shm.{h,c}: sealed memfd sessions + kernel-enforced RO views + SCM_RIGHTS
+#                 exchange + the HELLO/GRANT handshake (mechanism).
+# weft_ipc.{h,c}: lock-free registry (/dev/shm/weft_registry_v1) + heartbeats
+#                 + crash healing + successor handoff + HMAC capability
+#                 tokens over the in-tree sha256/hmac (policy).
+# weft-shm-test / weft-ipc-test: M-series / R-series conformance.
+# weft-ipc-torture: memfd | mesh | latency modes (100k+ cross-process
+#                   publications, crashy producer restart, park-vs-eventfd).
+#                   ASAN legs fork heavily — set ASAN_OPTIONS=abort_on_error=1.
+
+IPC_MESH_SRC = weft_shm.c weft_ipc.c shm_ring.c fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+
+weft-shm-test: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_shm_test.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS) -o weft-shm-test $(IPC_MESH_SRC) weft_shm_test.c -lrt -lpthread
+
+weft-shm-test-asan: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_shm_test.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS_ASAN) -o weft-shm-test-asan $(IPC_MESH_SRC) weft_shm_test.c -lrt -lpthread
+
+weft-ipc-test: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_ipc_test.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS) -o weft-ipc-test $(IPC_MESH_SRC) weft_ipc_test.c -lrt -lpthread
+
+weft-ipc-test-asan: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_ipc_test.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS_ASAN) -o weft-ipc-test-asan $(IPC_MESH_SRC) weft_ipc_test.c -lrt -lpthread
+
+weft-ipc-test-tsan: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_ipc_test.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS_DBG) -o weft-ipc-test-tsan $(IPC_MESH_SRC) weft_ipc_test.c -lrt -lpthread
+
+weft-ipc-torture: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_ipc_torture.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS) -o weft-ipc-torture $(IPC_MESH_SRC) weft_ipc_torture.c -lrt -lpthread
+
+weft-ipc-torture-asan: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_ipc_torture.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS_ASAN) -o weft-ipc-torture-asan $(IPC_MESH_SRC) weft_ipc_torture.c -lrt -lpthread
+
+# ---- Device Spectrum Driver Optimizations (doc-007) ----------------------
+DEV_SPECTRUM_SRC = weft_device_profile.c weft_f16_codec.c weft_render_bridge.c fanout.c frame_cursor.c fanout_simd.c weft.c
+
+device-spectrum-test: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
+	$(CC) $(CFLAGS) -o device-spectrum-test $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
+
+device-spectrum-test-asan: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o device-spectrum-test-asan $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
+
+device-spectrum-test-tsan: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
+	$(CC) $(CFLAGS_DBG) -o device-spectrum-test-tsan $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
@@ -522,7 +568,10 @@ clean:
 	      uring-test uring-test-asan uring-test-tsan \
 	      turbo-runner turbo-runner-sys bench \
 	      blend-test blend-test-asan blend-runner \
-	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench recovery-test recovery-test-asan
+	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench recovery-test recovery-test-asan \
+	      weft-shm-test weft-shm-test-asan weft-ipc-test weft-ipc-test-asan weft-ipc-test-tsan weft-ipc-torture weft-ipc-torture-asan \
+	      device-spectrum-test device-spectrum-test-asan device-spectrum-test-tsan
 
 .PHONY: all clean
+
 

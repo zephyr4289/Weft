@@ -1,0 +1,36 @@
+==================================================
+SHARD: fanout-concurrent
+DESCRIPTION: 1 writer + 4 reader workers, integrity-gated + daisy-chain
+STATUS: PASSED ✅
+COMMIT: 4516a1660b4f57eff3ae084c952843596c9a052b
+RUN: 182
+==================================================
+
+────────────────────────────────────────────────────────────────────────
+RFC 0004 — CONCURRENT fan-out torture test (worker_threads, true parallelism)
+────────────────────────────────────────────────────────────────────────
+phase 1  sprint : writer 3.241M pub/s over 400000 frames (123 ms) — 4 verifying readers
+  reader[0] fresh=73355 dropped=326507 stale=1241 tornRetries=641 notReady=0 exhausted=69 violations=0 (121 ms)
+  reader[1] fresh=185719 dropped=214143 stale=4646 tornRetries=62 notReady=0 exhausted=0 violations=0 (120 ms)
+  reader[2] fresh=85382 dropped=314480 stale=1377 tornRetries=14 notReady=0 exhausted=0 violations=0 (120 ms)
+  reader[3] fresh=82277 dropped=317585 stale=475 tornRetries=2105 notReady=0 exhausted=231 violations=0 (123 ms)
+phase 2  daisy  : Triad kernel → broadcaster → ring → 4 readers over 120000 frames (401 ms, 299K frames/s)
+  reader[0] fresh=80635 dropped=39365 stale=1353181 tornRetries=32 notReady=1304247 exhausted=0 violations=0 (498 ms)
+  reader[1] fresh=102616 dropped=17378 stale=1701516 tornRetries=22 notReady=1895119 exhausted=0 violations=0 (532 ms)
+  reader[2] fresh=89026 dropped=30974 stale=1391125 tornRetries=35 notReady=913144 exhausted=0 violations=0 (500 ms)
+  reader[3] fresh=78 dropped=119916 stale=1116461 tornRetries=38 notReady=1372354 exhausted=0 violations=0 (510 ms)
+────────────────────────────────────────────────────────────────────────
+GATE: ALL PASSED ✅  (integrity, convergence, exact drop accounting, daisy-chain)
+────────────────────────────────────────────────────────────────────────
+RFC 0004 — CONCURRENT fan-out benchmark (1 writer + 4 readers, worker_threads)
+────────────────────────────────────────────────────────────────────────
+Environment Tag: node / linux-sandbox (SharedArrayBuffer + Atomics, all SeqCst)
+Writer: 1000000 publishes in 451 ms  →  2.217M publishes/sec  (latch protocol INCLUDED)
+  reader[0]: fresh=474493 dropped=525507 claims=1469580 → 1.029M fresh claims/sec (461 ms)
+  reader[1]: fresh=497367 dropped=501206 claims=1519598 → 1.134M fresh claims/sec (439 ms)
+  reader[2]: fresh=865760 dropped=117397 claims=1756789 → 2.055M fresh claims/sec (421 ms)
+  reader[3]: fresh=940711 dropped=59168 claims=2032252 → 2.098M fresh claims/sec (448 ms)
+Aggregate: 2.778M fresh deliveries across 4 readers; drops are per-reader (Law 4) and exact.
+Law 2 invariant: publish/claim paths allocate nothing (pre-allocated views + out-params).
+────────────────────────────────────────────────────────────────────────
+✅ fanout-concurrent shard PASSED

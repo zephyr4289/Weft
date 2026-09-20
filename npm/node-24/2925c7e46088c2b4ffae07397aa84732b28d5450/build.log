@@ -1,0 +1,501 @@
+=== Starting npm Packages CI (Node 24) ===
+[PASS] core/kotlin/FrameCursor.kt  <->  android/weft-core/src/main/kotlin/dev/weft/FrameCursor.kt
+[PASS] core/kotlin/Fanout.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Fanout.kt
+[PASS] core/kotlin/FanoutCompat.kt  <->  android/weft-core/src/main/kotlin/dev/weft/FanoutCompat.kt
+[PASS] core/kotlin/Steward.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Steward.kt
+[PASS] core/kotlin/TriadNative.kt  <->  android/weft-core/src/main/kotlin/dev/weft/TriadNative.kt
+[PASS] core/kotlin/Weft.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Weft.kt
+[PASS] core/kotlin/Governor.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Governor.kt
+[PASS] core/kotlin/Recycler.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Recycler.kt
+[PASS] core/kotlin/GovernedFanoutConsumer.kt  <->  android/weft-core/src/main/kotlin/dev/weft/GovernedFanoutConsumer.kt
+[PASS] core/kotlin/FanoutVhBridge.java  <->  android/weft-core/src/main/java/dev/weft/FanoutVhBridge.java
+[PASS] core/dart/frame_cursor.dart  <->  packages/flutter_weft/lib/src/reference/frame_cursor.dart
+[PASS] core/dart/fanout.dart  <->  packages/flutter_weft/lib/src/reference/fanout.dart
+[PASS] core/dart/heddle.dart  <->  packages/flutter_weft/lib/src/reference/heddle.dart
+[PASS] core/dart/steward.dart  <->  packages/flutter_weft/lib/src/reference/steward.dart
+[PASS] core/dart/weft.dart  <->  packages/flutter_weft/lib/src/reference/weft.dart
+[PASS] core/ts/weft.ts  <->  packages/core/src/weft.ts
+[PASS] core/ts/fanout.ts  <->  packages/core/src/fanout.ts
+[PASS] core/ts/verified.ts  <->  packages/core/src/verified.ts
+[PASS] core/kotlin/Verified.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Verified.kt
+[PASS] core/dart/verified.dart  <->  packages/flutter_weft/lib/src/reference/verified.dart
+[PASS] core/dart/governor.dart  <->  packages/flutter_weft/lib/src/reference/governor.dart
+[PASS] core/dart/recycler.dart  <->  packages/flutter_weft/lib/src/reference/recycler.dart
+[PASS] core/dart/governed_consumer.dart  <->  packages/flutter_weft/lib/src/reference/governed_consumer.dart
+[PASS] core/kotlin/BlendQ12.kt  <->  android/weft-core/src/main/kotlin/dev/weft/BlendQ12.kt
+[PASS] core/kotlin/RenderQos.kt  <->  android/weft-core/src/main/kotlin/dev/weft/RenderQos.kt
+[PASS] core/dart/blend_q12.dart  <->  packages/flutter_weft/lib/src/reference/blend_q12.dart
+[PASS] core/dart/render_qos.dart  <->  packages/flutter_weft/lib/src/reference/render_qos.dart
+{"shard":"binding-parity","passed":27,"failed":0,"total":27,"cells":{"core/kotlin/FrameCursor.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Fanout.kt":{"status":"PASS","detail":"identical"},"core/kotlin/FanoutCompat.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Steward.kt":{"status":"PASS","detail":"identical"},"core/kotlin/TriadNative.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Weft.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Governor.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Recycler.kt":{"status":"PASS","detail":"identical"},"core/kotlin/GovernedFanoutConsumer.kt":{"status":"PASS","detail":"identical"},"core/kotlin/FanoutVhBridge.java":{"status":"PASS","detail":"identical"},"core/dart/frame_cursor.dart":{"status":"PASS","detail":"identical"},"core/dart/fanout.dart":{"status":"PASS","detail":"identical"},"core/dart/heddle.dart":{"status":"PASS","detail":"identical"},"core/dart/steward.dart":{"status":"PASS","detail":"identical"},"core/dart/weft.dart":{"status":"PASS","detail":"identical"},"core/ts/weft.ts":{"status":"PASS","detail":"identical"},"core/ts/fanout.ts":{"status":"PASS","detail":"identical"},"core/ts/verified.ts":{"status":"PASS","detail":"identical"},"core/kotlin/Verified.kt":{"status":"PASS","detail":"identical"},"core/dart/verified.dart":{"status":"PASS","detail":"identical"},"core/dart/governor.dart":{"status":"PASS","detail":"identical"},"core/dart/recycler.dart":{"status":"PASS","detail":"identical"},"core/dart/governed_consumer.dart":{"status":"PASS","detail":"identical"},"core/kotlin/BlendQ12.kt":{"status":"PASS","detail":"identical"},"core/kotlin/RenderQos.kt":{"status":"PASS","detail":"identical"},"core/dart/blend_q12.dart":{"status":"PASS","detail":"identical"},"core/dart/render_qos.dart":{"status":"PASS","detail":"identical"}}}
+✅ Binding parity: 27/27 pairs byte-identical
+
+=== heddles <-> packages surface parity (shim re-exports) ===
+[PASS] heddles/react/WeftCanvas.tsx  ->  packages/react/src/index.ts
+[PASS] heddles/vue/useWeft.ts  ->  packages/vue/src/index.ts
+[PASS] heddles/svelte/weft-action.ts  ->  packages/svelte/src/index.ts
+[PASS] heddles/react-native/weft-rn.ts  ->  packages/react-native/src/index.ts
+✅ Heddles surface parity: 4/4 shims aligned
+{"shard":"binding-parity","byte_pairs":{"passed":27,"failed":0,"total":27},"shim_pairs":{"passed":4,"failed":0,"total":4,"cells":{"heddles/react/WeftCanvas.tsx":{"status":"PASS","detail":"surface parity"},"heddles/vue/useWeft.ts":{"status":"PASS","detail":"surface parity"},"heddles/svelte/weft-action.ts":{"status":"PASS","detail":"surface parity"},"heddles/react-native/weft-rn.ts":{"status":"PASS","detail":"surface parity"}}}}
+Scope: all 11 workspace projects
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +433
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 433, reused 433, downloaded 0, added 329
+Progress: resolved 433, reused 433, downloaded 0, added 431
+Progress: resolved 433, reused 433, downloaded 0, added 433, done
+.../esbuild@0.25.12/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.21.5/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.27.7/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.25.12/node_modules/esbuild postinstall: Done
+.../esbuild@0.21.5/node_modules/esbuild postinstall: Done
+.../esbuild@0.27.7/node_modules/esbuild postinstall: Done
+
+devDependencies:
++ @microsoft/api-extractor 7.59.1
++ tsup 8.5.1
++ typescript 5.9.3
+
+Done in 3.4s
+Scope: 10 of 11 workspace projects
+packages/core build$ tsup
+packages/core build: [34mCLI[39m Building entry: src/index.ts, src/worker.ts
+packages/core build: [34mCLI[39m Using tsconfig: tsconfig.json
+packages/core build: [34mCLI[39m tsup v8.5.1
+packages/core build: [34mCLI[39m Using tsup config: /home/runner/work/Weft/Weft/packages/core/tsup.config.ts
+packages/core build: [34mCLI[39m Target: es2022
+packages/core build: [34mCLI[39m Cleaning output folder
+packages/core build: [34mESM[39m Build start
+packages/core build: [34mCJS[39m Build start
+packages/core build: [34mDTS[39m Build start
+packages/core build: [32mESM[39m [1mdist/worker.mjs     [22m[32m5.09 KB[39m
+packages/core build: [32mESM[39m [1mdist/index.mjs      [22m[32m81.19 KB[39m
+packages/core build: [32mESM[39m [1mdist/worker.mjs.map [22m[32m16.83 KB[39m
+packages/core build: [32mESM[39m [1mdist/index.mjs.map  [22m[32m221.69 KB[39m
+packages/core build: [32mESM[39m ⚡️ Build success in 872ms
+packages/core build: [32mCJS[39m [1mdist/worker.js     [22m[32m5.27 KB[39m
+packages/core build: [32mCJS[39m [1mdist/index.js      [22m[32m83.18 KB[39m
+packages/core build: [32mCJS[39m [1mdist/worker.js.map [22m[32m16.83 KB[39m
+packages/core build: [32mCJS[39m [1mdist/index.js.map  [22m[32m221.69 KB[39m
+packages/core build: [32mCJS[39m ⚡️ Build success in 872ms
+packages/core build: [32mDTS[39m ⚡️ Build success in 1198ms
+packages/core build: [32mDTS[39m [1mdist/index.d.mts         [22m[32m15.65 KB[39m
+packages/core build: [32mDTS[39m [1mdist/worker.d.mts        [22m[32m5.48 KB[39m
+packages/core build: [32mDTS[39m [1mdist/weft-BrIlH2fY.d.mts [22m[32m4.04 KB[39m
+packages/core build: [32mDTS[39m [1mdist/index.d.ts          [22m[32m15.65 KB[39m
+packages/core build: [32mDTS[39m [1mdist/worker.d.ts         [22m[32m5.47 KB[39m
+packages/core build: [32mDTS[39m [1mdist/weft-BrIlH2fY.d.ts  [22m[32m4.04 KB[39m
+packages/core build: Done
+fixtures/node-litmus build$ tsup litmus-packaged.ts --format esm --target node20
+packages/react build$ tsup
+packages/react-native build$ tsup
+packages/svelte build$ tsup
+fixtures/node-litmus build: [34mCLI[39m Building entry: litmus-packaged.ts
+fixtures/node-litmus build: [34mCLI[39m tsup v8.5.1
+fixtures/node-litmus build: [34mCLI[39m Target: node20
+fixtures/node-litmus build: [34mESM[39m Build start
+packages/react build: [34mCLI[39m Building entry: src/index.ts
+packages/react build: [34mCLI[39m Using tsconfig: tsconfig.json
+packages/react build: [34mCLI[39m tsup v8.5.1
+packages/react build: [34mCLI[39m Using tsup config: /home/runner/work/Weft/Weft/packages/react/tsup.config.ts
+packages/react build: [34mCLI[39m Target: es2022
+packages/react build: [34mCLI[39m Cleaning output folder
+packages/svelte build: [34mCLI[39m Building entry: src/index.ts
+packages/svelte build: [34mCLI[39m Using tsconfig: tsconfig.json
+packages/svelte build: [34mCLI[39m tsup v8.5.1
+packages/svelte build: [34mCLI[39m Using tsup config: /home/runner/work/Weft/Weft/packages/svelte/tsup.config.ts
+packages/react-native build: [34mCLI[39m Building entry: src/index.ts
+packages/react-native build: [34mCLI[39m Using tsconfig: tsconfig.json
+packages/react-native build: [34mCLI[39m tsup v8.5.1
+packages/react-native build: [34mCLI[39m Using tsup config: /home/runner/work/Weft/Weft/packages/react-native/tsup.config.ts
+packages/react build: [34mESM[39m Build start
+packages/react build: [34mCJS[39m Build start
+packages/svelte build: [34mCLI[39m Target: es2022
+packages/svelte build: [34mCLI[39m Cleaning output folder
+packages/svelte build: [34mESM[39m Build start
+packages/svelte build: [34mCJS[39m Build start
+packages/react-native build: [34mCLI[39m Target: es2022
+packages/react-native build: [34mCLI[39m Cleaning output folder
+packages/react-native build: [34mESM[39m Build start
+packages/react-native build: [34mCJS[39m Build start
+fixtures/node-litmus build: [32mESM[39m [1mdist/litmus-packaged.js [22m[32m21.43 KB[39m
+fixtures/node-litmus build: [32mESM[39m ⚡️ Build success in 32ms
+packages/svelte build: [32mESM[39m [1mdist/index.mjs     [22m[32m1.15 KB[39m
+packages/svelte build: [32mESM[39m [1mdist/index.mjs.map [22m[32m4.43 KB[39m
+packages/svelte build: [32mESM[39m ⚡️ Build success in 19ms
+packages/svelte build: [32mCJS[39m [1mdist/index.js     [22m[32m2.18 KB[39m
+packages/svelte build: [32mCJS[39m [1mdist/index.js.map [22m[32m4.48 KB[39m
+packages/svelte build: [32mCJS[39m ⚡️ Build success in 19ms
+fixtures/node-litmus build: Done
+packages/vue build$ tsup
+packages/react build: [32mESM[39m [1mdist/index.mjs     [22m[32m5.68 KB[39m
+packages/react build: [32mESM[39m [1mdist/index.mjs.map [22m[32m16.94 KB[39m
+packages/react build: [32mESM[39m ⚡️ Build success in 41ms
+packages/react build: [32mCJS[39m [1mdist/index.js     [22m[32m7.49 KB[39m
+packages/react build: [32mCJS[39m [1mdist/index.js.map [22m[32m16.96 KB[39m
+packages/react build: [32mCJS[39m ⚡️ Build success in 42ms
+packages/react-native build: [32mCJS[39m [1mdist/index.js     [22m[32m12.67 KB[39m
+packages/react-native build: [32mCJS[39m [1mdist/index.js.map [22m[32m38.40 KB[39m
+packages/react-native build: [32mCJS[39m ⚡️ Build success in 48ms
+packages/react-native build: [32mESM[39m [1mdist/index.mjs     [22m[32m11.17 KB[39m
+packages/react-native build: [32mESM[39m [1mdist/index.mjs.map [22m[32m38.33 KB[39m
+packages/react-native build: [32mESM[39m ⚡️ Build success in 48ms
+packages/svelte build: [34mDTS[39m Build start
+packages/react-native build: [34mDTS[39m Build start
+packages/react build: [34mDTS[39m Build start
+packages/vue build: [34mCLI[39m Building entry: src/index.ts
+packages/vue build: [34mCLI[39m Using tsconfig: tsconfig.json
+packages/vue build: [34mCLI[39m tsup v8.5.1
+packages/vue build: [34mCLI[39m Using tsup config: /home/runner/work/Weft/Weft/packages/vue/tsup.config.ts
+packages/vue build: [34mCLI[39m Target: es2022
+packages/vue build: [34mCLI[39m Cleaning output folder
+packages/vue build: [34mESM[39m Build start
+packages/vue build: [34mCJS[39m Build start
+packages/vue build: [32mCJS[39m [1mdist/index.js     [22m[32m4.18 KB[39m
+packages/vue build: [32mCJS[39m [1mdist/index.js.map [22m[32m8.62 KB[39m
+packages/vue build: [32mCJS[39m ⚡️ Build success in 47ms
+packages/vue build: [32mESM[39m [1mdist/index.mjs     [22m[32m3.09 KB[39m
+packages/vue build: [32mESM[39m [1mdist/index.mjs.map [22m[32m8.58 KB[39m
+packages/vue build: [32mESM[39m ⚡️ Build success in 48ms
+packages/vue build: [34mDTS[39m Build start
+packages/svelte build: [32mDTS[39m ⚡️ Build success in 1532ms
+packages/svelte build: [32mDTS[39m [1mdist/index.d.mts [22m[32m645.00 B[39m
+packages/svelte build: [32mDTS[39m [1mdist/index.d.ts  [22m[32m645.00 B[39m
+packages/react-native build: [32mDTS[39m ⚡️ Build success in 1531ms
+packages/react-native build: [32mDTS[39m [1mdist/index.d.mts [22m[32m5.96 KB[39m
+packages/react-native build: [32mDTS[39m [1mdist/index.d.ts  [22m[32m5.96 KB[39m
+packages/svelte build: Done
+packages/react-native build: Done
+packages/react build: [32mDTS[39m ⚡️ Build success in 1798ms
+packages/react build: [32mDTS[39m [1mdist/index.d.mts [22m[32m36.68 KB[39m
+packages/react build: [32mDTS[39m [1mdist/index.d.ts  [22m[32m36.68 KB[39m
+packages/react build: Done
+packages/vue build: [32mDTS[39m ⚡️ Build success in 1314ms
+packages/vue build: [32mDTS[39m [1mdist/index.d.mts [22m[32m1.99 KB[39m
+packages/vue build: [32mDTS[39m [1mdist/index.d.ts  [22m[32m1.99 KB[39m
+packages/vue build: Done
+demos/web build$ tsc && vite build
+fixtures/vite-react build$ vite build
+fixtures/vite-react build: [36mvite v6.4.3 [32mbuilding for production...[36m[39m
+fixtures/vite-react build: transforming...
+fixtures/vite-react build: [32m✓[39m 28 modules transformed.
+fixtures/vite-react build: rendering chunks...
+fixtures/vite-react build: computing gzip size...
+fixtures/vite-react build: [2mdist/[22m[32mindex.html                [39m[1m[2m  0.33 kB[22m[1m[22m[2m │ gzip:  0.24 kB[22m
+fixtures/vite-react build: [2mdist/[22m[2massets/[22m[36mindex-DgIEMwtT.js  [39m[1m[2m151.94 kB[22m[1m[22m[2m │ gzip: 48.92 kB[22m
+fixtures/vite-react build: [32m✓ built in 842ms[39m
+fixtures/vite-react build: Done
+demos/web build: [36mvite v6.4.3 [32mbuilding for production...[36m[39m
+demos/web build: transforming...
+demos/web build: [32m✓[39m 39 modules transformed.
+demos/web build: rendering chunks...
+demos/web build: computing gzip size...
+demos/web build: [2mdist/[22m[32mindex.html                [39m[1m[2m  0.47 kB[22m[1m[22m[2m │ gzip:  0.35 kB[22m
+demos/web build: [2mdist/[22m[2massets/[22m[36mindex-BfGpNA1C.js  [39m[1m[2m203.83 kB[22m[1m[22m[2m │ gzip: 64.29 kB[22m
+demos/web build: [32m✓ built in 758ms[39m
+demos/web build: Done
+Scope: 5 of 11 workspace projects
+packages/core test$ vitest run
+packages/core test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+packages/core test: [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/Weft/Weft/packages/core[39m
+packages/core test:  [32m✓[39m test/weft.test.ts [2m([22m[2m43 tests[22m[2m)[22m[90m 185[2mms[22m[39m
+packages/core test:  [32m✓[39m test/verified.test.ts [2m([22m[2m17 tests[22m[2m)[22m[90m 258[2mms[22m[39m
+packages/core test:  [32m✓[39m test/fanout.test.ts [2m([22m[2m28 tests[22m[2m)[22m[33m 416[2mms[22m[39m
+packages/core test:  [32m✓[39m test/cadence-predictive.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 551[2mms[22m[39m
+packages/core test:  [32m✓[39m test/governor.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 28[2mms[22m[39m
+packages/core test:  [32m✓[39m test/cadence.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 1125[2mms[22m[39m
+packages/core test:    [33m[2m✓[22m[39m RFC-0009 §cadence — cross-policy gates[2m > [22mPC1: no policy ever presents twice in one tick (structural: one step, one decision) [33m948[2mms[22m[39m
+packages/core test:  [32m✓[39m test/worker.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 132[2mms[22m[39m
+packages/core test:  [32m✓[39m test/cursor.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+packages/core test:  [32m✓[39m test/blend.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 62[2mms[22m[39m
+packages/core test:  [32m✓[39m test/trend.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+packages/core test:  [32m✓[39m test/chaos.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+packages/core test:  [32m✓[39m test/replay.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 1925[2mms[22m[39m
+packages/core test:    [33m[2m✓[22m[39m RFC 0019 replay fold (TS port)[2m > [22mR8: 100k soak — pinned cross-port parity vector [33m1812[2mms[22m[39m
+packages/core test: [2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+packages/core test: [2m      Tests [22m [1m[32m160 passed[39m[22m[90m (160)[39m
+packages/core test: [2m   Start at [22m 12:30:44
+packages/core test: [2m   Duration [22m 3.11s[2m (transform 396ms, setup 0ms, collect 848ms, tests 4.71s, environment 2ms, prepare 840ms)[22m
+packages/core test: Done
+packages/react test$ vitest run
+packages/react-native test$ vitest run
+packages/svelte test$ vitest run
+packages/vue test$ vitest run
+packages/react-native test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+packages/react test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+packages/vue test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+packages/svelte test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+packages/react-native test: [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/Weft/Weft/packages/react-native[39m
+packages/vue test: [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/Weft/Weft/packages/vue[39m
+packages/react test: [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/Weft/Weft/packages/react[39m
+packages/svelte test: [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/Weft/Weft/packages/svelte[39m
+packages/svelte test:  [32m✓[39m test/weft-fanout-action.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 35[2mms[22m[39m
+packages/svelte test:  [32m✓[39m test/weft-action.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 32[2mms[22m[39m
+packages/svelte test: [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+packages/svelte test: [2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+packages/svelte test: [2m   Start at [22m 12:30:47
+packages/svelte test: [2m   Duration [22m 1.06s[2m (transform 365ms, setup 0ms, collect 490ms, tests 67ms, environment 0ms, prepare 413ms)[22m
+packages/svelte test: Done
+packages/react-native test:  [32m✓[39m test/weft-fanout-rn.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 38[2mms[22m[39m
+packages/react-native test:  [32m✓[39m test/governed-ui-thread.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 195[2mms[22m[39m
+packages/react-native test:  [32m✓[39m test/weft-rn.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+packages/react-native test:  [32m✓[39m test/ui-thread.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 658[2mms[22m[39m
+packages/react-native test:    [33m[2m✓[22m[39m Phase-7 UI-thread port[2m > [22mUT1 integrity: 20k frames, concurrent-style interleave, zero torn accepted [33m649[2mms[22m[39m
+packages/react-native test: [2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+packages/react-native test: [2m      Tests [22m [1m[32m20 passed[39m[22m[90m (20)[39m
+packages/react-native test: [2m   Start at [22m 12:30:47
+packages/react-native test: [2m   Duration [22m 2.08s[2m (transform 769ms, setup 0ms, collect 1.71s, tests 898ms, environment 1ms, prepare 1.06s)[22m
+packages/react-native test: Done
+packages/react test: [90mstderr[2m | test/WeftCanvas.test.tsx[2m > [22m[2mWeftCanvas[2m > [22m[2mrenders a canvas element
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftCanvas.test.tsx[2m > [22m[2mWeftCanvas[2m > [22m[2mclaims and reads the live buffer inside the frame callback (draw receives payload)
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftCanvas.test.tsx[2m > [22m[2mWeftCanvas[2m > [22m[2msurvives draw identity changes without restarting the loop (no teardown on rerender)
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftCanvas.test.tsx[2m > [22m[2mWeftCanvas[2m > [22m[2mrestarts the loop only when the Weft instance changes
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftCanvas.test.tsx[2m > [22m[2mWeftCanvas[2m > [22m[2mdraws the freshest frame after additional publishes (latest-wins through the binding)
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test:  [32m✓[39m test/WeftCanvas.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[90m 48[2mms[22m[39m
+packages/react test: [90mstderr[2m | test/WeftFanoutCanvas.test.tsx[2m > [22m[2mWeftFanoutCanvas[2m > [22m[2mrenders a canvas element
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftFanoutCanvas.test.tsx[2m > [22m[2mWeftFanoutCanvas[2m > [22m[2mclaims and draws inside the frame callback (draw receives the reader buffer + claim)
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftFanoutCanvas.test.tsx[2m > [22m[2mWeftFanoutCanvas[2m > [22m[2mmulti-canvas: two components on one broadcaster are two independent readers
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftFanoutCanvas.test.tsx[2m > [22m[2mWeftFanoutCanvas[2m > [22m[2msurvives draw identity changes without restarting the loop
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftFanoutCanvas.test.tsx[2m > [22m[2mWeftFanoutCanvas[2m > [22m[2mthe claim record is identity-stable across frames (zero alloc through the binding)
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftFanoutCanvas.test.tsx[2m > [22m[2mWeftFanoutCanvas[2m > [22m[2mlatest-wins through the binding: each pump draws the then-freshest frame
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test:  [32m✓[39m test/WeftFanoutCanvas.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[90m 40[2mms[22m[39m
+packages/vue test:  [32m✓[39m test/useWeft.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 59[2mms[22m[39m
+packages/vue test:  [32m✓[39m test/useWeftFanout.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 55[2mms[22m[39m
+packages/react test: [90mstderr[2m | test/WeftHud.test.tsx[2m > [22m[2mWeftHud (RFC 0016 §9)[2m > [22m[2mteardown cancels the loop
+packages/react test: [22m[39mWarning: An update to Root inside a test was not wrapped in act(...).
+packages/react test: When testing, code that causes React state updates should be wrapped into act(...):
+packages/react test: act(() => {
+packages/react test:   /* fire events that update state */
+packages/react test: });
+packages/react test: /* assert on the output */
+packages/react test: This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+packages/react test:  [32m✓[39m test/WeftHud.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[90m 56[2mms[22m[39m
+packages/vue test: [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+packages/vue test: [2m      Tests [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+packages/vue test: [2m   Start at [22m 12:30:47
+packages/vue test: [2m   Duration [22m 2.26s[2m (transform 390ms, setup 0ms, collect 796ms, tests 114ms, environment 1.91s, prepare 561ms)[22m
+packages/react test: [2m Test Files [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+packages/react test: [2m      Tests [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+packages/react test: [2m   Start at [22m 12:30:47
+packages/react test: [2m   Duration [22m 2.28s[2m (transform 393ms, setup 0ms, collect 725ms, tests 145ms, environment 3.04s, prepare 804ms)[22m
+packages/vue test: Done
+packages/react test: Done
+
+[1mapi-extractor 7.59.1 [36m - https://api-extractor.com/[39m
+[22m
+Analysis will use the bundled TypeScript version 5.9.3
+[33mWarning: dist/index.d.ts:161:25 - (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag[39m
+
+API Extractor completed successfully
+
+[1mapi-extractor 7.59.1 [36m - https://api-extractor.com/[39m
+[22m
+Analysis will use the bundled TypeScript version 5.9.3
+
+API Extractor completed successfully
+
+[1mapi-extractor 7.59.1 [36m - https://api-extractor.com/[39m
+[22m
+Analysis will use the bundled TypeScript version 5.9.3
+
+API Extractor completed successfully
+
+[1mapi-extractor 7.59.1 [36m - https://api-extractor.com/[39m
+[22m
+Analysis will use the bundled TypeScript version 5.9.3
+
+API Extractor completed successfully
+
+[1mapi-extractor 7.59.1 [36m - https://api-extractor.com/[39m
+[22m
+Analysis will use the bundled TypeScript version 5.9.3
+[33mWarning: dist/index.d.ts:96:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/index.d.ts:98:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/index.d.ts:100:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/index.d.ts:102:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+
+API Extractor completed successfully
+
+> fixture-node-litmus@0.1.0 build /home/runner/work/Weft/Weft/fixtures/node-litmus
+> tsup litmus-packaged.ts --format esm --target node20
+
+[34mCLI[39m Building entry: litmus-packaged.ts
+[34mCLI[39m tsup v8.5.1
+[34mCLI[39m Target: node20
+[34mESM[39m Build start
+[32mESM[39m [1mdist/litmus-packaged.js [22m[32m21.43 KB[39m
+[32mESM[39m ⚡️ Build success in 20ms
+L8 roundtrip=true unknown=true negotiation=true coexist=true pass=true
+{"test":"L8-envelope","lang":"ts","pass":true,"metrics":{"roundtrip":true,"unknown_fields":true,"negotiation":true,"coexist":true}}
+L7 reclaim_ok=true post_revoke_revoked=100 poison_intact=true pass=true
+{"test":"L7-revocation","lang":"ts","pass":true,"metrics":{"reclaim_ok":true,"post_revoke_revoked":100,"poison_intact":true,"first_revoked_at":0}}
+L6 trials=200 violations=0 seed=0x00c0ffee pass=true
+{"test":"L6-ownership","lang":"ts","pass":true,"metrics":{"trials":200,"frames_per_trial":64,"violations":0,"seed":"0x00c0ffee"}}
+
+> fixture-vite-react@0.1.0 build /home/runner/work/Weft/Weft/fixtures/vite-react
+> vite build
+
+[36mvite v6.4.3 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 28 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                [39m[1m[2m  0.33 kB[22m[1m[22m[2m │ gzip:  0.24 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-DgIEMwtT.js  [39m[1m[2m151.94 kB[22m[1m[22m[2m │ gzip: 48.92 kB[22m
+[32m✓ built in 627ms[39m
+npm notice
+npm notice 📦  @weft/core@0.2.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 7.4kB README.md
+npm notice 16.1kB dist/index.d.mts
+npm notice 16.1kB dist/index.d.ts
+npm notice 85.3kB dist/index.js
+npm notice 227.5kB dist/index.js.map
+npm notice 83.2kB dist/index.mjs
+npm notice 227.5kB dist/index.mjs.map
+npm notice 4.1kB dist/weft-BrIlH2fY.d.mts
+npm notice 4.1kB dist/weft-BrIlH2fY.d.ts
+npm notice 5.6kB dist/worker.d.mts
+npm notice 5.6kB dist/worker.d.ts
+npm notice 5.4kB dist/worker.js
+npm notice 17.4kB dist/worker.js.map
+npm notice 5.2kB dist/worker.mjs
+npm notice 17.4kB dist/worker.mjs.map
+npm notice 943B package.json
+npm notice Tarball Details
+npm notice name: @weft/core
+npm notice version: 0.2.0
+npm notice filename: weft-core-0.2.0.tgz
+npm notice package size: 181.0 kB
+npm notice unpacked size: 729.9 kB
+npm notice shasum: d0c71c586b3bff3b60ce3b208c0c70e7aadbc28f
+npm notice integrity: sha512-SPvEzWiroD+tq[...]hM+M9d+hIIHVg==
+npm notice total files: 17
+npm notice
+npm warn publish This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/core@0.2.0
+npm notice
+npm notice 📦  @weft/react@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 37.6kB dist/index.d.mts
+npm notice 37.6kB dist/index.d.ts
+npm notice 7.7kB dist/index.js
+npm notice 17.4kB dist/index.js.map
+npm notice 5.8kB dist/index.mjs
+npm notice 17.4kB dist/index.mjs.map
+npm notice 1.0kB package.json
+npm notice Tarball Details
+npm notice name: @weft/react
+npm notice version: 0.1.0
+npm notice filename: weft-react-0.1.0.tgz
+npm notice package size: 14.0 kB
+npm notice unpacked size: 125.5 kB
+npm notice shasum: 8810f63bae992bfc62f88d35662d4b5a3c72afcc
+npm notice integrity: sha512-ii6EoJBQxrEP5[...]UDV6nov6ZB2/g==
+npm notice total files: 8
+npm notice
+npm warn publish This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/react@0.1.0
+npm notice
+npm notice 📦  @weft/react-native@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 6.1kB dist/index.d.mts
+npm notice 6.1kB dist/index.d.ts
+npm notice 13.0kB dist/index.js
+npm notice 39.4kB dist/index.js.map
+npm notice 11.4kB dist/index.mjs
+npm notice 39.4kB dist/index.mjs.map
+npm notice 1.0kB package.json
+npm notice Tarball Details
+npm notice name: @weft/react-native
+npm notice version: 0.1.0
+npm notice filename: weft-react-native-0.1.0.tgz
+npm notice package size: 28.2 kB
+npm notice unpacked size: 117.6 kB
+npm notice shasum: c35c47588beeb9f37dfdba0eb13a9c78eb863625
+npm notice integrity: sha512-Ai9KpCewWZQXq[...]R6eOFUhxfMPbA==
+npm notice total files: 8
+npm notice
+npm warn publish This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/react-native@0.1.0
+npm notice
+npm notice 📦  @weft/svelte@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 645B dist/index.d.mts
+npm notice 645B dist/index.d.ts
+npm notice 2.2kB dist/index.js
+npm notice 4.6kB dist/index.js.map
+npm notice 1.2kB dist/index.mjs
+npm notice 4.5kB dist/index.mjs.map
+npm notice 934B package.json
+npm notice Tarball Details
+npm notice name: @weft/svelte
+npm notice version: 0.1.0
+npm notice filename: weft-svelte-0.1.0.tgz
+npm notice package size: 3.8 kB
+npm notice unpacked size: 15.8 kB
+npm notice shasum: 7cd53b5693bc9673853e252f282c469034cda371
+npm notice integrity: sha512-gyUpl679w2FoT[...]0eirOFI3DeQ1Q==
+npm notice total files: 8
+npm notice
+npm warn publish This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/svelte@0.1.0
+npm notice
+npm notice 📦  @weft/vue@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 2.0kB dist/index.d.mts
+npm notice 2.0kB dist/index.d.ts
+npm notice 4.3kB dist/index.js
+npm notice 8.9kB dist/index.js.map
+npm notice 3.2kB dist/index.mjs
+npm notice 8.8kB dist/index.mjs.map
+npm notice 984B package.json
+npm notice Tarball Details
+npm notice name: @weft/vue
+npm notice version: 0.1.0
+npm notice filename: weft-vue-0.1.0.tgz
+npm notice package size: 5.0 kB
+npm notice unpacked size: 31.2 kB
+npm notice shasum: 47d5212b4351d7683383ff8ab96e152fd1008e54
+npm notice integrity: sha512-LURwqc35BWU+S[...]1qhYeBbAt1mpw==
+npm notice total files: 8
+npm notice
+npm warn publish This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/vue@0.1.0

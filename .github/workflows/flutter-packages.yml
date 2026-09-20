@@ -141,7 +141,7 @@ jobs:
         run: |
           set -o pipefail
           cd packages/flutter_weft
-          dart pub publish --dry-run 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
+          flutter pub publish --dry-run 2>&1 | tee -a "${RUNNER_TEMP:-/tmp}/flutter_build_output.log"
 
       - name: Archive Artifacts
         if: always()

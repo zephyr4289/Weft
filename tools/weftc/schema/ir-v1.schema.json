@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://weft.dev/schemas/weftc/ir-v1.schema.json",
+  "title": "weftc IR v1 — StructLayout intermediate representation",
+  "description": "Schema-document IR consumed by the weftc managed codegen backends (ts/swift/dart/python). Engineer 1's IrSchema/StructLayout AST maps onto this via a thin adapter; until that lands, canonical fixtures live beside this file. All layouts are strictly little-endian (Law 2) and naturally aligned.",
+  "type": "object",
+  "required": ["irVersion", "schema"],
+  "additionalProperties": false,
+  "properties": {
+    "irVersion": { "const": 1 },
+    "generator": {
+      "type": "string",
+      "description": "Provenance string of the producer, e.g. weftc-core/0.3.0 or weftc-managed/1.0.0."
+    },
+    "schema": { "$ref": "#/definitions/struct" }
+  },
+  "definitions": {
+    "typeName": {
+      "type": "string",
+      "enum": ["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "f32", "f64", "bool"]
+    },
+    "hexU64": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]{1,16}$"
+    },
+    "field": {
+      "type": "object",
+      "required": ["name", "type", "offset"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]*$",
+          "description": "camelCase logical field name; backends transliterate to their own conventions."
+        },
+        "type": { "$ref": "#/definitions/typeName" },
+        "offset": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Byte offset of the first element from the start of the struct window."
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "Fixed array element count. count > 1 renders an inline fixed-size array."
+        },
+        "const": {
+          "description": "Expected value. Integral/float types: number or hexU64 string (u64). u8 arrays: string of ASCII bytes (e.g. \"WEFT\"). When present, validateHeader() asserts it (Law 4).",
+          "oneOf": [
+            { "type": "number" },
+            { "$ref": "#/definitions/hexU64" },
+            { "type": "string" }
+          ]
+        },
+        "role": {
+          "type": "string",
+          "enum": ["magic", "schemaId", "schemaVersion", "headerSize", "payloadLen", "seq", "reserved"],
+          "description": "Semantic hint. reserved fields are excluded from fluent setters; magic/schemaId/schemaVersion participate in validateHeader()."
+        },
+        "doc": { "type": "string" }
+      }
+    },
+    "struct": {
+      "type": "object",
+      "required": ["name", "byteLength", "endian", "fields"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9]*$",
+          "description": "PascalCase struct name, e.g. TelemetryFrame."
+        },
+        "namespace": {
+          "type": "string",
+          "description": "Optional dotted namespace used by language module systems."
+        },
+        "schemaId": { "$ref": "#/definitions/hexU64" },
+        "schemaVersion": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "byteLength": { "type": "integer", "minimum": 1 },
+        "alignment": { "type": "integer", "enum": [1, 2, 4, 8], "default": 8 },
+        "endian": {
+          "type": "string",
+          "const": "little",
+          "description": "Law 2: strict little-endian. Big-endian layouts are rejected at load time."
+        },
+        "doc": { "type": "string" },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/field" }
+        }
+      }
+    }
+  }
+}

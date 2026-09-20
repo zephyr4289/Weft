@@ -1,0 +1,20 @@
+{
+  "irVersion": 1,
+  "generator": "weftc-managed/1.0.0",
+  "schema": {
+    "name": "WeftEnvelope",
+    "namespace": "weft.wire",
+    "schemaVersion": 1,
+    "byteLength": 16,
+    "alignment": 4,
+    "endian": "little",
+    "doc": "The triad-1 wire envelope per docs 03-ENVELOPE and core/c/weft.h. Byte-layout and validation semantics are normative: [0..4) magic 'WEFT', [4..6) version u16, [6..8) header_size u16, [8..12) seq u32, [12..16) payload_len u32. validateHeader() mirrors weft_envelope_decode() as a non-throwing boolean handshake (Law 4).",
+    "fields": [
+      { "name": "magic", "type": "u8", "count": 4, "offset": 0, "const": "WEFT", "role": "magic", "doc": "ASCII 'WEFT' frame magic." },
+      { "name": "version", "type": "u16", "offset": 4, "const": 1, "role": "schemaVersion", "doc": "Envelope wire version (triad-1 = 1)." },
+      { "name": "headerSize", "type": "u16", "offset": 6, "const": 16, "role": "headerSize", "doc": "Total header size; payload begins at this offset, NEVER at 16 (L8b extensible headers)." },
+      { "name": "seq", "type": "u32", "offset": 8, "role": "seq", "doc": "Monotonic frame sequence number; mirrors the buffer canary." },
+      { "name": "payloadLen", "type": "u32", "offset": 12, "role": "payloadLen", "doc": "Payload byte length starting at headerSize." }
+    ]
+  }
+}

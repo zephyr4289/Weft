@@ -1,0 +1,24 @@
+{
+  "irVersion": 1,
+  "generator": "weftc-managed/1.0.0",
+  "schema": {
+    "name": "TelemetryFrame",
+    "namespace": "weft.telemetry",
+    "schemaId": "0x8F4C1120A9B30012",
+    "schemaVersion": 3,
+    "byteLength": 64,
+    "alignment": 8,
+    "endian": "little",
+    "doc": "Canonical 64-byte payload schema used across all managed backends for parity fixtures. Designed as the payload of a triad-1 envelope (bind at envelope.headerSize). Every numeric field is naturally aligned; all values in golden fixtures are exactly representable (dyadic) so cross-language comparisons are bit-exact.",
+    "fields": [
+      { "name": "schemaId", "type": "u64", "offset": 0, "const": "0x8F4C1120A9B30012", "role": "schemaId", "doc": "Payload schema handshake; checked by validateHeader() before any field read (Law 4)." },
+      { "name": "timestampNs", "type": "u64", "offset": 8, "doc": "Monotonic hardware timestamp, nanoseconds." },
+      { "name": "velocity", "type": "f32", "count": 3, "offset": 16, "doc": "Velocity vector, m/s. Maps to SIMD3<Float> / vector_float3 on Apple platforms." },
+      { "name": "pressurePa", "type": "f32", "offset": 28, "doc": "Ambient pressure, Pa." },
+      { "name": "state", "type": "u8", "offset": 32, "doc": "Device state enum byte." },
+      { "name": "reserved", "type": "u8", "count": 3, "offset": 33, "role": "reserved", "doc": "Reserved; must be zero. Excluded from fluent setters." },
+      { "name": "gpsCoordinates", "type": "f64", "count": 2, "offset": 40, "doc": "lat/lon pair, degrees." },
+      { "name": "payloadHash", "type": "u8", "count": 8, "offset": 56, "doc": "Truncated payload digest (u8[8])." }
+    ]
+  }
+}

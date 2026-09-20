@@ -1,0 +1,30 @@
+{
+  "name": "@weft/react-hooks",
+  "version": "0.1.0",
+  "description": "Zero-GC React hooks for Weft shared-memory frames — useWeftBuffer / useWeftCanvas: no setState, no virtual-DOM reconciliation at 120/240 FPS",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "test": "node --test test/hooks.test.mjs"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "SEE LICENSE IN LICENSE"
+}

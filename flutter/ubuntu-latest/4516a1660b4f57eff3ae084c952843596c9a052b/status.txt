@@ -1,0 +1,8 @@
+workflow: flutter-packages
+job:      Flutter & Dart FFI (ubuntu-latest)
+status:   success
+sha:      4516a1660b4f57eff3ae084c952843596c9a052b
+event:    push
+run:      148
+date:     Sun Sep 20 11:40:40 UTC 2026
+ref:      refs/heads/main

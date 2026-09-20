@@ -627,7 +627,8 @@ clean:
 	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench recovery-test recovery-test-asan \
 	      trace-test trace-test-dbg trace-test-asan replay-test replay-test-asan replay-runner flow-test flow-test-asan sync-test sync-test-asan trend-test trend-test-asan trend-runner flight-runner \
 	      weft-shm-test weft-shm-test-asan weft-ipc-test weft-ipc-test-asan weft-ipc-test-tsan weft-ipc-torture weft-ipc-torture-asan \
-	      device-spectrum-test device-spectrum-test-asan device-spectrum-test-tsan
+	      device-spectrum-test device-spectrum-test-asan device-spectrum-test-tsan \
+	      dmabuf-test dmabuf-test-asan gpu-extmem-test gpu-extmem-test-asan xdp-test xdp-test-asan xdp-live-gate tensor-test tensor-test-asan camera-test camera-test-asan hetero-probe
 
 .PHONY: all clean
 

@@ -182,6 +182,7 @@ jobs:
               {"shard": "wcet-audit", "description": "Axis 2: Static instruction disassembly audit + WCET certificates + SCHED_DEADLINE TLA+ model", "script": "ci/scripts/run_wcet_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "recovery-self-stabilizing", "description": "Axis 3: Self-stabilizing ring recovery + health check + 10k fault injection cycles + TLA+ recovery proof", "script": "ci/scripts/run_recovery_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "device-spectrum", "description": "doc-007: Device-spectrum profiling, F16 quantization, dirty-mask, and zero-copy render bridge", "script": "ci/scripts/run_device_spectrum_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "series10", "description": "Series 10 Observability Fabric: RFC 0016 flight recorder, RFC 0017 flow operators, RFC 0018 sensor fusion, RFC 0019 replay, RFC 0020 trend", "script": "ci/scripts/run_series10_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)
@@ -362,16 +363,16 @@ jobs:
         if: matrix.needs_rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache pnpm store (fanout-native, browser-sab, simd-blend, verifiedweft, ffi-fuzz, litmus-c)
-        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'verifiedweft' || matrix.shard == 'ffi-fuzz' || matrix.shard == 'litmus-c'
+      - name: Cache pnpm store (fanout-native, browser-sab, simd-blend, verifiedweft, ffi-fuzz, litmus-c, series10)
+        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'verifiedweft' || matrix.shard == 'ffi-fuzz' || matrix.shard == 'litmus-c' || matrix.shard == 'series10'
         uses: actions/cache@v4
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-store-${{ runner.os }}-
 
-      - name: Set up pnpm + build @weft/core dist (fanout-native, browser-sab, simd-blend, ffi-fuzz, litmus-c)
-        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'ffi-fuzz' || matrix.shard == 'litmus-c'
+      - name: Set up pnpm + build @weft/core dist (fanout-native, browser-sab, simd-blend, ffi-fuzz, litmus-c, series10)
+        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'ffi-fuzz' || matrix.shard == 'litmus-c' || matrix.shard == 'series10'
         run: |
           npm i -g pnpm@9
           pnpm install --frozen-lockfile

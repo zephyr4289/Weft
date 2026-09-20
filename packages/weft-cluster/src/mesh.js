@@ -39,6 +39,12 @@ export class ClusterMesh {
       transport: this.transport,
       payloadMax: opts.payloadMax ?? 1024,
     });
+    // Datagram transports deliver raw frames; the mesh wires the pump into
+    // the client (the shm fabric delivers through rings directly).
+    if (typeof this.transport.addPeer === 'function') {
+      this.transport.onFrame = (h, base, bytes, i32) =>
+        this.client._onTransportFrame(h, base, bytes, i32);
+    }
     this.router = new ShardRouter();
     this.router.addNode(this.nodeId);
     this._routeMemo = new Map(); // topic -> {version, nodeId}

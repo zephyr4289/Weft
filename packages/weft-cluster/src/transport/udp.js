@@ -22,7 +22,7 @@ export const CTL_UNSUB = 2;
 // calls transmits WRONG contents (proven by probe: 5 sends -> all deliver
 // the last frame's bytes). The tx ring gives every in-flight datagram its
 // own preallocated slot; drop-tail when saturated (Law 4: drops are counted).
-const TX_SLOTS = 256;
+const TX_SLOTS = 1024;
 
 function peerKey(addr, port) { return `${addr}:${port}`; }
 
@@ -75,6 +75,10 @@ export class UdpTransport {
         res();
       });
     });
+    // Size the kernel receive buffer like an XDP umem would be provisioned:
+    // default ~212KB overruns at sustained burst rates and silently drops
+    // datagrams (observed as Law 4 seq gaps in the demo).
+    try { this.socket.setRecvBufferSize(4 * 1024 * 1024); } catch { /* best effort */ }
     this.socket.on('message', (msg, rinfo) => this._onMessage(msg, rinfo));
   }
 

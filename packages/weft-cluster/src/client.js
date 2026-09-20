@@ -291,6 +291,16 @@ export class ClusterClient {
     return sub;
   }
 
+  /**
+   * Attach a data-plane peer and immediately announce our subscriptions to
+   * it (SUB control datagrams). Membership discovery feeds this.
+   */
+  connectPeer(addr, port) {
+    if (typeof this.transport.addPeer !== 'function') return;
+    this.transport.addPeer(addr, port);
+    this.resubscribePeers();
+  }
+
   /** Register interest of a connected peer for an EXISTING subscription (udp). */
   resubscribePeers() {
     if (typeof this.transport.control !== 'function') return;

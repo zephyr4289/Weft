@@ -366,6 +366,12 @@ export class GossipEngine {
         const fresh = e.flags & NODE_FLAG_ALIVE;
         if (fresh && e.lastSeenMs > cur.lastSeenMs) cur.lastSeenMs = e.lastSeenMs;
         if (fresh && wasSuspect) { cur.flags = NODE_FLAG_ALIVE; }
+        // Contact info is monotonic knowledge at equal incarnation: adopt
+        // non-zero fields (a sender-merge creates the entry with dataPort 0;
+        // the peer's own self entry then fills it in).
+        if (e.dataPort && e.dataPort !== cur.dataPort) { cur.dataPort = e.dataPort; this.table._publishAll(); }
+        if (e.gossipPort && e.gossipPort !== cur.gossipPort) { cur.gossipPort = e.gossipPort; this.table._publishAll(); }
+        if (e.addr && e.addr !== cur.addr) { cur.addr = e.addr; this.table._publishAll(); }
         // LEAVING never downgrades at equal incarnation.
         if (e.flags & NODE_FLAG_LEAVING) {
           if ((cur.flags & NODE_FLAG_LEAVING) === 0) {

@@ -1,0 +1,1013 @@
+==================================================
+SHARD: heterogeneous
+DESCRIPTION: RFC-0016 Series 10: DMA-BUF rings, GPU external-memory wraps (fd-road zero-copy), AF_XDP state machine + uring delegation, WTS1 tensor bridge, camera seams, hetero capstone (lavapipe ICD)
+STATUS: PASSED ✅
+COMMIT: c286e7d295e7cfc7bc1aaede2623b1b82d5b7e0d
+RUN: 195
+==================================================
+
+
+=== environment ===
+host: Linux 6.17.0-1022-azure (x86_64)
+compiler: gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+
+=== build (-O2 + ASAN) ===
+$ make -C core/c dmabuf-test dmabuf-test-asan
+  ok
+$ make -C core/c gpu-extmem-test gpu-extmem-test-asan
+  ok
+$ make -C core/c xdp-test xdp-test-asan
+  ok
+$ make -C core/c tensor-test tensor-test-asan
+  ok
+$ make -C core/c camera-test camera-test-asan
+  ok
+$ make -C core/c hetero-probe
+  ok
+$ make -C core/c xdp-live-gate
+  ok
+
+=== no-ICD leg (every vulkan leg refuses/declares honestly) ===
+$ env -u VK_ICD_FILENAMES VK_LOADER_DRIVER_SELECT= core/c/dmabuf-test
+  ok
+$ env -u VK_ICD_FILENAMES core/c/gpu-extmem-test
+  ok
+$ env -u VK_ICD_FILENAMES core/c/xdp-test
+  ok
+$ env -u VK_ICD_FILENAMES core/c/tensor-test
+  ok
+$ env -u VK_ICD_FILENAMES core/c/camera-test
+  ok
+$ env -u VK_ICD_FILENAMES core/c/hetero-probe
+  ok
+
+=== ASAN legs (zero findings) ===
+$ core/c/dmabuf-test-asan
+  ok
+$ core/c/gpu-extmem-test-asan
+  ok
+$ core/c/xdp-test-asan
+  ok
+$ core/c/tensor-test-asan
+  ok
+$ core/c/camera-test-asan
+  ok
+
+=== ICD leg (install the software Vulkan driver when apt is available) ===
+	apiVersion         = 1.4.318
+	deviceName         = llvmpipe (LLVM 20.1.2, 256 bits)
+
+=== ICD leg: the wrap + capstone proofs ===
+$ core/c/gpu-extmem-test
+  ok
+$ core/c/hetero-probe
+  ok
+
+=== xdp-live-gate (0 = proven, 3 = declared refusal) ===
+  ok (rc=3: declared: no AF_XDP)
+
+=== .spv determinism (byte-identical rebuilds) ===
+  tensor_reduce.spv byte-identical (7b2a51e64a3e9742d75ec1c11cd9aaa66da78fd7499ca485340763ff4a5ddb65)
+  fft_radix2.spv byte-identical (6e4499950b23a60427c4b96378e17616cbb7060d1c27567fa14af6a1df380251)
+
+=== kernel freeze (weft.c/weft.h byte-frozen — Law 3) ===
+  frozen: weft.c and weft.h match canonical frozen checksums
+
+=== evidence pack (litmus/evidence/heterogeneous) ===
+  dmabuf-series.log: PASS
+  extmem-lavapipe.log: PASS
+  xdp-series.log: PASS
+  tensor-series.log: PASS
+  camera-seams.log: PASS
+  hetero-series.log: PASS
+
+SHARD RESULT: GREEN
+test.c: In function ‘main’:
+weft_dmabuf_test.c:257:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  257 |         ftruncate(fd, (off_t)weft_dmabuf_span_bytes(pb, sc));
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+weft_dmabuf_test.c:274:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  274 |         ftruncate(rfd, 65536);
+      |         ^~~~~~~~~~~~~~~~~~~~~
+weft_dmabuf_test.c:300:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  300 |         ftruncate(fd, 4096);
+      |         ^~~~~~~~~~~~~~~~~~~
+weft_dmabuf_test.c:313:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  313 |         ftruncate(fd, (off_t)span);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+weft_dmabuf_test.c:366:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  366 |         ftruncate(fd, (off_t)weft_dmabuf_span_bytes(128, 4));
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o dmabuf-test-asan weft_dmabuf.c shm_ring.c fanout.c frame_cursor.c weft.c fanout_simd.c weft_dmabuf_test.c -lrt
+weft_dmabuf.c: In function ‘probe_run’:
+weft_dmabuf.c:195:69: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  195 |             snprintf(g_probe.heap_path, sizeof(g_probe.heap_path), "%s", path);
+      |                                                                     ^~   ~~~~
+In file included from /usr/include/stdio.h:980,
+                 from weft_dmabuf.c:19:
+In function ‘snprintf’,
+    inlined from ‘probe_run’ at weft_dmabuf.c:195:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 96 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+weft_dmabuf_test.c: In function ‘main’:
+weft_dmabuf_test.c:257:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  257 |         ftruncate(fd, (off_t)weft_dmabuf_span_bytes(pb, sc));
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+weft_dmabuf_test.c:274:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  274 |         ftruncate(rfd, 65536);
+      |         ^~~~~~~~~~~~~~~~~~~~~
+weft_dmabuf_test.c:300:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  300 |         ftruncate(fd, 4096);
+      |         ^~~~~~~~~~~~~~~~~~~
+weft_dmabuf_test.c:313:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  313 |         ftruncate(fd, (off_t)span);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+weft_dmabuf_test.c:366:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  366 |         ftruncate(fd, (off_t)weft_dmabuf_span_bytes(128, 4));
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+  ok
+$ make -C core/c gpu-extmem-test gpu-extmem-test-asan
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o gpu-extmem-test gpu_ring.c gpu_stream.c weft_dmabuf.c shm_ring.c fanout.c frame_cursor.c weft.c fanout_simd.c gpu_extmem_test.c -lrt -ldl
+weft_dmabuf.c: In function ‘probe_run’:
+weft_dmabuf.c:180:13: warning: ‘__builtin___strncat_chk’ output may be truncated copying between 0 and 127 bytes from a string of length 255 [-Wstringop-truncation]
+  180 |             strncat(g_probe.heap_list, e->d_name, sizeof(g_probe.heap_list) - strlen(g_probe.heap_list) - 1);
+      |             ^
+weft_dmabuf.c:195:69: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  195 |             snprintf(g_probe.heap_path, sizeof(g_probe.heap_path), "%s", path);
+      |                                                                     ^~   ~~~~
+In file included from /usr/include/stdio.h:980,
+                 from weft_dmabuf.c:19:
+In function ‘snprintf’,
+    inlined from ‘probe_run’ at weft_dmabuf.c:195:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 96 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gpu_extmem_test.c: In function ‘main’:
+gpu_extmem_test.c:271:13: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  271 |             ftruncate(fd, (off_t)span);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~
+gpu_extmem_test.c:360:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  360 |         ftruncate(fd, (off_t)weft_dmabuf_span_bytes(payload, slots));
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o gpu-extmem-test-asan gpu_ring.c gpu_stream.c weft_dmabuf.c shm_ring.c fanout.c frame_cursor.c weft.c fanout_simd.c gpu_extmem_test.c -lrt -ldl
+weft_dmabuf.c: In function ‘probe_run’:
+weft_dmabuf.c:195:69: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  195 |             snprintf(g_probe.heap_path, sizeof(g_probe.heap_path), "%s", path);
+      |                                                                     ^~   ~~~~
+In file included from /usr/include/stdio.h:980,
+                 from weft_dmabuf.c:19:
+In function ‘snprintf’,
+    inlined from ‘probe_run’ at weft_dmabuf.c:195:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 96 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gpu_extmem_test.c: In function ‘main’:
+gpu_extmem_test.c:271:13: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  271 |             ftruncate(fd, (off_t)span);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~
+gpu_extmem_test.c:360:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  360 |         ftruncate(fd, (off_t)weft_dmabuf_span_bytes(payload, slots));
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+  ok
+$ make -C core/c xdp-test xdp-test-asan
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o xdp-test xdp_rx.c uring_rx.c weft_dmabuf.c fanout.c frame_cursor.c weft.c fanout_simd.c xdp_test.c
+xdp_rx.c:81:17: warning: ‘xget_u64le’ defined but not used [-Wunused-function]
+   81 | static uint64_t xget_u64le(const uint8_t* p) {
+      |                 ^~~~~~~~~~
+uring_rx.c:10: warning: "_GNU_SOURCE" redefined
+   10 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft_dmabuf.c: In function ‘probe_run’:
+weft_dmabuf.c:180:13: warning: ‘__builtin___strncat_chk’ output may be truncated copying between 0 and 127 bytes from a string of length 255 [-Wstringop-truncation]
+  180 |             strncat(g_probe.heap_list, e->d_name, sizeof(g_probe.heap_list) - strlen(g_probe.heap_list) - 1);
+      |             ^
+weft_dmabuf.c:195:69: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  195 |             snprintf(g_probe.heap_path, sizeof(g_probe.heap_path), "%s", path);
+      |                                                                     ^~   ~~~~
+In file included from /usr/include/stdio.h:980,
+                 from weft_dmabuf.c:19:
+In function ‘snprintf’,
+    inlined from ‘probe_run’ at weft_dmabuf.c:195:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 96 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+xdp_test.c: In function ‘main’:
+xdp_test.c:77:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+   77 |         ftruncate(fd, (off_t)weft_dmabuf_span_bytes(pb, slots));
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+xdp_test.c:215:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  215 |         ftruncate(fd, (off_t)weft_dmabuf_span_bytes(pb, slots));
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o xdp-test-asan xdp_rx.c uring_rx.c weft_dmabuf.c fanout.c frame_cursor.c weft.c fanout_simd.c xdp_test.c
+xdp_rx.c:81:17: warning: ‘xget_u64le’ defined but not used [-Wunused-function]
+   81 | static uint64_t xget_u64le(const uint8_t* p) {
+      |                 ^~~~~~~~~~
+uring_rx.c:10: warning: "_GNU_SOURCE" redefined
+   10 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft_dmabuf.c: In function ‘probe_run’:
+weft_dmabuf.c:195:69: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  195 |             snprintf(g_probe.heap_path, sizeof(g_probe.heap_path), "%s", path);
+      |                                                                     ^~   ~~~~
+In file included from /usr/include/stdio.h:980,
+                 from weft_dmabuf.c:19:
+In function ‘snprintf’,
+    inlined from ‘probe_run’ at weft_dmabuf.c:195:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 96 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+xdp_test.c: In function ‘main’:
+xdp_test.c:77:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+   77 |         ftruncate(fd, (off_t)weft_dmabuf_span_bytes(pb, slots));
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+xdp_test.c:215:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  215 |         ftruncate(fd, (off_t)weft_dmabuf_span_bytes(pb, slots));
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+  ok
+$ make -C core/c tensor-test tensor-test-asan
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o tensor-test weft_tensor.c weft_f16_codec.c weft_dmabuf.c fanout.c frame_cursor.c weft.c fanout_simd.c weft_tensor_test.c -lm
+weft_dmabuf.c: In function ‘probe_run’:
+weft_dmabuf.c:180:13: warning: ‘__builtin___strncat_chk’ output may be truncated copying between 0 and 127 bytes from a string of length 255 [-Wstringop-truncation]
+  180 |             strncat(g_probe.heap_list, e->d_name, sizeof(g_probe.heap_list) - strlen(g_probe.heap_list) - 1);
+      |             ^
+weft_dmabuf.c:195:69: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  195 |             snprintf(g_probe.heap_path, sizeof(g_probe.heap_path), "%s", path);
+      |                                                                     ^~   ~~~~
+In file included from /usr/include/stdio.h:980,
+                 from weft_dmabuf.c:19:
+In function ‘snprintf’,
+    inlined from ‘probe_run’ at weft_dmabuf.c:195:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 96 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+weft_tensor_test.c: In function ‘main’:
+weft_tensor_test.c:339:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  339 |         ftruncate(fd, (off_t)weft_dmabuf_span_bytes(pb, slots));
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o tensor-test-asan weft_tensor.c weft_f16_codec.c weft_dmabuf.c fanout.c frame_cursor.c weft.c fanout_simd.c weft_tensor_test.c -lm
+weft_dmabuf.c: In function ‘probe_run’:
+weft_dmabuf.c:195:69: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  195 |             snprintf(g_probe.heap_path, sizeof(g_probe.heap_path), "%s", path);
+      |                                                                     ^~   ~~~~
+In file included from /usr/include/stdio.h:980,
+                 from weft_dmabuf.c:19:
+In function ‘snprintf’,
+    inlined from ‘probe_run’ at weft_dmabuf.c:195:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 96 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+weft_tensor_test.c: In function ‘main’:
+weft_tensor_test.c:339:9: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  339 |         ftruncate(fd, (off_t)weft_dmabuf_span_bytes(pb, slots));
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+  ok
+$ make -C core/c camera-test camera-test-asan
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o camera-test weft_hw_v4l2.c weft_hw_ahb.c weft_dmabuf.c fanout.c frame_cursor.c weft.c fanout_simd.c weft_hw_camera_test.c
+weft_dmabuf.c: In function ‘probe_run’:
+weft_dmabuf.c:180:13: warning: ‘__builtin___strncat_chk’ output may be truncated copying between 0 and 127 bytes from a string of length 255 [-Wstringop-truncation]
+  180 |             strncat(g_probe.heap_list, e->d_name, sizeof(g_probe.heap_list) - strlen(g_probe.heap_list) - 1);
+      |             ^
+weft_dmabuf.c:195:69: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  195 |             snprintf(g_probe.heap_path, sizeof(g_probe.heap_path), "%s", path);
+      |                                                                     ^~   ~~~~
+In file included from /usr/include/stdio.h:980,
+                 from weft_dmabuf.c:19:
+In function ‘snprintf’,
+    inlined from ‘probe_run’ at weft_dmabuf.c:195:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 96 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o camera-test-asan weft_hw_v4l2.c weft_hw_ahb.c weft_dmabuf.c fanout.c frame_cursor.c weft.c fanout_simd.c weft_hw_camera_test.c
+weft_dmabuf.c: In function ‘probe_run’:
+weft_dmabuf.c:195:69: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  195 |             snprintf(g_probe.heap_path, sizeof(g_probe.heap_path), "%s", path);
+      |                                                                     ^~   ~~~~
+In file included from /usr/include/stdio.h:980,
+                 from weft_dmabuf.c:19:
+In function ‘snprintf’,
+    inlined from ‘probe_run’ at weft_dmabuf.c:195:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 96 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+  ok
+$ make -C core/c hetero-probe
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o hetero-probe gpu_ring.c gpu_stream.c weft_dmabuf.c weft_tensor.c weft_f16_codec.c shm_ring.c fanout.c frame_cursor.c weft.c fanout_simd.c hetero_probe.c -lrt -ldl -lm
+weft_dmabuf.c: In function ‘probe_run’:
+weft_dmabuf.c:180:13: warning: ‘__builtin___strncat_chk’ output may be truncated copying between 0 and 127 bytes from a string of length 255 [-Wstringop-truncation]
+  180 |             strncat(g_probe.heap_list, e->d_name, sizeof(g_probe.heap_list) - strlen(g_probe.heap_list) - 1);
+      |             ^
+weft_dmabuf.c:195:69: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  195 |             snprintf(g_probe.heap_path, sizeof(g_probe.heap_path), "%s", path);
+      |                                                                     ^~   ~~~~
+In file included from /usr/include/stdio.h:980,
+                 from weft_dmabuf.c:19:
+In function ‘snprintf’,
+    inlined from ‘probe_run’ at weft_dmabuf.c:195:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 96 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+hetero_probe.c: In function ‘main’:
+hetero_probe.c:230:25: warning: unused variable ‘got_max’ [-Wunused-variable]
+  230 |             const float got_max = uint_as_f32(res[3]);
+      |                         ^~~~~~~
+hetero_probe.c:172:5: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  172 |     ftruncate(fd, (off_t)weft_dmabuf_span_bytes(pb, slots));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+  ok
+$ make -C core/c xdp-live-gate
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o xdp-live-gate xdp_rx.c uring_rx.c weft_dmabuf.c fanout.c frame_cursor.c weft.c fanout_simd.c xdp_live_gate.c
+xdp_rx.c:81:17: warning: ‘xget_u64le’ defined but not used [-Wunused-function]
+   81 | static uint64_t xget_u64le(const uint8_t* p) {
+      |                 ^~~~~~~~~~
+uring_rx.c:10: warning: "_GNU_SOURCE" redefined
+   10 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft_dmabuf.c: In function ‘probe_run’:
+weft_dmabuf.c:180:13: warning: ‘__builtin___strncat_chk’ output may be truncated copying between 0 and 127 bytes from a string of length 255 [-Wstringop-truncation]
+  180 |             strncat(g_probe.heap_list, e->d_name, sizeof(g_probe.heap_list) - strlen(g_probe.heap_list) - 1);
+      |             ^
+weft_dmabuf.c:195:69: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  195 |             snprintf(g_probe.heap_path, sizeof(g_probe.heap_path), "%s", path);
+      |                                                                     ^~   ~~~~
+In file included from /usr/include/stdio.h:980,
+                 from weft_dmabuf.c:19:
+In function ‘snprintf’,
+    inlined from ‘probe_run’ at weft_dmabuf.c:195:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 96 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+xdp_live_gate.c: In function ‘main’:
+xdp_live_gate.c:64:5: warning: ignoring return value of ‘ftruncate’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+   64 |     ftruncate(fd, (off_t)weft_dmabuf_span_bytes(pb, slots));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+  ok
+
+=== no-ICD leg (every vulkan leg refuses/declares honestly) ===
+$ env -u VK_ICD_FILENAMES VK_LOADER_DRIVER_SELECT= core/c/dmabuf-test
+# DB-series: weft_dmabuf conformance (RFC-0016 s3)
+## DB1 capability probe
+  dmabuf: unsupported heap='' heaps=[system] page=4096
+  PASS probe ran once
+  PASS page size reported
+  PASS refusal is UNSUPPORTED
+  PASS no phantom heap path
+## DB2 geometry
+  PASS span = 64 + ring_bytes across geometries
+  PASS bad geometries refused (span 0)
+## DB3 heap allocation / honest refusal
+  PASS alloc refused without heap
+  PASS refusal errno ENOTSUP
+## DB4 WFSH dialect byte-identity
+  PASS memfd substrate created
+  PASS substrate sized to span
+  PASS bind_fd initializes session
+  PASS shm reference session created
+  PASS deterministic header bytes identical (0..27]
+  PASS reserved [40,64) zero in both dialects
+  PASS ring_bytes field matches geometry
+  PASS shm attach_fd accepts the substrate session
+  PASS cross-module geometry agrees
+## DB5 aliasing substrate (one allocation, two mappings)
+  PASS substrate created
+  PASS substrate sized
+  PASS view A bound
+  PASS view B mapped
+  PASS byte written via A visible at B
+  PASS writer on view A
+  PASS reader on view B
+  PASS 2000 frames: cross-view claims bit-exact
+  PASS reader tracked the stream (last sampled claim s=1984)
+## DB6 foreign import
+  PASS session import maps
+  PASS session detected + validated
+  PASS imported geometry agrees
+  PASS imported ring view wired
+  PASS raw import maps (clamped)
+  PASS raw buffer honestly not a session
+  PASS raw bytes visible through the import
+  PASS bad fd refused
+## DB7 cache sync honesty
+  PASS sync refused on non-dma-buf (recorded, not fatal)
+## DB8 fork torture (substrate survives a process boundary)
+  PASS parent second view
+  PASS child producer exited clean
+  PASS parent reader over second view
+  PASS parent claims the child's last frame
+  PASS claimed frame bit-exact across the process boundary
+  PASS telescoping exact across fork
+## DB9 ownership discipline
+  PASS borrowed fd survives ring_free (caller owns it)
+verdict: PASS (42 passed, 0 failed)
+  ok
+$ env -u VK_ICD_FILENAMES core/c/gpu-extmem-test
+# XE/XD-series: gpu external-memory wrap conformance (RFC-0016 s2)
+## XE1 environment probe
+  vulkan leg LIVE (device: llvmpipe (LLVM 20.1.2, 256 bits))
+  PASS native sessions report their kind
+## XE2 wrap_host: imported host memory, GPU-consumed
+  PASS shm anon session (page-aligned, CPU-owned)
+  PASS CPU writer over the shm mapping
+  PASS stream_frames.spv located
+  PASS wrap refused honestly (non-aliasing device) — documented fallback: weft_gpu_create HOST_VISIBLE
+  PASS session intact after the refused wrap
+  PASS the 40 published frames still readable (no corruption)
+  (positive leg hardware-deferred: this ICD does not alias imports — the heterogeneous evidence log carries the llvmpipe diag; AMD/Intel/NVIDIA/GBM roads alias)
+## XE3 wrap_host: live aliasing across later publishes
+  (XE3 declared: the wrap was refused on this ICD — the live-aliasing proof runs on aliasing devices)
+## XE4 alignment gate
+  PASS scratch region mapped
+  PASS valid session at +128 refused (below alignment)
+  (control refused by the alias verification on this ICD — both XE4 roads refused, the +128 gate is alignment-bound per the diag evidence)
+## XE5-XE8 refusal ladder
+  PASS uninitialized mapping refused (no session)
+  PASS second session
+  PASS geometry mismatch refused
+  PASS malloc ring
+  PASS malloc'd ring refused (documented: shm/dmabuf is the road)
+  PASS NULL pointer refused
+  PASS bad fd refused
+## XD1 fd road: substrate import (memfd stand-in for the heap fd)
+  PASS permissive ICD: fd import alias-verified (llvmpipe mmaps any fd — the heap road is the same code path)
+  PASS session reports dmabuf-fd
+  PASS CPU writer over the wrap's mapping
+  fd-road-1: mismatches=0 seq=40 xor=0xc99c9880 width=8 (GPU consumed the fd-imported ring)
+  fd-road-2: mismatches=0 seq=80 xor=0xd2e69974 width=8 (window ADVANCED through the fd)
+  PASS fd road: GPU live-consumed the imported ring, window advanced across dispatches
+  PASS caller's fd intact after the import (dup discipline)
+## XD2 Vulkan dmabuf export -> wrap_dmabuf round-trip
+  PASS writer over the source session
+  PASS wrap refused honestly (fd coverage)
+  (round-trip hardware-deferred: this ICD's exported fd does not carry a usable size/alias)
+## XD3 heap road (weft_dmabuf -> wrap_dmabuf)
+  (declared: no /dev/dma_heap on this host — the heap leg runs where heaps exist; DB-series proves the substrate)
+  PASS heap absence honestly reported (Law 4)
+verdict: PASS (24 passed, 0 failed)
+  ok
+$ env -u VK_ICD_FILENAMES core/c/xdp-test
+# X-series: weft_xdp_rx conformance (RFC-0016 s4)
+## X1 capability probe
+  xdp: none (af_xdp socket absent (EAFNOSUPPORT))
+  PASS probe reports a real rung
+  (this kernel ships without CONFIG_XDP_SOCKETS — the xsk legs are DECLARED; state machine + delegation run)
+  PASS mode_str agrees with the probe
+## X2 pre-bracketed state machine
+  PASS session substrate created
+  PASS page-aligned WFSH session bound
+  PASS writer over the session
+  PASS reader over the session
+  PASS slot-0 umem offset matches the ring layout (64 hdr + ctrl + 0*pb)
+  PASS bracket opened: seq=1 slot=0
+  PASS descriptor closed the bracket: seq 1
+  PASS reader claims frame 1
+  PASS frame 1 bit-exact + tail PADDED to zero (short packet)
+  PASS slot-1 umem offset advanced by pb
+  PASS stale-address descriptor refused
+  PASS misorder counted
+  PASS slot-1 descriptor published: seq 2
+  PASS 98 synthetic frames published in-order
+  PASS telescoping exact: drops = lastSeq - freshClaims (98-15)
+  PASS stats: 100 frames, 100 publishes
+  PASS stats: 100 fill posts (one per bracket)
+  PASS stats: pads + the misorder recorded
+  PASS stats: oversize packet truncated-counted
+  PASS no-bracket descriptor refused
+  PASS both misorders counted
+  PASS detach resets the session
+## X3 uring delegation with real traffic
+  PASS datagram socketpair
+  PASS no AF_XDP kernel: delegated to the uring ladder
+  PASS producer exited clean
+  PASS 500 datagrams ingested -> 500 frames
+  PASS delegation counted the frames
+  PASS reader claims the last frame
+  PASS delegated frame bit-exact
+## X4 refusal discipline
+  PASS malloc'd ring
+  PASS no AF_XDP + no fallback fd: refused
+  PASS refusal errno recorded (EAFNOSUPPORT)
+  PASS malloc ring + fd: delegated (not refused)
+  PASS delegation mode recorded
+  PASS NULL refused
+  PASS NULL next safe
+verdict: PASS (38 passed, 0 failed)
+  ok
+$ env -u VK_ICD_FILENAMES core/c/tensor-test
+# T-series: weft_tensor WTS1 conformance (RFC-0016 s5)
+## T1 format identity
+  PASS magic is 'WTS1' LE
+  PASS header is 32 bytes
+  PASS ring
+  PASS reader
+  PASS all 11 dtypes: publish -> claim -> parse roundtrip with exact header fields
+## T2 parse refusals
+  PASS baseline frame begun
+  PASS baseline parses
+  PASS u32 x7: words==7 (no pad)
+  PASS bad magic refused
+  PASS bad version refused
+  PASS nonzero flags refused (version discipline)
+  PASS rank 5 refused
+  PASS rank 0 refused
+  PASS unknown dtype refused
+  PASS dims beyond rank nonzero refused
+  PASS dims-product != elem_count refused
+  PASS truncated extent refused
+  PASS payload extent short refused
+  PASS NULL refused
+## T3 F16 embeddings (the llama.cpp/ONNX seam)
+  PASS f16 embedding published
+  PASS claimed
+  PASS parsed
+  PASS f16 header exact (words include the 1-word pad)
+  PASS every element bit-identical to the codec dialect
+## T4/T5 tokens + audio
+  PASS token stream published
+  PASS parsed
+  PASS all 64 tokens bit-exact
+  PASS audio chunk published
+  PASS parsed
+  PASS all 256 samples bit-exact
+## T6 fit refusal
+  PASS oversize tensor refused
+  PASS no seq burned (refused BEFORE begin)
+  PASS ring healthy after refusal
+  PASS zero dim refused
+  PASS bad dtype refused
+## T7 stream + rank-4
+  PASS 200-frame tensor stream, every sampled claim parses
+  PASS rank-4 frame begun
+  PASS rank-4 [1,4,8,8] header exact
+## T8 cross-surface (dmabuf substrate)
+  PASS session over the substrate
+  PASS tensor frame through the substrate
+  PASS cross-view claim parses
+  PASS f16 payload bit-exact across the mapping boundary
+verdict: PASS (42 passed, 0 failed)
+  ok
+$ env -u VK_ICD_FILENAMES core/c/camera-test
+# V-series: camera/compositor seams (RFC-0016 s6)
+## V1 v4l2 probe
+  v4l2: unsupported (no /dev/video* capture device)
+  PASS probe ran once
+  PASS no device -> UNSUPPORTED
+  PASS no phantom device
+## V2 capture
+  PASS no capture device: ENODEV refusal
+  PASS out frame left clean
+  PASS NULL out refused
+## V3 ahb
+  ahb: unsupported (non-android build; the NDK leg compiles this module via android/weft-core)
+  PASS non-android build: UNSUPPORTED (compile-everywhere stub)
+  PASS alloc refused ENOTSUP, out fd cleaned
+  PASS export refused ENOTSUP
+## V4 composition identities
+  PASS session span identity holds for camera-size frames
+verdict: PASS (10 passed, 0 failed)
+  ok
+$ env -u VK_ICD_FILENAMES core/c/hetero-probe
+# H-series: heterogeneous pipeline capstone (RFC-0016)
+## H1 session wrap (fd import)
+  wrapped: backend=vulkan import=dmabuf-fd device='llvmpipe (LLVM 20.1.2, 256 bits)'
+  PASS H1: the fd road is live
+  PASS tensor_reduce.spv located
+  PASS fft_radix2.spv located
+## H2 tensor pass (f16 embeddings, bit-exact)
+  tensor-1: mismatch=0 argmax=243 (ref 243) seq=50 elems=256 sum=0x1.70cp+4 (ref 0x1.70cp+4)
+  PASS H2: GPU reduction BIT-EXACT (argmax+sum+max) over the imported allocation
+## H3 liveness (the window advances)
+  tensor-2: mismatch=0 argmax=14 (ref 14) seq=100 sum=-0x1.6ccp+3 (ref -0x1.6ccp+3)
+  PASS H3: the reduction followed the LIVE window to frame 100
+## H4 DSP pass (512-point FFT, peak-bin exact)
+  fft: flags=0 peak_bin=37 (ref 37) peak=0x1.666664p+7 (ref 0x1.6666640fd3a41p+7, rel=2.63e-09) perr=2.06e-07 seq=101 N=512
+  PASS H4: peak bin EXACT (37) + Parseval < 1e-4 + magnitude within 1e-3 of the double DFT
+verdict: PASS
+  ok
+
+=== ASAN legs (zero findings) ===
+$ core/c/dmabuf-test-asan
+# DB-series: weft_dmabuf conformance (RFC-0016 s3)
+## DB1 capability probe
+  dmabuf: unsupported heap='' heaps=[system] page=4096
+  PASS probe ran once
+  PASS page size reported
+  PASS refusal is UNSUPPORTED
+  PASS no phantom heap path
+## DB2 geometry
+  PASS span = 64 + ring_bytes across geometries
+  PASS bad geometries refused (span 0)
+## DB3 heap allocation / honest refusal
+  PASS alloc refused without heap
+  PASS refusal errno ENOTSUP
+## DB4 WFSH dialect byte-identity
+  PASS memfd substrate created
+  PASS substrate sized to span
+  PASS bind_fd initializes session
+  PASS shm reference session created
+  PASS deterministic header bytes identical (0..27]
+  PASS reserved [40,64) zero in both dialects
+  PASS ring_bytes field matches geometry
+  PASS shm attach_fd accepts the substrate session
+  PASS cross-module geometry agrees
+## DB5 aliasing substrate (one allocation, two mappings)
+  PASS substrate created
+  PASS substrate sized
+  PASS view A bound
+  PASS view B mapped
+  PASS byte written via A visible at B
+  PASS writer on view A
+  PASS reader on view B
+  PASS 2000 frames: cross-view claims bit-exact
+  PASS reader tracked the stream (last sampled claim s=1984)
+## DB6 foreign import
+  PASS session import maps
+  PASS session detected + validated
+  PASS imported geometry agrees
+  PASS imported ring view wired
+  PASS raw import maps (clamped)
+  PASS raw buffer honestly not a session
+  PASS raw bytes visible through the import
+  PASS bad fd refused
+## DB7 cache sync honesty
+  PASS sync refused on non-dma-buf (recorded, not fatal)
+## DB8 fork torture (substrate survives a process boundary)
+  PASS parent second view
+  PASS child producer exited clean
+  PASS parent reader over second view
+  PASS parent claims the child's last frame
+  PASS claimed frame bit-exact across the process boundary
+  PASS telescoping exact across fork
+## DB9 ownership discipline
+  PASS borrowed fd survives ring_free (caller owns it)
+verdict: PASS (42 passed, 0 failed)
+  ok
+$ core/c/gpu-extmem-test-asan
+# XE/XD-series: gpu external-memory wrap conformance (RFC-0016 s2)
+## XE1 environment probe
+  vulkan leg LIVE (device: llvmpipe (LLVM 20.1.2, 256 bits))
+  PASS native sessions report their kind
+## XE2 wrap_host: imported host memory, GPU-consumed
+  PASS shm anon session (page-aligned, CPU-owned)
+  PASS CPU writer over the shm mapping
+  PASS stream_frames.spv located
+  PASS wrap refused honestly (non-aliasing device) — documented fallback: weft_gpu_create HOST_VISIBLE
+  PASS session intact after the refused wrap
+  PASS the 40 published frames still readable (no corruption)
+  (positive leg hardware-deferred: this ICD does not alias imports — the heterogeneous evidence log carries the llvmpipe diag; AMD/Intel/NVIDIA/GBM roads alias)
+## XE3 wrap_host: live aliasing across later publishes
+  (XE3 declared: the wrap was refused on this ICD — the live-aliasing proof runs on aliasing devices)
+## XE4 alignment gate
+  PASS scratch region mapped
+  PASS valid session at +128 refused (below alignment)
+  (control refused by the alias verification on this ICD — both XE4 roads refused, the +128 gate is alignment-bound per the diag evidence)
+## XE5-XE8 refusal ladder
+  PASS uninitialized mapping refused (no session)
+  PASS second session
+  PASS geometry mismatch refused
+  PASS malloc ring
+  PASS malloc'd ring refused (documented: shm/dmabuf is the road)
+  PASS NULL pointer refused
+  PASS bad fd refused
+## XD1 fd road: substrate import (memfd stand-in for the heap fd)
+  PASS permissive ICD: fd import alias-verified (llvmpipe mmaps any fd — the heap road is the same code path)
+  PASS session reports dmabuf-fd
+  PASS CPU writer over the wrap's mapping
+  fd-road-1: mismatches=0 seq=40 xor=0xc99c9880 width=8 (GPU consumed the fd-imported ring)
+  fd-road-2: mismatches=0 seq=80 xor=0xd2e69974 width=8 (window ADVANCED through the fd)
+  PASS fd road: GPU live-consumed the imported ring, window advanced across dispatches
+  PASS caller's fd intact after the import (dup discipline)
+## XD2 Vulkan dmabuf export -> wrap_dmabuf round-trip
+  PASS writer over the source session
+  PASS wrap refused honestly (fd coverage)
+  (round-trip hardware-deferred: this ICD's exported fd does not carry a usable size/alias)
+## XD3 heap road (weft_dmabuf -> wrap_dmabuf)
+  (declared: no /dev/dma_heap on this host — the heap leg runs where heaps exist; DB-series proves the substrate)
+  PASS heap absence honestly reported (Law 4)
+verdict: PASS (24 passed, 0 failed)
+  ok
+$ core/c/xdp-test-asan
+# X-series: weft_xdp_rx conformance (RFC-0016 s4)
+## X1 capability probe
+  xdp: none (af_xdp socket absent (EAFNOSUPPORT))
+  PASS probe reports a real rung
+  (this kernel ships without CONFIG_XDP_SOCKETS — the xsk legs are DECLARED; state machine + delegation run)
+  PASS mode_str agrees with the probe
+## X2 pre-bracketed state machine
+  PASS session substrate created
+  PASS page-aligned WFSH session bound
+  PASS writer over the session
+  PASS reader over the session
+  PASS slot-0 umem offset matches the ring layout (64 hdr + ctrl + 0*pb)
+  PASS bracket opened: seq=1 slot=0
+  PASS descriptor closed the bracket: seq 1
+  PASS reader claims frame 1
+  PASS frame 1 bit-exact + tail PADDED to zero (short packet)
+  PASS slot-1 umem offset advanced by pb
+  PASS stale-address descriptor refused
+  PASS misorder counted
+  PASS slot-1 descriptor published: seq 2
+  PASS 98 synthetic frames published in-order
+  PASS telescoping exact: drops = lastSeq - freshClaims (98-15)
+  PASS stats: 100 frames, 100 publishes
+  PASS stats: 100 fill posts (one per bracket)
+  PASS stats: pads + the misorder recorded
+  PASS stats: oversize packet truncated-counted
+  PASS no-bracket descriptor refused
+  PASS both misorders counted
+  PASS detach resets the session
+## X3 uring delegation with real traffic
+  PASS datagram socketpair
+  PASS no AF_XDP kernel: delegated to the uring ladder
+  PASS producer exited clean
+  PASS 500 datagrams ingested -> 500 frames
+  PASS delegation counted the frames
+  PASS reader claims the last frame
+  PASS delegated frame bit-exact
+## X4 refusal discipline
+  PASS malloc'd ring
+  PASS no AF_XDP + no fallback fd: refused
+  PASS refusal errno recorded (EAFNOSUPPORT)
+  PASS malloc ring + fd: delegated (not refused)
+  PASS delegation mode recorded
+  PASS NULL refused
+  PASS NULL next safe
+verdict: PASS (38 passed, 0 failed)
+  ok
+$ core/c/tensor-test-asan
+# T-series: weft_tensor WTS1 conformance (RFC-0016 s5)
+## T1 format identity
+  PASS magic is 'WTS1' LE
+  PASS header is 32 bytes
+  PASS ring
+  PASS reader
+  PASS all 11 dtypes: publish -> claim -> parse roundtrip with exact header fields
+## T2 parse refusals
+  PASS baseline frame begun
+  PASS baseline parses
+  PASS u32 x7: words==7 (no pad)
+  PASS bad magic refused
+  PASS bad version refused
+  PASS nonzero flags refused (version discipline)
+  PASS rank 5 refused
+  PASS rank 0 refused
+  PASS unknown dtype refused
+  PASS dims beyond rank nonzero refused
+  PASS dims-product != elem_count refused
+  PASS truncated extent refused
+  PASS payload extent short refused
+  PASS NULL refused
+## T3 F16 embeddings (the llama.cpp/ONNX seam)
+  PASS f16 embedding published
+  PASS claimed
+  PASS parsed
+  PASS f16 header exact (words include the 1-word pad)
+  PASS every element bit-identical to the codec dialect
+## T4/T5 tokens + audio
+  PASS token stream published
+  PASS parsed
+  PASS all 64 tokens bit-exact
+  PASS audio chunk published
+  PASS parsed
+  PASS all 256 samples bit-exact
+## T6 fit refusal
+  PASS oversize tensor refused
+  PASS no seq burned (refused BEFORE begin)
+  PASS ring healthy after refusal
+  PASS zero dim refused
+  PASS bad dtype refused
+## T7 stream + rank-4
+  PASS 200-frame tensor stream, every sampled claim parses
+  PASS rank-4 frame begun
+  PASS rank-4 [1,4,8,8] header exact
+## T8 cross-surface (dmabuf substrate)
+  PASS session over the substrate
+  PASS tensor frame through the substrate
+  PASS cross-view claim parses
+  PASS f16 payload bit-exact across the mapping boundary
+verdict: PASS (42 passed, 0 failed)
+  ok
+$ core/c/camera-test-asan
+# V-series: camera/compositor seams (RFC-0016 s6)
+## V1 v4l2 probe
+  v4l2: unsupported (no /dev/video* capture device)
+  PASS probe ran once
+  PASS no device -> UNSUPPORTED
+  PASS no phantom device
+## V2 capture
+  PASS no capture device: ENODEV refusal
+  PASS out frame left clean
+  PASS NULL out refused
+## V3 ahb
+  ahb: unsupported (non-android build; the NDK leg compiles this module via android/weft-core)
+  PASS non-android build: UNSUPPORTED (compile-everywhere stub)
+  PASS alloc refused ENOTSUP, out fd cleaned
+  PASS export refused ENOTSUP
+## V4 composition identities
+  PASS session span identity holds for camera-size frames
+verdict: PASS (10 passed, 0 failed)
+  ok
+
+=== ICD leg (install the software Vulkan driver when apt is available) ===
+	apiVersion         = 1.4.318
+	deviceName         = llvmpipe (LLVM 20.1.2, 256 bits)
+
+=== ICD leg: the wrap + capstone proofs ===
+$ core/c/gpu-extmem-test
+# XE/XD-series: gpu external-memory wrap conformance (RFC-0016 s2)
+## XE1 environment probe
+  vulkan leg LIVE (device: llvmpipe (LLVM 20.1.2, 256 bits))
+  PASS native sessions report their kind
+## XE2 wrap_host: imported host memory, GPU-consumed
+  PASS shm anon session (page-aligned, CPU-owned)
+  PASS CPU writer over the shm mapping
+  PASS stream_frames.spv located
+  PASS wrap refused honestly (non-aliasing device) — documented fallback: weft_gpu_create HOST_VISIBLE
+  PASS session intact after the refused wrap
+  PASS the 40 published frames still readable (no corruption)
+  (positive leg hardware-deferred: this ICD does not alias imports — the heterogeneous evidence log carries the llvmpipe diag; AMD/Intel/NVIDIA/GBM roads alias)
+## XE3 wrap_host: live aliasing across later publishes
+  (XE3 declared: the wrap was refused on this ICD — the live-aliasing proof runs on aliasing devices)
+## XE4 alignment gate
+  PASS scratch region mapped
+  PASS valid session at +128 refused (below alignment)
+  (control refused by the alias verification on this ICD — both XE4 roads refused, the +128 gate is alignment-bound per the diag evidence)
+## XE5-XE8 refusal ladder
+  PASS uninitialized mapping refused (no session)
+  PASS second session
+  PASS geometry mismatch refused
+  PASS malloc ring
+  PASS malloc'd ring refused (documented: shm/dmabuf is the road)
+  PASS NULL pointer refused
+  PASS bad fd refused
+## XD1 fd road: substrate import (memfd stand-in for the heap fd)
+  PASS permissive ICD: fd import alias-verified (llvmpipe mmaps any fd — the heap road is the same code path)
+  PASS session reports dmabuf-fd
+  PASS CPU writer over the wrap's mapping
+  fd-road-1: mismatches=0 seq=40 xor=0xc99c9880 width=8 (GPU consumed the fd-imported ring)
+  fd-road-2: mismatches=0 seq=80 xor=0xd2e69974 width=8 (window ADVANCED through the fd)
+  PASS fd road: GPU live-consumed the imported ring, window advanced across dispatches
+  PASS caller's fd intact after the import (dup discipline)
+## XD2 Vulkan dmabuf export -> wrap_dmabuf round-trip
+  PASS writer over the source session
+  PASS wrap refused honestly (fd coverage)
+  (round-trip hardware-deferred: this ICD's exported fd does not carry a usable size/alias)
+## XD3 heap road (weft_dmabuf -> wrap_dmabuf)
+  (declared: no /dev/dma_heap on this host — the heap leg runs where heaps exist; DB-series proves the substrate)
+  PASS heap absence honestly reported (Law 4)
+verdict: PASS (24 passed, 0 failed)
+  ok
+$ core/c/hetero-probe
+# H-series: heterogeneous pipeline capstone (RFC-0016)
+## H1 session wrap (fd import)
+  wrapped: backend=vulkan import=dmabuf-fd device='llvmpipe (LLVM 20.1.2, 256 bits)'
+  PASS H1: the fd road is live
+  PASS tensor_reduce.spv located
+  PASS fft_radix2.spv located
+## H2 tensor pass (f16 embeddings, bit-exact)
+  tensor-1: mismatch=0 argmax=243 (ref 243) seq=50 elems=256 sum=0x1.70cp+4 (ref 0x1.70cp+4)
+  PASS H2: GPU reduction BIT-EXACT (argmax+sum+max) over the imported allocation
+## H3 liveness (the window advances)
+  tensor-2: mismatch=0 argmax=14 (ref 14) seq=100 sum=-0x1.6ccp+3 (ref -0x1.6ccp+3)
+  PASS H3: the reduction followed the LIVE window to frame 100
+## H4 DSP pass (512-point FFT, peak-bin exact)
+  fft: flags=0 peak_bin=37 (ref 37) peak=0x1.666664p+7 (ref 0x1.6666640fd3a41p+7, rel=2.63e-09) perr=2.06e-07 seq=101 N=512
+  PASS H4: peak bin EXACT (37) + Parseval < 1e-4 + magnitude within 1e-3 of the double DFT
+verdict: PASS
+  ok
+
+=== xdp-live-gate (0 = proven, 3 = declared refusal) ===
+gate: kernel lacks AF_XDP (probe=none) — DECLARED, state machine + delegation covered by xdp-test
+  ok (rc=3: declared: no AF_XDP)
+
+=== .spv determinism (byte-identical rebuilds) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+if command -v glslangValidator >/dev/null 2>&1; then \
+glslangValidator -V ../../probes/compute/tensor_reduce.comp -o ../../probes/compute/tensor_reduce.spv; \
+else echo "glslangValidator not found — using committed ../../probes/compute/tensor_reduce.spv"; touch ../../probes/compute/tensor_reduce.spv; fi
+../../probes/compute/tensor_reduce.comp
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+  tensor_reduce.spv byte-identical (7b2a51e64a3e9742d75ec1c11cd9aaa66da78fd7499ca485340763ff4a5ddb65)
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+if command -v glslangValidator >/dev/null 2>&1; then \
+glslangValidator -V ../../probes/compute/fft_radix2.comp -o ../../probes/compute/fft_radix2.spv; \
+else echo "glslangValidator not found — using committed ../../probes/compute/fft_radix2.spv"; touch ../../probes/compute/fft_radix2.spv; fi
+../../probes/compute/fft_radix2.comp
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+  fft_radix2.spv byte-identical (6e4499950b23a60427c4b96378e17616cbb7060d1c27567fa14af6a1df380251)
+
+=== kernel freeze (weft.c/weft.h byte-frozen — Law 3) ===
+  frozen: weft.c and weft.h match canonical frozen checksums
+
+=== evidence pack (litmus/evidence/heterogeneous) ===
+  dmabuf-series.log: PASS
+  extmem-lavapipe.log: PASS
+  xdp-series.log: PASS
+  tensor-series.log: PASS
+  camera-seams.log: PASS
+  hetero-series.log: PASS
+
+SHARD RESULT: GREEN

@@ -1,0 +1,126 @@
+==================================================
+SHARD: ports-validate
+DESCRIPTION: Kotlin + Swift + Dart + TS heddles structural validator
+STATUS: PASSED ✅
+COMMIT: ebf7123d4bf695dd4264225267b8031f77781b5c
+RUN: 187
+==================================================
+
+{
+  "shard": "ports-validate",
+  "status": "PASSED",
+  "targets_pass": 16,
+  "targets_total": 16,
+  "ordering_site_proofs": 17,
+  "proofs": [
+    {
+      "proof": "proof-c-compile-load",
+      "pass": true,
+      "detail": "kernel + fan-out roundtrips live through the compiled .so"
+    },
+    {
+      "proof": "proof-kotlin-compile",
+      "pass": true,
+      "detail": "canonical Kotlin port (both fan-out regimes) compiles clean"
+    },
+    {
+      "proof": "proof-dart-roundtrip",
+      "pass": true,
+      "detail": "DELEGATED: no dart on host \u2014 the flutter leg runs dart analyze --fatal-infos + the F-series for this SHA"
+    },
+    {
+      "proof": "proof-swift-typecheck",
+      "pass": true,
+      "detail": "DELEGATED: the apple leg runs swift build + swift test (F-series + V-series + Metal probe) under SPM for this SHA"
+    },
+    {
+      "proof": "proof-torture-f10",
+      "pass": true,
+      "detail": "100k-frame 3-reader torture PASS rate=3436244/s"
+    }
+  ],
+  "targets": [
+    {
+      "target": "kotlin",
+      "pass": true,
+      "checks_total": 16,
+      "checks_pass": 16
+    },
+    {
+      "target": "fanout-kotlin",
+      "pass": true,
+      "checks_total": 21,
+      "checks_pass": 21
+    },
+    {
+      "target": "verified-kotlin",
+      "pass": true,
+      "checks_total": 10,
+      "checks_pass": 10
+    },
+    {
+      "target": "fanout-compat-kotlin",
+      "pass": true,
+      "checks_total": 5,
+      "checks_pass": 5
+    },
+    {
+      "target": "swift",
+      "pass": true,
+      "checks_total": 15,
+      "checks_pass": 15
+    },
+    {
+      "target": "fanout-swift",
+      "pass": true,
+      "checks_total": 16,
+      "checks_pass": 16
+    },
+    {
+      "target": "verified-swift",
+      "pass": true,
+      "checks_total": 10,
+      "checks_pass": 10
+    },
+    {
+      "target": "dart",
+      "pass": true,
+      "checks_total": 18,
+      "checks_pass": 18
+    },
+    {
+      "target": "fanout-dart",
+      "pass": true,
+      "checks_total": 14,
+      "checks_pass": 14
+    },
+    {
+      "target": "verified-dart",
+      "pass": true,
+      "checks_total": 10,
+      "checks_pass": 10
+    },
+    {
+      "target": "ts",
+      "pass": true,
+      "checks_total": 8,
+      "checks_pass": 8
+    }
+  ]
+}
+✅ ports-validate: all targets + proofs + torture PASS
+, {"file": "core/kotlin/Fanout.kt", "check": "fanout_marker_setRelease", "pass": true, "detail": "setRelease found"}, {"file": "core/kotlin/Fanout.kt", "check": "fanout_marker_getAcquire", "pass": true, "detail": "getAcquire found"}, {"file": "core/kotlin/Fanout.kt", "check": "fanout_marker_getOpaque", "pass": true, "detail": "getOpaque found"}, {"file": "core/kotlin/Fanout.kt", "check": "fanout_api_begin", "pass": true, "detail": "begin found"}, {"file": "core/kotlin/Fanout.kt", "check": "fanout_api_publish", "pass": true, "detail": "publish found"}, {"file": "core/kotlin/Fanout.kt", "check": "fanout_api_claim", "pass": true, "detail": "claim found"}, {"file": "core/kotlin/Fanout.kt", "check": "fanout_api_view", "pass": true, "detail": "view found"}, {"file": "core/kotlin/Fanout.kt", "check": "fanout_api_stats", "pass": true, "detail": "stats found"}, {"file": "core/kotlin/Fanout.kt", "check": "fanout_api_ringbytes", "pass": true, "detail": "ringbytes found"}, {"file": "core/kotlin/Fanout.kt", "check": "site_kotlin_begin_invalidate_sc", "pass": true, "detail": "begin() must invalidate via stampStoreVolatile + fullFence (P1)"}, {"file": "core/kotlin/Fanout.kt", "check": "site_kotlin_begin_no_raw_ctrl_writes", "pass": true, "detail": "begin() must not write ctrl bytes with raw putLong"}, {"file": "core/kotlin/Fanout.kt", "check": "site_kotlin_publish_release_stamps", "pass": true, "detail": "publish() must stamp via stampStoreRelease (publication point)"}, {"file": "core/kotlin/Fanout.kt", "check": "site_kotlin_publish_no_raw_ctrl_access", "pass": true, "detail": "publish() must not touch ctrl bytes raw"}, {"file": "core/kotlin/Fanout.kt", "check": "site_kotlin_claim_acquire_stamps", "pass": true, "detail": "claim() must load stamps acquire and fence before revalidation (P2)"}, {"file": "core/kotlin/Fanout.kt", "check": "site_kotlin_claim_opaque_words", "pass": true, "detail": "claim() payload copy must use wordLoadOpaque (coherence-only)"}, {"file": "core/kotlin/Fanout.kt", "check": "site_kotlin_claim_no_raw_payload_access", "pass": true, "detail": "claim() must not read ring words raw (opaque view only)"}, {"file": "core/kotlin/Fanout.kt", "check": "site_kotlin_fill_opaque_stores", "pass": true, "detail": "fill() must use wordStoreOpaque (race-free fill path)"}]}
+{"target": "verified-kotlin", "pass": true, "checks": [{"file": "core/kotlin/Verified.kt", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/kotlin/Verified.kt", "check": "verified_marker_Weft-VerifiedWeft-v1:key", "pass": true, "detail": "Weft-VerifiedWeft-v1:key found"}, {"file": "core/kotlin/Verified.kt", "check": "verified_marker_VW_ENVELOPE_LEN", "pass": true, "detail": "VW_ENVELOPE_LEN found"}, {"file": "core/kotlin/Verified.kt", "check": "verified_api_derivekey", "pass": true, "detail": "derivekey found"}, {"file": "core/kotlin/Verified.kt", "check": "verified_api_signer", "pass": true, "detail": "signer found"}, {"file": "core/kotlin/Verified.kt", "check": "verified_api_verifier", "pass": true, "detail": "verifier found"}, {"file": "core/kotlin/Verified.kt", "check": "verified_api_cteq", "pass": true, "detail": "cteq found"}, {"file": "core/kotlin/Verified.kt", "check": "verified_api_recordencode", "pass": true, "detail": "recordencode found"}, {"file": "core/kotlin/Verified.kt", "check": "verified_api_batchdecodeverify", "pass": true, "detail": "batchdecodeverify found"}, {"file": "core/kotlin/Verified.kt", "check": "verified_api_errtag", "pass": true, "detail": "errtag found"}]}
+{"target": "fanout-compat-kotlin", "pass": true, "checks": [{"file": "core/kotlin/FanoutCompat.kt", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/kotlin/FanoutCompat.kt", "check": "fanout_compat_marker_AtomicLongArray", "pass": true, "detail": "AtomicLongArray found"}, {"file": "core/kotlin/FanoutCompat.kt", "check": "fanout_compat_marker_varHandleAvailable", "pass": true, "detail": "varHandleAvailable found"}, {"file": "core/kotlin/FanoutCompat.kt", "check": "fanout_compat_marker_bracket discipline", "pass": true, "detail": "bracket discipline found"}, {"file": "core/kotlin/FanoutCompat.kt", "check": "fanout_compat_marker_API < 33", "pass": true, "detail": "API < 33 found"}]}
+{"target": "swift", "pass": true, "checks": [{"file": "core/swift/Weft.swift", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/swift/Weft.swift", "check": "exchange_marker", "pass": true, "detail": "ManagedAtomic.exchange(.acquiringAndReleasing)"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_init", "pass": true, "detail": "init found"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_publish", "pass": true, "detail": "publish found"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_claim", "pass": true, "detail": "claim found"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_revoke", "pass": true, "detail": "revoke found"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_reclaim", "pass": true, "detail": "reclaim found"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_destroy", "pass": true, "detail": "destroy found"}, {"file": "core/swift/Weft.swift", "check": "api_kernel_debug", "pass": true, "detail": "debug found"}, {"file": "core/swift/Weft.swift", "check": "api_envelope_encode", "pass": true, "detail": "encode found"}, {"file": "core/swift/Weft.swift", "check": "api_envelope_decode", "pass": true, "detail": "decode found"}, {"file": "core/swift/Steward.swift", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/swift/Heddle.swift", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "docs/bindings/swift/README.md", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "docs/bindings/swift/README.md", "check": "status_banner", "pass": true, "detail": "STATUS: SOURCE-ONLY banner present"}]}
+{"target": "fanout-swift", "pass": true, "checks": [{"file": "core/swift/Fanout.swift", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/swift/Fanout.swift", "check": "fanout_marker_UnsafeAtomic", "pass": true, "detail": "UnsafeAtomic found"}, {"file": "core/swift/Fanout.swift", "check": "fanout_marker_sequentiallyConsistent", "pass": true, "detail": "sequentiallyConsistent found"}, {"file": "core/swift/Fanout.swift", "check": "fanout_marker_.relaxed", "pass": true, "detail": ".relaxed found"}, {"file": "core/swift/Fanout.swift", "check": "fanout_marker_loadThenWrappingIncrement", "pass": true, "detail": "loadThenWrappingIncrement found"}, {"file": "core/swift/Fanout.swift", "check": "fanout_api_begin", "pass": true, "detail": "begin found"}, {"file": "core/swift/Fanout.swift", "check": "fanout_api_publish", "pass": true, "detail": "publish found"}, {"file": "core/swift/Fanout.swift", "check": "fanout_api_claim", "pass": true, "detail": "claim found"}, {"file": "core/swift/Fanout.swift", "check": "fanout_api_view", "pass": true, "detail": "view found"}, {"file": "core/swift/Fanout.swift", "check": "fanout_api_stats", "pass": true, "detail": "stats found"}, {"file": "core/swift/Fanout.swift", "check": "fanout_api_ringbytes", "pass": true, "detail": "ringbytes found"}, {"file": "core/swift/Fanout.swift", "check": "site_swift_begin_sc_invalidate", "pass": true, "detail": "begin() invalidate must be an SC store (the Swift stamp regime)"}, {"file": "core/swift/Fanout.swift", "check": "site_swift_publish_sc_stamps_only", "pass": true, "detail": "publish() stamp + latestSeq must both be SC stores"}, {"file": "core/swift/Fanout.swift", "check": "site_swift_claim_sc_stamps", "pass": true, "detail": "claim() latest/sB/sA stamp loads must all be SC"}, {"file": "core/swift/Fanout.swift", "check": "site_swift_claim_relaxed_payload", "pass": true, "detail": "claim() payload copy must be relaxed-atomic words (the C-port stance)"}, {"file": "core/swift/Fanout.swift", "check": "site_swift_fill_relaxed_payload", "pass": true, "detail": "fill() payload stores must be relaxed-atomic (race-free path)"}]}
+{"target": "verified-swift", "pass": true, "checks": [{"file": "core/swift/Verified.swift", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/swift/Verified.swift", "check": "verified_marker_Weft-VerifiedWeft-v1:key", "pass": true, "detail": "Weft-VerifiedWeft-v1:key found"}, {"file": "core/swift/Verified.swift", "check": "verified_marker_VW_ENVELOPE_LEN", "pass": true, "detail": "VW_ENVELOPE_LEN found"}, {"file": "core/swift/Verified.swift", "check": "verified_api_derivekey", "pass": true, "detail": "derivekey found"}, {"file": "core/swift/Verified.swift", "check": "verified_api_signer", "pass": true, "detail": "signer found"}, {"file": "core/swift/Verified.swift", "check": "verified_api_verifier", "pass": true, "detail": "verifier found"}, {"file": "core/swift/Verified.swift", "check": "verified_api_cteq", "pass": true, "detail": "cteq found"}, {"file": "core/swift/Verified.swift", "check": "verified_api_recordencode", "pass": true, "detail": "recordencode found"}, {"file": "core/swift/Verified.swift", "check": "verified_api_batchdecodeverify", "pass": true, "detail": "batchdecodeverify found"}, {"file": "core/swift/Verified.swift", "check": "verified_api_errtag", "pass": true, "detail": "errtag found"}]}
+{"target": "dart", "pass": true, "checks": [{"file": "core/dart/weft.dart", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/dart/weft.dart", "check": "single_isolate_banner", "pass": true, "detail": "single-isolate banner present"}, {"file": "core/dart/weft.dart", "check": "api_kernel_init", "pass": true, "detail": "init found"}, {"file": "core/dart/weft.dart", "check": "api_kernel_publish", "pass": true, "detail": "publish found"}, {"file": "core/dart/weft.dart", "check": "api_kernel_claim", "pass": true, "detail": "claim found"}, {"file": "core/dart/weft.dart", "check": "api_kernel_revoke", "pass": true, "detail": "revoke found"}, {"file": "core/dart/weft.dart", "check": "api_kernel_reclaim", "pass": true, "detail": "reclaim found"}, {"file": "core/dart/weft.dart", "check": "api_kernel_destroy", "pass": true, "detail": "destroy found"}, {"file": "core/dart/weft.dart", "check": "api_kernel_debug", "pass": true, "detail": "debug found"}, {"file": "core/dart/weft.dart", "check": "api_envelope_encode", "pass": true, "detail": "encode found"}, {"file": "core/dart/weft.dart", "check": "api_envelope_decode", "pass": true, "detail": "decode found"}, {"file": "core/dart/steward.dart", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/dart/steward.dart", "check": "single_isolate_banner", "pass": true, "detail": "single-isolate banner present"}, {"file": "core/dart/heddle.dart", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/dart/heddle.dart", "check": "single_isolate_banner", "pass": true, "detail": "single-isolate banner present"}, {"file": "docs/bindings/dart/README.md", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "docs/bindings/dart/README.md", "check": "status_banner", "pass": true, "detail": "STATUS: SOURCE-ONLY banner present"}, {"file": "docs/bindings/dart/README.md", "check": "single_isolate_banner", "pass": true, "detail": "single-isolate banner present"}]}
+{"target": "fanout-dart", "pass": true, "checks": [{"file": "core/dart/fanout.dart", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/dart/fanout.dart", "check": "fanout_marker_single-isolate", "pass": true, "detail": "single-isolate found"}, {"file": "core/dart/fanout.dart", "check": "fanout_marker_Endian.little", "pass": true, "detail": "Endian.little found"}, {"file": "core/dart/fanout.dart", "check": "fanout_marker_sublistView", "pass": true, "detail": "sublistView found"}, {"file": "core/dart/fanout.dart", "check": "fanout_api_begin", "pass": true, "detail": "begin found"}, {"file": "core/dart/fanout.dart", "check": "fanout_api_publish", "pass": true, "detail": "publish found"}, {"file": "core/dart/fanout.dart", "check": "fanout_api_claim", "pass": true, "detail": "claim found"}, {"file": "core/dart/fanout.dart", "check": "fanout_api_view", "pass": true, "detail": "view found"}, {"file": "core/dart/fanout.dart", "check": "fanout_api_stats", "pass": true, "detail": "stats found"}, {"file": "core/dart/fanout.dart", "check": "fanout_api_ringbytes", "pass": true, "detail": "ringbytes found"}, {"file": "core/dart/fanout.dart", "check": "site_dart_begin_endian_explicit", "pass": true, "detail": "every word accessor carries the explicit wire endianness"}, {"file": "core/dart/fanout.dart", "check": "site_dart_publish_endian_explicit", "pass": true, "detail": "every word accessor carries the explicit wire endianness"}, {"file": "core/dart/fanout.dart", "check": "site_dart_claim_endian_explicit", "pass": true, "detail": "every word accessor carries the explicit wire endianness"}, {"file": "core/dart/fanout.dart", "check": "site_dart_claim_bracket_retained", "pass": true, "detail": "claim() must retain the stamp bracket (sB before copy, sA after)"}]}
+{"target": "verified-dart", "pass": true, "checks": [{"file": "core/dart/verified.dart", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "core/dart/verified.dart", "check": "verified_marker_Weft-VerifiedWeft-v1:key", "pass": true, "detail": "Weft-VerifiedWeft-v1:key found"}, {"file": "core/dart/verified.dart", "check": "verified_marker_VW_ENVELOPE_LEN", "pass": true, "detail": "VW_ENVELOPE_LEN found"}, {"file": "core/dart/verified.dart", "check": "verified_api_derivekey", "pass": true, "detail": "derivekey found"}, {"file": "core/dart/verified.dart", "check": "verified_api_signer", "pass": true, "detail": "signer found"}, {"file": "core/dart/verified.dart", "check": "verified_api_verifier", "pass": true, "detail": "verifier found"}, {"file": "core/dart/verified.dart", "check": "verified_api_cteq", "pass": true, "detail": "cteq found"}, {"file": "core/dart/verified.dart", "check": "verified_api_recordencode", "pass": true, "detail": "recordencode found"}, {"file": "core/dart/verified.dart", "check": "verified_api_batchdecodeverify", "pass": true, "detail": "batchdecodeverify found"}, {"file": "core/dart/verified.dart", "check": "verified_api_errtag", "pass": true, "detail": "errtag found"}]}
+{"target": "ts", "pass": true, "checks": [{"file": "heddles/react/WeftCanvas.tsx", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "heddles/react/WeftCanvas.tsx", "check": "weft_import", "pass": true, "detail": "imports Weft kernel"}, {"file": "heddles/svelte/weft-action.ts", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "heddles/svelte/weft-action.ts", "check": "weft_import", "pass": true, "detail": "imports Weft kernel"}, {"file": "heddles/vue/useWeft.ts", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "heddles/vue/useWeft.ts", "check": "weft_import", "pass": true, "detail": "imports Weft kernel"}, {"file": "heddles/react-native/weft-rn.ts", "check": "header", "pass": true, "detail": "header cites spec section"}, {"file": "heddles/react-native/weft-rn.ts", "check": "weft_import", "pass": true, "detail": "imports Weft kernel"}]}
+{"target": "proof-c-compile-load", "pass": true, "detail": "kernel + fan-out roundtrips live through the compiled .so", "extra": {"payload_check": "stride 5", "fanout_claim": "fresh=1 seq=1"}}
+{"target": "proof-kotlin-compile", "pass": true, "detail": "canonical Kotlin port (both fan-out regimes) compiles clean"}
+{"target": "proof-dart-roundtrip", "pass": true, "detail": "DELEGATED: no dart on host \u2014 the flutter leg runs dart analyze --fatal-infos + the F-series for this SHA"}
+{"target": "proof-swift-typecheck", "pass": true, "detail": "DELEGATED: the apple leg runs swift build + swift test (F-series + V-series + Metal probe) under SPM for this SHA"}
+{"target": "proof-torture-f10", "pass": true, "detail": "100k-frame 3-reader torture PASS rate=3436244/s"}

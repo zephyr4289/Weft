@@ -118,8 +118,10 @@ async function buildRun() {
 }
 
 const job = await buildRun();
-// Warm up JIT + lazy singletons, then measure steady state.
-await job.run(1000);
+// STEADY-STATE methodology: warm up first (JIT/IC metadata is one-time
+// allocation, not per-frame garbage), gc, snapshot, THEN measure.
+const WARMUP = Math.min(20000, iters);
+await job.run(WARMUP);
 gc();
 const heapBefore = process.memoryUsage().heapUsed;
 await job.run(iters);

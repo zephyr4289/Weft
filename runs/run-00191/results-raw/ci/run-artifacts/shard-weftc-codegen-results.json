@@ -1,0 +1,1 @@
+{"shard":"weftc-codegen","status":"PASSED","gates":"generator build (pure C11 -Werror -pedantic) + determinism + goldens + Law-4 refusal matrix + C roundtrip x3 flavors (65 gates each) + AVX2/scalar byte-identity + Rust no_std + xlang bit-exact stage bins + GPU double-entry (WGSL/GLSL vs C offsetof) + glslang SPIR-V (optional leg)"}

@@ -1,0 +1,35 @@
+==================================================
+SHARD: browser-sab
+DESCRIPTION: chromium: crossOriginIsolated + SAB kernel roundtrip + 1W/2R fanout
+STATUS: PASSED ✅
+COMMIT: 6004ec66bd06211edfeb3791c78f6d8ed6ae8dee
+RUN: 191
+==================================================
+
+=== ensure @weft/core dist ===
+=== provision playwright (scratch project, git-ignored) ===
+
+added 1 package in 2s
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.3 MiB
+Chrome Headless Shell 153.0.8010.12 (playwright chromium-headless-shell v1243) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1243
+=== harness server (COOP/COEP) + chromium probe ===
+[browser-harness] listening on 8123 (COOP/COEP set)
+[probe] harness completed: WEFT_SAB_REPORT_SENT
+[browser-harness] report: {
+  "crossOriginIsolated": true,
+  "sabAvailable": true,
+  "kernelRoundtrip": {
+    "ok": true,
+    "detail": "pub=0 claimed=1 bytesOk=true"
+  },
+  "fanout": {
+    "ok": true,
+    "detail": "fresh1=5000 fresh2=2500 done1=5000 done2=5000",
+    "tornAccepted": 0,
+    "frames": 5000
+  }
+}
+✅ browser-sab shard PASSED

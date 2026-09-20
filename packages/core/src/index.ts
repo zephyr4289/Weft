@@ -8,3 +8,4 @@ export * from './cursor';
 export * from './fanout_chaos';
 export * from './replay';
 export * from './trend';
+export * from './trace';

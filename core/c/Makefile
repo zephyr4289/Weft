@@ -409,6 +409,25 @@ recovery-test: recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c fano
 recovery-test-asan: recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c fanout.h weft.h
 	$(CC) $(CFLAGS_ASAN) -o recovery-test-asan recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c
 
+# ---- RFC-0021 weft-tensor fabric (Pillar 2) -------------------------------
+# Self-contained module under core/c/tensor/ (Law 3: additive only, zero
+# kernel surface). WT-series: view geometry + golden bit-exactness gate,
+# paged arenas (measured ns/alloc), lock-free DMA tensor rings (MPSC/SPMC/
+# MPMC tearing stress, fork torture, throughput fixture). The heavy
+# evidence legs run the -O2 binaries with --bench.
+
+tensor-test:
+	$(MAKE) -C tensor test
+
+tensor-test-asan:
+	$(MAKE) -C tensor test-asan
+
+tensor-test-tsan:
+	$(MAKE) -C tensor test-tsan
+
+tensor-clean:
+	$(MAKE) -C tensor clean
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
@@ -423,7 +442,9 @@ clean:
 	      uring-test uring-test-asan uring-test-tsan \
 	      turbo-runner turbo-runner-sys bench \
 	      blend-test blend-test-asan blend-runner \
-	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench recovery-test recovery-test-asan
+	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench recovery-test recovery-test-asan \
+	      device-spectrum-test device-spectrum-test-asan device-spectrum-test-tsan
+	$(MAKE) -C tensor clean
 
 .PHONY: all clean
 

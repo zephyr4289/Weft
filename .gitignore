@@ -145,3 +145,17 @@ core/c/tensor/tensor-arena-test-asan
 core/c/tensor/tensor-ring-test
 core/c/tensor/tensor-ring-test-asan
 core/c/tensor/tensor-ring-test-tsan
+core/c/dmabuf-test
+core/c/dmabuf-test-asan
+core/c/gpu-extmem-test
+core/c/gpu-extmem-test-asan
+core/c/xdp-test
+core/c/xdp-test-asan
+core/c/xdp-live-gate
+core/c/tensor-test
+core/c/tensor-test-asan
+core/c/camera-test
+core/c/camera-test-asan
+core/c/hetero-probe
+tools/weft-tensor/test-*
+tools/weft-tensor/weft-accel-bench

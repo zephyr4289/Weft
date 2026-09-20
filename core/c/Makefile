@@ -279,6 +279,105 @@ uring-test-asan: uring_rx.c uring_rx.h uring_test.c $(URING_SRC) fanout.h weft.h
 uring-test-tsan: uring_rx.c uring_rx.h uring_test.c $(URING_SRC) fanout.h weft.h
 	$(CC) $(CFLAGS_DBG) -o uring-test-tsan $(URING_SRC) uring_test.c
 
+# ---- RFC-0016 s3 DMA-BUF direct binding (weft_dmabuf) ------------------------
+# weft_dmabuf.{h,c}: ring storage allocated from /dev/dma_heap/system +
+# foreign dma-buf fd import (the cross-device currency). DB-series gates;
+# no heap device on the build host -> the refusal leg runs (honest, Law 4).
+
+DMABUF_SRC = weft_dmabuf.c shm_ring.c fanout.c frame_cursor.c weft.c $(FSIMD_SRC)
+
+dmabuf-test: weft_dmabuf.c weft_dmabuf.h weft_dmabuf_test.c $(DMABUF_SRC) shm_ring.h fanout.h weft.h
+	$(CC) $(CFLAGS) -o dmabuf-test $(DMABUF_SRC) weft_dmabuf_test.c -lrt
+
+dmabuf-test-asan: weft_dmabuf.c weft_dmabuf.h weft_dmabuf_test.c $(DMABUF_SRC) shm_ring.h fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o dmabuf-test-asan $(DMABUF_SRC) weft_dmabuf_test.c -lrt
+
+# ---- RFC-0016 s2 GPU external-memory wrap (gpu_extmem_test) ------------------
+# XE/XD-series: VK_EXT_external_memory_host + VK_KHR_external_memory_fd wrap
+# roads over EXISTING WFSH sessions. Needs the .spv (rebuilt by the shard
+# when glslangValidator is present; the committed .spv is canonical).
+
+EXTMEM_SRC = gpu_ring.c gpu_stream.c weft_dmabuf.c shm_ring.c fanout.c frame_cursor.c weft.c $(FSIMD_SRC)
+
+gpu-extmem-test: gpu_extmem_test.c $(EXTMEM_SRC) gpu_ring.h gpu_stream.h weft_dmabuf.h shm_ring.h fanout.h weft.h
+	$(CC) $(CFLAGS) -o gpu-extmem-test $(EXTMEM_SRC) gpu_extmem_test.c -lrt -ldl
+
+gpu-extmem-test-asan: gpu_extmem_test.c $(EXTMEM_SRC) gpu_ring.h gpu_stream.h weft_dmabuf.h shm_ring.h fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o gpu-extmem-test-asan $(EXTMEM_SRC) gpu_extmem_test.c -lrt -ldl
+
+# ---- RFC-0016 s4 AF_XDP kernel-bypass ingestion (xdp_rx) ---------------------
+# xdp_rx.{h,c}: NIC DMA straight into ring slot payloads (UMEM-as-session,
+# unaligned chunks, pre-bracketed fill ring). X-series gates: the state
+# machine (synthetic descriptors) + the uring delegation run everywhere;
+# the xsk legs run where CONFIG_XDP_SOCKETS exists.
+
+XDP_SRC = xdp_rx.c uring_rx.c weft_dmabuf.c fanout.c frame_cursor.c weft.c $(FSIMD_SRC)
+
+xdp-test: xdp_rx.c xdp_rx.h xdp_test.c $(XDP_SRC) uring_rx.h weft_dmabuf.h fanout.h weft.h
+	$(CC) $(CFLAGS) -o xdp-test $(XDP_SRC) xdp_test.c
+
+xdp-test-asan: xdp_rx.c xdp_rx.h xdp_test.c $(XDP_SRC) uring_rx.h weft_dmabuf.h fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o xdp-test-asan $(XDP_SRC) xdp_test.c
+
+# ---- RFC-0016 s4 LIVE-mode proof rig (privileged runners only) ---------------
+# xdp_live_gate.c: compiles everywhere Linux does; refuses honestly (exit 3)
+# on kernels without CONFIG_XDP_SOCKETS. Driven by ci/scripts/xdp_loopback_proof.sh.
+
+xdp-live-gate: xdp_live_gate.c $(XDP_SRC) xdp_rx.h weft_dmabuf.h fanout.h weft.h
+	$(CC) $(CFLAGS) -o xdp-live-gate $(XDP_SRC) xdp_live_gate.c
+
+# ---- RFC-0016 s5 tensor stream bridge (weft_tensor) --------------------------
+# WTS1 in-band tensor frames over the ordinary fan-out API. T-series gates.
+
+TENSOR_SRC = weft_tensor.c weft_f16_codec.c weft_dmabuf.c fanout.c frame_cursor.c weft.c $(FSIMD_SRC)
+
+tensor-test: weft_tensor.c weft_tensor.h weft_tensor_test.c $(TENSOR_SRC) weft_f16_codec.h weft_dmabuf.h fanout.h weft.h
+	$(CC) $(CFLAGS) -o tensor-test $(TENSOR_SRC) weft_tensor_test.c -lm
+
+tensor-test-asan: weft_tensor.c weft_tensor.h weft_tensor_test.c $(TENSOR_SRC) weft_f16_codec.h weft_dmabuf.h fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o tensor-test-asan $(TENSOR_SRC) weft_tensor_test.c -lm
+
+# ---- RFC-0016 s5.2 fused compute passes (tensor_reduce + fft_radix2) ---------
+# The .comp shaders consume live WTS1 frames through the imported ring;
+# .spv rebuilt by glslangValidator when present (committed .spv canonical).
+# hetero_probe.c is the capstone: memfd session -> wrap_dmabuf -> CPU
+# publishes -> GPU reduces -> CPU references cross-check.
+
+SPV_TENSOR = ../../probes/compute/tensor_reduce.spv
+SPV_FFT = ../../probes/compute/fft_radix2.spv
+
+$(SPV_TENSOR): ../../probes/compute/tensor_reduce.comp
+	if command -v glslangValidator >/dev/null 2>&1; then \
+	glslangValidator -V $< -o $@; \
+	else echo "glslangValidator not found — using committed $@"; touch $@; fi
+
+$(SPV_FFT): ../../probes/compute/fft_radix2.comp
+	if command -v glslangValidator >/dev/null 2>&1; then \
+	glslangValidator -V $< -o $@; \
+	else echo "glslangValidator not found — using committed $@"; touch $@; fi
+
+HETERO_SRC = gpu_ring.c gpu_stream.c weft_dmabuf.c weft_tensor.c weft_f16_codec.c shm_ring.c fanout.c frame_cursor.c weft.c $(FSIMD_SRC)
+
+
+# ---- RFC-0016 s6 camera/compositor seams (v4l2 + ahb) -------------------------
+# V-series gates: refusal legs run everywhere (the CI state); capture/AHB
+# legs run where the hardware exists.
+
+CAMERA_SRC = weft_hw_v4l2.c weft_hw_ahb.c weft_dmabuf.c fanout.c frame_cursor.c weft.c $(FSIMD_SRC)
+
+camera-test: weft_hw_camera_test.c $(CAMERA_SRC) weft_hw_v4l2.h weft_hw_ahb.h weft_dmabuf.h fanout.h weft.h
+	$(CC) $(CFLAGS) -o camera-test $(CAMERA_SRC) weft_hw_camera_test.c
+
+camera-test-asan: weft_hw_camera_test.c $(CAMERA_SRC) weft_hw_v4l2.h weft_hw_ahb.h weft_dmabuf.h fanout.h weft.h
+	$(CC) $(CFLAGS_ASAN) -o camera-test-asan $(CAMERA_SRC) weft_hw_camera_test.c
+
+hetero-probe: hetero_probe.c $(HETERO_SRC) $(SPV_TENSOR) $(SPV_FFT) gpu_ring.h gpu_stream.h weft_dmabuf.h weft_tensor.h weft_f16_codec.h fanout.h weft.h
+	$(CC) $(CFLAGS) -o hetero-probe $(HETERO_SRC) hetero_probe.c -lrt -ldl -lm
+
+
+
+
+
 # ---- RFC 0012 T-bench evidence runner ---------------------------------------
 # turbo_runner.c: caps / TL-writer / TL-reader / TL-ring / ING-uring modes;
 # one JSON line per variant (bench_runner.c methodology). -sys builds the

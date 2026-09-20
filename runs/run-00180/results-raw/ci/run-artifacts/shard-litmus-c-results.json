@@ -1,0 +1,23 @@
+{
+  "shard": "litmus-c",
+  "status": "PASSED",
+  "cells_pass": 15,
+  "cells_total": 15,
+  "cells": {
+    "c/L1-tear": true,
+    "c/L2-writer-steps": true,
+    "c/L3-reader-steps": true,
+    "c/L4-freshness": true,
+    "c/L5-progress": true,
+    "c/L6-ownership": true,
+    "c/L7-revocation": true,
+    "c/L8-envelope": true,
+    "c/L9-cross-beam": true,
+    "c/L10-nested-revocation": true,
+    "c/L12-canary-corruption": true,
+    "c/L13-claim-retry": true,
+    "c/L14-mixed-endianness": true,
+    "c/L15-huge-payload": true,
+    "c/L16-rapid-reclaim": true
+  }
+}

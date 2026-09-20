@@ -1,0 +1,1 @@
+{"shard":"weftc-codegen","status":"PASSED","gates":"native (C11/Rust/WGSL/GLSL) + managed (TS/Python/Swift/Dart/React/Flutter) + parity matrix + E2E kernel round-trip"}

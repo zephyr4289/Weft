@@ -1,0 +1,17 @@
+{
+  "shard": "sanitizers",
+  "status": "FAILED",
+  "cells": {
+    "asan-build": false,
+    "asan-litmus": true,
+    "asan-reclaim": true,
+    "asan-fanout": true,
+    "asan-governor": true,
+    "asan-verified": false,
+    "asan-blend": false,
+    "asan-ffihost": false,
+    "asan-ffihost-fork": false,
+    "asan-fuzz": false,
+    "tsan-suite": true
+  }
+}

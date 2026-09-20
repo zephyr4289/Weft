@@ -21,7 +21,7 @@ void main() {
       : (File('packages/flutter_weft/lib/src/weft_notifier.dart').existsSync()
           ? File('packages/flutter_weft/lib/src/weft_notifier.dart')
           : File('../../packages/flutter_weft/lib/src/weft_notifier.dart'));
-  final src = file.readAsStringSync();
+  final src = file.readAsStringSync().replaceAll('\r\n', '\n');
 
   test('WeftNotifier implements Listenable with the full contract', () {
     expect(src, contains('class WeftNotifier implements Listenable'));

@@ -27,7 +27,7 @@
 #  define WEFT_SIMD_X86 1
 #elif defined(__ARM_NEON) || defined(__aarch64__)
 #  include <arm_neon.h>
-#  define WEFT_SIMD_NEON 1
+#  define WEFT_SIMD_ARM 1
 #endif
 
 // ---------------------------------------------------------------------------
@@ -86,7 +86,7 @@ static void copy_avx2(float* dst, const float* src, size_t n) {
 // aarch64 / NEON
 // ---------------------------------------------------------------------------
 
-#ifdef WEFT_SIMD_NEON
+#ifdef WEFT_SIMD_ARM
 
 static void normalize_neon(float* dst, const uint8_t* src, size_t n,
                            float scale) {
@@ -133,7 +133,7 @@ static int weft_simd_resolve(void) {
     if (cached >= 0) return cached;
 #if defined(WEFT_SIMD_X86)
     cached = __builtin_cpu_supports("avx2") ? WEFT_SIMD_AVX2 : WEFT_SIMD_SCALAR;
-#elif defined(WEFT_SIMD_NEON)
+#elif defined(WEFT_SIMD_ARM)
     cached = WEFT_SIMD_NEON;
 #else
     cached = WEFT_SIMD_SCALAR;
@@ -157,7 +157,7 @@ void weft_simd_normalize_u8_to_f32(float* dst, const uint8_t* src,
         normalize_avx2(dst, src, n, scale);
         return;
     }
-#elif defined(WEFT_SIMD_NEON)
+#elif defined(WEFT_SIMD_ARM)
     if (weft_simd_resolve() == WEFT_SIMD_NEON) {
         normalize_neon(dst, src, n, scale);
         return;
@@ -174,7 +174,7 @@ void weft_simd_copy_f32(float* dst, const float* src, size_t n) {
         copy_avx2(dst, src, n);
         return;
     }
-#elif defined(WEFT_SIMD_NEON)
+#elif defined(WEFT_SIMD_ARM)
     if (weft_simd_resolve() == WEFT_SIMD_NEON) {
         copy_neon(dst, src, n);
         return;

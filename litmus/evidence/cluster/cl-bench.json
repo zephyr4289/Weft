@@ -1,7 +1,6 @@
 {
   "weft-cluster-bench": {
-    "loopback": { "samples": 2000, "p50_ns": 73, "p95_ns": 75, "p99_ns": 75, "max_ns": 105, "allocs_while_armed": 0 },
-    "uring": { "samples": 2000, "p50_ns": 3370, "p95_ns": 6479, "p99_ns": 6888, "max_ns": 20565, "allocs_while_armed": 0 },
-    "verdict": "PASS"
+    "loopback": { "samples": 2000, "p50_ns": 1406, "p95_ns": 1407, "p99_ns": 1511, "max_ns": 1141979, "allocs_while_armed": 0 },
+    "verdict": "FAIL"
   }
 }

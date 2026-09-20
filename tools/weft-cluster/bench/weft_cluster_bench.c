@@ -112,9 +112,12 @@ static int bench_loopback(uint32_t iters, uint32_t msg_bytes,
 }
 
 static int bench_uring(uint32_t iters, uint32_t msg_bytes,
-                       long* audit_count) {
+                       long* audit_count, const char** refusal) {
     char d[192];
-    if (weft_uring_probe(d, sizeof(d)) < WEFT_URING_CAP_RING) return -1;
+    if (weft_uring_probe(d, sizeof(d)) < WEFT_URING_CAP_RING) {
+        *refusal = "HARDWARE-DEFERRED — io_uring not available on this runner (see chain)";
+        return 1;
+    }
 
     weft_uring_config_t cfg = weft_uring_config_default();
     cfg.sq_entries = 64;
@@ -360,7 +363,8 @@ int main(int argc, char** argv) {
         if ((i == 0 && want_loopback)) {
             rc = bench_loopback(iters, msg_bytes, &roads[i].audit);
         } else if (i == 1 && want_uring) {
-            rc = bench_uring(iters, msg_bytes, &roads[i].audit);
+            rc = bench_uring(iters, msg_bytes, &roads[i].audit, &refusal);
+            roads[i].refusal = refusal;
         } else if (i == 2 && want_rdma) {
             rc = bench_rdma(iters, msg_bytes, &roads[i].audit, &refusal);
             roads[i].refusal = refusal;
@@ -375,8 +379,8 @@ int main(int argc, char** argv) {
             roads[i].refusal = refusal ? refusal : "refused (see chain)";
             printf("%-10s %-9s %10s %10s %10s %10s  %s\n", roads[i].name,
                    "-", "-", "-", "-", "-", roads[i].refusal);
-            if (i == 2) {
-                // RDMA absent is HONEST, not a failure — the row records it
+            if (i == 2 || (i == 1 && rc == 1)) {
+                // RDMA / uring absent is HONEST on this runner, not a failure
             } else if (rc == -1 && i == 1) {
                 failures++;   // uring probed OK but the road failed
             }

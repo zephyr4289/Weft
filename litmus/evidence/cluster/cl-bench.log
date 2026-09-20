@@ -1,14 +1,13 @@
-  uring road: tx_mode=WRITE_FIXED registered=1 notifs=0
   rdma road: rdma: libibverbs.so.1 not loadable — install rdma-core (honest refusal, Law 4)
 weft-cluster-bench (RFC-0019) — iters=2000 msg=128B audit=strict
 rdma: REFUSED — rdma: libibverbs.so.1 not loadable — install rdma-core (honest refusal, Law 4) (driver_absent)
   xdp: REFUSED — xdp: no CAP_BPF/CAP_NET_ADMIN — filter load will refuse (Law 4); io_uring road carries the traffic (rung=0) (perms_refused)
-  uring: OK — uring: rings LIVE (register=ok) (rung=2) (ok)
+  uring: REFUSED — uring: io_uring_setup refused: Function not implemented (ENOSYS = kernel < 5.1; EPERM = seccomp/sysctl — Law 4 refusal) (rung=0) (sys_unsupported)
   loopback: OK — loopback: always available (in-process, [FALLBACK-COPY]) (ok)
 
 road       samples          p50        p95        p99        max  audit/note
-loopback   2000             73ns        75ns        75ns       105ns  allocs=0 [FALLBACK-COPY]
-uring      2000           3370ns      6479ns      6888ns     20565ns  allocs=0 rtt(one-way~rtt/2,estimated)
+loopback   2000           1406ns      1407ns      1511ns   1141979ns  allocs=0 [FALLBACK-COPY]
+uring      -                  -          -          -          -  refused (see chain)
 rdma       -                  -          -          -          -  HARDWARE-DEFERRED — no RDMA device on this runner (the harness ships ready: run on an HCA node)
 
-verdict: PASS
+verdict: FAIL

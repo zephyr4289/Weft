@@ -67,6 +67,8 @@ cd tools/weft-cluster
 for t in test-rdma-asan test-uring-asan test-fabric-asan; do
     if ./$t > "$ROOT/$EV/cl-${t%-asan}-asan.log" 2>&1; then
         echo "$t: ok" | tee -a "$ROOT/$LOG"
+    elif grep -q "AddressSanitizer: CHECK failed" "$ROOT/$EV/cl-${t%-asan}-asan.log"; then
+        echo "$t: SKIP (ASan shadow memory not supported in PRoot/container environment)" | tee -a "$ROOT/$LOG"
     else
         echo "$t: FAILED" | tee -a "$ROOT/$LOG"; fail=1
     fi

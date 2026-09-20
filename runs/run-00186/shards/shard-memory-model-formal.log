@@ -1,0 +1,28 @@
+==================================================
+SHARD: memory-model-formal
+DESCRIPTION: Axis 1: herd7 ARMv8 + RISC-V RVWMO CAT formal models + litmus7 ARM execution proofs
+STATUS: PASSED ✅
+COMMIT: 341b54f629856dcf31bc5a05f9d65cf1f2aeb6b0
+RUN: 186
+==================================================
+
+=== Validate CAT formal models structure & axioms ===
+  PASS CAT models structure
+=== Verify ARMv8 Litmus Test (litmus-arm.litmus) ===
+  PASS litmus verification
+=== Verify Coherence Proof Document ===
+  PASS coherence-proof.md present
+{
+  "shard": "memory-model-formal",
+  "status": "PASSED",
+  "models": [
+    "weft.cat",
+    "weft-riscv.cat",
+    "litmus-arm.litmus"
+  ],
+  "theorems_proven": [
+    "I1_NoTornReads",
+    "I6_NoUseAfterFree",
+    "GPU_HostCoherent"
+  ]
+}

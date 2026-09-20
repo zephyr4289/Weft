@@ -1,0 +1,31 @@
+==================================================
+SHARD: litmus-ts
+DESCRIPTION: L1-L8 litmus suite, TS kernel (with EXPOSURE-RETRY)
+STATUS: PASSED ✅
+COMMIT: 341b54f629856dcf31bc5a05f9d65cf1f2aeb6b0
+RUN: 186
+==================================================
+
+# Loaded catalog: w# Loaded catalog: weft-litmus v3
+  run    -> exit=0 elaps    -> exit=0 elapsed=0.8s pass=True
+  running ts     -> exit=0 elaps    -> exit=0 elapsed=0.4s pass=True
+  running ts     -> exit=0 elaps    -> exit=0 elap  running ts L4-fre  running     -> exit=0 elaps    -> exit=0 elapsed=0.2s pass=True
+  running    -> exit=0 elaps    -> exit=0 elapsed=4.2s pass=True
+  running     -> exit=0 elaps    -> exit=0 elaps  running ts L7-rev  running t    -> exit=0 elaps    -> exit=0 elapsed=0.2s pass=True
+  running    -> exit=0 elaps    -> exit=0 elapWrote /home/runner/Wrote /home/runner/work/Weft/WefWrote /home/runner/Wrote /home/runner/work/Weft/Weft/litmus/results.json
+{
+  "shard": "litmus-ts",
+  "status": "PASSED",
+  "cells_pass": 8,
+  "cells_total": 8,
+  "cells": {
+    "ts/L1-tear": true,
+    "ts/L2-writer-steps": true,
+    "ts/L3-reader-steps": true,
+    "ts/L4-freshness": true,
+    "ts/L5-progress": true,
+    "ts/L6-ownership": true,
+    "ts/L7-revocation": true,
+    "ts/L8-envelope": true
+  }
+}

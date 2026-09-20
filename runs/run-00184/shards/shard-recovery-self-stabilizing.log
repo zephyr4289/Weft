@@ -1,0 +1,30 @@
+==================================================
+SHARD: recovery-self-stabilizing
+DESCRIPTION: Axis 3: Self-stabilizing ring recovery + health check + 10k fault injection cycles + TLA+ recovery proof
+STATUS: PASSED ✅
+COMMIT: c4404270a9412f652c4010c832c627051b579d75
+RUN: 184
+==================================================
+
+=== Build recovery-test & recovery-test-asan ===
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o recovery-test recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o recovery-test-asan recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c
+  PASS build
+=== Execute 10,000 Recovery & Health Check Cycles (Plain) ===
+  PASS recovery-test (10,000 cycles)
+=== Execute Recovery Under ASan + UBSan ===
+  PASS recovery-test-asan
+=== Verify TLA+ Self-Stabilization Model (FanoutSeqlockRecovery.tla) ===
+  PASS TLA+ recovery model
+{
+  "shard": "recovery-self-stabilizing",
+  "status": "PASSED",
+  "iterations": 10000,
+  "fault_classes_tested": [
+    "FUTURE_SEQ",
+    "IMPOSSIBLE_STAMP",
+    "SPLIT_BRAIN",
+    "RANDOMIZED_CTRL_CORRUPTION"
+  ],
+  "tla_model": "formal/fanout/FanoutSeqlockRecovery.tla"
+}

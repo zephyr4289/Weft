@@ -101,3 +101,12 @@ export function WeftFanoutCanvas({ broadcaster, draw, ...canvasProps }: WeftFano
 
   return React.createElement('canvas', { ref: canvasRef, ...canvasProps });
 }
+
+// ---------------------------------------------------------------------------
+// WeftHud (RFC 0016 §9) — the real-time DevTools overlay. Zero-GC canvas
+// oscilloscope: ring depth / freshness / drop bursts + the trend verdict,
+// sampled through a host callback (Law 3), painted imperatively (no React
+// state, no reconciliation in the hot path).
+// ---------------------------------------------------------------------------
+export { WeftHud } from './WeftHud';
+export type { WeftHudProps, WeftHudSample } from './WeftHud';

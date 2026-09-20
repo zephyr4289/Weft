@@ -1,0 +1,28 @@
+{
+  "weft_ir": 1,
+  "module": "mcu",
+  "types": [
+    {
+      "kind": "struct",
+      "name": "mcu_status",
+      "schema_id": "auto",
+      "align": 8,
+      "size": 32,
+      "doc": "Embedded MCU heartbeat: bitfields, f16 sensors, u16 arrays. CPU-rich; GPU targets refuse it (Law 4 fixture).",
+      "fields": [
+        { "name": "schema_id", "type": "u64", "offset": 0 },
+        { "name": "flags", "type": "u32", "offset": 8,
+          "bits": [
+            { "name": "mode", "lo": 0, "hi": 1 },
+            { "name": "armed", "lo": 4, "hi": 4 },
+            { "name": "error_code", "lo": 8, "hi": 15 }
+          ] },
+        { "name": "vbus_mv", "type": "u16", "offset": 12, "doc": "bus voltage, millivolts" },
+        { "name": "temp_c", "type": "f16", "offset": 14, "doc": "board temperature" },
+        { "name": "gyro_temp_c", "type": "f16", "offset": 16 },
+        { "name": "motor_rpm", "type": "[u16; 4]", "offset": 20, "doc": "per-motor RPM" },
+        { "name": "crc32", "type": "u32", "offset": 28 }
+      ]
+    }
+  ]
+}

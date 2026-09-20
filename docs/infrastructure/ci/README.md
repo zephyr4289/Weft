@@ -24,6 +24,7 @@ Every push to `main`/`develop` and every PR to `main` triggers the **Extreme Tes
 | `site-determinism` | `make site` double-render, byte-identical sha256 | Hard fail |
 | `forensic-scan` | PAST-CROPBOX scan at 611.5pt threshold on all PDFs | Hard fail (0 flags) |
 | `canonical-audit` | `bench/results.json` sha256 = `16b5c663` (R1 Path C invariant) | Hard fail |
+| `weftc-codegen` | Project weftc Pillar 1 native codegen (C11/Rust/WGSL/GLSL): generator determinism, committed goldens, Law-4 GPU-refusal matrix, C roundtrip x3 build flavors (static ABI asserts, cast refusals, misaligned packed IO, 65536-pattern f16 identity, SIMD batch), Rust no_std compile + C→Rust→C bit-exact stage bins, WGSL/GLSL double-entry vs C `offsetof`, glslang SPIR-V leg | Hard fail |
 | **`perf-regression`** | **W-suite P99 vs pinned baseline; >15% drop = FAIL** | **Hard fail** |
 
 After all shards finish, the **aggregation job** downloads every shard's log + results JSON, computes the overall status, and commits the full report to the **`ci-report` branch** under `runs/run-<NNNNN>/`.

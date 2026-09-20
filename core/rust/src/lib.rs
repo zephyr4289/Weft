@@ -40,7 +40,15 @@ use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 pub mod fanout;
 pub mod frame_cursor;
 pub mod governor;
+/// RFC-0019 deterministic time-travel replay fold — driver-layer
+/// observability; composes BESIDE the kernel; core/c/weft_replay.{h,c}
+/// is the normative reference (pinned hash vectors are the contract).
+pub mod replay;
 pub mod shm;
+/// RFC-0020 predictive lag-trend estimator — a driver-layer sensor the
+/// consumer MAY consult (the governor ladder is untouched);
+/// core/c/weft_trend.{h,c} is the normative reference.
+pub mod trend;
 /// VerifiedWeft — authenticated frame records (RFC 0005). Driver-layer:
 /// composes BESIDE the kernel; byte-compat with core/c/verified.c.
 pub mod verified;

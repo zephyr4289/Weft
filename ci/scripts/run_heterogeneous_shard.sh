@@ -133,11 +133,14 @@ fi
 
 # --- 6. kernel freeze --------------------------------------------------------
 step "kernel freeze (weft.c/weft.h byte-frozen — Law 3)"
-BASE="$(git merge-base HEAD origin/main 2>/dev/null || git rev-list --max-parents=0 HEAD | head -1)"
-if git diff --quiet "$BASE" -- core/c/weft.c core/c/weft.h; then
-  echo "  frozen: zero diffs on weft.c/weft.h since $BASE" | tee -a "$LOG"
+WEFT_C_SHA="c7e23875d1eca959c7176e68738da84b486b5c831497ca7283ca03f402a5dc18"
+WEFT_H_SHA="4b940225945db965acd852d1e8509fb3be4e531f0a1bee1b3c8070e64ca5532d"
+ACTUAL_C_SHA=$(sha256sum core/c/weft.c | cut -d' ' -f1)
+ACTUAL_H_SHA=$(sha256sum core/c/weft.h | cut -d' ' -f1)
+if [ "$ACTUAL_C_SHA" = "$WEFT_C_SHA" ] && [ "$ACTUAL_H_SHA" = "$WEFT_H_SHA" ]; then
+  echo "  frozen: weft.c and weft.h match canonical frozen checksums" | tee -a "$LOG"
 else
-  echo "  VIOLATION: weft.c/weft.h changed since $BASE" | tee -a "$LOG"
+  echo "  VIOLATION: weft.c/weft.h checksum mismatch (c: $ACTUAL_C_SHA, h: $ACTUAL_H_SHA)" | tee -a "$LOG"
   fail=1
 fi
 

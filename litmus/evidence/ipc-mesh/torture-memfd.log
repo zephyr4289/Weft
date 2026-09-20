@@ -1,0 +1,15 @@
+=== ipc-torture memfd: 100,000 cross-process publications ===
+  [PASS] 3 survivor consumers exited clean
+  [PASS] consumer #4 crashed mid-claim (SIGKILL, no cleanup)
+  [PASS] ring HEALTHY after consumer crash mid-claim (readers are stateless observers)
+  [PASS] payload bit-exact on every fresh claim (survivors)
+  [PASS] telescoping EXACT: fresh+drops == 100,000 per survivor
+  [PASS] victim progressed to frame seq >= 30,000 (fresh + telescoped) before crashing
+  [PASS] advisory n_consumers == 1 (crash leak visible, honest)
+  [PASS] producer heartbeats advanced through the run
+    [INFO] 100000 frames x 256B in 0.221s = 452631 pub/s (informational; 2 vCPU sandbox; 4 consumer processes claiming)
+    [INFO] consumer 0: fresh=31131 drops=68869 skip=33873 exhausted=0
+    [INFO] consumer 1: fresh=54335 drops=45665 skip=53071 exhausted=0
+    [INFO] consumer 2: fresh=16 drops=99984 skip=3294 exhausted=0
+    [INFO] consumer 3: fresh=7 drops=33292 skip=1164 exhausted=0
+=== ipc-torture (memfd): 0 failures ===

@@ -101,7 +101,6 @@ class WeftNotifier implements Listenable {
     }
   }
 
-  @override
   void dispose() {
     for (var i = 0; i < _listeners.length; i++) {
       _listeners[i] = null;

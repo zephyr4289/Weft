@@ -27,7 +27,7 @@ void main() {
     expect(src, contains('class WeftNotifier implements Listenable'));
     expect(src, contains('@override\n  void addListener(VoidCallback listener)'));
     expect(src, contains('@override\n  void removeListener(VoidCallback listener)'));
-    expect(src, contains('@override\n  void dispose()'));
+    expect(src, contains('void dispose()'));
   });
 
   test('frame() hot path: indexed loop, no allocation, no iterators', () {

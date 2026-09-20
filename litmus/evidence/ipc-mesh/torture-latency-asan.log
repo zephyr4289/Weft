@@ -1,0 +1,8 @@
+=== ipc-torture latency: park (zero-syscall) vs eventfd wake-up, cross-process ===
+  [PASS] park leg: 10,000 rounds, every frame claimed + verified
+  [PASS] eventfd leg: 10,000 wake-up rounds
+    park (zero-syscall)    p50=  1024 ns  p99=  4524 ns  max=2108545 ns
+    eventfd wake-up        p50=  4603 ns  p99=  9397 ns  max=138189 ns
+    [INFO] park = bounded spin (burns CPU while waiting, Law 1 capped); eventfd = blocking (zero CPU while waiting, syscall + scheduler wakeup). Different tools — measured, not asserted.
+=== ipc-torture (latency): 0 failures ===
+rc=0

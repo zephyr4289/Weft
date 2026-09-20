@@ -1,0 +1,42 @@
+# XE/XD-series: gpu external-memory wrap conformance (RFC-0016 s2)
+## XE1 environment probe
+  vulkan leg LIVE (device: llvmpipe (LLVM 19.1.7, 256 bits))
+  PASS native sessions report their kind
+## XE2 wrap_host: imported host memory, GPU-consumed
+  PASS shm anon session (page-aligned, CPU-owned)
+  PASS CPU writer over the shm mapping
+  PASS stream_frames.spv located
+  PASS wrap refused honestly (non-aliasing device) — documented fallback: weft_gpu_create HOST_VISIBLE
+  PASS session intact after the refused wrap
+  PASS the 40 published frames still readable (no corruption)
+  (positive leg hardware-deferred: this ICD does not alias imports — the heterogeneous evidence log carries the llvmpipe diag; AMD/Intel/NVIDIA/GBM roads alias)
+## XE3 wrap_host: live aliasing across later publishes
+  (XE3 declared: the wrap was refused on this ICD — the live-aliasing proof runs on aliasing devices)
+## XE4 alignment gate
+  PASS scratch region mapped
+  PASS valid session at +128 refused (below alignment)
+  (control refused by the alias verification on this ICD — both XE4 roads refused, the +128 gate is alignment-bound per the diag evidence)
+## XE5-XE8 refusal ladder
+  PASS uninitialized mapping refused (no session)
+  PASS second session
+  PASS geometry mismatch refused
+  PASS malloc ring
+  PASS malloc'd ring refused (documented: shm/dmabuf is the road)
+  PASS NULL pointer refused
+  PASS bad fd refused
+## XD1 fd road: substrate import (memfd stand-in for the heap fd)
+  PASS permissive ICD: fd import alias-verified (llvmpipe mmaps any fd — the heap road is the same code path)
+  PASS session reports dmabuf-fd
+  PASS CPU writer over the wrap's mapping
+  fd-road-1: mismatches=0 seq=40 xor=0xc99c9880 width=8 (GPU consumed the fd-imported ring)
+  fd-road-2: mismatches=0 seq=80 xor=0xd2e69974 width=8 (window ADVANCED through the fd)
+  PASS fd road: GPU live-consumed the imported ring, window advanced across dispatches
+  PASS caller's fd intact after the import (dup discipline)
+## XD2 Vulkan dmabuf export -> wrap_dmabuf round-trip
+  PASS writer over the source session
+  PASS wrap refused honestly (fd coverage)
+  (round-trip hardware-deferred: this ICD's exported fd does not carry a usable size/alias)
+## XD3 heap road (weft_dmabuf -> wrap_dmabuf)
+  (declared: no /dev/dma_heap on this host — the heap leg runs where heaps exist; DB-series proves the substrate)
+  PASS heap absence honestly reported (Law 4)
+verdict: PASS (24 passed, 0 failed)

@@ -1,0 +1,143 @@
+#version 450
+// fft_radix2.comp — RFC-0016 §5.2: the hardware-fused DSP pass.
+//
+// A 512-point radix-2 DIT FFT over the LATEST WTS1 F32 waveform frame,
+// read DIRECTLY from the live ring (binding 0 — the imported allocation
+// the CPU publishes to). The "real-time waveform rasterization / spatial
+// audio DSP" vector of the mandate: the spectrum never round-trips to
+// the CPU — the shader reduces it to what a visualizer needs (peak bin,
+// peak magnitude, Parseval health) and reports those words.
+//
+// HONEST NUMERICS (unlike tensor_reduce's add-only bit-exactness): FFT
+// butterflies involve cos/sin twiddles whose last-ulp differs between
+// GPU and CPU libm, and mul+add pairs compilers may FMA-contract. The
+// cross-check is therefore PEAK-BIN-EXACT + magnitude/Parseval within
+// DECLARED tolerances (the tolerance values are the gate's, recorded in
+// the evidence log — the same honesty split rasterize_frame takes for
+// its in-shader verification).
+//
+// BOUND AT descriptor set 0 (the gpu_stream kit):
+//   binding 0 (storage, readonly):  the session span as u32 words
+//   binding 1 (storage, writeonly): result[8] u32 words
+// PUSH CONSTANTS: slots (u32), words (u32)
+//
+// REPORTS:
+//   o[0] = flags: bit0 header mismatch, bit1 Parseval violation
+//   o[1] = peak bin (0..511) — must match the CPU reference EXACTLY for
+//          well-separated tones (ULP-robust: the dominant bin wins by
+//          orders of magnitude, not by ulps)
+//   o[2] = floatBits(peak magnitude)
+//   o[3] = floatBits(Parseval relative error: |sum|X|^2 - N*sum|x|^2| /
+//          (N*sum|x|^2) — the in-shader energy-conservation self-check)
+//   o[4] = 0x54464557 ("WEFT" LE)
+//   o[5] = N (512)
+//   o[6] = latestSeq consumed
+//   o[7] = floatBits(sum of x^2)
+
+layout(local_size_x = 512) in;
+
+layout(std430, binding = 0) readonly buffer RingBuf { uint r[]; };
+layout(std430, binding = 1) writeonly buffer OutBuf { uint o[]; };
+
+layout(push_constant) uniform Params {
+    uint slots;
+    uint words;
+} p;
+
+#define WTS1_MAGIC   0x31535457u
+#define WTS1_HDR     8u
+#define DTYPE_F32    9u
+#define N            512u
+
+shared float sre[N];
+shared float sim[N];
+
+uint bitrev(uint x, uint bits) {
+    uint y = 0u;
+    for (uint i = 0u; i < bits; i++) {
+        y = (y << 1u) | (x & 1u);
+        x >>= 1u;
+    }
+    return y;
+}
+
+void main() {
+    uint li = gl_LocalInvocationID.x;
+
+    uint seq = r[16u];
+    uint k = (seq == 0u ? 0u : (seq - 1u)) % p.slots;
+    uint base = 20u + 2u * p.slots + k * p.words;
+
+    uint mismatch = 0u;
+    if (r[base + 0u] != WTS1_MAGIC) mismatch += 1u;
+    uint w1 = r[base + 1u];
+    if ((w1 & 0xFFu) != 1u) mismatch += 1u;               // version
+    if (((w1 >> 8u) & 0xFFu) != DTYPE_F32) mismatch += 1u; // dtype
+    if (((w1 >> 24u) & 0xFFu) != 0u) mismatch += 1u;      // flags
+    if (r[base + 2u] != N) mismatch += 1u;                // elem_count == N
+    if (p.words < WTS1_HDR + N) mismatch += 1u;           // frame fits slot
+
+    // load through the WTS1 header, bit-reversed (the DIT permutation)
+    uint w = r[base + WTS1_HDR + li];
+    sre[bitrev(li, 9u)] = uintBitsToFloat(w);
+    sim[li] = 0.0;
+    barrier();
+
+    // the 9 radix-2 stages
+    for (uint j = 1u; j < N; j <<= 1u) {
+        uint len = j << 1u;
+        uint blk = (li / len) * len;
+        uint off = li % len;
+        if (off < j) {
+            float ang = -6.283185307179586 * float(off) / float(len);
+            float tw = cos(ang);
+            float tih = sin(ang);
+            float ar = sre[blk + off];
+            float ai = sim[blk + off];
+            float br = sre[blk + off + j];
+            float bi = sim[blk + off + j];
+            float tr = br * tw - bi * tih;
+            float ti = br * tih + bi * tw;
+            sre[blk + off] = ar + tr;
+            sim[blk + off] = ai + ti;
+            sre[blk + off + j] = ar - tr;
+            sim[blk + off + j] = ai - ti;
+        }
+        barrier();
+    }
+
+    // lane 0: the peak (bin EXACT — the ULP-robust gate) + Parseval
+    // (energy conservation: sum|X|^2 == N * sum|x|^2). x is re-read from
+    // the ring because the bit-reversed load reordered sre.
+    if (li == 0u) {
+        float m = 0.0;
+        uint peak_bin = 0u;
+        for (uint i = 0u; i < N; i++) {
+            float v = sqrt(sre[i] * sre[i] + sim[i] * sim[i]);
+            if (v > m) { m = v; peak_bin = i; }
+        }
+        float sum_x2 = 0.0;
+        for (uint i = 0u; i < N; i++) {
+            float x = uintBitsToFloat(r[base + WTS1_HDR + i]);
+            sum_x2 += x * x;
+        }
+        float sum_X2 = 0.0;
+        for (uint i = 0u; i < N; i++)
+            sum_X2 += (sre[i] * sre[i] + sim[i] * sim[i]);
+        float denom = N * sum_x2;
+        float perr = (denom != 0.0)
+            ? abs(sum_X2 - denom) / denom
+            : 0.0;
+        uint flags = mismatch;
+        if (perr > 1e-4) flags |= 2u;   // DECLARED tolerance (evidence log)
+
+        o[0] = flags;
+        o[1] = peak_bin;
+        o[2] = floatBitsToUint(m);
+        o[3] = floatBitsToUint(perr);
+        o[4] = 0x54464557u;
+        o[5] = N;
+        o[6] = seq;
+        o[7] = floatBitsToUint(sum_x2);
+    }
+}

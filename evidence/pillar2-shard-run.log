@@ -1,0 +1,78 @@
+[1/8] fixture determinism
+OK /home/z/my-project/Weft/fixtures/weft-tensor/ring-v1-f32.bin (640 B) byte-identical
+OK /home/z/my-project/Weft/fixtures/weft-tensor/ring-v1-u8.bin (640 B) byte-identical
+[2/8] TypeScript suite
+✔ zero-alloc probe [ring] — 100k steady-state ops stay flat (115.292092ms)
+✔ zero-alloc probe [ingest] — 100k steady-state ops stay flat (105.592155ms)
+✔ zero-alloc probe [audio] — 100k steady-state ops stay flat (125.720858ms)
+✔ zero-alloc probe [render] — 100k steady-state ops stay flat (1251.004785ms)
+✔ zero-alloc probe [overlay] — 100k steady-state ops stay flat (85.051929ms)
+✔ negative control: a deliberately-allocating loop IS caught (85.881421ms)
+✔ f32 fixture: header fields, 10 frames, dyadic payload parity (3.334625ms)
+✔ u8 fixture: header fields, 6 frames, byte payload parity (1.408955ms)
+✔ WebCodecs sync fast path: bytes land in ring, no intermediate (2.945982ms)
+✔ WebCodecs async fast path resolves after the GPU readback lands (0.42142ms)
+✔ copyTo failure is a DROP, never a throw into the frame loop (1.386381ms)
+✔ legacy sync copyTo returning void still commits the full slot (0.471486ms)
+✔ ImageData + raw paths (0.447603ms)
+✔ ingestor dtype gate: f32 ring rejected (Law 4) (0.52244ms)
+✔ AudioPcmFeeder: exact-fit chunks roll one slot per chunk (0.48429ms)
+✔ AudioPcmFeeder: chunk spanning slot boundaries carries with zero gaps (0.35481ms)
+✔ AudioPcmFeeder: tiny chunks accumulate then roll (worklet cadence) (0.270454ms)
+✔ AudioPcmFeeder dtype gate + chunk size gate (Law 4) (0.448952ms)
+✔ crc32 matches node:zlib over the static header region (1.048089ms)
+✔ f16FromBits matches numpy float16 decode exactly (0.283666ms)
+✔ f16ToBits matches numpy round-to-nearest-even (0.253166ms)
+✔ fourcc round-trips as LE ASCII (0.163898ms)
+✔ validateRingHeader accepts both golden fixtures (1.056877ms)
+✔ fail-closed corruption matrix — every mutation gets a machine-readable code (0.773706ms)
+✔ dtype validity table (0.845522ms)
+✔ create() writes a self-validating header (round trip through attach) (0.677311ms)
+✔ Canvas2DPlane: ONE ImageData reused, pixel-accurate blit per frame (3.397027ms)
+✔ Canvas2DPlane dtype gate (Law 4) (0.799313ms)
+✔ OverlayScratch + drawBoxes2D: bounded, reused, pixel records (1.280006ms)
+✔ drawSkeleton2D honours confidence gating (0.429362ms)
+✔ WebGL2Plane: zero-alloc texSubImage2D from the slot view + fullscreen tri (2.060157ms)
+✔ create + typed commit + acquireLatest returns exact values, zero surprises (4.153025ms)
+✔ byte commit path (Uint8Array) with short payload (bounded loop, no throw) (0.523326ms)
+✔ acquireLatest(lastSeq) returns null when nothing new; acquireFrame bounds (1.482294ms)
+✔ overrun: slotCount=2, 5 commits -> old seq gone, latest correct (0.615218ms)
+✔ torn read: uncommitted slot is invisible, then visible after commit marker (0.475439ms)
+✔ zero-copy begin/finish path matches convenience commit (0.389823ms)
+✔ commit rejects wrong dtype / oversized payloads (fail-closed) (0.992697ms)
+✔ create() input validation is fail-closed (0.421627ms)
+✔ waitForNewFrame resolves via injected scheduler; timeout path returns null (31.659436ms)
+✔ SharedArrayBuffer smoke: create(shared) + atomics publish + acquire (0.454211ms)
+✔ ring stats counters are sealed and monotonic (0.151324ms)
+✔ detectRuntime identifies node (this process) (0.881701ms)
+✔ detectRuntime: browser / deno / bun / worker / electron fakes (0.251939ms)
+✔ runtimeMatrix feature list stays sorted/deterministic (0.739718ms)
+✔ assertShareable accepts SAB, rejects plain ArrayBuffer (0.471721ms)
+ℹ tests 46
+ℹ suites 0
+ℹ pass 46
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2287.986175
+[3/8] Python suite
+......s................                                                  [100%]
+22 passed, 1 skipped in 0.66s
+[4/8] TS producer -> Python consumer
+{"producer":"typescript","path":"/tmp/tmp.hYwzHQN8FK/ts_ring.bin","byteLength":640,"producerSeq":10,"slotStride":128,"schemaId":"fe77000000000000"}
+{"consumer": "python", "path": "/tmp/tmp.hYwzHQN8FK/ts_ring.bin", "framesValidated": [7, 8, 9, 10], "dlpackAlias": true, "ok": true}
+[5/8] Python producer -> TS consumer
+{"producer": "python", "path": "/tmp/tmp.hYwzHQN8FK/py_ring.bin", "byteLength": 640, "producerSeq": 10, "slotStride": 128, "schemaId": "fe77000000000001"}
+{"consumer":"typescript","path":"/tmp/tmp.hYwzHQN8FK/py_ring.bin","framesValidated":[7,8,9,10],"ok":true}
+[6/8] DLPack alias proof (consumed the TS-produced ring, pointer-checked)
+    dlpack alias OK (slot ptr 0x40e0bd0 inside ring 0x40e0a90..0x40e0d10)
+[7/8] zero-allocation probes (100k ops each, post-warmup, --expose-gc)
+    {"mode":"ring","iters":100000,"heapBefore":4413408,"heapAfter":4414600,"deltaBytes":1192}
+    {"mode":"ingest","iters":100000,"heapBefore":4415264,"heapAfter":4424568,"deltaBytes":9304}
+    {"mode":"audio","iters":100000,"heapBefore":4405256,"heapAfter":4418408,"deltaBytes":13152}
+    {"mode":"render","iters":100000,"heapBefore":4417112,"heapAfter":4418712,"deltaBytes":1600}
+    {"mode":"overlay","iters":100000,"heapBefore":4310496,"heapAfter":4297752,"deltaBytes":-12744}
+[8/8] latency gates (directive: commit < 50us)
+    {"bench":"weft-tensor commit/acquire","node":"v24.21.0","video":{"geometry":"320x180 RGBA","slotCapBytes":230400,"commit":{"n":50000,"p50_us":0.249,"p99_us":1.136,"max_us":482.631},"acquire":{"n":50000,"p50_us":0.108,"p99_us":0.243,"max_us":35.034},"commit_under_50us":true},"audio":{"geometry":"2ch x 128 f32 (interleaved quanta 256)","slotCapBytes":1024,"commit":{"n":50000,"p50_us":0.495,"p99_us":0.804,"max_us":126.44},"acquire":{"n":50000,"p50_us":0.223,"p99_us":0.642,"max_us":133.07},"commit_under_50us":true}}
+weft-tensor shard: ALL 8 STAGES GREEN

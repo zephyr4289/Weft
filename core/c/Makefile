@@ -207,18 +207,18 @@ SPV_RASTER = ../../probes/compute/rasterize_frame.spv
 
 $(SPV): ../../probes/compute/validate_frame.comp
 	if command -v glslangValidator >/dev/null 2>&1; then \
-	glslangValidator -V $$< -o $$@; \
-	else echo "glslangValidator not found — using committed $$@"; touch $$@; fi
+	glslangValidator -V $< -o $@; \
+	else echo "glslangValidator not found — using committed $@"; touch $@; fi
 
 $(SPV_STREAM): ../../probes/compute/stream_frames.comp
 	if command -v glslangValidator >/dev/null 2>&1; then \
-	glslangValidator -V $$< -o $$@; \
-	else echo "glslangValidator not found — using committed $$@"; touch $$@; fi
+	glslangValidator -V $< -o $@; \
+	else echo "glslangValidator not found — using committed $@"; touch $@; fi
 
 $(SPV_RASTER): ../../probes/compute/rasterize_frame.comp
 	if command -v glslangValidator >/dev/null 2>&1; then \
-	glslangValidator -V $$< -o $$@; \
-	else echo "glslangValidator not found — using committed $$@"; touch $$@; fi
+	glslangValidator -V $< -o $@; \
+	else echo "glslangValidator not found — using committed $@"; touch $@; fi
 
 gpu-probe: gpu_ring.c gpu_ring.h vk_min.h gpu_probe.c $(GPU_SRC) fanout.h weft.h $(SPV)
 	$(CC) $(CFLAGS) -o gpu-probe $(GPU_SRC) gpu_probe.c -lrt -lpthread -ldl

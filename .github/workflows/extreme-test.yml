@@ -405,8 +405,8 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
 
-      - name: Install Vulkan ICD + tools (gpu-native shard)
-        if: matrix.shard == 'gpu-native'
+      - name: Install Vulkan ICD + tools (gpu-native and heterogeneous shards)
+        if: matrix.shard == 'gpu-native' || matrix.shard == 'heterogeneous'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq libvulkan1 libvulkan-dev mesa-vulkan-drivers glslang-tools spirv-tools vulkan-tools

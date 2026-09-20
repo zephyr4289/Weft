@@ -8,6 +8,10 @@ export {
   NODE_FLAG_ALIVE, NODE_FLAG_LEAVING, ipToU32,
 } from './topology.js';
 export { ShardRouter } from './router.js';
+export { MetricsRegistry, HIST_BUCKETS, bucketUpperBound } from './metrics.js';
+export { renderPrometheus, startMetricsServer } from './exporters/prometheus.js';
+export { toOtelJson } from './exporters/otel.js';
+export { buildPftrace, writePftrace } from './exporters/perfetto.js';
 export { WC, wcName, WeftClusterError, hasCode } from './errors.js';
 export { crc32, crc32Range } from './crc32.js';
 export {

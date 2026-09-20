@@ -28,7 +28,7 @@
 // Law 1 (zero steady-state allocation): notify path is allocation-free;
 // addListener grows storage by doubling (cold path); WeftFramePump reuses
 // one view instance and caches the ByteData window per source buffer.
-library weft_flutter.src.weft_notifier;
+library;
 
 import 'dart:typed_data';
 

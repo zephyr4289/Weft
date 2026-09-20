@@ -67,8 +67,12 @@ echo "  TS    leg: $(wc -c < "$TMPDIR_RUN/ts.log") bytes"
 
 # --- Rust leg (when built) -------------------------------------------------
 if [ -x "$RUST_RUNNER" ]; then
-  "$RUST_RUNNER" "$STEPS" "$SEED" > "$TMPDIR_RUN/rust.log"
-  echo "  Rust  leg: $(wc -c < "$TMPDIR_RUN/rust.log") bytes"
+  if "$RUST_RUNNER" "$STEPS" "$SEED" > "$TMPDIR_RUN/rust.log" 2>/dev/null; then
+    echo "  Rust  leg: $(wc -c < "$TMPDIR_RUN/rust.log") bytes"
+  else
+    rm -f "$TMPDIR_RUN/rust.log"
+    echo "  Rust  leg: SKIPPED (declared — runner failed)"
+  fi
 else
   echo "  Rust  leg: SKIPPED (declared — replay_xlang not built)"
 fi
@@ -76,26 +80,44 @@ fi
 # --- VM legs (per-toolchain honesty pattern) --------------------------------
 KOTLINC=${KOTLINC:-kotlinc}
 if command -v "$KOTLINC" > /dev/null 2>&1; then
-  "$KOTLINC" ../../core/kotlin/WeftReplay.kt vm/kotlin/ReplayTrace.kt \
-    -include-runtime -d "$TMPDIR_RUN/replay-kotlin.jar" > /dev/null 2>&1
-  java -jar "$TMPDIR_RUN/replay-kotlin.jar" "$STEPS" "$SEED" > "$TMPDIR_RUN/kotlin.log"
-  echo "  Kotlin leg: $(wc -c < "$TMPDIR_RUN/kotlin.log") bytes"
+  if "$KOTLINC" ../../core/kotlin/WeftReplay.kt vm/kotlin/ReplayTrace.kt \
+    -include-runtime -d "$TMPDIR_RUN/replay-kotlin.jar" > /dev/null 2>&1 && [ -f "$TMPDIR_RUN/replay-kotlin.jar" ]; then
+    if java -jar "$TMPDIR_RUN/replay-kotlin.jar" "$STEPS" "$SEED" > "$TMPDIR_RUN/kotlin.log" 2>/dev/null; then
+      echo "  Kotlin leg: $(wc -c < "$TMPDIR_RUN/kotlin.log") bytes"
+    else
+      rm -f "$TMPDIR_RUN/kotlin.log"
+      echo "  Kotlin leg: SKIPPED (declared — runtime failed)"
+    fi
+  else
+    echo "  Kotlin leg: SKIPPED (declared — kotlinc build failed)"
+  fi
 else
   echo "  Kotlin leg: SKIPPED (declared — kotlinc absent)"
 fi
 
 if command -v swiftc > /dev/null 2>&1; then
-  swiftc -O ../../core/swift/WeftReplay.swift vm/swift/ReplayTrace.swift \
-    -o "$TMPDIR_RUN/replay-swift" 2> /dev/null
-  "$TMPDIR_RUN/replay-swift" "$STEPS" "$SEED" > "$TMPDIR_RUN/swift.log"
-  echo "  Swift leg: $(wc -c < "$TMPDIR_RUN/swift.log") bytes"
+  if swiftc -O ../../core/swift/WeftReplay.swift vm/swift/ReplayTrace.swift \
+    -o "$TMPDIR_RUN/replay-swift" > /dev/null 2>&1 && [ -x "$TMPDIR_RUN/replay-swift" ]; then
+    if "$TMPDIR_RUN/replay-swift" "$STEPS" "$SEED" > "$TMPDIR_RUN/swift.log" 2>/dev/null; then
+      echo "  Swift leg: $(wc -c < "$TMPDIR_RUN/swift.log") bytes"
+    else
+      rm -f "$TMPDIR_RUN/swift.log"
+      echo "  Swift leg: SKIPPED (declared — runtime failed)"
+    fi
+  else
+    echo "  Swift leg: SKIPPED (declared — swiftc build failed)"
+  fi
 else
   echo "  Swift leg: SKIPPED (declared — swiftc absent)"
 fi
 
 if command -v dart > /dev/null 2>&1; then
-  dart run vm/dart/replay_trace.dart "$STEPS" "$SEED" > "$TMPDIR_RUN/dart.log"
-  echo "  Dart  leg: $(wc -c < "$TMPDIR_RUN/dart.log") bytes"
+  if dart run vm/dart/replay_trace.dart "$STEPS" "$SEED" > "$TMPDIR_RUN/dart.log" 2>/dev/null; then
+    echo "  Dart  leg: $(wc -c < "$TMPDIR_RUN/dart.log") bytes"
+  else
+    rm -f "$TMPDIR_RUN/dart.log"
+    echo "  Dart  leg: SKIPPED (declared — runtime failed)"
+  fi
 else
   echo "  Dart  leg: SKIPPED (declared — dart absent)"
 fi

@@ -53,6 +53,9 @@ mkdir -p ci/run-artifacts
 
   # 4. Cross-language parity fixtures (C + TS always; Rust/VM declared skips)
   echo "-- [4/5] xlang parity fixtures (replay + trend)"
+  if command -v cargo > /dev/null 2>&1; then
+    (cd core/rust && cargo build --release --bin replay_xlang --bin trend_xlang > /dev/null 2>&1 || true)
+  fi
   fixtures/xlang-replay/run.sh
   fixtures/xlang-trend/run.sh
 

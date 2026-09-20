@@ -27,5 +27,5 @@ AC-V26 stats percentiles (p50/p95/p99): PASS
 AC-V27 frozen id is deterministic FNV-1a 64: PASS
 AC-V28 SIMD normalize bit-exact vs scalar oracle: PASS
 AC-V29 SIMD copy round-trips: PASS
-  (simd-isa=avx2)
+  (simd-isa=neon)
 AC-V (tensor view ABI): 29 passed, 0 failed, 0 skipped

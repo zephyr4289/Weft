@@ -1,1 +1,1 @@
-{"kind":"weft-cluster-router-bench","membershipLookupNs":{"p50":13.2,"p99":18.8},"routerOwnerNs":{"p50":924,"p99":3171.4,"nodes":8},"mandate":"lock-free cluster state table lookups < 10 ns (Pillar 3 mandate B1)"}
+{"kind":"weft-cluster-router-bench","membershipLookupNs":{"p50":13.5,"p99":21.1},"routerOwnerNs":{"p50":953.2,"p99":4602.5,"nodes":8},"mandate":"lock-free cluster state table lookups < 10 ns (Pillar 3 mandate B1)"}

@@ -5,8 +5,8 @@
     {
       "id": 1,
       "role": "producer",
-      "fps": 5109,
-      "total": 57000,
+      "fps": 5177,
+      "total": 36200,
       "gaps": 0,
       "stale": 0,
       "p50": 0,
@@ -16,7 +16,7 @@
         "market.trades": 4,
         "market.quotes": 3
       },
-      "metricsPort": 43079,
+      "metricsPort": 33723,
       "node": 1,
       "decodeErrors": 0,
       "topics": [
@@ -28,7 +28,7 @@
       "id": 2,
       "role": "consumer",
       "fps": 0,
-      "total": 59400,
+      "total": 39000,
       "gaps": 0,
       "stale": 0,
       "p50": 1572864,
@@ -38,7 +38,7 @@
         "market.trades": 4,
         "market.quotes": 3
       },
-      "metricsPort": 42005,
+      "metricsPort": 45685,
       "node": 2,
       "decodeErrors": 0,
       "topics": [
@@ -50,17 +50,17 @@
       "id": 3,
       "role": "consumer",
       "fps": 0,
-      "total": 59400,
+      "total": 38600,
       "gaps": 0,
       "stale": 0,
       "p50": 1572864,
-      "p99": 8388608,
-      "members": 3,
+      "p99": 6291456,
+      "members": 4,
       "routes": {
         "market.trades": 4,
         "market.quotes": 3
       },
-      "metricsPort": 36965,
+      "metricsPort": 45641,
       "node": 3,
       "decodeErrors": 0,
       "topics": [
@@ -72,7 +72,7 @@
       "id": 4,
       "role": "consumer",
       "fps": 0,
-      "total": 59400,
+      "total": 38600,
       "gaps": 0,
       "stale": 0,
       "p50": 1572864,
@@ -82,7 +82,7 @@
         "market.trades": 4,
         "market.quotes": 3
       },
-      "metricsPort": 37723,
+      "metricsPort": 33849,
       "node": 4,
       "decodeErrors": 0,
       "topics": [
@@ -92,8 +92,8 @@
     }
   ],
   "fpsTargetPerTopic": 5000,
-  "seconds": 6,
-  "convergedMs": 652,
-  "at": "2026-09-20T07:20:00.429Z",
+  "seconds": 4,
+  "convergedMs": 676,
+  "at": "2026-09-20T07:25:28.115Z",
   "monotonicity": true
 }

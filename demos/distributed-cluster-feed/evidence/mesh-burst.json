@@ -6,17 +6,17 @@
   "topics": 1,
   "payloadBytes": 64,
   "fpsTarget": 1000000,
-  "seconds": 3,
-  "publishedFrames": 3000000,
-  "ingestedFrames": 9000000,
-  "expectedIngest": 9000000,
-  "achievedFps": 1037195,
-  "fanoutWritesPerSec": 3111584,
-  "elapsedSec": 2.89,
+  "seconds": 2,
+  "publishedFrames": 2000000,
+  "ingestedFrames": 6000000,
+  "expectedIngest": 6000000,
+  "achievedFps": 1015819,
+  "fanoutWritesPerSec": 3047458,
+  "elapsedSec": 1.97,
   "sequenceGaps": 0,
   "hopLatencyNs": {
     "p50": 1024,
-    "p99": 2048
+    "p99": 3072
   },
-  "at": "2026-09-20T07:22:43.132Z"
+  "at": "2026-09-20T07:25:30.145Z"
 }

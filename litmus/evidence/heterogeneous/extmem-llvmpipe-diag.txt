@@ -1,0 +1,6 @@
+# llvmpipe 25.0.7 host-import behavior (RFC-0016 s2.2):
+#   vkAllocateMemory(host-import) returns SUCCESS but vkMapMemory yields
+#   a DIFFERENT pointer with ZERO contents — the import does not alias.
+#   weft_gpu_wrap_host detects this via the canary round-trip and refuses;
+#   the fd road (wrap_dmabuf) aliases and carries the MEASURED proofs.
+# (reproduce: scripts/vk_diag-style probe — see the RFC's s2.2 notes)

@@ -1,0 +1,4 @@
+# Series 10 — heterogeneous zero-copy mesh evidence (RFC-0016)
+# x86_64 sandbox: 14.2.0; kernel 5.10.134-013.15.kangaroo.al8.x86_64
+# ICD: see shard log
+# generated: 2026-09-19T17:27:16Z

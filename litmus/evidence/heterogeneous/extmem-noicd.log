@@ -1,0 +1,26 @@
+# XE/XD-series: gpu external-memory wrap conformance (RFC-0016 s2)
+## XE1 environment probe
+  (backend=cpu — vulkan legs skipped, declared)
+## XE2 wrap_host: imported host memory, GPU-consumed
+  (XE2 declared: no Vulkan ICD on this host)
+## XE3 wrap_host: live aliasing across later publishes
+  (XE3 declared: no Vulkan ICD on this host)
+## XE4 alignment gate
+  PASS scratch region mapped
+  (declared: no Vulkan ICD — the header+alignment refusal path needs a device to probe)
+## XE5-XE8 refusal ladder
+  PASS uninitialized mapping refused (no session)
+  PASS second session
+  PASS geometry mismatch refused
+  PASS malloc ring
+  PASS malloc'd ring refused (documented: shm/dmabuf is the road)
+  PASS NULL pointer refused
+  PASS bad fd refused
+## XD1 fd road: substrate import (memfd stand-in for the heap fd)
+  (XD1 declared: no Vulkan ICD on this host)
+## XD2 Vulkan dmabuf export -> wrap_dmabuf round-trip
+  (XD2 declared: no Vulkan ICD on this host)
+## XD3 heap road (weft_dmabuf -> wrap_dmabuf)
+  (declared: no /dev/dma_heap on this host — the heap leg runs where heaps exist; DB-series proves the substrate)
+  PASS heap absence honestly reported (Law 4)
+verdict: PASS (9 passed, 0 failed)

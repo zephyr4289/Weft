@@ -16,6 +16,30 @@ path = "src/lib.rs"
 name = "litmus"
 path = "src/bin/litmus.rs"
 
+[[bin]]
+name = "bench"
+path = "src/bin/bench.rs"
+
+[[bin]]
+name = "record"
+path = "src/bin/record.rs"
+
+[[bin]]
+name = "probe"
+path = "src/bin/probe.rs"
+
+[[bin]]
+name = "governor_xlang"
+path = "src/bin/governor_xlang.rs"
+
+[[bin]]
+name = "replay_xlang"
+path = "src/bin/replay_xlang.rs"
+
+[[bin]]
+name = "trend_xlang"
+path = "src/bin/trend_xlang.rs"
+
 [profile.release]
 opt-level = 3
 panic = "abort"

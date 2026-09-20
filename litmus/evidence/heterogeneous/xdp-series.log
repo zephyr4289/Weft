@@ -1,0 +1,46 @@
+# X-series: weft_xdp_rx conformance (RFC-0016 s4)
+## X1 capability probe
+  xdp: none (af_xdp socket absent (EAFNOSUPPORT))
+  PASS probe reports a real rung
+  (this kernel ships without CONFIG_XDP_SOCKETS — the xsk legs are DECLARED; state machine + delegation run)
+  PASS mode_str agrees with the probe
+## X2 pre-bracketed state machine
+  PASS session substrate created
+  PASS page-aligned WFSH session bound
+  PASS writer over the session
+  PASS reader over the session
+  PASS slot-0 umem offset matches the ring layout (64 hdr + ctrl + 0*pb)
+  PASS bracket opened: seq=1 slot=0
+  PASS descriptor closed the bracket: seq 1
+  PASS reader claims frame 1
+  PASS frame 1 bit-exact + tail PADDED to zero (short packet)
+  PASS slot-1 umem offset advanced by pb
+  PASS stale-address descriptor refused
+  PASS misorder counted
+  PASS slot-1 descriptor published: seq 2
+  PASS 98 synthetic frames published in-order
+  PASS telescoping exact: drops = lastSeq - freshClaims (98-15)
+  PASS stats: 100 frames, 100 publishes
+  PASS stats: 100 fill posts (one per bracket)
+  PASS stats: pads + the misorder recorded
+  PASS stats: oversize packet truncated-counted
+  PASS no-bracket descriptor refused
+  PASS both misorders counted
+  PASS detach resets the session
+## X3 uring delegation with real traffic
+  PASS datagram socketpair
+  PASS no AF_XDP kernel: delegated to the uring ladder
+  PASS producer exited clean
+  PASS 500 datagrams ingested -> 500 frames
+  PASS delegation counted the frames
+  PASS reader claims the last frame
+  PASS delegated frame bit-exact
+## X4 refusal discipline
+  PASS malloc'd ring
+  PASS no AF_XDP + no fallback fd: refused
+  PASS refusal errno recorded (EAFNOSUPPORT)
+  PASS malloc ring + fd: delegated (not refused)
+  PASS delegation mode recorded
+  PASS NULL refused
+  PASS NULL next safe
+verdict: PASS (38 passed, 0 failed)

@@ -1,0 +1,6 @@
+# Compiled binaries (tested via FFI, loaded at runtime)
+*.so
+*.dylib
+*.dll
+build/
+.dart_tool/

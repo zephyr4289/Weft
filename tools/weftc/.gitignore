@@ -1,0 +1,5 @@
+# build artifacts
+weftc
+tests/test_layout
+tests/test_hash
+tests/test_dump

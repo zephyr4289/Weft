@@ -1,0 +1,17 @@
+{
+  "irVersion": 1,
+  "generator": "weftc-managed/1.0.0",
+  "schema": {
+    "name": "ImuSample",
+    "namespace": "weft.telemetry",
+    "byteLength": 32,
+    "alignment": 8,
+    "endian": "little",
+    "doc": "Header-less 32-byte lean payload: exercises the no-handshake validateHeader() path (bounds check only) and proves backends emit correct code when no const/role fields exist.",
+    "fields": [
+      { "name": "timestampNs", "type": "u64", "offset": 0, "doc": "Monotonic hardware timestamp, nanoseconds." },
+      { "name": "accel", "type": "f32", "count": 3, "offset": 8, "doc": "Linear acceleration, g." },
+      { "name": "gyro", "type": "f32", "count": 3, "offset": 20, "doc": "Angular rate, rad/s." }
+    ]
+  }
+}

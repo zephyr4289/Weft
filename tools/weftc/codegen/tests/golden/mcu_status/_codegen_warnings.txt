@@ -1,0 +1,2 @@
+weftc-codegen: warning: [wgsl] mcu_status: storage variant withheld (Law 4) — field vbus_mv (scalar): WGSL and GLSL expose no 16-bit integer buffer types; widen to u32 (or keep this struct CPU-side)
+weftc-codegen: warning: [glsl] mcu_status: std430 variant withheld (Law 4) — field vbus_mv (scalar): WGSL and GLSL expose no 16-bit integer buffer types; widen to u32 (or keep this struct CPU-side)

@@ -1,0 +1,16 @@
+# H-series: heterogeneous pipeline capstone (RFC-0016)
+## H1 session wrap (fd import)
+  wrapped: backend=vulkan import=dmabuf-fd device='llvmpipe (LLVM 19.1.7, 256 bits)'
+  PASS H1: the fd road is live
+  PASS tensor_reduce.spv located
+  PASS fft_radix2.spv located
+## H2 tensor pass (f16 embeddings, bit-exact)
+  tensor-1: mismatch=0 argmax=243 (ref 243) seq=50 elems=256 sum=0x1.70cp+4 (ref 0x1.70cp+4)
+  PASS H2: GPU reduction BIT-EXACT (argmax+sum+max) over the imported allocation
+## H3 liveness (the window advances)
+  tensor-2: mismatch=0 argmax=14 (ref 14) seq=100 sum=-0x1.6ccp+3 (ref -0x1.6ccp+3)
+  PASS H3: the reduction followed the LIVE window to frame 100
+## H4 DSP pass (512-point FFT, peak-bin exact)
+  fft: flags=0 peak_bin=37 (ref 37) peak=0x1.666664p+7 (ref 0x1.6666640fd3a41p+7, rel=2.63e-09) perr=2.06e-07 seq=101 N=512
+  PASS H4: peak bin EXACT (37) + Parseval < 1e-4 + magnitude within 1e-3 of the double DFT
+verdict: PASS

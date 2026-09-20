@@ -1,0 +1,1 @@
+weftc-codegen: warning: [glsl] audio_peak: std430 variant withheld (Law 4) — field levels_db (aggregate): array element: GLSL struct members of float16_t need rarely-enabled extensions; use f32 or the wgsl target

@@ -571,6 +571,50 @@ export interface WeftFanoutCanvasProps extends React_2.CanvasHTMLAttributes<HTML
     draw: (ctx: CanvasRenderingContext2D, floats: Float32Array, claim: FanoutClaim) => void;
 }
 
+// @public (undocumented)
+export function WeftHud(input: WeftHudProps): React_2.DetailedReactHTMLElement<{
+    ref: React_2.RefObject<HTMLCanvasElement>;
+    width: number;
+    height: number;
+    style: {
+        position: "absolute";
+        top: number;
+        right: number;
+        zIndex: number;
+        pointerEvents: "none";
+        borderRadius: number;
+    };
+    'data-weft-hud': string;
+}, HTMLCanvasElement>;
+
+// @public (undocumented)
+export interface WeftHudProps {
+    // (undocumented)
+    height?: number;
+    history?: number;
+    // (undocumented)
+    sample: () => WeftHudSample;
+    smoothing?: number;
+    theme?: 'amber' | 'terminal' | 'red';
+    width?: number;
+}
+
+// @public (undocumented)
+export interface WeftHudSample {
+    // (undocumented)
+    behind?: number;
+    // (undocumented)
+    depth?: number;
+    // (undocumented)
+    depthMax?: number;
+    // (undocumented)
+    drops?: number;
+    // (undocumented)
+    throughput?: number;
+    // (undocumented)
+    trend?: number;
+}
+
 // (No @packageDocumentation comment for this package)
 
 ```

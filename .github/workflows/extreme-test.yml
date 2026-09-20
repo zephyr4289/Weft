@@ -179,6 +179,8 @@ jobs:
               {"shard": "memory-model-formal", "description": "Axis 1: herd7 ARMv8 + RISC-V RVWMO CAT formal models + litmus7 ARM execution proofs", "script": "ci/scripts/run_memory_model_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "wcet-audit", "description": "Axis 2: Static instruction disassembly audit + WCET certificates + SCHED_DEADLINE TLA+ model", "script": "ci/scripts/run_wcet_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "recovery-self-stabilizing", "description": "Axis 3: Self-stabilizing ring recovery + health check + 10k fault injection cycles + TLA+ recovery proof", "script": "ci/scripts/run_recovery_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "device-spectrum", "description": "doc-007: Device-spectrum profiling, F16 quantization, dirty-mask, and zero-copy render bridge", "script": "ci/scripts/run_device_spectrum_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "tensor-fabric", "description": "RFC-0021 weft-tensor: WT view/arena/ring suites + golden bit-exactness + MPSC/SPMC/MMPC tearing stress + fork torture (plain + ASAN + TSAN)", "script": "ci/scripts/run_tensor_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)

@@ -1,0 +1,25 @@
+==================================================
+SHARD: verifiedweft
+DESCRIPTION: RFC 0005: V-series x3 kernels + C<->TS interop + tamper rejection
+STATUS: FAILED ❌
+COMMIT: 7391fee5a78dde6b46ed055daaf717424b30756b
+RUN: 203
+==================================================
+
+
+=== C build (verified-test + ASAN + verified-runner) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE  -o verified-test sha256.c sha256_hw.c hmac.c verified.c verified_mb.c sha256_mb.c weft.c verified_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+verified_test.c: In function ‘test_v7_perf’:
+verified_test.c:368:78: error: missing binary operator before token "("
+  368 | #if defined(__SANITIZE_ADDRESS__) || (defined(__has_feature) && __has_feature(address_sanitizer))
+      |                                                                              ^
+verified_test.c:334:40: warning: unused variable ‘tag’ [-Wunused-variable]
+  334 |     uint8_t envelope[16], payload[64], tag[WEFT_VW_TAG_LEN];
+      |                                        ^~~
+make: *** [Makefile:157: verified-test] Error 1
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'

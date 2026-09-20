@@ -26,6 +26,7 @@ export const WGS1_ENTRY_SIZE = 32;
 export const WC_FLAG_INLINE_PAYLOAD = 1;
 export const WC_FLAG_RDMA_REF = 2;
 export const WC_FLAG_CRC_PRESENT = 4;
+export const WC_FLAG_CONTROL = 8; // payload[0]: 1 = SUB, 2 = UNSUB
 
 // WCN1 header field offsets (docs/weft-cluster/WIRE-V1.md §1).
 export const OFF_VERSION = 4;

@@ -1,0 +1,133 @@
+==================================================
+SHARD: formal
+DESCRIPTION: TLA+ proofs — FanoutSeqlock + ReattachPolicy (TLC, pinned jar)
+STATUS: PASSED ✅
+COMMIT: fcc8842036f16162700ae9b48b685414e7dad118
+RUN: 181
+==================================================
+
+
+=== TLC toolchain (pinned sha256) ===
+fetching tla2tools 1.8.0...
+tla2tools 1.8.0 sha256 OK
+
+=== Model: FanoutSeqlock ===
+tee: ci/run-artifacts/shard-formal.log: No such file or directory
+Semantic processing of module _TLCTrace
+Semantic processing of module FanoutSeqlock
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module FanoutSeqlock
+Starting... (2026-09-20 11:43:54)
+Implied-temporal checking--satisfiability problem has 3 branches.
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-09-20 11:43:55.
+Progress(46) at 2026-09-20 11:43:57: 19,454 states generated, 6,481 distinct states found, 0 states left on queue.
+Checking 3 branches of temporal properties for the complete state space with 19443 total distinct states at (2026-09-20 11:43:57)
+Finished checking temporal properties in 00s at 2026-09-20 11:43:57
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 4.6E-12
+19454 states generated, 6481 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 46.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 3 and the 95th percentile is 2).
+Finished in 03s at (2026-09-20 11:43:57)
+[FanoutSeqlock] PROVEN — no error found
+
+=== Model: ReattachPolicy ===
+tee: ci/run-artifacts/shard-formal.log: No such file or directory
+Starting... (2026-09-20 11:43:57)
+Implied-temporal checking--satisfiability problem has 4 branches.
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-09-20 11:43:57.
+Warning: The variable rHdrOK was changed while it is specified as UNCHANGED at
+line 188, col 89 to line 188, col 94 of module ReattachPolicy
+(Use the -nowarning option to disable this warning.)
+Warning: The variable rHdrOK was changed while it is specified as UNCHANGED at
+line 188, col 89 to line 188, col 94 of module ReattachPolicy
+Progress(17) at 2026-09-20 11:43:58: 2,063 states generated, 615 distinct states found, 0 states left on queue.
+Checking 4 branches of temporal properties for the complete state space with 2460 total distinct states at (2026-09-20 11:43:58)
+Finished checking temporal properties in 00s at 2026-09-20 11:43:58
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 4.8E-14
+2063 states generated, 615 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 17.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 4 and the 95th percentile is 2).
+Finished in 00s at (2026-09-20 11:43:58)
+[ReattachPolicy] PROVEN — no error found
+
+=== Model: TriadAcqRel ===
+tee: ci/run-artifacts/shard-formal.log: No such file or directory
+Semantic processing of module _TLCTrace
+Semantic processing of module TriadExchange
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module TriadExchange
+Starting... (2026-09-20 11:43:58)
+Implied-temporal checking--satisfiability problem has 3 branches.
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-09-20 11:43:59.
+Progress(48) at 2026-09-20 11:44:00: 7,639 states generated, 2,340 distinct states found, 0 states left on queue.
+Checking 3 branches of temporal properties for the complete state space with 7020 total distinct states at (2026-09-20 11:44:00)
+Finished checking temporal properties in 00s at 2026-09-20 11:44:00
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 6.7E-13
+7639 states generated, 2340 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 48.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 3 and the 95th percentile is 2).
+Finished in 01s at (2026-09-20 11:44:00)
+[TriadAcqRel] PROVEN — no error found
+
+=== Model (expected counterexample): TriadRelaxed ===
+tee: ci/run-artifacts/shard-formal.log: No such file or directory
+/\ rBadCanary = FALSE
+/\ rPhase = "idle"
+/\ revoked = FALSE
+/\ rDoneTag = 0
+/\ rStep = 0
+/\ envHist = (0 :> {0} @@ 1 :> {0, 1} @@ 2 :> {0})
+/\ wWord = 2
+/\ wWork = 0
+/\ canHist = (0 :> {0} @@ 1 :> {0, 1} @@ 2 :> {0})
+/\ rObsWord = (0 :> 0 @@ 1 :> 1)
+/\ bufCan = (0 :> 0 @@ 1 :> 1 @@ 2 :> 0)
+/\ freed = FALSE
+/\ wSeq = 2
+/\ rTorn = TRUE
+/\ bufEnv = (0 :> 0 @@ 1 :> 1 @@ 2 :> 0)
+
+916 states generated, 386 distinct states found, 123 states left on queue.
+The depth of the complete state graph search is 13.
+Finished in 00s at (2026-09-20 11:44:01)
+Trace exploration spec path: ./TriadExchange_TTrace_1789904640.tla
+[TriadRelaxed] COUNTEREXAMPLE REPRODUCED — Invariant TornPayload is violated
+
+=== Model (expected counterexample): TriadPremature ===
+tee: ci/run-artifacts/shard-formal.log: No such file or directory
+/\ rBadCanary = FALSE
+/\ rPhase = "idle"
+/\ revoked = TRUE
+/\ rDoneTag = 0
+/\ rStep = 0
+/\ envHist = (0 :> {0} @@ 1 :> {0} @@ 2 :> {0})
+/\ wWord = 0
+/\ wWork = 1
+/\ canHist = (0 :> {0} @@ 1 :> {0} @@ 2 :> {0})
+/\ rObsWord = (0 :> 0 @@ 1 :> 0)
+/\ bufCan = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ freed = TRUE
+/\ wSeq = 1
+/\ rTorn = FALSE
+/\ bufEnv = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+
+29 states generated, 18 distinct states found, 10 states left on queue.
+The depth of the complete state graph search is 4.
+Finished in 00s at (2026-09-20 11:44:02)
+Trace exploration spec path: ./TriadExchange_TTrace_1789904641.tla
+[TriadPremature] COUNTEREXAMPLE REPRODUCED — Invariant NoUseAfterFree is violated
+formal shard: PASS

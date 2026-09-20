@@ -1,0 +1,1012 @@
+==================================================
+SHARD: sanitizers
+DESCRIPTION: TIER4 memory-safety audit: ASan+UBSan + TSan, zero findings
+STATUS: PASSED ✅
+COMMIT: 613f4f1a530e3ae96b1fc4922e5dbd78228f3e33
+RUN: 179
+==================================================
+
+=== Build: ASan+UBSan matrix ===
+  PASS asan-build
+=== ASan+UBSan: kernel litmus L1-L8 ===
+  PASS asan-litmus
+=== ASan+UBSan: kernel conformance batteries ===
+  PASS asan-reclaim
+  PASS asan-fanout
+  PASS asan-governor
+  PASS asan-verified
+  PASS asan-blend
+=== ASan+UBSan: FFI isolation host (in-process + fork containment) ===
+  PASS asan-ffihost
+  PASS asan-ffihost-fork
+=== ASan+UBSan: fuzz-runner 200k ops seed 0x00C0FFEE ===
+  PASS asan-fuzz
+=== TSan: kernel litmus L1-L8 + fanout ===
+  PASS tsan-suite
+=== Sanitizer report scan (any WARNING/ERROR anywhere in the log = RED) ===
+  PASS: zero sanitizer findings
+{
+  "shard": "sanitizers",
+  "status": "PASSED",
+  "cells": {
+    "asan-build": true,
+    "asan-litmus": true,
+    "asan-reclaim": true,
+    "asan-fanout": true,
+    "asan-governor": true,
+    "asan-verified": true,
+    "asan-blend": true,
+    "asan-ffihost": true,
+    "asan-ffihost-fork": true,
+    "asan-fuzz": true,
+    "tsan-suite": true,
+    "rfc4231-tc1": true,
+    "rfc4231-tc2": true,
+    "rfc4231-tc3": true,
+    "rfc4231-tc4": true,
+    "rfc4231-tc6": true,
+    "rfc4231-tc7": true,
+    "weft-empty-payload": true,
+    "weft-one-byte": true
+  }
+}
+t.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+  PASS asan-build
+
+=== ASan+UBSan: kernel litmus L1-L8 ===
+L1 hold=5ms claims=491 torn=0 drain_ok=1 claims_per_s=196.2
+L1 hold=10ms claims=249 torn=0 drain_ok=1 claims_per_s=99.3
+L1 hold=50ms claims=52 torn=0 drain_ok=1 claims_per_s=20.3
+{"test":"L1-tear","lang":"c","pass":true,"metrics":{"holds_ms":[5,10,50],"claims":792,"claims_per_s":105.3,"torn":0,"drain_ok":true}}
+L2 hold=0ms published=2000 max_wsteps=1 ok=1
+L2 hold=10ms published=2000 max_wsteps=1 ok=1
+L2 hold=25ms published=2000 max_wsteps=1 ok=1
+L2 hold=50ms published=2000 max_wsteps=1 ok=1
+L2 hold=100ms published=2000 max_wsteps=1 ok=1
+{"test":"L2-writer-steps","lang":"c","pass":true,"metrics":{"holds_ms":[0,10,25,50,100],"publishes":10000,"max_wsteps":1,"bound":2}}
+L3 claims=2000 max_rsteps=1 bound=2 pass=1
+{"test":"L3-reader-steps","lang":"c","pass":true,"metrics":{"claims":2000,"max_rsteps":1,"bound":2}}
+L4 freshness_violations=0 future_violations=0 stale_returns=1 drain_exact=1 (last=2000) pass=1
+{"test":"L4-freshness","lang":"c","pass":true,"metrics":{"frames":2000,"freshness_violations":0,"future_violations":0,"drain_exact":true,"stale_returns":1}}
+L5 hold=0ms rate=2000.0 Hz
+L5 hold=10ms rate=2000.0 Hz
+L5 hold=50ms rate=2000.0 Hz
+L5 hold=100ms rate=2000.0 Hz
+L5 suspended-reader rate=2000.0 Hz
+L5 ratio=1.000 tolerance=1.50 pass=1
+{"test":"L5-progress","lang":"c","pass":true,"metrics":{"rates_hz":[2000.0,2000.0,2000.0,2000.0,2000.0],"ratio":1.000,"tolerance":1.50,"configs":5}}
+L6 trials=200 violations=0 seed=0x00C0FFEE pass=1
+{"test":"L6-ownership","lang":"c","pass":true,"metrics":{"trials":200,"frames_per_trial":64,"violations":0,"seed":"0x00C0FFEE"}}
+L7 reclaim_ok=1 post_revoke_revoked=100 poison_intact=1 pass=1
+{"test":"L7-revocation","lang":"c","pass":true,"metrics":{"reclaim_ok":true,"post_revoke_revoked":100,"poison_intact":true,"first_revoked_at":7795}}
+L8 roundtrip=1 unknown=1 negotiation=1 coexist=1 pass=1
+{"test":"L8-envelope","lang":"c","pass":true,"metrics":{"roundtrip":true,"unknown_fields":true,"negotiation":true,"coexist":true}}
+  PASS asan-litmus
+
+=== ASan+UBSan: kernel conformance batteries ===
+reclaim-test: TIER4 §4 bounded-revocation conformance
+{"test":"reclaim","checks":15,"fails":0,"status":"PASSED"}
+  PASS asan-reclaim
+ok: F1 payload_bytes=0 rejected
+ok: F1 payload_bytes%4!=0 rejected
+ok: F1 slot_count<2 rejected
+ok: F1 slot_count=1 rejected
+ok: F1 slot_count>64 rejected
+ok: F1 ring_bytes formula (TS parity)
+ok: F1 reader geometry mismatch rejected
+ok: F2 init succeeds
+ok: F2 reader init succeeds
+ok: F2 claim before any publish: null frame
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F2 publish returns frame 1
+ok: F2 first publish: fresh, dropped=0
+ok: payload words intact
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F3 three unseen publishes: dropped=2
+ok: payload words intact
+ok: F4 ring init
+ok: F4 reader init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F4 telescoping identity exact
+ok: F4 reader converged to the last frame
+ok: F4 stats agree with the loop
+ok: F5 M=2 ring init
+ok: F5 reader init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F5 reader holds frame 1
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F5 mid-overwrite: keeps last consistent frame
+ok: F5 skip counted, never silent
+ok: F5 converges after the overwrite completes
+ok: F6 ring init
+ok: F6 publish with no begin returns 0
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F6 publish after begin returns 1
+ok: F6 fill len%4!=0 rejected
+ok: F7 producer init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F7 reader attaches to the copy
+ok: F7 handoff: fresh final frame, dropped = N-1
+ok: payload words intact
+ok: F7 writer attach
+ok: F7 second attach on the live broadcaster is refused
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F7 attached writer continues numbering
+ok: F7 second reader attach
+ok: F7 cross-producer accounting telescopes
+ok: F8 debug latest/publishes/slots
+ok: F8 slot stamps populated and in range
+ok: F9 new rejects bad geometry (slots, mod-4)
+ok: F9 new allocates
+ok: F9 ring accessor non-NULL
+ok: F9 new ring publishes frame 1
+ok: F9 raw latestSeq == 1 at offset 0
+ok: F9 raw publishes == 1 at offset 8
+ok: F9 reader_new attaches to the ring pointer
+ok: F9 reader on the new/free ring claims frame 1
+ok: F9 reader_new rejects ring_bytes mismatch
+ok: F9 free pair NULL-safe, no crash
+ok: FC kernel init
+ok: FC1 null frame baseline: first, behind 0
+ok: FC2 first real frame: behind 0, not first
+ok: FC3 gap accounting: behind 2
+ok: FC4 idle claim: recycled hold, reset rule, behind 0
+ok: FC4 idle claim adds no drops
+ok: FC5 kernel init
+ok: FC5 baseline seq 10
+ok: FC5 decreasing seq resets accounting (no burst)
+ok: FC5 reset adds no drops
+ok: FC6 accumulators: totalDropped=2, claims=4
+ok: FC6 reset: next update is first again
+ok: FC6 reset zeroed the counters
+
+PASS: 0 failure(s)
+  PASS asan-fanout
+{"test":"governor-G-series","lang":"c","pass":true,"metrics":{"gates":"G1,G2,G3,G3b,G4,Law4,custom"},"notes":"RFC-0009 FreshnessGovernor conformance; G5 via xlang-dump + fixtures/xlang-governor"}
+  PASS asan-governor
+VerifiedWeft V-series (RFC 0005) — C driver layer
+V1: HMAC-SHA256 fixture vectors (RFC 4231 + boundaries)
+  PASS rfc4231-tc1
+  PASS rfc4231-tc2
+  PASS rfc4231-tc3
+  PASS rfc4231-tc4
+  PASS rfc4231-tc6
+  PASS rfc4231-tc7
+  PASS weft-empty-payload
+  PASS weft-one-byte
+V2: domain-separated key derivation
+  PASS derivation is deterministic
+  PASS different secret -> different key
+  PASS key = HMAC(secret, domain) exactly
+V3: auth record roundtrip (zero-copy decode)
+  PASS encode -> decode+verify across payload sizes 0..300
+V4: exhaustive single-bit tamper detection
+  PASS all 768 single-bit flips rejected
+V5: wrong key, short record, bad magic
+  PASS wrong key rejected
+  PASS short record rejected
+  PASS bad magic rejected
+  PASS geometry overflow rejected
+V6: constant-time equality semantics
+  PASS equal buffers -> 1
+  PASS first-byte diff -> 0
+  PASS last-byte diff -> 0
+  PASS zero-length -> 1
+V7: per-frame cost vs RFC 0005 claims (2.10 us enc / 2.09 us dec / 4.19 us rtt)
+    measured: enc 1.52 us | dec 1.89 us | rtt 3.41 us | auth-throughput 293439 frames/s
+  PASS all verify calls OK during bench
+  PASS rtt < 10 us (soft gate vs RFC 4.19 us claim)
+V8: HW dispatch equivalence (scalar vs accelerated digests)
+    probe: x86-sha-ni
+  PASS force_scalar pins scalar
+    active: x86-sha-ni
+  PASS signer tag identical across regimes
+  PASS 512 random buffers (0..511 B) digest-identical
+  PASS cross-regime verify: scalar-signed tag verifies under HW
+V9: pre-keyed verifier == one-shot verifier semantics
+  PASS 1000 frames: pre-keyed == one-shot, all OK
+  PASS 1000 tampered tags rejected, state reusable
+  PASS verifier state stable after long stream
+V10: batch decode-verify (stream consumer path)
+  PASS 500-record stream all OK
+  PASS bytes_consumed exact (full stream)
+  PASS views zero-copy into src, seq decoded
+  PASS tampered record rejected (code 3)
+  PASS good prefix counted (137)
+  PASS bytes_consumed stops at the bad record
+  PASS cap-limited views still verify all
+  PASS truncated tail ignored (caller decides truncation policy)
+
+verdict: PASS
+  PASS asan-verified
+== blend_test: impl=avx2 (2) ==
+B1 boundaries: OK
+B2 parity sweep: OK (154 path-checks, all == scalar)
+B3 alpha sweep 0..4096 (dispatched): OK
+B4 in-place aliasing: OK
+blend_test: ALL GATES GREEN
+  PASS asan-blend
+
+=== ASan+UBSan: FFI isolation host (in-process + fork containment) ===
+ffi_host-test: TIER4 §2 FFI boundary isolation (in-process mode)
+  F5: dispatch overhead measured 29.00 us/call over 2000 calls
+{"test":"ffi_host","mode":"inproc","checks":15,"fails":0,"status":"PASSED"}
+  PASS asan-ffihost
+ffi_host-test: TIER4 §2 FFI boundary isolation (fork mode)
+{"test":"ffi_host","mode":"fork","checks":12,"fails":0,"status":"PASSED"}
+  PASS asan-ffihost-fork
+
+=== ASan+UBSan: fuzz-runner 200k ops seed 0x00C0FFEE ===
+fuzz-runner: ops=200000 seed=0x00C0FFEE
+{"test":"fuzz","ops":998364,"post_checks":3608148,"status":"PASSED"}
+  PASS asan-fuzz
+
+=== TSan: kernel litmus L1-L8 + fanout ===
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+litmus_runner.c:17: warning: "_GNU_SOURCE" redefined
+   17 | #define _GNU_SOURCE  // for nanosleep, posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+L1 hold=5ms claims=489 torn=0 drain_ok=1 claims_per_s=195.5
+L1 hold=10ms claims=249 torn=0 drain_ok=1 claims_per_s=99.1
+L1 hold=50ms claims=51 torn=0 drain_ok=1 claims_per_s=19.9
+{"test":"L1-tear","lang":"c","pass":true,"metrics":{"holds_ms":[5,10,50],"claims":789,"claims_per_s":104.9,"torn":0,"drain_ok":true}}
+L2 hold=0ms published=2000 max_wsteps=1 ok=1
+L2 hold=10ms published=2000 max_wsteps=1 ok=1
+L2 hold=25ms published=2000 max_wsteps=1 ok=1
+L2 hold=50ms published=2000 max_wsteps=1 ok=1
+L2 hold=100ms published=2000 max_wsteps=1 ok=1
+{"test":"L2-writer-steps","lang":"c","pass":true,"metrics":{"holds_ms":[0,10,25,50,100],"publishes":10000,"max_wsteps":1,"bound":2}}
+L3 claims=2000 max_rsteps=1 bound=2 pass=1
+{"test":"L3-reader-steps","lang":"c","pass":true,"metrics":{"claims":2000,"max_rsteps":1,"bound":2}}
+L4 freshness_violations=0 future_violations=0 stale_returns=1 drain_exact=1 (last=2000) pass=1
+{"test":"L4-freshness","lang":"c","pass":true,"metrics":{"frames":2000,"freshness_violations":0,"future_violations":0,"drain_exact":true,"stale_returns":1}}
+L5 hold=0ms rate=1996.0 Hz
+L5 hold=10ms rate=2000.0 Hz
+L5 hold=50ms rate=2000.0 Hz
+L5 hold=100ms rate=2000.0 Hz
+L5 suspended-reader rate=2000.0 Hz
+L5 ratio=1.002 tolerance=1.50 pass=1
+{"test":"L5-progress","lang":"c","pass":true,"metrics":{"rates_hz":[1996.0,2000.0,2000.0,2000.0,2000.0],"ratio":1.002,"tolerance":1.50,"configs":5}}
+L6 trials=200 violations=0 seed=0x00C0FFEE pass=1
+{"test":"L6-ownership","lang":"c","pass":true,"metrics":{"trials":200,"frames_per_trial":64,"violations":0,"seed":"0x00C0FFEE"}}
+L7 reclaim_ok=1 post_revoke_revoked=100 poison_intact=1 pass=1
+{"test":"L7-revocation","lang":"c","pass":true,"metrics":{"reclaim_ok":true,"post_revoke_revoked":100,"poison_intact":true,"first_revoked_at":1386}}
+L8 roundtrip=1 unknown=1 negotiation=1 coexist=1 pass=1
+{"test":"L8-envelope","lang":"c","pass":true,"metrics":{"roundtrip":true,"unknown_fields":true,"negotiation":true,"coexist":true}}
+ok: F1 payload_bytes=0 rejected
+ok: F1 payload_bytes%4!=0 rejected
+ok: F1 slot_count<2 rejected
+ok: F1 slot_count=1 rejected
+ok: F1 slot_count>64 rejected
+ok: F1 ring_bytes formula (TS parity)
+ok: F1 reader geometry mismatch rejected
+ok: F2 init succeeds
+ok: F2 reader init succeeds
+ok: F2 claim before any publish: null frame
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F2 publish returns frame 1
+ok: F2 first publish: fresh, dropped=0
+ok: payload words intact
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F3 three unseen publishes: dropped=2
+ok: payload words intact
+ok: F4 ring init
+ok: F4 reader init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F4 telescoping identity exact
+ok: F4 reader converged to the last frame
+ok: F4 stats agree with the loop
+ok: F5 M=2 ring init
+ok: F5 reader init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F5 reader holds frame 1
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F5 mid-overwrite: keeps last consistent frame
+ok: F5 skip counted, never silent
+ok: F5 converges after the overwrite completes
+ok: F6 ring init
+ok: F6 publish with no begin returns 0
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F6 publish after begin returns 1
+ok: F6 fill len%4!=0 rejected
+ok: F7 producer init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F7 reader attaches to the copy
+ok: F7 handoff: fresh final frame, dropped = N-1
+ok: payload words intact
+ok: F7 writer attach
+ok: F7 second attach on the live broadcaster is refused
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F7 attached writer continues numbering
+ok: F7 second reader attach
+ok: F7 cross-producer accounting telescopes
+ok: F8 debug latest/publishes/slots
+ok: F8 slot stamps populated and in range
+ok: F9 new rejects bad geometry (slots, mod-4)
+ok: F9 new allocates
+ok: F9 ring accessor non-NULL
+ok: F9 new ring publishes frame 1
+ok: F9 raw latestSeq == 1 at offset 0
+ok: F9 raw publishes == 1 at offset 8
+ok: F9 reader_new attaches to the ring pointer
+ok: F9 reader on the new/free ring claims frame 1
+ok: F9 reader_new rejects ring_bytes mismatch
+ok: F9 free pair NULL-safe, no crash
+ok: FC kernel init
+ok: FC1 null frame baseline: first, behind 0
+ok: FC2 first real frame: behind 0, not first
+ok: FC3 gap accounting: behind 2
+ok: FC4 idle claim: recycled hold, reset rule, behind 0
+ok: FC4 idle claim adds no drops
+ok: FC5 kernel init
+ok: FC5 baseline seq 10
+ok: FC5 decreasing seq resets accounting (no burst)
+ok: FC5 reset adds no drops
+ok: FC6 accumulators: totalDropped=2, claims=4
+ok: FC6 reset: next update is first again
+ok: FC6 reset zeroed the counters
+
+PASS: 0 failure(s)
+  PASS tsan-suite
+
+=== Sanitizer report scan (any WARNING/ERROR anywhere in the log = RED) ===
+  PASS: zero sanitizer findings

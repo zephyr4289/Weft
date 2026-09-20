@@ -373,19 +373,12 @@ jobs:
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-store-${{ runner.os }}-
 
-      - name: Set up pnpm + build @weft/core dist (fanout-native, browser-sab, simd-blend, ffi-fuzz, litmus-c, series10)
-        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'ffi-fuzz' || matrix.shard == 'litmus-c' || matrix.shard == 'series10'
+      - name: Set up pnpm + build @weft/core dist (fanout-native, browser-sab, simd-blend, verifiedweft, ffi-fuzz, litmus-c, series10)
+        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'verifiedweft' || matrix.shard == 'ffi-fuzz' || matrix.shard == 'litmus-c' || matrix.shard == 'series10'
         run: |
           npm i -g pnpm@9
           pnpm install --frozen-lockfile
           pnpm --filter @weft/core build
-
-
-      - name: Set up pnpm (verifiedweft TS + xlang legs)
-        if: matrix.shard == 'verifiedweft'
-        run: |
-          npm i -g pnpm@9
-          pnpm install --frozen-lockfile
 
       - name: Cache Rust build
         if: matrix.needs_rust

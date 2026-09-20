@@ -1,0 +1,8 @@
+workflow: flutter-packages
+job:      Flutter & Dart FFI (windows-latest)
+status:   success
+sha:      9b98b9afde237823c7a2ac8e4711a5d2eb998e3a
+event:    push
+run:      158
+date:     Sun Sep 20 21:11:47 UTC 2026
+ref:      refs/heads/main

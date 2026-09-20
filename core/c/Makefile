@@ -610,6 +610,25 @@ device-spectrum-test-asan: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_devic
 device-spectrum-test-tsan: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
 	$(CC) $(CFLAGS_DBG) -o device-spectrum-test-tsan $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
 
+# ---- RFC-0021 weft-tensor fabric (Pillar 2) -------------------------------
+# Self-contained module under core/c/tensor/ (Law 3: additive only, zero
+# kernel surface). WT-series: view geometry + golden bit-exactness gate,
+# paged arenas (measured ns/alloc), lock-free DMA tensor rings (MPSC/SPMC/
+# MPMC tearing stress, fork torture, throughput fixture). The heavy
+# evidence legs run the -O2 binaries with --bench.
+
+tensor-fabric-test:
+	$(MAKE) -C tensor test
+
+tensor-fabric-test-asan:
+	$(MAKE) -C tensor test-asan
+
+tensor-fabric-test-tsan:
+	$(MAKE) -C tensor test-tsan
+
+tensor-fabric-clean:
+	$(MAKE) -C tensor clean
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
@@ -629,6 +648,7 @@ clean:
 	      weft-shm-test weft-shm-test-asan weft-ipc-test weft-ipc-test-asan weft-ipc-test-tsan weft-ipc-torture weft-ipc-torture-asan \
 	      device-spectrum-test device-spectrum-test-asan device-spectrum-test-tsan \
 	      dmabuf-test dmabuf-test-asan gpu-extmem-test gpu-extmem-test-asan xdp-test xdp-test-asan xdp-live-gate tensor-test tensor-test-asan camera-test camera-test-asan hetero-probe
+	if [ -d tensor ]; then $(MAKE) -C tensor clean; fi
 
 .PHONY: all clean
 

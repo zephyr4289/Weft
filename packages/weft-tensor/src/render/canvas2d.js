@@ -18,10 +18,14 @@ export class Canvas2DPlane {
       throw new LayoutError('WTR1_RENDER_DTYPE', 'Canvas2DPlane needs a u8 RGBA ring');
     }
     const L = ring.layout;
-    let rank = L.rank;
-    const w = opts.width ?? L.shape[rank - 2];   // [..., h, w, 4] convention
-    const h = opts.height ?? L.shape[rank - 3];
+    // Shape conventions: [..., h, w, 4] (channels, rank>=3) or [..., h, w].
+    const channels = L.rank >= 3 && L.shape[L.rank - 1] === 4;
+    const w = opts.width ?? (channels ? L.shape[L.rank - 2] : L.shape[L.rank - 1]);
+    const h = opts.height ?? (channels ? L.shape[L.rank - 3] : L.shape[L.rank - 2]);
     if (!w || !h) throw new LayoutError('WTR1_RENDER_SHAPE', 'cannot infer canvas size from ring shape — pass {width, height}');
+    if (w * h * 4 > ring.payloadCap) {
+      throw new LayoutError('WTR1_RENDER_SHAPE', `canvas ${w}x${h} needs ${w * h * 4}B > slot cap ${ring.payloadCap}B`);
+    }
     const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
     if (ctx === null) throw new LayoutError('WTR1_NO_CTX', 'canvas 2d context unavailable');
     this._canvas = canvas;
@@ -37,6 +41,8 @@ export class Canvas2DPlane {
 
   get width() { return this._w; }
   get height() { return this._h; }
+  /** The single 2d context (public for overlay vector drawing on top of blits). */
+  get ctx() { return this._ctx; }
 
   /**
    * Draw one acquired frame (or keep the last frame when `frame` is null —

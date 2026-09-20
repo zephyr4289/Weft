@@ -57,9 +57,14 @@ export class WebGL2Plane {
     this._gl = gl;
     this._canvas = canvas;
     const L = ring.layout;
-    const w = opts.width ?? L.shape[L.rank - 2];
-    const h = opts.height ?? L.shape[L.rank - 3];
+    // Shape conventions: [..., h, w, 4] (channels, rank>=3) or [..., h, w].
+    const channels = L.rank >= 3 && L.shape[L.rank - 1] === 4;
+    const w = opts.width ?? (channels ? L.shape[L.rank - 2] : L.shape[L.rank - 1]);
+    const h = opts.height ?? (channels ? L.shape[L.rank - 3] : L.shape[L.rank - 2]);
     if (!w || !h) throw new LayoutError('WTR1_RENDER_SHAPE', 'cannot infer texture size — pass {width, height}');
+    if (w * h * 4 > ring.payloadCap) {
+      throw new LayoutError('WTR1_RENDER_SHAPE', `texture ${w}x${h} needs ${w * h * 4}B > slot cap ${ring.payloadCap}B`);
+    }
     this._w = w; this._h = h;
     this._ring = ring;
 

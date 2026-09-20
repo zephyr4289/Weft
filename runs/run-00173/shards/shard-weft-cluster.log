@@ -1,0 +1,87 @@
+==================================================
+SHARD: weft-cluster
+DESCRIPTION: RFC-0019 Pillar 3: kernel-bypass cluster mesh — RoCEv2/IB one-sided RDMA (dlopen'd verbs + WRH1 golden handshake + deadline poll), eBPF/XDP line-rate steering (assembled bytecode + UMEM over WCR1), io_uring batched fallback (registered buffers + sticky ZC downgrade + kernel-UDP ping-pong), fabric refusal cascade, latency bench
+STATUS: PASSED ✅
+COMMIT: c32dc5e20543078bc37e4f7c3fd32d87558c66ff
+RUN: 173
+==================================================
+
+
+=== environment ===
+Linux runnervmlun5p 6.17.0-1022-azure #22-Ubuntu SMP Mon Jul 27 17:24:03 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+CapEff:	0000000000000000
+
+=== build (O2 + audit interposer + asan legs) ===
+$ make -C tools/weft-cluster clean
+  ok
+$ make -C tools/weft-cluster all
+  ok
+$ make -C tools/weft-cluster test-rdma-asan
+  ok
+$ make -C tools/weft-cluster test-uring-asan
+  ok
+$ make -C tools/weft-cluster test-fabric-asan
+  ok
+
+=== CL-series gates ===
+test-rdma: ok (45 gates)
+test-xdp: ok (36 gates)
+test-uring: ok (41 gates)
+test-fabric: ok (21 gates)
+
+=== ASAN + UBSAN legs ===
+test-rdma-asan: ok
+test-uring-asan: ok
+test-fabric-asan: ok
+
+=== weft-cluster-bench (audit-strict) ===
+bench: PASS (verdict: PASS)
+
+=== kernel freeze: core/c/weft.{c,h} byte-identical to the branch base ===
+core/c/weft.{c,h}: zero diffs (kernel freeze holds)
+
+=== verdict ===
+shard-weft-cluster: GREEN
+c src/weft_cluster_core.c ../../core/c/shm_ring.c ../../core/c/fanout.c ../../core/c/fanout_simd.c tests/weft_audit.c -ldl
+cc -O2 -std=c11 -Wall -Wextra -Werror -D_GNU_SOURCE -Iinclude -Isrc -I. -Ibackends/rdma -Ibackends/xdp -Ibackends/uring -Ibackends/loopback -Ifabric -Itests -I../../core/c -o test-xdp tests/test_xdp.c backends/xdp/weft_xdp_driver.c src/weft_wcr1.c src/weft_cluster_frame.c src/weft_cluster_core.c ../../core/c/shm_ring.c ../../core/c/fanout.c ../../core/c/fanout_simd.c tests/weft_audit.c -ldl
+cc -O2 -std=c11 -Wall -Wextra -Werror -D_GNU_SOURCE -Iinclude -Isrc -I. -Ibackends/rdma -Ibackends/xdp -Ibackends/uring -Ibackends/loopback -Ifabric -Itests -I../../core/c -o test-uring tests/test_uring.c backends/uring/weft_uring_driver.c src/weft_wcr1.c src/weft_cluster_frame.c src/weft_cluster_core.c ../../core/c/shm_ring.c ../../core/c/fanout.c ../../core/c/fanout_simd.c tests/weft_audit.c -ldl
+cc -O2 -std=c11 -Wall -Wextra -Werror -D_GNU_SOURCE -Iinclude -Isrc -I. -Ibackends/rdma -Ibackends/xdp -Ibackends/uring -Ibackends/loopback -Ifabric -Itests -I../../core/c -o test-fabric tests/test_fabric.c fabric/weft_cluster_fabric.c backends/loopback/weft_loopback.c backends/rdma/weft_rdma_driver.c backends/xdp/weft_xdp_driver.c backends/uring/weft_uring_driver.c src/weft_wcr1.c src/weft_cluster_frame.c src/weft_cluster_core.c ../../core/c/shm_ring.c ../../core/c/fanout.c ../../core/c/fanout_simd.c tests/weft_audit.c -ldl
+cc -O2 -std=c11 -Wall -Wextra -Werror -D_GNU_SOURCE -Iinclude -Isrc -I. -Ibackends/rdma -Ibackends/xdp -Ibackends/uring -Ibackends/loopback -Ifabric -Itests -I../../core/c -o weft-cluster-bench bench/weft_cluster_bench.c fabric/weft_cluster_fabric.c backends/loopback/weft_loopback.c backends/rdma/weft_rdma_driver.c backends/xdp/weft_xdp_driver.c backends/uring/weft_uring_driver.c src/weft_wcr1.c src/weft_cluster_frame.c src/weft_cluster_core.c ../../core/c/shm_ring.c ../../core/c/fanout.c ../../core/c/fanout_simd.c tests/weft_audit.c -ldl
+make: Leaving directory '/home/runner/work/Weft/Weft/tools/weft-cluster'
+  ok
+$ make -C tools/weft-cluster test-rdma-asan
+make: Entering directory '/home/runner/work/Weft/Weft/tools/weft-cluster'
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -D_GNU_SOURCE -fsanitize=address,undefined -Iinclude -Isrc -I. -Ibackends/rdma -Ibackends/xdp -Ibackends/uring -Ibackends/loopback -Ifabric -Itests -I../../core/c -o test-rdma-asan tests/test_rdma.c backends/rdma/weft_rdma_driver.c src/weft_wcr1.c src/weft_cluster_frame.c src/weft_cluster_core.c ../../core/c/shm_ring.c ../../core/c/fanout.c ../../core/c/fanout_simd.c tests/weft_audit_stub.c -ldl
+make: Leaving directory '/home/runner/work/Weft/Weft/tools/weft-cluster'
+  ok
+$ make -C tools/weft-cluster test-uring-asan
+make: Entering directory '/home/runner/work/Weft/Weft/tools/weft-cluster'
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -D_GNU_SOURCE -fsanitize=address,undefined -Iinclude -Isrc -I. -Ibackends/rdma -Ibackends/xdp -Ibackends/uring -Ibackends/loopback -Ifabric -Itests -I../../core/c -o test-uring-asan tests/test_uring.c backends/uring/weft_uring_driver.c src/weft_wcr1.c src/weft_cluster_frame.c src/weft_cluster_core.c ../../core/c/shm_ring.c ../../core/c/fanout.c ../../core/c/fanout_simd.c tests/weft_audit_stub.c -ldl
+make: Leaving directory '/home/runner/work/Weft/Weft/tools/weft-cluster'
+  ok
+$ make -C tools/weft-cluster test-fabric-asan
+make: Entering directory '/home/runner/work/Weft/Weft/tools/weft-cluster'
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -D_GNU_SOURCE -fsanitize=address,undefined -Iinclude -Isrc -I. -Ibackends/rdma -Ibackends/xdp -Ibackends/uring -Ibackends/loopback -Ifabric -Itests -I../../core/c -o test-fabric-asan tests/test_fabric.c fabric/weft_cluster_fabric.c backends/loopback/weft_loopback.c backends/rdma/weft_rdma_driver.c backends/xdp/weft_xdp_driver.c backends/uring/weft_uring_driver.c src/weft_wcr1.c src/weft_cluster_frame.c src/weft_cluster_core.c ../../core/c/shm_ring.c ../../core/c/fanout.c ../../core/c/fanout_simd.c tests/weft_audit_stub.c -ldl
+make: Leaving directory '/home/runner/work/Weft/Weft/tools/weft-cluster'
+  ok
+
+=== CL-series gates ===
+test-rdma: ok (45 gates)
+test-xdp: ok (36 gates)
+test-uring: ok (41 gates)
+test-fabric: ok (21 gates)
+
+=== ASAN + UBSAN legs ===
+test-rdma-asan: ok
+test-uring-asan: ok
+test-fabric-asan: ok
+
+=== weft-cluster-bench (audit-strict) ===
+bench: PASS (verdict: PASS)
+
+=== kernel freeze: core/c/weft.{c,h} byte-identical to the branch base ===
+core/c/weft.{c,h}: zero diffs (kernel freeze holds)
+
+=== verdict ===
+shard-weft-cluster: GREEN

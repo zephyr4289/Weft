@@ -1,0 +1,47 @@
+==================================================
+SHARD: simd-blend
+DESCRIPTION: Q12 raster blend: C golden gates + xlang-blend cross-language digests + bench
+STATUS: PASSED ✅
+COMMIT: c32dc5e20543078bc37e4f7c3fd32d87558c66ff
+RUN: 173
+==================================================
+
+== simd-blend shard: env x86_64/Linux ==
+-- C kernel gates --
+Makefile:519: warning: overriding recipe for target 'tensor-test'
+Makefile:335: warning: ignoring old recipe for target 'tensor-test'
+Makefile:522: warning: overriding recipe for target 'tensor-test-asan'
+Makefile:338: warning: ignoring old recipe for target 'tensor-test-asan'
+== blend_test: impl=avx2 (2) ==
+B1 boundaries: OK
+B2 parity sweep: OK (154 path-checks, all == scalar)
+B3 alpha sweep 0..4096 (dispatched): OK
+B4 in-place aliasing: OK
+blend_test: ALL GATES GREEN
+blend-test: ALL GATES GREEN
+-- xlang-blend golden gate --
+== xlang-blend golden parity: env x86_64/Linux ==
+-- C kernel (golden source) --
+Makefile:519: warning: overriding recipe for target 'tensor-test'
+Makefile:335: warning: ignoring old recipe for target 'tensor-test'
+Makefile:522: warning: overriding recipe for target 'tensor-test-asan'
+Makefile:338: warning: ignoring old recipe for target 'tensor-test-asan'
+   blend-test gates GREEN
+   golden-vectors.csv matches the kernel
+-- TS verifier (reference port) --
+xlang-blend TS verifier: 63/63 golden digests match
+-- Kotlin verifier --
+xlang-blend Kotlin verifier: 63/63 golden digests match
+-- Dart verifier: DECLARED skip (no dart; flutter-packages leg owns it) --
+-- Swift port: DECLARED skip (no swiftc; apple-packages compiles + golden-gates it) --
+
+xlang-blend: ran=3 declared_skips=2
+✅ xlang-blend parity: every executed port byte-identical to the C kernel
+xlang-blend parity GREEN
+-- blend_runner benchmark --
+== blend_runner: dispatch=avx2 ==
+256x256-hot (65536 words): scalar   185372 ns/frame (  4.2 GB/s) | avx2    22817 ns/frame ( 34.5 GB/s) | speedup 8.12x
+1080p (2073600 words): scalar  6477942 ns/frame (  3.8 GB/s) | avx2   770859 ns/frame ( 32.3 GB/s) | speedup 8.40x
+4K (8294400 words): scalar 23598691 ns/frame (  4.2 GB/s) | avx2  3118748 ns/frame ( 31.9 GB/s) | speedup 7.57x
+8K (33177600 words): scalar 96093817 ns/frame (  4.1 GB/s) | avx2 30712704 ns/frame ( 13.0 GB/s) | speedup 3.13x
+✅ simd-blend shard GREEN

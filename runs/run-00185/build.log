@@ -1,0 +1,77 @@
+cd core/c && make
+make[1]: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o spike weft.c fanout.c frame_cursor.c fanout_simd.c litmus_runner.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+litmus_runner.c:17: warning: "_GNU_SOURCE" redefined
+   17 | #define _GNU_SOURCE  // for nanosleep, posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make[1]: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+cd core/rust && cargo build --release
+[1m[92m    Updating[0m crates.io index
+[1m[92m   Compiling[0m weft-core v0.1.0 (/home/runner/work/Weft/Weft/core/rust)
+[1m[91merror[0m[1m: `<<` is interpreted as a start of generic arguments for `i64`, not a shift[0m
+   [1m[94m--> [0msrc/trend.rs:140:43
+    [1m[94m|[0m
+[1m[94m140[0m [1m[94m|[0m     let delta_q16: i64 = delta_raw as i64 << 16;
+    [1m[94m|[0m                                           [1m[91m^^[0m [1m[94m--[0m [1m[94minterpreted as generic arguments[0m
+    [1m[94m|[0m                                           [1m[91m|[0m
+    [1m[94m|[0m                                           [1m[91mnot interpreted as shift[0m
+    [1m[94m|[0m
+[1m[96mhelp[0m: try shifting the cast value
+    [1m[94m|[0m
+[1m[94m140[0m [1m[94m| [0m    let delta_q16: i64 = [92m([0mdelta_raw as i64[92m)[0m << 16;
+    [1m[94m|[0m                          [92m+[0m                [92m+[0m
+
+[1m[33mwarning[0m[1m: unused import: `AsRawFd`[0m
+  [1m[94m--> [0msrc/shm.rs:35:25
+   [1m[94m|[0m
+[1m[94m35[0m [1m[94m|[0m use std::os::unix::io::{AsRawFd, FromRawFd};
+   [1m[94m|[0m                         [1m[33m^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/shm.rs:265:20
+    [1m[94m|[0m
+[1m[94m255[0m [1m[94m|[0m     unsafe {
+    [1m[94m|[0m     [1m[94m------[0m [1m[94mbecause it's nested under this `unsafe` block[0m
+[1m[94m...[0m
+[1m[94m265[0m [1m[94m|[0m         let file = unsafe { File::from_raw_fd(fd) };
+    [1m[94m|[0m                    [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `#[warn(unused_unsafe)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/shm.rs:294:20
+    [1m[94m|[0m
+[1m[94m287[0m [1m[94m|[0m     unsafe {
+    [1m[94m|[0m     [1m[94m------[0m [1m[94mbecause it's nested under this `unsafe` block[0m
+[1m[94m...[0m
+[1m[94m294[0m [1m[94m|[0m         let file = unsafe { File::from_raw_fd(fd) };
+    [1m[94m|[0m                    [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/shm.rs:306:13
+    [1m[94m|[0m
+[1m[94m287[0m [1m[94m|[0m     unsafe {
+    [1m[94m|[0m     [1m[94m------[0m [1m[94mbecause it's nested under this `unsafe` block[0m
+[1m[94m...[0m
+[1m[94m306[0m [1m[94m|[0m             unsafe { sys::munmap(p, mapping_bytes) };
+    [1m[94m|[0m             [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/verified.rs:262:21
+    [1m[94m|[0m
+[1m[94m250[0m [1m[94m|[0m       unsafe {
+    [1m[94m|[0m       [1m[94m------[0m [1m[94mbecause it's nested under this `unsafe` block[0m
+[1m[94m...[0m
+[1m[94m262[0m [1m[94m|[0m             let d = unsafe { data.add(blk * 64) };
+    [1m[94m|[0m                     [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+
+[1m[33mwarning[0m: `weft-core` (lib) generated 5 warnings
+[1m[91merror[0m: could not compile `weft-core` (lib) due to 1 previous error; 5 warnings emitted
+make: *** [Makefile:30: build-rust] Error 101

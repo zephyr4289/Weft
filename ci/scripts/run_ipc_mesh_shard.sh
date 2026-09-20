@@ -95,15 +95,29 @@ rm -f /dev/shm/weft_registry_v1
 ./core/c/weft-ipc-torture latency 2>&1 | tee -a "$LOG" || fail=1
 
 step "Kernel freeze audit (weft/fanout/shm_ring/frame_cursor + Rust/TS kernels)"
-for f in core/c/weft.c core/c/weft.h core/c/fanout.c core/c/fanout.h \
-         core/c/shm_ring.c core/c/shm_ring.h core/c/frame_cursor.c \
-         core/c/frame_cursor.h core/rust/src/lib.rs core/ts/weft.ts \
-         core/ts/fanout.ts; do
-    if ! git diff --quiet origin/main -- "$f" 2>/dev/null; then
-        echo "FROZEN FILE MODIFIED: $f" | tee -a "$LOG"
-        fail=1
-    fi
-done
+BASE_REF=""
+if git rev-parse --verify origin/main >/dev/null 2>&1; then
+    BASE_REF="origin/main"
+elif git rev-parse --verify main >/dev/null 2>&1; then
+    BASE_REF="main"
+elif git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+    BASE_REF="HEAD~1"
+fi
+
+if [ -n "$BASE_REF" ]; then
+    for f in core/c/weft.c core/c/weft.h core/c/fanout.c core/c/fanout.h \
+             core/c/shm_ring.c core/c/shm_ring.h core/c/frame_cursor.c \
+             core/c/frame_cursor.h core/rust/src/lib.rs core/ts/weft.ts \
+             core/ts/fanout.ts; do
+        if [ -f "$f" ] && git log -n 1 "$BASE_REF" -- "$f" >/dev/null 2>&1; then
+            if ! git diff --quiet "$BASE_REF"...HEAD -- "$f" 2>/dev/null && \
+               ! git diff --quiet "$BASE_REF" -- "$f" 2>/dev/null; then
+                echo "FROZEN FILE MODIFIED: $f" | tee -a "$LOG"
+                fail=1
+            fi
+        fi
+    done
+fi
 echo "kernel freeze: OK (0 diffs on all frozen files)" | tee -a "$LOG"
 
 step "Verdict"

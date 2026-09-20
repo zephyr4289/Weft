@@ -1,0 +1,8 @@
+==================================================
+SHARD: simd-blend
+DESCRIPTION: Q12 raster blend: C golden gates + xlang-blend cross-language digests + bench
+STATUS: FAILED ❌
+COMMIT: 1b01ff3305cb9853396eeee45dd932541485ae6b
+RUN: 194
+==================================================
+

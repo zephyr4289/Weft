@@ -1,0 +1,54 @@
+# DB-series: weft_dmabuf conformance (RFC-0016 s3)
+## DB1 capability probe
+  dmabuf: unsupported heap='' heaps=[] page=4096
+  PASS probe ran once
+  PASS page size reported
+  PASS refusal is UNSUPPORTED
+  PASS no phantom heap path
+## DB2 geometry
+  PASS span = 64 + ring_bytes across geometries
+  PASS bad geometries refused (span 0)
+## DB3 heap allocation / honest refusal
+  PASS alloc refused without heap
+  PASS refusal errno ENOTSUP
+## DB4 WFSH dialect byte-identity
+  PASS memfd substrate created
+  PASS substrate sized to span
+  PASS bind_fd initializes session
+  PASS shm reference session created
+  PASS deterministic header bytes identical (0..27]
+  PASS reserved [40,64) zero in both dialects
+  PASS ring_bytes field matches geometry
+  PASS shm attach_fd accepts the substrate session
+  PASS cross-module geometry agrees
+## DB5 aliasing substrate (one allocation, two mappings)
+  PASS substrate created
+  PASS substrate sized
+  PASS view A bound
+  PASS view B mapped
+  PASS byte written via A visible at B
+  PASS writer on view A
+  PASS reader on view B
+  PASS 2000 frames: cross-view claims bit-exact
+  PASS reader tracked the stream (last sampled claim s=1984)
+## DB6 foreign import
+  PASS session import maps
+  PASS session detected + validated
+  PASS imported geometry agrees
+  PASS imported ring view wired
+  PASS raw import maps (clamped)
+  PASS raw buffer honestly not a session
+  PASS raw bytes visible through the import
+  PASS bad fd refused
+## DB7 cache sync honesty
+  PASS sync refused on non-dma-buf (recorded, not fatal)
+## DB8 fork torture (substrate survives a process boundary)
+  PASS parent second view
+  PASS child producer exited clean
+  PASS parent reader over second view
+  PASS parent claims the child's last frame
+  PASS claimed frame bit-exact across the process boundary
+  PASS telescoping exact across fork
+## DB9 ownership discipline
+  PASS borrowed fd survives ring_free (caller owns it)
+verdict: PASS (42 passed, 0 failed)

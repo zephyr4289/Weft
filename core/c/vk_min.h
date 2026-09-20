@@ -165,6 +165,15 @@ extern "C" {
 #define VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME        "VK_KHR_external_memory_fd"
 #define VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME   "VK_EXT_external_memory_dma_buf"
 
+// VK_EXT_external_memory_host (RFC-0016 §2 — import an EXISTING host
+// allocation; r362 values, same discipline as the fd structs above)
+#define VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME      "VK_EXT_external_memory_host"
+#define VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_INFO   1000072000u
+#define VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT 1000075000u
+#define VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT 1000075001u
+#define VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2  1000059000u  // core 1.1 value
+#define VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT 0x00000080u
+
 typedef uint32_t VkFlags_;
 typedef uint32_t VkBool32_;
 
@@ -220,6 +229,20 @@ typedef struct {
     int fd;                           // consumed (ownership transferred) on success
 } VkImportMemoryFdInfoKHR_;
 
+// pNext-chain: host-pointer import (RFC-0016 §2) — the allocation IS the
+// application's own memory; the device aliases the same physical pages.
+typedef struct {
+    uint32_t sType; const void* pNext;
+    VkFlags_ handleType;              // HOST_ALLOCATION_BIT_EXT for app memory
+    void* pHostPointer;               // must be minImportedHostPointerAlignment-aligned
+} VkImportMemoryHostPointerInfoEXT_;
+
+// pNext-chain: buffer create-info chain (imported-memory buffers)
+typedef struct {
+    uint32_t sType; const void* pNext;
+    VkFlags_ handleTypes;             // VK_EXTERNAL_MEMORY_HANDLE_TYPE_*_BIT
+} VkExternalMemoryBufferInfo_;
+
 typedef struct {
     uint32_t sType; const void* pNext;
     const void* memory;               // VkDeviceMemory
@@ -256,6 +279,18 @@ typedef struct {
 typedef struct {
     uint64_t size; uint64_t alignment; uint32_t memoryTypeBits;
 } VkMemoryRequirements_;
+
+// properties2 query chain (RFC-0016 §2): minImportedHostPointerAlignment
+// (placed after VkPhysicalDeviceProperties_ — the chain embeds it by value)
+typedef struct {
+    uint32_t sType; const void* pNext;
+    VkPhysicalDeviceProperties_ properties;
+} VkPhysicalDeviceProperties2_;
+
+typedef struct {
+    uint32_t sType; const void* pNext;
+    uint64_t minImportedHostPointerAlignment;
+} VkPhysicalDeviceExternalMemoryHostPropertiesEXT_;
 
 typedef struct {
     char extensionName[VK_MAX_EXTENSION_NAME_SIZE];
@@ -426,6 +461,10 @@ _Static_assert(sizeof(VkDescriptorSetAllocateInfo_) == 40, "vk_min: desc-set-all
 _Static_assert(sizeof(VkCommandPoolCreateInfo_) == 24, "vk_min: cmd-pool struct r362 size");
 _Static_assert(sizeof(VkCommandBufferAllocateInfo_) == 32, "vk_min: cmd-buf-alloc struct r362 size");
 _Static_assert(sizeof(VkImportMemoryFdInfoKHR_) == 24, "vk_min: import-fd struct r362 size");
+_Static_assert(sizeof(VkImportMemoryHostPointerInfoEXT_) == 32, "vk_min: import-host struct r362 size");
+_Static_assert(sizeof(VkExternalMemoryBufferInfo_) == 24, "vk_min: extmem-buffer struct r362 size");
+_Static_assert(sizeof(VkPhysicalDeviceProperties2_) == 16 + 824, "vk_min: props2 struct size");
+_Static_assert(sizeof(VkPhysicalDeviceExternalMemoryHostPropertiesEXT_) == 24, "vk_min: ext-host props struct size");
 _Static_assert(sizeof(VkMemoryGetFdInfoKHR_) == 32, "vk_min: get-fd struct r362 size");
 _Static_assert(sizeof(VkExportMemoryAllocateInfo_) == 24, "vk_min: export-mem struct r362 size");
 _Static_assert(sizeof(VkExtensionProperties_) == 260, "vk_min: extension-props struct r362 size");

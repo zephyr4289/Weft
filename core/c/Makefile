@@ -418,8 +418,38 @@ device-spectrum-test: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_pro
 device-spectrum-test-asan: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
 	$(CC) $(CFLAGS_ASAN) -o device-spectrum-test-asan $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
 
-device-spectrum-test-tsan: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
-	$(CC) $(CFLAGS_DBG) -o device-spectrum-test-tsan $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
+# ---- RFC 0018 weft-cluster: WCR1 protocol engine + consensus (Pillar 3) --
+# cluster/weft_cluster_ring.c + cluster/weft_cluster_consensus.c: the WCR1
+# 128-byte ring header / 64-byte slot header, two-store seqlock commit,
+# zero-roundtrip remote addressing, ring-embedded Raft (elections, leases,
+# fencing, eviction). sim_cluster.c is the multi-node virtual-clock harness
+# (partition link matrix, gated transport). Kernel core untouched.
+CLUSTER_SRC = cluster/weft_cluster_ring.c cluster/weft_cluster_consensus.c
+CLUSTER_SIM = cluster/sim_cluster.c
+
+cluster-ring-test: $(CLUSTER_SRC) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/cluster_ring_test.c
+	$(CC) $(CFLAGS) -o cluster-ring-test $(CLUSTER_SRC) cluster/cluster_ring_test.c
+
+cluster-ring-test-asan: $(CLUSTER_SRC) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/cluster_ring_test.c
+	$(CC) $(CFLAGS_ASAN) -o cluster-ring-test-asan $(CLUSTER_SRC) cluster/cluster_ring_test.c
+
+cluster-ring-test-tsan: $(CLUSTER_SRC) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/cluster_ring_test.c
+	$(CC) $(CFLAGS_DBG) -o cluster-ring-test-tsan $(CLUSTER_SRC) cluster/cluster_ring_test.c
+
+cluster-consensus-test: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/cluster_consensus_test.c
+	$(CC) $(CFLAGS) -o cluster-consensus-test $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/cluster_consensus_test.c
+
+cluster-consensus-test-asan: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/cluster_consensus_test.c
+	$(CC) $(CFLAGS_ASAN) -o cluster-consensus-test-asan $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/cluster_consensus_test.c
+
+split-brain-torture: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/split_brain_torture.c
+	$(CC) $(CFLAGS) -o split-brain-torture $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/split_brain_torture.c
+
+split-brain-torture-asan: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/split_brain_torture.c
+	$(CC) $(CFLAGS_ASAN) -o split-brain-torture-asan $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/split_brain_torture.c
+
+cluster-bench: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/cluster_bench.c
+	$(CC) $(CFLAGS) -o cluster-bench $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/cluster_bench.c
 
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
@@ -436,7 +466,10 @@ clean:
 	      turbo-runner turbo-runner-sys bench \
 	      blend-test blend-test-asan blend-runner \
 	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench recovery-test recovery-test-asan \
-	      device-spectrum-test device-spectrum-test-asan device-spectrum-test-tsan
+	      device-spectrum-test device-spectrum-test-asan device-spectrum-test-tsan \
+	      cluster-ring-test cluster-ring-test-asan cluster-ring-test-tsan \
+	      cluster-consensus-test cluster-consensus-test-asan \
+	      split-brain-torture split-brain-torture-asan cluster-bench
 
 .PHONY: all clean
 

@@ -137,3 +137,13 @@ core/python/weft.egg-info/
 # WASM port build products (Series 9, issue #18-1; CI builds from source)
 core/wasm/dist/
 demos/wasm-canvas/dist/
+
+# RFC 0018 weft-cluster (Pillar 3) build artifacts
+core/c/cluster-ring-test
+core/c/cluster-ring-test-asan
+core/c/cluster-ring-test-tsan
+core/c/cluster-consensus-test
+core/c/cluster-consensus-test-asan
+core/c/split-brain-torture
+core/c/split-brain-torture-asan
+core/c/cluster-bench

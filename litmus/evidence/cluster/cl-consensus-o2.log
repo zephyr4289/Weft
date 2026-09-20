@@ -1,0 +1,10 @@
+C1   cold-boot election: 1 leader, all converged          PASS
+C2   lease stability across 20 lease periods              PASS
+C3-5 quorum loss, fencing, partition heal + convergence   PASS
+C6   vote uniqueness (one grant per term per node)        PASS
+C7   clock skew gate at attach                            PASS
+C8   zombie eviction after 3 frozen leases                PASS
+C9   consensus seqlock: stable, torn, pairing guards      PASS
+C10  100k cluster sync ops, zero alloc, intact payloads   PASS
+
+cluster_consensus_test: ALL PASS (0 failures)

@@ -1,0 +1,15 @@
+{"mode":"calib","ops":1000000,"ns_per_op":0.00,"a":0,"b":0}
+{"mode":"publish","ops":1000000,"ns_per_op":32.11,"a":128,"b":64}
+{"mode":"publish","ops":1000000,"ns_per_op":36.55,"a":192,"b":128}
+{"mode":"publish","ops":1000000,"ns_per_op":47.52,"a":512,"b":448}
+{"mode":"publish","ops":1000000,"ns_per_op":182.81,"a":2048,"b":1984}
+{"mode":"publish","ops":1000000,"ns_per_op":543.65,"a":4096,"b":4032}
+{"mode":"acquire+consume","ops":999424,"ns_per_op":7.13,"a":128,"b":0}
+{"mode":"roundtrip","ops":500000,"ns_per_op":30.69,"a":128,"b":0}
+{"mode":"seqreg","ops":10000000,"ns_per_op":3.93,"a":0,"b":0}
+{"mode":"consensus-write+read","ops":2000000,"ns_per_op":11.97,"a":0,"b":0}
+{"mode":"consensus-read","ops":2000000,"ns_per_op":2.96,"a":0,"b":0}
+{"mode":"cluster-sync","ops":100000,"ns_per_op":43.10,"a":5,"b":128}
+{"mode":"election","ops":3,"ns_per_op":3600.00,"a":23750000,"b":3}
+{"mode":"election","ops":5,"ns_per_op":7506.00,"a":23750000,"b":5}
+{"mode":"election","ops":7,"ns_per_op":14885.00,"a":23750000,"b":7}

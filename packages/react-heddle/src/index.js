@@ -4,6 +4,7 @@
 import * as React from 'react';
 
 export * from './core.js';
+export { createWeftHud } from './hud.js';
 
 const hooks = createHeddleHooks(React);
 
@@ -16,3 +17,8 @@ export const WeftPlaneProvider = hooks.WeftPlaneProvider;
 export const WeftCanvas = createWeftCanvas(React, hooks);
 
 export * from './visualizers.js';
+
+const hud = createWeftHud(React, hooks);
+export const WeftHud = hud.WeftHud;
+export const mountWeftHud = hud.mountWeftHud;
+export { createWeftHud };

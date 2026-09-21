@@ -68,7 +68,16 @@ Rather than assigning one engineer per siloed pillar (which causes architectural
 
 ## 📂 Pillar Documentation Index
 
+### Foundational Pillars (1 – 4)
 1. **[01-WEFTC-ZERO-SERIALIZATION-COMPILER.md](./01-WEFTC-ZERO-SERIALIZATION-COMPILER.md)** — Compiler architecture, AST format, memory alignment rules, and multi-language codegen specs.
 2. **[02-ZERO-COPY-EDGE-AI-TENSOR-FABRIC.md](./02-ZERO-COPY-EDGE-AI-TENSOR-FABRIC.md)** — Hardware DMA capture, zero-copy tensor ring buffers, onnxruntime/Llama.cpp integration, and GPU VRAM dispatch.
 3. **[03-DISTRIBUTED-RDMA-EBPF-CLUSTER-RING.md](./03-DISTRIBUTED-RDMA-EBPF-CLUSTER-RING.md)** — Sub-microsecond distributed cluster ring, RoCEv2 one-sided writes, eBPF packet routing, and split-brain recovery.
 4. **[04-HEDDLE2-UNIFIED-HOT-PLANE-UI.md](./04-HEDDLE2-UNIFIED-HOT-PLANE-UI.md)** — High-frequency UI streaming, zero-re-render DOM/Metal bindings, and tear-free lockless multi-producer HUD displays.
+
+### Next-Generation Pillars (5 – 8)
+5. **[NEXT-GEN-PILLARS-5-8.md](./NEXT-GEN-PILLARS-5-8.md)** — Comprehensive master plan for:
+   - **Pillar 5: `weft-spectrum`** (Universal Hardware-Adaptive Matrix for Qualcomm, MediaTek, Apple, Nvidia, Intel, AMD, ARM, RISC-V)
+   - **Pillar 6: `weft-adapters`** (Plug-and-play drop-in enterprise boosters for FinTech SBE/ITCH, Robotics ROS2/DDS `rmw_weft`, Edge Vision DMA)
+   - **Pillar 7: `weft-studio`** (Lightweight dedicated IDE, Language Server, Live Cache-Line & Seqlock Visualizer, Time-Travel Debugger)
+   - **Pillar 8: `weft-verify`** (Static zero-allocation compiler linter `weftc --lint-alloc`, TLA+ cluster proofs, Synthetic Silicon & Jitter Lab)
+

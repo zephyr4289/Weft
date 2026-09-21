@@ -1,0 +1,48 @@
+{
+  "name": "@weft/spectrum",
+  "version": "0.1.0",
+  "description": "Weft Spectrum Managed — hardware-aware runtime intelligence for TS/Web/Node. Zero-copy SHP1 weft_hw_profile_t decode, WASM feature detection, battery/visibility power governor, and the reactive cadence governor (240/120/60 Hz) with transparent Tier 1->2->3 fallback. Zero allocation in steady-state telemetry; zero re-renders in the HUD.",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./wire": {
+      "types": "./src/index.d.ts",
+      "default": "./src/wire.js"
+    },
+    "./governor": {
+      "types": "./src/index.d.ts",
+      "default": "./src/governor.js"
+    },
+    "./react": {
+      "types": "./src/index.d.ts",
+      "default": "./src/react.js"
+    }
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "probe:alloc": "node --expose-gc probes/alloc-probe.mjs telemetry"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "SEE LICENSE IN LICENSE"
+}

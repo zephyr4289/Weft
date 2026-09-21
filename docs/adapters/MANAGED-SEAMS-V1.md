@@ -45,11 +45,11 @@ decimal places):
 
 | Type | Name                  | Size (B) | Managed fields (offset) |
 |------|-----------------------|----------|--------------------------|
-| `S`  | SystemEvent           | 36       | event_code (34) u8 |
+| `S`  | SystemEvent           | 36       | event_code u8(11) |
 | `A`  | AddOrder              | 36       | ref u64(11) side u8(19) shares u32(20) stock char[8](24) price u32(32) |
 | `F`  | AddOrderMPID          | 40       | A fields + attribution char[4](36) |
 | `E`  | OrderExecuted         | 31       | ref u64(11) shares u32(19) match u64(23) |
-| `C`  | OrderExecutedWithPrice| 35       | ref u64(11) shares u32(19) match u64(23) printable u8(31) price u32(32) |
+| `C`  | OrderExecutedWithPrice| 36       | ref u64(11) shares u32(19) match u64(23) printable u8(31) price u32(32) |
 | `X`  | OrderCancel           | 23       | ref u64(11) cancelled u32(19) |
 | `D`  | OrderDelete           | 19       | ref u64(11) |
 | `U`  | OrderReplace          | 35       | orig u64(11) new u64(19) shares u32(27) price u32(31) |

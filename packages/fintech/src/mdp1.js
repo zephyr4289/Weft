@@ -16,7 +16,7 @@
 // All-integer state — NO floats on the parity path (bit-determinism).
 
 export const MDP1_SIZE = 304;
-export const MDP1_MAGIC = 0x3148444d; // "MDP1" little-endian read
+export const MDP1_MAGIC = 0x3150444d; // "MDP1" little-endian read
 export const MDP1_VERSION = 1;
 export const MDP1_TOP_LEVELS = 10;
 

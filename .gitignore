@@ -167,3 +167,4 @@ core/c/hetero-probe
 
 # weft-spectrum (Pillar 5) test build artifacts
 tests/spectrum/build/
+.pytest_cache/

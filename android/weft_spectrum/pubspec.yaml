@@ -1,0 +1,27 @@
+name: weft_spectrum
+description: >-
+  Weft Spectrum Managed — hardware-aware runtime intelligence for Flutter/Dart.
+  Dart FFI bindings into the native hardware probing seam (Engineer 1's
+  weft_hw_profile_t), zero-copy SHP1 decode, the reactive cadence governor
+  (240/120/60 Hz with thermal/battery/background rules), transparent
+  Tier 1->2->3 down-tiering, and the WeftSpectrumHud fail-safe overlay painted
+  by a zero-rebuild CustomPainter. Zero allocation in steady-state telemetry.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.4.0
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ffi: ^2.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  lints: ^4.0.0
+
+flutter:
+  uses-material-design: false

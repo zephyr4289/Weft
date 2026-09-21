@@ -29,7 +29,9 @@ export function make2DRecorder() {
     let v = null;
     Object.defineProperty(shim, k, {
       get() { return v; },
-      set(nv) { v = nv; rec(`set:${k}`); history.push(nv); },
+      // history is a TEST aid — hard-capped so probes measuring heap growth
+      // (bench/gc-probe) are not poisoned by an unbounded instrument buffer
+      set(nv) { v = nv; rec(`set:${k}`); if (history.length < 512) history.push(nv); },
     });
   }
   return shim;
@@ -152,10 +154,15 @@ export function createCandlestickEngine({ lane = 0, candles = 64, chunkSize = 4,
 // ---------------------------------------------------------------------------
 // WeftOrderBook — Level-2 price ladder where each HPL1 lane IS a level.
 // bidLanes/askLanes map lanes to ladder rows; bar length ∝ live lane value.
+// TEXT POLICY (Law 1): the per-frame canvas path draws GEOMETRY ONLY — string
+// materialization in a 240 Hz loop costs ~100 B/frame/label (measured 13.9 MB
+// per 20k frames by the GC probe). Labels therefore render through the
+// sanctioned DOM signal path (useWeftSignal, ≤ 60 Hz) layered over the canvas.
 // ---------------------------------------------------------------------------
 
 export function createOrderBookEngine({ bidLanes = [0, 1, 2], askLanes = [3, 4, 5], bidColor = 'rgba(34,197,94,0.75)', askColor = 'rgba(239,68,68,0.75)', textColor = '#cbd5e1' } = {}) {
   const rows = bidLanes.length + askLanes.length;
+  void textColor; // text belongs to the DOM signal layer, not the frame path
   return {
     contextType: '2d',
     init(canvas, ctx, view) {
@@ -171,8 +178,6 @@ export function createOrderBookEngine({ bidLanes = [0, 1, 2], askLanes = [3, 4, 
       const w = canvas.width, h = canvas.height;
       const rowH = h / state.rows;
       ctx.clearRect(0, 0, w, h);
-      ctx.font = '10px monospace';
-      ctx.textBaseline = 'middle';
       let refMax = 1e-9;
       for (let i = 0; i < state.bidLanes.length; i++) {
         if (view.readLane(state.bidLanes[i], out) === 0 && out.current > refMax) refMax = out.current;
@@ -187,8 +192,6 @@ export function createOrderBookEngine({ bidLanes = [0, 1, 2], askLanes = [3, 4, 
         const y = midY - (i + 1) * rowH;
         ctx.fillStyle = askColor;
         ctx.fillRect(w - bw, y, bw, rowH - 1);
-        ctx.fillStyle = textColor;
-        ctx.fillText(fmt(out.current), 4, y + rowH / 2);
       }
       for (let i = 0; i < state.bidLanes.length; i++) {
         if (view.readLane(state.bidLanes[i], out) !== 0) continue;
@@ -196,8 +199,6 @@ export function createOrderBookEngine({ bidLanes = [0, 1, 2], askLanes = [3, 4, 
         const y = midY + i * rowH;
         ctx.fillStyle = bidColor;
         ctx.fillRect(w - bw, y, bw, rowH - 1);
-        ctx.fillStyle = textColor;
-        ctx.fillText(fmt(out.current), 4, y + rowH / 2);
       }
       ctx.fillStyle = 'rgba(148,163,184,0.9)';
       ctx.fillRect(0, midY - 1, w, 2); // mid line
@@ -206,6 +207,7 @@ export function createOrderBookEngine({ bidLanes = [0, 1, 2], askLanes = [3, 4, 
 }
 
 function fmt(v) {
+  // DOM signal layer only — never called from render()
   return v >= 1000 ? Math.round(v).toString() : v.toPrecision(6);
 }
 

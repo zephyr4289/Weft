@@ -80,8 +80,8 @@ test('OrderBook engine: one row per lane level, mid line drawn', () => {
   const state = engine.init(canvas, canvas.ctx, view);
   engine.render(state, { frame: 1, nowNs: 0, skipped: 0, lateNs: 0 }, state.view);
   const c = canvas.ctx.calls;
-  assert.ok((c.fillText || 0) >= 8, 'all 8 level labels rendered');
-  assert.ok((c.fillRect || 0) >= 9, '8 bars + mid line');
+  assert.equal(c.fillText || 0, 0, 'frame path is TEXT-FREE (Law 1 — labels live in the DOM signal layer)');
+  assert.ok((c.fillRect || 0) >= 9, '8 bars + mid line drawn');
 });
 
 test('AudioMeter engine: levels clamp, peak-hold holds then releases', () => {

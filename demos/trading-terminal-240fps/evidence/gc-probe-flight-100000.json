@@ -1,0 +1,7 @@
+{
+  "mode": "flight",
+  "frames": 100000,
+  "heapGrowthBytes": -16848,
+  "gateBytes": 32768,
+  "pass": true
+}

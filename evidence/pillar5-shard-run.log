@@ -1,0 +1,55 @@
+
+[1/11] kernel-core integrity (Law 3: core/c byte-frozen)
+    PASS: core/c/ untouched
+
+[2/11] SHP1 fixture determinism (double-run byte-identical)
+    PASS: 7/7 artifacts byte-identical
+
+[3/11] @weft/spectrum suite (TypeScript)
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 364.595555
+    PASS: TS suite
+
+[4/11] TS zero-allocation probe (--expose-gc, 1,000,000 cycles, <= 64 KiB)
+    telemetry: {"mode":"telemetry","cycles":1000000,"heapStart":4499736,"heapEnd":4489216,"growthBytes":-10520,"gateBytes":65536,"sink":0,"ok":true}
+    PASS: telemetry probe within gate
+    control:   {"mode":"control","cycles":100000,"heapStart":4499720,"heapEnd":9405768,"growthBytes":4906048,"gateBytes":1,"sink":100000,"ok":false} (bit as required)
+    PASS: negative control bites
+
+[5/11] python/weft_spectrum suite (incl. tracemalloc 1M-cycle gate)
+    Ran 42 tests in 4.183s
+    
+    OK
+    PASS: Python suite
+
+[6/11] Dart static audit lane (no SDK required)
+    dart static audit: 41 passed, 0 failed
+    dart static audit: PASS
+    PASS: Dart structural audit
+
+[7/11] Swift static audit lane (no SDK required)
+    swift static audit: 26 passed, 0 failed
+    swift static audit: PASS
+    PASS: Swift structural audit
+
+[8/11] cross-language parity (TS == Python == frozen manifests)
+      ok   dart audit lane: PASS (pinning its projection to the same manifests)
+    
+    parity: 12 ok, 0 failures
+    PASS: cross-language parity
+
+[9/11] multi-tier adaptive demo (0 dropped frames mandate)
+    TIER DEMO: 3435 frames rendered, 0 dropped, p99 4.5ms, transitions 240->120->60->120->60->120->240->30->240 — PASS
+    PASS: multi-tier demo
+
+[10/11] report integrity (D-53 with laws map + scorecard)
+    PASS: D-53 structure complete
+
+[11/11] patch hygiene (conflict markers / stray artifacts)
+    PASS: clean tree
+
+===============================================
+SPECTRUM MANAGED SUITE: ALL 11 STAGES GREEN
+===============================================

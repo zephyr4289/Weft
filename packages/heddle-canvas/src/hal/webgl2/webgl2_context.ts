@@ -80,18 +80,26 @@ export class GLContextStateMachine {
  * Acquire a WebGL2 context from a canvas-like host. Returns null when the
  * platform refuses (the ladder treats null as the named refusal
  * HC_E_BACKEND_REFUSED, never as a crash).
+ *
+ * EVENT TARGET DISCIPLINE (the spec's quiet corner): webglcontextlost /
+ * webglcontextrestored fire at the CANVAS, not at the context object —
+ * a WebGL2RenderingContext in Chromium has NO addEventListener. The state
+ * machine therefore wires its listeners on the canvas; the context rides
+ * along as the drawing surface.
  */
 export function acquireWebGL2(
-  canvas: { getContext(type: 'webgl2', attrs?: unknown): unknown },
+  canvas: {
+    getContext(type: 'webgl2', attrs?: unknown): unknown;
+    addEventListener(type: string, listener: (ev: { preventDefault(): void }) => void): void;
+  },
 ): WebGL2AcquireResult | null {
   const gl = canvas.getContext('webgl2', { alpha: false, antialias: false });
   if (gl === null || gl === undefined) return null;
-  const events = gl as GLContextEventTarget;
-  if (typeof events.addEventListener !== 'function') {
+  if (typeof canvas.addEventListener !== 'function') {
     throw new HeddleError(
       'HC_E_BACKEND_REFUSED',
-      'webgl2 object lacks event target surface (non-browser host?)',
+      'canvas host lacks event target surface (non-browser host?)',
     );
   }
-  return { gl, context: new GLContextStateMachine(events) };
+  return { gl, context: new GLContextStateMachine(canvas) };
 }

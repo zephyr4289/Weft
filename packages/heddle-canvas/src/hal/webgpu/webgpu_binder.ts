@@ -392,6 +392,42 @@ export class WebGPUHAL implements RenderHAL {
     }
   }
 
+  /**
+   * DIAGNOSTIC SEAM (not the frame path): copy the lane's min/max buffer
+   * into a MAP_READ buffer and resolve it — the cross-tier oracle gate's
+   * readback. Async by WebGPU's nature; allocates a fresh Float32Array by
+   * design (rig-only path).
+   */
+  async readBackMinmax(lane: LaneView): Promise<Float32Array> {
+    const dev = this.requireDevice();
+    const cfg = this.requireCfg();
+    const wf = this.waveforms[lane.laneIndex];
+    if (wf === undefined) {
+      throw new HeddleError('HC_E_LANE_UNSUPPORTED_KIND', 'readBackMinmax on non-waveform lane');
+    }
+    const cols = Math.min(cfg.columnCount, cfg.canvasWidth);
+    const size = cols * 8;
+    // The readback buffer is a plain GPUBuffer (MAP_READ|COPY_DST); the
+    // structural surface types it as unknown — the map/unmap dance rides
+    // the host's real WebGPU objects (rig-only path, see GPUQueueLike).
+    const rb = dev.createBuffer({ size, usage: USAGE_MAP_READ | USAGE_COPY_DST }) as {
+      mapAsync(mode: number): Promise<void>;
+      getMappedRange(): ArrayBuffer;
+      unmap(): void;
+      destroy(): void;
+    };
+    const encoder = dev.createCommandEncoder();
+    encoder.copyBufferToBuffer(wf.minmax, 0, rb, 0, size);
+    dev.queue.submit([encoder.finish()]);
+    await dev.queue.onSubmittedWorkDone();
+    await rb.mapAsync(0x1 /* GPUMapMode.READ */);
+    const mapped = new Float32Array(cols * 2);
+    mapped.set(new Float32Array(rb.getMappedRange()));
+    rb.unmap();
+    rb.destroy();
+    return mapped;
+  }
+
   /** Min/max readback buffer for the cross-tier oracle gate (test rig). */
   createMinmaxReadback(lane: LaneView): unknown {
     const dev = this.requireDevice();

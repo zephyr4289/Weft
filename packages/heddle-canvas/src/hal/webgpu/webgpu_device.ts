@@ -53,6 +53,7 @@ export interface GPUDeviceLike {
       dispatchWorkgroups(x: number, y?: number, z?: number): void;
       end(): void;
     };
+    copyBufferToBuffer(src: unknown, srcOffset: number, dst: unknown, dstOffset: number, size: number): void;
     finish(): unknown;
   };
   createRenderBundleEncoder(descriptor: Record<string, unknown>): {

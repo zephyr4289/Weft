@@ -269,6 +269,19 @@ export class Canvas2DHAL implements RenderHAL {
     this.frameOpen = false;
   }
 
+  /**
+   * DIAGNOSTIC SEAM (not the frame path): copy the raster's decimation
+   * cache — the same pairs drawOscillo painted from — for the cross-tier
+   * oracle gate. The rig compares these against a FRESH CPU-oracle
+   * decimation of the same lane state, which verifies the window-param
+   * wiring (windowStart/vis), not just the arithmetic.
+   */
+  readBackMinmax(lane: LaneView, out: Float32Array): void {
+    void lane;
+    const cols = Math.min(this.columnCount, this.width);
+    out.set(this.minmax.subarray(0, cols * 2));
+  }
+
   /** The ImageData carved at init (identity check for the reuse gate). */
   imageData(): ImageData {
     if (this.image === null) {

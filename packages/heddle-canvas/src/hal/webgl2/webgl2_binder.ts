@@ -98,6 +98,7 @@ export interface GL2 {
   activeTexture(unit: number): void;
   getParameter(pname: number): unknown;
   clearColor(r: number, g: number, b: number, a: number): void;
+  getBufferSubData(target: number, srcByteOffset: number, dst: ArrayBufferView): void;
   // Spec-fixed constants (values are stable across all WebGL2 impls).
   readonly ARRAY_BUFFER: number;
   readonly STATIC_DRAW: number;
@@ -446,6 +447,12 @@ export class WebGL2HAL implements RenderHAL {
     gl.uniform1i(this.uDecimate['uSamples'], 0);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, wf.texture);
+    // TF hazard (MEASURED in the rig): a transform-feedback-written buffer
+    // simultaneously bound to a non-TF target is INVALID_OPERATION — the
+    // draw silently skips and the readback reads zeros. The minmax buffer
+    // rides ARRAY_BUFFER inside the ribbon VAO; unbind the global target
+    // for the duration of the capture.
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.enable(gl.RASTERIZER_DISCARD);
     gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, wf.minmaxBuffer);
     gl.beginTransformFeedback(gl.POINTS);
@@ -617,6 +624,24 @@ export class WebGL2HAL implements RenderHAL {
       uViewport: gl.getUniformLocation(this.progCandle, 'uViewport'),
       uRowCount: gl.getUniformLocation(this.progCandle, 'uRowCount'),
     };
+  }
+
+  /**
+   * DIAGNOSTIC SEAM (not the frame path): read back the TF min/max buffer
+   * for the cross-tier oracle gate. The destination is carved by the
+   * CALLER — the seam itself allocates nothing.
+   */
+  readBackMinmax(lane: LaneView, out: Float32Array): void {
+    const gl = this.requireGL();
+    const cfg = this.requireCfg();
+    const wf = this.waveforms[lane.laneIndex];
+    if (wf === undefined) {
+      throw new HeddleError('HC_E_LANE_UNSUPPORTED_KIND', 'readBackMinmax on non-waveform lane');
+    }
+    const cols = Math.min(cfg.columnCount, cfg.canvasWidth);
+    gl.bindBuffer(gl.ARRAY_BUFFER, wf.minmaxBuffer);
+    gl.getBufferSubData(gl.ARRAY_BUFFER, 0, out.subarray(0, cols * 2));
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
   }
 
   private requireGL(): GL2 {

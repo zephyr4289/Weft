@@ -1,0 +1,24 @@
+=== heddle-2.0 WASM/FFI bridge conformance (W-series) ===
+PASS W1 header field offsets == engine offsetof
+PASS W1 lane descriptor offsets
+PASS W1 lane data offset arithmetic
+PASS W1 stride + payload-offset parity
+PASS W2 plane created
+PASS W2 describe decodes identity + geometry
+PASS W2 engine consumer attach
+PASS W4 bridge-writes <-> engine-reads, 100k sessions
+PASS W4 bridge sessions set all four lane bits
+PASS W4 transitions counted by the bridge agree with the engine
+PASS W4 lane stats visible across the alias
+PASS W4 engine epoch (derived from commit_seq) == bridge session
+PASS W4 single-plane epoch register untouched (RMW-free commits)
+PASS W4 bridge reads the engine's commit_seq directly
+PASS W5 bridge copy == engine copy (byte-exact)
+PASS W3 bad magic -> E_MAGIC
+PASS W3 bad version -> E_VERSION
+PASS W3 flipped canary -> E_ENDIAN
+PASS W3 corrupt config -> E_CFG_CRC
+PASS W3 short region -> E_REGION_SIZE
+PASS W3 null base -> E_ARG
+
+W-SERIES: 21 checks, 0 failures

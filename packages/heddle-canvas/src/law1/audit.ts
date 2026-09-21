@@ -23,8 +23,6 @@
 // JS heap; the WebGPU spec-mandated per-frame encoder objects are the
 // labeled residual (RFC-0022 §8, D-42 §5).
 
-import inspector from 'node:inspector';
-
 export interface HeapGateResult {
   readonly warmupFrames: number;
   readonly measuredFrames: number;
@@ -51,9 +49,15 @@ export function heapGateAvailable(): boolean {
   return typeof (globalThis as { gc?: unknown }).gc === 'function';
 }
 
-/** Whether this runtime has the inspector heap profiler (node; not bun/browser). */
-export function samplingGateAvailable(): boolean {
-  return typeof inspector?.Session === 'function';
+/** Whether this runtime has the inspector heap profiler (node; not browser —
+ *  the import is dynamic so browser bundles never carry it). */
+export async function samplingGateAvailable(): Promise<boolean> {
+  try {
+    const inspector = await import('node:inspector');
+    return typeof inspector.default?.Session === 'function' || typeof inspector.Session === 'function';
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -105,7 +109,23 @@ export async function samplingAllocationGate(
   measuredFrames: number,
   driver: (i: number) => void,
 ): Promise<SamplingGateResult> {
-  const session = new inspector.Session();
+  // Dynamic import: the browser bundle never carries node:inspector, and
+  // this gate is a node-side instrument by design. The structural shape
+  // keeps tsc honest without importing the node types at module scope.
+  type InspectorSession = {
+    connect(): void;
+    disconnect(): void;
+    post(method: string, params?: object, cb?: (err: Error | null, res?: object) => void): void;
+  };
+  const inspector = (await import('node:inspector')) as unknown as {
+    Session?: new () => InspectorSession;
+    default?: { Session: new () => InspectorSession };
+  };
+  const SessionCtor = inspector.Session ?? inspector.default?.Session;
+  if (SessionCtor === undefined) {
+    throw new Error('[HC_E_LAW1_GATE] node:inspector unavailable in this runtime');
+  }
+  const session = new SessionCtor();
   session.connect();
   const post = (method: string, params?: Record<string, unknown>): Promise<unknown> =>
     new Promise((resolve, reject) => {

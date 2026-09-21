@@ -29,8 +29,13 @@ export { NullHAL } from './hal/null_device.ts';
 export type { UploadRecord, DrawRecord } from './hal/null_device.ts';
 export { GLContextStateMachine, acquireWebGL2, GL_CONTEXT_STATE } from './hal/webgl2/webgl2_context.ts';
 export type { GLContextState, WebGL2AcquireResult } from './hal/webgl2/webgl2_context.ts';
+export { WebGL2HAL, GL_FLOAT } from './hal/webgl2/webgl2_binder.ts';
+export type { GL2 } from './hal/webgl2/webgl2_binder.ts';
 export { GPUDeviceStateMachine, acquireWebGPU, GPU_DEVICE_STATE } from './hal/webgpu/webgpu_device.ts';
-export type { GPUDeviceState, WebGPUAcquireResult } from './hal/webgpu/webgpu_device.ts';
+export type { GPUDeviceState, WebGPUAcquireResult, GPUDeviceLike } from './hal/webgpu/webgpu_device.ts';
+export { WebGPUHAL } from './hal/webgpu/webgpu_binder.ts';
+export { Canvas2DHAL } from './hal/canvas2d/canvas2d_blitter.ts';
+export type { Canvas2DLike } from './hal/canvas2d/canvas2d_blitter.ts';
 
 // --- the engine + budget ----------------------------------------------------
 export { HeddleEngine } from './loop/frame_engine.ts';

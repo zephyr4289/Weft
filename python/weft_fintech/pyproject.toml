@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "weft-fintech"
+version = "0.1.0"
+description = "Weft FinTech managed adapters — zero-copy ITCH 5.0/SBE engine, O(1) ring-pool L2/L3 book, MDP1 snapshot wire, zero-copy numpy/polars interop"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+dependencies = []
+
+[project.optional-dependencies]
+numpy = ["numpy>=2.0"]
+polars = ["polars>=1.0"]
+all = ["numpy>=2.0", "polars>=1.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]

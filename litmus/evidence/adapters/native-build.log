@@ -1,0 +1,2 @@
+impl: crc32c=x86-sse4.2-static adler32=x86-sse2-madd
+TEST checksum: PASS checks=2659 failures=0

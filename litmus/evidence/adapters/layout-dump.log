@@ -1,0 +1,62 @@
+weft-adapters ABI version: 1 (runtime 1)
+
+[itch header] weft_itch_hdr_t  sizeof=16 align=8
+  weft_itch_hdr_t              msg_type                 off=  0 size=1 align=8
+  weft_itch_hdr_t              stock_locate             off=  2 size=2 align=8
+  weft_itch_hdr_t              tracking_number          off=  4 size=2 align=8
+  weft_itch_hdr_t              timestamp_ns             off=  8 size=8 align=8
+
+[itch bodies] all sizeof=48 (union slot 16..63)
+  weft_itch_stock_directory_body_t round_lot_size           off= 12 size=4 align=4
+  weft_itch_stock_directory_body_t etp_leverage_factor      off= 28 size=4 align=4
+  weft_itch_add_order_body_t   order_ref                off=  0 size=8 align=8
+  weft_itch_add_order_body_t   shares                   off= 12 size=4 align=8
+  weft_itch_add_order_body_t   price_raw                off= 24 size=4 align=8
+  weft_itch_add_order_mpid_body_t mpid                     off= 28 size=4 align=8
+  weft_itch_order_executed_body_t match_number             off=  8 size=8 align=8
+  weft_itch_order_executed_body_t executed_shares          off= 16 size=4 align=8
+  weft_itch_order_exec_price_body_t execution_price          off= 20 size=4 align=8
+  weft_itch_order_replace_body_t new_order_ref            off=  8 size=8 align=8
+  weft_itch_order_replace_body_t price_raw                off= 20 size=4 align=8
+  weft_itch_trade_body_t       match_number             off=  8 size=8 align=8
+  weft_itch_trade_body_t       price_raw                off= 28 size=4 align=8
+  weft_itch_cross_trade_body_t shares                   off=  0 size=8 align=8
+  weft_itch_cross_trade_body_t cross_price_raw          off= 24 size=4 align=8
+  weft_itch_noii_body_t        paired_shares            off=  0 size=8 align=8
+  weft_itch_noii_body_t        current_ref_price_raw    off= 32 size=4 align=8
+  weft_itch_mwcb_body_t        level3                   off= 16 size=8 align=8
+  weft_itch_ipo_body_t         ipo_price_raw            off= 16 size=4 align=4
+  weft_itch_luld_body_t        reference_price          off=  8 size=8 align=8
+
+[itch projection] weft_itch_msg_t  sizeof=64 align=8 stride=64
+  weft_itch_msg_t              hdr                      off=  0 size=16 align=8
+  weft_itch_msg_t              u                        off= 16 size=48 align=8
+
+[ouch header] weft_ouch_hdr_t  sizeof=16 align=8
+  weft_ouch_hdr_t              timestamp_ns             off=  0 size=8 align=8
+  weft_ouch_hdr_t              msg_type                 off=  8 size=1 align=8
+
+[ouch bodies] all sizeof=48
+  weft_ouch_accepted_body_t    order_ref                off=  0 size=8 align=8
+  weft_ouch_accepted_body_t    price_raw                off= 12 size=4 align=8
+  weft_ouch_accepted_body_t    firm                     off= 29 size=4 align=8
+  weft_ouch_executed_body_t    match_number             off=  8 size=8 align=8
+  weft_ouch_exec_price_body_t  execution_price          off= 20 size=4 align=8
+  weft_ouch_replaced_body_t    price_raw                off= 20 size=4 align=8
+
+[ouch projection] weft_ouch_msg_t  sizeof=64 align=8 stride=64
+  weft_ouch_msg_t              hdr                      off=  0 size=16 align=8
+  weft_ouch_msg_t              u                        off= 16 size=48 align=8
+
+[sbe descriptors]
+  weft_sbe_field_desc_t sizeof=8
+  weft_sbe_group_desc_t sizeof=8
+  weft_sbe_schema_t     sizeof=40
+  weft_sbe_view_t       sizeof=320
+  weft_sbe_schema_t            fixed                    off= 16 size=8 align=8
+  weft_sbe_schema_t            groups                   off= 24 size=8 align=8
+  weft_sbe_schema_t            group_fields             off= 32 size=8 align=8
+
+[checksum engine] crc32c impl=x86-sse4.2-rtdispatch adler32 impl=x86-sse2-madd
+
+LAYOUT DUMP COMPLETE

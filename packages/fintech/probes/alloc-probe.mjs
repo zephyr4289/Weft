@@ -28,11 +28,14 @@ function kib(n) { return Math.round((n / 1024) * 100) / 100; }
 
 function runIngest() {
   const feed = buildItchChunked(MESSAGES, CHUNK);
-  // warmup: JIT both sides before measurement
+  // warmup: a FULL first pass over all chunks — V8 tiers up DURING a
+  // 1M-message loop, and code-space growth from tiering is not managed
+  // allocation. Measuring the SECOND (fully tiered) pass is the honest
+  // steady-state probe.
   {
-    const b = new OrderBook();
+    const b = new OrderBook({ poolCapacity: 65536 });
     const e = new ItchEngine(b);
-    e.process(feed.chunks[0]);
+    for (const chunk of feed.chunks) e.process(chunk);
   }
   global.gc();
   const before = process.memoryUsage().heapUsed;
@@ -46,8 +49,14 @@ function runIngest() {
     if (h > peakDuring) peakDuring = h;
   }
 
-  global.gc();
-  const after = process.memoryUsage().heapUsed;
+  // 3 gc+sample rounds, take the MIN: the fairest "residue after a full
+  // collection" measure (V8 code-space jitter inflates single samples).
+  let after = Infinity;
+  for (let i = 0; i < 3; i++) {
+    global.gc();
+    const h = process.memoryUsage().heapUsed;
+    if (h < after) after = h;
+  }
   const growth = after - before;
 
   const ok = growth <= GATE_KIB * 1024

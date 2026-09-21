@@ -1,0 +1,5 @@
+itch50_golden_fixed.bin crc32c=0d2141ce adler32=38ec8dd2 size=696
+itch50_golden_len.bin crc32c=f99190b0 adler32=82a5908a size=742
+ouch50_golden.bin crc32c=25a0eefc adler32=83f9213d size=185
+sbe_golden.bin crc32c=63f7e160 adler32=bcf51fb1 size=273
+itch50_golden.pcap crc32c=c1589448 adler32=2b07b4ac size=988

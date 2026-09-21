@@ -1,0 +1,39 @@
+{
+  "name": "@weft/fintech",
+  "version": "0.1.0",
+  "description": "Weft FinTech managed adapters — zero-copy ITCH 5.0/SBE engine, O(1) ring-pool L2/L3 order book, MDP1 snapshot wire, zero-re-render 240 FPS depth-ladder UI",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "test",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "keywords": [
+    "weft",
+    "itch",
+    "sbe",
+    "orderbook",
+    "zero-copy",
+    "zero-allocation",
+    "fintech",
+    "hft"
+  ],
+  "license": "Apache-2.0"
+}

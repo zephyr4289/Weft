@@ -187,7 +187,7 @@ fn r7_checkpoint_jump_equivalence() {
     // fold 2000 scenario events; jump(k) (checkpoint struct-copy + refold)
     // must equal fold(k) across the sweep.
     let mut c = scen_init();
-    let mut state: u32 = 0x00C0_FEEE;
+    let mut state: u32 = 0x00C0_FFEE;
     let mut evs: Vec<(u16, u16, u32)> = Vec::with_capacity(2000);
     for _ in 0..2000 {
         evs.push(scen_next(&mut c, &mut state));
@@ -225,7 +225,7 @@ fn r7_checkpoint_jump_equivalence() {
 #[test]
 fn r8_soak_100k_pinned() {
     let mut c = scen_init();
-    let mut state: u32 = 0x00C0_FEEE;
+    let mut state: u32 = 0x00C0_FFEE;
     let mut s = WeftReplayState::default();
     replay_init(&mut s);
     for i in 0..100_000u32 {

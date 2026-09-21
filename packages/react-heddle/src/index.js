@@ -14,3 +14,5 @@ export const useWeftBuffer = hooks.useWeftBuffer;
 export const WeftPlaneProvider = hooks.WeftPlaneProvider;
 
 export const WeftCanvas = createWeftCanvas(React, hooks);
+
+export * from './visualizers.js';

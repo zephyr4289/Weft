@@ -1,0 +1,48 @@
+{
+  "name": "hpl1-edge-1x2",
+  "sha256": "04e0d4306ba819e30e29ecf2fe1478f33b532e278a361fb51f42ea504ffd831d",
+  "totalBytes": 216,
+  "geometry": {
+    "dirtyWords": 1,
+    "laneCtrlBase": 136,
+    "ringBase": 200,
+    "totalBytes": 216
+  },
+  "header": {
+    "magicU32": 827084872,
+    "version": 1,
+    "flags": 1,
+    "laneCount": 1,
+    "samplesPerLane": 2,
+    "ringMask": 1,
+    "tickHz": 240,
+    "epoch": 1,
+    "publishSeq": 8,
+    "lastPublishNs": 1000014,
+    "globalMin": 42.171875,
+    "globalMax": 49.4375,
+    "globalAvg": 45.8046875,
+    "globalCurrent": 42.171875,
+    "dirtyWords": 1,
+    "laneCtrlStride": 64,
+    "ringBaseOffset": 200,
+    "totalBytesField": 216
+  },
+  "lanes": [
+    {
+      "current": 42.171875,
+      "min": 42.171875,
+      "max": 49.4375,
+      "avg": 45.8046875,
+      "samplesSeen": 2,
+      "head": 0,
+      "laneFlags": 1,
+      "lanePublishNs": 1000007,
+      "laneDrops": 0,
+      "values": [
+        49.4375,
+        42.171875
+      ]
+    }
+  ]
+}

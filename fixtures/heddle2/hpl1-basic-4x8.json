@@ -1,0 +1,117 @@
+{
+  "name": "hpl1-basic-4x8",
+  "sha256": "5046cc0a7fd554f6efb958f604da1f1c80810514e4a998e2ba7eea693d7ae095",
+  "totalBytes": 648,
+  "geometry": {
+    "dirtyWords": 1,
+    "laneCtrlBase": 136,
+    "ringBase": 392,
+    "totalBytes": 648
+  },
+  "header": {
+    "magicU32": 827084872,
+    "version": 1,
+    "flags": 1,
+    "laneCount": 4,
+    "samplesPerLane": 8,
+    "ringMask": 7,
+    "tickHz": 240,
+    "epoch": 1,
+    "publishSeq": 80,
+    "lastPublishNs": 1000224,
+    "globalMin": 1.71875,
+    "globalMax": 63.171875,
+    "globalAvg": 34.984375,
+    "globalCurrent": 9,
+    "dirtyWords": 1,
+    "laneCtrlStride": 64,
+    "ringBaseOffset": 392,
+    "totalBytesField": 648
+  },
+  "lanes": [
+    {
+      "current": 62.078125,
+      "min": 2.96875,
+      "max": 62.078125,
+      "avg": 32.8203125,
+      "samplesSeen": 8,
+      "head": 0,
+      "laneFlags": 1,
+      "lanePublishNs": 1000049,
+      "laneDrops": 16,
+      "values": [
+        59.875,
+        17.859375,
+        23.65625,
+        43.015625,
+        14.6875,
+        38.421875,
+        2.96875,
+        62.078125
+      ]
+    },
+    {
+      "current": 1.71875,
+      "min": 1.71875,
+      "max": 63.171875,
+      "avg": 32.9296875,
+      "samplesSeen": 8,
+      "head": 0,
+      "laneFlags": 1,
+      "lanePublishNs": 1001049,
+      "laneDrops": 16,
+      "values": [
+        13.703125,
+        46.625,
+        34.609375,
+        46.40625,
+        15.765625,
+        41.4375,
+        63.171875,
+        1.71875
+      ]
+    },
+    {
+      "current": 5.359375,
+      "min": 5.359375,
+      "max": 59.375,
+      "avg": 33.0390625,
+      "samplesSeen": 8,
+      "head": 0,
+      "laneFlags": 1,
+      "lanePublishNs": 1002049,
+      "laneDrops": 16,
+      "values": [
+        31.53125,
+        11.390625,
+        45.5625,
+        49.796875,
+        16.84375,
+        44.453125,
+        59.375,
+        5.359375
+      ]
+    },
+    {
+      "current": 9,
+      "min": 9,
+      "max": 56.515625,
+      "avg": 41.1484375,
+      "samplesSeen": 8,
+      "head": 0,
+      "laneFlags": 1,
+      "lanePublishNs": 1003049,
+      "laneDrops": 0,
+      "values": [
+        49.359375,
+        40.15625,
+        56.515625,
+        53.1875,
+        17.921875,
+        47.46875,
+        55.578125,
+        9
+      ]
+    }
+  ]
+}

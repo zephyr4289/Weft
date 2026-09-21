@@ -172,7 +172,7 @@ static void weft_crc32c_cpu_probe(void)
 #  endif
 
 #elif defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
-
+#  include <arm_acle.h>
 #  define WEFT_CRC32C_ARM_STATIC 1
 static uint32_t weft_crc32c_sse42_update(uint32_t crc, const uint8_t *p, size_t len)
 {
@@ -181,26 +181,26 @@ static uint32_t weft_crc32c_sse42_update(uint32_t crc, const uint8_t *p, size_t 
     while (len >= 8u) {
         uint64_t v;
         memcpy(&v, p, 8);
-        state = __builtin_arm_crc32cd(state, v);
+        state = __crc32cd(state, v);
         p += 8;
         len -= 8;
     }
     if (len >= 4u) {
         uint32_t v;
         memcpy(&v, p, 4);
-        state = __builtin_arm_crc32cw(state, v);
+        state = __crc32cw(state, v);
         p += 4;
         len -= 4;
     }
     if (len >= 2u) {
         uint16_t v;
         memcpy(&v, p, 2);
-        state = __builtin_arm_crc32ch(state, v);
+        state = __crc32ch(state, v);
         p += 2;
         len -= 2;
     }
     if (len >= 1u) {
-        state = __builtin_arm_crc32cb(state, (uint32_t)*p);
+        state = __crc32cb(state, (uint32_t)*p);
     }
     return state ^ 0xFFFFFFFFu;
 }

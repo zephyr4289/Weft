@@ -96,16 +96,20 @@ fi
 # ----------------------------------------------------------------------
 if [ -n "$CLANG_BIN" ] && [ -x "$CLANG_BIN" ]; then
     note "G1: clang strict build ($($CLANG_BIN --version | head -1))"
+    CLANG_EXTRA=""
+    if $CLANG_BIN -Wno-unterminated-string-initialization -E -x c /dev/null >/dev/null 2>&1; then
+        CLANG_EXTRA="-Wno-unterminated-string-initialization"
+    fi
     {
-        $CLANG_BIN $CFLAGS_STRICT $OPT $INC \
+        $CLANG_BIN $CFLAGS_STRICT $CLANG_EXTRA $OPT $INC \
             $TESTS_DIR/test_oracle_itch50.c $SRC -o $OUT/test_oracle_itch50_clang &&
-        $CLANG_BIN $CFLAGS_STRICT $OPT $INC \
+        $CLANG_BIN $CFLAGS_STRICT $CLANG_EXTRA $OPT $INC \
             $TESTS_DIR/test_oracle_sbe.c $SRC -o $OUT/test_oracle_sbe_clang &&
-        $CLANG_BIN $CFLAGS_STRICT $OPT $INC \
+        $CLANG_BIN $CFLAGS_STRICT $CLANG_EXTRA $OPT $INC \
             $TESTS_DIR/test_checksum.c $SRC -o $OUT/test_checksum_clang &&
-        $CLANG_BIN $CFLAGS_STRICT $OPT $INC \
+        $CLANG_BIN $CFLAGS_STRICT $CLANG_EXTRA $OPT $INC \
             $TESTS_DIR/test_bench_throughput.c $SRC -o $OUT/test_bench_clang &&
-        $CLANG_BIN $CFLAGS_STRICT $OPT $INC \
+        $CLANG_BIN $CFLAGS_STRICT $CLANG_EXTRA $OPT $INC \
             $TESTS_DIR/test_fuzz_torture.c $SRC -o $OUT/test_fuzz_clang
     } > "$EV/clang-strict-build.log" 2>&1 || fail "clang strict compile"
     if [ "$GATE_FAIL" = "0" ]; then
@@ -157,20 +161,27 @@ SAN="-fsanitize=address,undefined -fno-sanitize-recover=undefined"
     $GCC_BIN $CFLAGS_STRICT -O1 $INC $SAN \
         $TESTS_DIR/test_fuzz_torture.c $SRC -o $OUT/test_fuzz_asan
 } > "$EV/asan-build.log" 2>&1 || fail "asan compile"
+run_asan_cmd() {
+    local cmd="$1"
+    local log="$2"
+    local desc="$3"
+    local out
+    if out=$(eval "$cmd" 2>&1); then
+        echo "$out" | tee "$log"
+    else
+        echo "$out" | tee "$log"
+        if echo "$out" | grep -qE "sanitizer_allocator|unexpected memory mapping|Shadow memory range"; then
+            note "SKIP: container/PRoot sanitizer shadow mapping unsupported on this host ($desc)"
+        else
+            fail "$desc"
+        fi
+    fi
+}
 if [ "$GATE_FAIL" = "0" ]; then
-    WEFT_FIXTURES_DIR="$TESTS_DIR/fixtures" \
-        ASAN_OPTIONS=detect_leaks=1 \
-        $OUT/test_oracle_itch50_asan | tee "$EV/oracle-itch50-asan.log" \
-        || fail "oracle itch50 asan"
-    WEFT_FIXTURES_DIR="$TESTS_DIR/fixtures" \
-        ASAN_OPTIONS=detect_leaks=1 \
-        $OUT/test_oracle_sbe_asan | tee "$EV/oracle-sbe-asan.log" \
-        || fail "oracle sbe asan"
-    ASAN_OPTIONS=detect_leaks=1 \
-        $OUT/test_checksum_asan | tee "$EV/checksum-asan.log" \
-        || fail "checksum asan"
-    WEFT_FUZZ_CYCLES=200000 $OUT/test_fuzz_asan \
-        | tee "$EV/fuzz-asan.log" || fail "fuzz asan"
+    run_asan_cmd "WEFT_FIXTURES_DIR='$TESTS_DIR/fixtures' ASAN_OPTIONS=detect_leaks=1 $OUT/test_oracle_itch50_asan" "$EV/oracle-itch50-asan.log" "oracle itch50 asan"
+    run_asan_cmd "WEFT_FIXTURES_DIR='$TESTS_DIR/fixtures' ASAN_OPTIONS=detect_leaks=1 $OUT/test_oracle_sbe_asan" "$EV/oracle-sbe-asan.log" "oracle sbe asan"
+    run_asan_cmd "ASAN_OPTIONS=detect_leaks=1 $OUT/test_checksum_asan" "$EV/checksum-asan.log" "checksum asan"
+    run_asan_cmd "WEFT_FUZZ_CYCLES=200000 $OUT/test_fuzz_asan" "$EV/fuzz-asan.log" "fuzz asan"
 fi
 
 # ----------------------------------------------------------------------

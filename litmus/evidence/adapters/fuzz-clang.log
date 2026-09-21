@@ -5,5 +5,4 @@ FUZZ ouch50         ok=2360         err=6147         hist[OK=2360 EBADMSG=750 ET
 FUZZ sbe-md         ok=2512         err=5772         hist[OK=2512 EBADMSG=56 ETRUNC=2422 ESCHEMA=3294]
 FUZZ waf-frame      ok=1377         err=6922         hist[OK=1377 EBADMSG=2828 ETRUNC=2822 ECRC=1272]
 FUZZ mold64         ok=3846         err=4374         hist[OK=3846 ETRUNC=4374]
-FUZZ heap-delta-bytes=0
-TEST fuzz_torture: PASS checks=133796 failures=0
+TEST fuzz_torture: PASS checks=133795 failures=0

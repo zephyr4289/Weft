@@ -108,7 +108,7 @@ fn r2_publish_exchange() {
     assert_eq!(
         (s.buf[1].seq, s.buf[1].len, s.buf[1].ver),
         (5, 64, 1),
-        "buf[w_work=1] = {5, 64, v1}"
+        "buf[w_work=1] = (5, 64, v1)"
     );
     assert_eq!(s.latest, 1, "exchange: latest = w_work");
     assert_eq!(s.w_work, 0, "exchange: w_work = old latest");

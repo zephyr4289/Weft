@@ -1,0 +1,37 @@
+{
+  "name": "@weft/react-heddle",
+  "version": "0.1.0",
+  "description": "Zero-re-render React bindings for the Weft Hot-Plane — useWeftSignal/useWeftStats/useWeftBuffer micro-DOM mutators, <WeftCanvas> direct render engine mount, and drop-in realtime visualizers. NO setState on the telemetry path, NO reconciliation, NO GC pauses.",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./core": {
+      "types": "./src/index.d.ts",
+      "default": "./src/core.js"
+    }
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "dependencies": {
+    "@weft/heddle-core": "0.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "SEE LICENSE IN LICENSE"
+}

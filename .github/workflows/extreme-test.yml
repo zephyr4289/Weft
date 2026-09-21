@@ -187,6 +187,7 @@ jobs:
               {"shard": "weftc", "description": "RFC-0017 schema compiler: WL/WH/WD suites + goldens + verify-header drift gate (plain + ASAN)", "script": "ci/scripts/run_weftc_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "weftc-codegen", "description": "Project weftc Pillar 1: Native (C11/Rust/WGSL/GLSL) & Managed (TS/Python/Swift/Dart/React/Flutter) codegen suites + parity matrix + E2E kernel roundtrip", "script": "ci/scripts/run_weftc_codegen_shard.sh", "args": "", "needs_rust": True, "filter": "any_code"},
               {"shard": "heddle-hotplane", "description": "Pillar 4: heddle-2.0 WHP2 engine + WASM bridge + torture 2M + golden interop (C/JS) + zero-alloc", "script": "ci/scripts/run_heddle_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "heddle-canvas", "description": "Project heddle-2.0 Pillar 4: WHP1 plane contract + Law-1 60k-frame zero-alloc gate + 240 FPS budget bench + native Vulkan SSBO probe (lavapipe) + Chromium COOP/COEP rig with cross-tier bit-exact oracle", "script": "ci/scripts/run_heddle_canvas_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)
@@ -403,8 +404,8 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
 
-      - name: Install Vulkan ICD + tools (gpu-native, heterogeneous, weftc-codegen shards)
-        if: matrix.shard == 'gpu-native' || matrix.shard == 'heterogeneous' || matrix.shard == 'weftc-codegen'
+      - name: Install Vulkan ICD + tools (gpu-native, heterogeneous, weftc-codegen, heddle-canvas shards)
+        if: matrix.shard == 'gpu-native' || matrix.shard == 'heterogeneous' || matrix.shard == 'weftc-codegen' || matrix.shard == 'heddle-canvas'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq libvulkan1 libvulkan-dev mesa-vulkan-drivers glslang-tools spirv-tools vulkan-tools

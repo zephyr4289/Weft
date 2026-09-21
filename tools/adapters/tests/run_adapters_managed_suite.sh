@@ -113,7 +113,7 @@ ok "EXACT-0 permanent heap growth over 1,000,000 messages + control bites"
 # ═══════════════════════════════════════════════════════════════════════
 banner "240 FPS order book render loop — 0 dropped frames"
 # ═══════════════════════════════════════════════════════════════════════
-OUT=$(node --test packages/fintech/test/react.test.mjs 2>&1)
+OUT=$(node --test-reporter=spec --test packages/fintech/test/react.test.mjs 2>&1)
 echo "$OUT" | grep -E "✔.*240 FPS|✔.*renders once|✔.*telemetry bar" >/dev/null \
   || { echo "$OUT" | tail -20; fail "240 FPS render-loop gate tests not green"; }
 echo "$OUT" | grep -E "^ℹ (tests|pass|fail)" | sed 's/^/  /' || true
@@ -126,11 +126,11 @@ ok "zero-re-render proof: 10,000 frames, component never re-invoked"
 banner "Cross-language parity — TS == Python == Swift == Dart"
 # ═══════════════════════════════════════════════════════════════════════
 # (a) TS suites (fixture-driven: ITCH/SBE/RNG1 golden vectors)
-OUT=$(node --test "packages/fintech/test/itch.test.mjs" "packages/fintech/test/book.test.mjs" "packages/fintech/test/mdp1.test.mjs" "packages/fintech/test/sbe.test.mjs" "packages/fintech/test/engine.test.mjs" 2>&1)
+OUT=$(node --test-reporter=spec --test "packages/fintech/test/itch.test.mjs" "packages/fintech/test/book.test.mjs" "packages/fintech/test/mdp1.test.mjs" "packages/fintech/test/sbe.test.mjs" "packages/fintech/test/engine.test.mjs" 2>&1)
 FAILS=$(echo "$OUT" | grep "^ℹ fail " | grep -oE '[0-9]+' || echo 1)
 [ "$FAILS" = "0" ] || fail "fintech TS core suite failing"
 ok "TS fintech core suite green (ITCH + book + MDP1 + SBE + engine)"
-OUT=$(node --test packages/robotics/test/ring.test.mjs 2>&1)
+OUT=$(node --test-reporter=spec --test packages/robotics/test/ring.test.mjs 2>&1)
 FAILS=$(echo "$OUT" | grep "^ℹ fail " | grep -oE '[0-9]+' || echo 1)
 [ "$FAILS" = "0" ] || fail "robotics TS suite failing"
 ok "TS robotics suite green (RNG1 reader incl. frozen fixture parity)"
@@ -184,12 +184,12 @@ EOF
 # ═══════════════════════════════════════════════════════════════════════
 banner "Full managed suites (fintech + robotics, both languages)"
 # ═══════════════════════════════════════════════════════════════════════
-OUT=$(node --test "packages/fintech/test/*.test.mjs" 2>&1)
+OUT=$(node --test-reporter=spec --test "packages/fintech/test/*.test.mjs" 2>&1)
 echo "$OUT" | grep -E "^ℹ (tests|pass|fail)" | sed 's/^/  /'
 FAILS=$(echo "$OUT" | grep "^ℹ fail " | grep -oE '[0-9]+' || echo 1)
 [ "$FAILS" = "0" ] || fail "fintech TS suite failing"
 ok "fintech TS suite green"
-OUT=$(node --test "packages/robotics/test/*.test.mjs" 2>&1)
+OUT=$(node --test-reporter=spec --test "packages/robotics/test/*.test.mjs" 2>&1)
 echo "$OUT" | grep -E "^ℹ (tests|pass|fail)" | sed 's/^/  /'
 FAILS=$(echo "$OUT" | grep "^ℹ fail " | grep -oE '[0-9]+' || echo 1)
 [ "$FAILS" = "0" ] || fail "robotics TS suite failing"

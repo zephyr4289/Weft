@@ -133,11 +133,12 @@ export function createOrderBookController(opts) {
     state,
     mdp1,
     // One scheduled frame at `nowNs`. Frame budget = 1e9/frameRate.
-    // Returns true when the frame presented, false when skipped (torn).
+    // Returns true when the frame PRESENTED (drew), false when skipped
+    // (torn record — counted in state.torn, never fatal).
     render(nowNs) {
       const t0 = clock !== null ? clock() : 0;
       state.frames++;
-      const before = state.drawCalls + state.torn;
+      const before = state.drawCalls;
       draw(nowNs);
       if (clock !== null) {
         const cost = clock() - t0;
@@ -147,7 +148,7 @@ export function createOrderBookController(opts) {
         if (cost > budget) state.drops++;
       }
       if (telemetry !== null && telemetry.onFrame !== undefined) telemetry.onFrame(nowNs);
-      return (state.drawCalls + state.torn) > before;
+      return state.drawCalls > before;
     },
     // Transparent degradation: flip to FALLBACK static snapshot (W4-04).
     degrade(reason) {

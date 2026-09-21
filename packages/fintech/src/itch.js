@@ -135,6 +135,13 @@ export class ItchEngine {
     }
     const view = this.view;
     view.dv = dv;
+    // Resume semantics apply ONLY to the same underlying buffer (incremental
+    // checkpoint pumping over one stream). A new chunk buffer restarts at 0.
+    if (this._lastBuffer !== dv.buffer || this._lastOffset !== dv.byteOffset) {
+      this._resume = 0;
+      this._lastBuffer = dv.buffer;
+      this._lastOffset = dv.byteOffset;
+    }
     const t0 = this._clock !== null ? this._clock() : 0;
     const book = this.book;
     let off = this._resume;

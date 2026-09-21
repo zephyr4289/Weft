@@ -39,12 +39,14 @@ function pow2ceil(n) {
 // Open-addressed u64-keyed (lo/hi u32 pairs) -> slot index map.
 // Capacity is fixed at construction (2x pool, power of two) so the load
 // factor never exceeds 0.5 and NO REHASH ever happens (rehash would spike).
+// Deletion uses backward-shift (see remove) so occupancy always equals the
+// live count — no tombstone accumulation, no probe degeneration.
 class RefHash {
   constructor(capacity) {
     this.mask = capacity - 1;
     this.keyLo = new Int32Array(capacity);
     this.keyHi = new Int32Array(capacity);
-    this.val = new Int32Array(capacity).fill(-1); // -1 empty, -2 tombstone
+    this.val = new Int32Array(capacity).fill(-1); // -1 = never used
     this.count = 0;
   }
   // Math.imul = exact u32 multiply semantics; Python mirrors with
@@ -67,17 +69,14 @@ class RefHash {
   insert(lo, hi, slot) {
     lo |= 0; hi |= 0;
     let i = this.hash(lo, hi);
-    let tomb = -1;
     for (;;) {
       const v = this.val[i];
       if (v === -1) {
-        const t = tomb >= 0 ? tomb : i;
-        this.keyLo[t] = lo; this.keyHi[t] = hi; this.val[t] = slot;
+        this.keyLo[i] = lo; this.keyHi[i] = hi; this.val[i] = slot;
         this.count++;
         return;
       }
-      if (v === -2) { if (tomb < 0) tomb = i; }
-      else if (this.keyLo[i] === lo && this.keyHi[i] === hi) {
+      if (this.keyLo[i] === lo && this.keyHi[i] === hi) {
         this.val[i] = slot; // refresh (defensive; callers pre-check dups)
         return;
       }
@@ -90,12 +89,32 @@ class RefHash {
     for (;;) {
       const v = this.val[i];
       if (v === -1) return false;
-      if (v >= 0 && this.keyLo[i] === lo && this.keyHi[i] === hi) {
-        this.val[i] = -2; // tombstone; key bytes stay (probe-chain safety)
-        this.count--;
-        return true;
-      }
+      if (v >= 0 && this.keyLo[i] === lo && this.keyHi[i] === hi) break;
       i = (i + 1) & this.mask;
+    }
+    // Backward-shift deletion (linear probing): no tombstones ever.
+    // Tombstones would accumulate unboundedly over a 1M-message session and
+    // eventually saturate the table (probe chains hitting no -1 slot =
+    // livelock). With backward shift, occupancy ALWAYS equals live count
+    // (<= pool <= 50% of capacity), probe chains stay short, and no rehash
+    // or extra allocation is ever needed.
+    this.val[i] = -1;
+    this.count--;
+    let j = i;
+    for (;;) {
+      j = (j + 1) & this.mask;
+      const v = this.val[j];
+      if (v === -1) return true; // cluster ended — done
+      const k = this.hash(this.keyLo[j], this.keyHi[j]);
+      const d = (j - i) & this.mask;
+      const dk = (k - i) & this.mask;
+      if (dk !== 0 && dk <= d) continue; // home lies in (i, j] — leave it
+      // homeless: move it into the vacated slot, continue from j
+      this.val[i] = v;
+      this.keyLo[i] = this.keyLo[j];
+      this.keyHi[i] = this.keyHi[j];
+      this.val[j] = -1;
+      i = j;
     }
   }
 }

@@ -20,7 +20,8 @@ export function createWeftOrderBook(React) {
     const bannerRef = useRef(null);
     useEffect(function mount() {
       const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas !== null && canvas !== undefined &&
+        typeof canvas.getContext === 'function' ? canvas.getContext('2d') : null;
       const controller = props.createController({
         mdp1, telemetry, ctx, width, height, theme, clock,
       });
@@ -30,7 +31,7 @@ export function createWeftOrderBook(React) {
         : null;
       return function unmount() {
         if (stop !== null) stop();
-        controllerRef && (controllerRef.current = null);
+        if (controllerRef !== undefined) controllerRef.current = null;
       };
     }, []);
     return createElement('div', { className: 'weft-orderbook', style: { position: 'relative', width, height } },
@@ -45,35 +46,44 @@ export function createWeftOrderBook(React) {
   };
 }
 
+// Pure per-tick painter: mutates three DOM-like text nodes IN PLACE from
+// telemetry slots. Zero allocation, zero React — the component and the test
+// suite share this exact code path (no drift between proof and product).
+export function paintTelemetryNodes(slots, nodes) {
+  if (nodes.rate !== null && nodes.rate !== undefined) {
+    nodes.rate.nodeValue = (slots[2] / 1e6).toFixed(3) + ' M msg/s';
+  }
+  if (nodes.lat !== null && nodes.lat !== undefined) {
+    nodes.lat.nodeValue = (slots[3] / 1000).toFixed(2) + ' us';
+  }
+  if (nodes.msg !== null && nodes.msg !== undefined) {
+    nodes.msg.nodeValue = String(slots[0]);
+  }
+}
+
 // Telemetry bar: msgs/sec + microsecond processing latency. One render;
 // per-frame updates mutate three text nodes in place (id-tagged children).
 export function createWeftTelemetryBar(React) {
   const { useRef, useEffect, createElement } = React;
   return function WeftTelemetryBar(props) {
-    const { telemetry, clock } = props;
+    const { telemetry } = props;
     const rateRef = useRef(null);
     const latRef = useRef(null);
     const msgRef = useRef(null);
     useEffect(function mount() {
       let raf = 0;
       let running = true;
+      const hasRaf = typeof requestAnimationFrame === 'function';
       // own timer; updates THREE text nodes; zero setState (W4-01)
       function tick() {
         if (!running) return;
-        const s = telemetry.slots;
-        if (rateRef.current !== null) {
-          rateRef.current.nodeValue = (s[2] / 1e6).toFixed(3) + ' M msg/s';
-        }
-        if (latRef.current !== null) {
-          latRef.current.nodeValue = (s[3] / 1000).toFixed(2) + ' us';
-        }
-        if (msgRef.current !== null) {
-          msgRef.current.nodeValue = String(s[0]);
-        }
-        raf = requestAnimationFrame(tick);
+        paintTelemetryNodes(telemetry.slots, {
+          rate: rateRef.current, lat: latRef.current, msg: msgRef.current,
+        });
+        if (hasRaf) raf = requestAnimationFrame(tick);
       }
-      raf = requestAnimationFrame(tick);
-      return function unmount() { running = false; if (raf) cancelAnimationFrame(raf); };
+      if (hasRaf) raf = requestAnimationFrame(tick);
+      return function unmount() { running = false; raf = 0; };
     }, []);
     return createElement('div', { className: 'weft-telemetry-bar' },
       createElement('span', { key: 'm' }, 'msgs '),

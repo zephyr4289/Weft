@@ -156,22 +156,44 @@ export const CHECKPOINTS = [512, 1024, 1536, 2048];
 // generator never does that; managed books must handle lo/hi pairs exactly.
 export const BIG_REF_HI = 0x00c0ffee;
 
-export function buildItchStream(count, { seed = 0x5eed1234 } = {}) {
+function runScenario(count, seed, emit, opts = {}) {
+  // Core deterministic scenario state machine. Emits framed messages one by
+  // one (emit(buffer)) so callers can stream into a fixture array, a chunk
+  // pipeline, or a probe loop without holding 1M+ Buffer objects.
+  //
+  // `liveCap`: when the live-order set reaches this size, add-phases are
+  // re-routed into executes so the book self-balances (realistic intraday
+  // depth). The 2,048-message fixture uses Infinity — byte stream unchanged;
+  // long-running probes/demos use 32,768.
+  // `fastDelete`: O(1) swap-delete on the live set. The fixture path keeps
+  // exact splice semantics (byte-reproducible); long runs default to fast.
+  const liveCap = opts.liveCap ?? Infinity;
+  const fast = opts.fastDelete ?? false;
   const rng = makeRng(seed);
-  const out = [];
   const counts = { S: 0, A: 0, E: 0, X: 0, D: 0, U: 0, P: 0 };
   const live = [];       // FIFO of [hi, lo, side, shares, price]
   let adds = 0;
   let match = 1;
+  let emitted = 0;
 
-  out.push(itchSystemEvent(0, 'O'));
+  emit(itchSystemEvent(0, 'O'));
   counts.S += 1;
+  emitted += 1;
 
-  let i = out.length; // message index (S counted)
-  while (out.length < count - 1) {
+  const removeAt = (slot) => {
+    if (fast) {
+      live[slot] = live[live.length - 1];
+      live.pop();
+    } else {
+      live.splice(slot, 1);
+    }
+  };
+
+  let i = emitted; // message index (S counted)
+  while (emitted < count - 1) {
     const ts = i * 1_000_000;
     const phase = i % 10;
-    if (live.length === 0 || phase <= 3 || phase === 9) {
+    if (live.length === 0 || ((phase <= 3 || phase === 9) && live.length < liveCap)) {
       // Add order: alternate sides; odd adds use big refs
       adds += 1;
       const side = adds % 2 === 0 ? 'B' : 'S';
@@ -181,7 +203,7 @@ export function buildItchStream(count, { seed = 0x5eed1234 } = {}) {
       const shares = 100 + (rng() % 10) * 100;
       const hi = adds % 2 === 1 ? BIG_REF_HI : 0;
       const lo = adds % 2 === 1 ? adds : 1_000_000 + adds;
-      out.push(itchAdd(ts, hi, lo, side, shares, price));
+      emit(itchAdd(ts, hi, lo, side, shares, price));
       counts.A += 1;
       live.push([hi, lo, side, shares, price]);
     } else {
@@ -192,22 +214,22 @@ export function buildItchStream(count, { seed = 0x5eed1234 } = {}) {
         // Execute (full or partial)
         const shares = ord[3] > 1 ? 1 + (rng() % ord[3]) : 1;
         match += 1;
-        out.push(itchExecute(ts2, ord[0], ord[1], shares, match));
+        emit(itchExecute(ts2, ord[0], ord[1], shares, match));
         counts.E += 1;
         ord[3] -= shares;
-        if (ord[3] === 0) live.splice(slot, 1);
+        if (ord[3] === 0) removeAt(slot);
       } else if (phase === 5) {
         // Partial cancel
         const shares = ord[3] > 1 ? 1 + (rng() % (ord[3] - 1)) : 1;
-        out.push(itchCancel(ts2, ord[0], ord[1], shares));
+        emit(itchCancel(ts2, ord[0], ord[1], shares));
         counts.X += 1;
         ord[3] -= shares;
-        if (ord[3] === 0) live.splice(slot, 1);
+        if (ord[3] === 0) removeAt(slot);
       } else if (phase === 6) {
         // Full delete
-        out.push(itchDelete(ts2, ord[0], ord[1]));
+        emit(itchDelete(ts2, ord[0], ord[1]));
         counts.D += 1;
-        live.splice(slot, 1);
+        removeAt(slot);
       } else if (phase === 7) {
         // Replace: feed removes the original order implicitly (ITCH 'U')
         const drift = rng() % 400;
@@ -215,22 +237,55 @@ export function buildItchStream(count, { seed = 0x5eed1234 } = {}) {
         adds += 1;
         const hi = adds % 2 === 1 ? BIG_REF_HI : 0;
         const lo = adds % 2 === 1 ? adds : 1_000_000 + adds;
-        out.push(itchReplace(ts2, ord[0], ord[1], hi, lo, ord[3], price));
+        emit(itchReplace(ts2, ord[0], ord[1], hi, lo, ord[3], price));
         counts.U += 1;
-        live.splice(slot, 1);
-        live.push([hi, lo, ord[2], ord[3], price]);
+        if (fast) {
+          live[slot] = [hi, lo, ord[2], ord[3], price]; // O(1) swap-in
+        } else {
+          live.splice(slot, 1);
+          live.push([hi, lo, ord[2], ord[3], price]);
+        }
       } else {
         // Trade non-cross against the resting side
         match += 1;
-        out.push(itchTrade(ts2, ord[0], ord[1], ord[2], ord[3], ord[4], match));
+        emit(itchTrade(ts2, ord[0], ord[1], ord[2], ord[3], ord[4], match));
         counts.P += 1;
       }
     }
+    emitted += 1;
     i += 1;
   }
-  out.push(itchSystemEvent(i * 1_000_000, 'C'));
+  emit(itchSystemEvent(i * 1_000_000, 'C'));
   counts.S += 1;
+  emitted += 1;
+  return { counts, adds, total: emitted };
+}
+
+export function buildItchStream(count, { seed = 0x5eed1234 } = {}) {
+  const out = [];
+  const { counts, adds } = runScenario(count, seed, (b) => out.push(b));
   return { chunks: out, counts, adds };
+}
+
+// Chunked pipeline feed: `chunkMsgs` messages per chunk. Used by the 1M
+// alloc probe and the 5M trading demo (bounded memory, real-feed cadence).
+// liveCap keeps the live-order set bounded so long runs never exhaust the
+// book pool — the depth self-balances like a real intraday market.
+export function buildItchChunked(count, chunkMsgs = 50_000, { seed = 0x5eed1234, liveCap = 32_768, fastDelete = true } = {}) {
+  const chunks = [];
+  const acc = [];
+  let accMsgs = 0;
+  const { counts, adds, total } = runScenario(count, seed, (b) => {
+    acc.push(b);
+    accMsgs++;
+    if (accMsgs === chunkMsgs) {
+      chunks.push(Buffer.concat(acc));
+      acc.length = 0;
+      accMsgs = 0;
+    }
+  }, { liveCap, fastDelete });
+  if (accMsgs > 0) chunks.push(Buffer.concat(acc));
+  return { chunks, counts, adds, total, messagesPerChunk: chunkMsgs };
 }
 
 // ---------------------------------------------------------------------------

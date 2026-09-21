@@ -1,6 +1,6 @@
 {
   "name": "hpl1-edge-1x2",
-  "sha256": "04e0d4306ba819e30e29ecf2fe1478f33b532e278a361fb51f42ea504ffd831d",
+  "sha256": "5ee44a2eb651d31b86fe72ec18422edb2c08322fc11704d8d4a5cdf41f242986",
   "totalBytes": 216,
   "geometry": {
     "dirtyWords": 1,
@@ -35,7 +35,7 @@
       "max": 49.4375,
       "avg": 45.8046875,
       "samplesSeen": 2,
-      "head": 0,
+      "head": 2,
       "laneFlags": 1,
       "lanePublishNs": 1000007,
       "laneDrops": 0,

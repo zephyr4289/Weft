@@ -101,7 +101,7 @@ function buildPlane(laneCount, samplesPerLane, seedBase, tickHz, epoch) {
       wrF64(ctrl + 0x18, max);
       wrF64(ctrl + 0x20, sum / (k + 1));
       wrU32(ctrl + 0x28, (k + 1) >>> 0);       // samplesSeen lo (hi 0)
-      wrU32(ctrl + 0x30, (k + 1) & (samplesPerLane - 1)); // head (post-increment)
+      wrU32(ctrl + 0x30, (k + 1) >>> 0);       // head (pre-mask, HPL1 §4)
       wrU32(ctrl + 0x34, FLAG_ACTIVE);
       wrU64(ctrl + 0x38, 1_000_000 + lane * 1000 + k * 7);
       wrU32(ctrl + 0x40, 0); // laneDrops

@@ -164,3 +164,6 @@ core/c/tensor-test-asan
 core/c/camera-test
 core/c/camera-test-asan
 core/c/hetero-probe
+
+# weft-spectrum (Pillar 5) test build artifacts
+tests/spectrum/build/

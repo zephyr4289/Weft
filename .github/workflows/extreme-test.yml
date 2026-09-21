@@ -186,6 +186,7 @@ jobs:
               {"shard": "series10", "description": "Series 10 Observability Fabric: RFC 0016 flight recorder, RFC 0017 flow operators, RFC 0018 sensor fusion, RFC 0019 replay, RFC 0020 trend", "script": "ci/scripts/run_series10_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "weftc", "description": "RFC-0017 schema compiler: WL/WH/WD suites + goldens + verify-header drift gate (plain + ASAN)", "script": "ci/scripts/run_weftc_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "weftc-codegen", "description": "Project weftc Pillar 1: Native (C11/Rust/WGSL/GLSL) & Managed (TS/Python/Swift/Dart/React/Flutter) codegen suites + parity matrix + E2E kernel roundtrip", "script": "ci/scripts/run_weftc_codegen_shard.sh", "args": "", "needs_rust": True, "filter": "any_code"},
+              {"shard": "heddle-hotplane", "description": "Pillar 4: heddle-2.0 WHP2 engine + WASM bridge + torture 2M + golden interop (C/JS) + zero-alloc", "script": "ci/scripts/run_heddle_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)

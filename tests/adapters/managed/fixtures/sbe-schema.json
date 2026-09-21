@@ -1,0 +1,73 @@
+{
+  "semanticVersion": "5.2",
+  "littleEndian": true,
+  "header": {
+    "blockLength": 8,
+    "fields": [
+      {
+        "name": "blockLength",
+        "type": "u16",
+        "offset": 0
+      },
+      {
+        "name": "templateId",
+        "type": "u16",
+        "offset": 2
+      },
+      {
+        "name": "schemaId",
+        "type": "u16",
+        "offset": 4
+      },
+      {
+        "name": "version",
+        "type": "u16",
+        "offset": 6
+      }
+    ]
+  },
+  "messages": {
+    "1001": {
+      "name": "BookRefresh",
+      "blockLength": 24,
+      "fields": [
+        {
+          "name": "seq",
+          "type": "u64",
+          "offset": 0
+        },
+        {
+          "name": "tsNs",
+          "type": "u64",
+          "offset": 8
+        },
+        {
+          "name": "bidPrice",
+          "type": "i64",
+          "offset": 16
+        }
+      ]
+    },
+    "1002": {
+      "name": "BookRefreshExt",
+      "blockLength": 24,
+      "fields": [
+        {
+          "name": "seq",
+          "type": "u64",
+          "offset": 0
+        },
+        {
+          "name": "tsNs",
+          "type": "u64",
+          "offset": 8
+        },
+        {
+          "name": "bidPrice",
+          "type": "i64",
+          "offset": 16
+        }
+      ]
+    }
+  }
+}

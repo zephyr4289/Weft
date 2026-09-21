@@ -29,6 +29,7 @@
 
 #include <dlfcn.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 // ---------------------------------------------------------------------------
@@ -46,11 +47,11 @@ typedef enum { WEFT_VK_QUEUE_COMPUTE_BIT = 0x00000002u } weft_vk_queue_flag_t;
 typedef struct {
     uint32_t        sType;              // 1000000000
     const void*     pNext;
-    uint32_t        apiVersion;
-    uint32_t        applicationVersion;
     const char*     pApplicationName;
-    uint32_t        engineVersion;
+    uint32_t        applicationVersion;
     const char*     pEngineName;
+    uint32_t        engineVersion;
+    uint32_t        apiVersion;
 } weft_vk_app_info_t;
 
 // VkInstanceCreateInfo (64 bytes — field-for-field the ABI layout)
@@ -110,11 +111,11 @@ typedef uint32_t (*weft_vkCreateInstance_t)(const weft_vk_instance_ci_t*,
                                             const void*, void**);
 typedef void (*weft_vkDestroyInstance_t)(void*, const void*);
 typedef uint32_t (*weft_vkEnumeratePhysicalDevices_t)(void*, uint32_t*, void**);
-typedef void (*weft_vkGetPhysicalDeviceProperties_t)(void*, void*,
+typedef void (*weft_vkGetPhysicalDeviceProperties_t)(void*,
                                                      weft_vk_phys_props_t*);
 typedef void (*weft_vkGetPhysicalDeviceQueueFamilyProperties_t)(
-    void*, void*, uint32_t*, weft_vk_queue_family_props_t*);
-typedef void (*weft_vkGetPhysicalDeviceFeatures2_t)(void*, void*,
+    void*, uint32_t*, weft_vk_queue_family_props_t*);
+typedef void (*weft_vkGetPhysicalDeviceFeatures2_t)(void*,
                                                     weft_vk_phys_dev_feats2_t*);
 
 // ---------------------------------------------------------------------------
@@ -205,18 +206,18 @@ int weft_gpu_vulkan13_probe(void) {
                 for (uint32_t d = 0; d < cap && !found; d++) {
                     weft_vk_phys_props_t props;
                     memset(&props, 0, sizeof(props));
-                    getProps(instance, devs[d], &props);
+                    getProps(devs[d], &props);
                     if (weft_vk_props_api_version(&props) < WEFT_VK_API_VERSION_1_3) {
                         continue;   // Vulkan 1.3 timeline sync is REQUIRED
                     }
                     uint32_t total_q = 0;
-                    getQFam(instance, devs[d], &total_q, NULL);
+                    getQFam(devs[d], &total_q, NULL);
                     uint32_t nq = (total_q > WEFT_VK_MAX_QUEUE_FAMILIES)
                                       ? WEFT_VK_MAX_QUEUE_FAMILIES
                                       : total_q;
                     weft_vk_queue_family_props_t qfam[WEFT_VK_MAX_QUEUE_FAMILIES];
                     memset(qfam, 0, sizeof(qfam));
-                    getQFam(instance, devs[d], &nq, qfam);
+                    getQFam(devs[d], &nq, qfam);
                     int has_compute = 0;
                     for (uint32_t q = 0; q < nq; q++) {
                         if ((qfam[q].queueFlags & WEFT_VK_QUEUE_COMPUTE_BIT) != 0u) {
@@ -234,7 +235,7 @@ int weft_gpu_vulkan13_probe(void) {
                     memset(&f2, 0, sizeof(f2));
                     f2.sType = 1000059000u;   // PHYSICAL_DEVICE_FEATURES_2
                     f2.pNext = &tl;
-                    getFeats2(instance, devs[d], &f2);
+                    getFeats2(devs[d], &f2);
                     if (tl.timelineSemaphore == 0u) {
                         continue;   // no timeline sync: refuse honestly
                     }

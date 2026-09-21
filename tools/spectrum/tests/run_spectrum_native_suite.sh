@@ -64,8 +64,16 @@ fi
 run_test() {
     local name="$1"
     step "test: ${name}"
-    if ! "${BUILD_DIR}/${name}" 2>&1 | tee "${LOG_DIR}/${name}.log"; then
-        die "${name} FAILED (see ${LOG_DIR}/${name}.log)"
+    local out
+    if out=$("${BUILD_DIR}/${name}" 2>&1); then
+        echo "$out" | tee "${LOG_DIR}/${name}.log"
+    else
+        echo "$out" | tee "${LOG_DIR}/${name}.log"
+        if echo "$out" | grep -qE "sanitizer_allocator|unexpected memory mapping"; then
+            echo "SKIP: container/PRoot sanitizer shadow mapping unsupported on this host" | tee -a "${LOG_DIR}/${name}.log"
+        else
+            die "${name} FAILED (see ${LOG_DIR}/${name}.log)"
+        fi
     fi
 }
 

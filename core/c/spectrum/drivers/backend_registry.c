@@ -538,10 +538,9 @@ weft_backend_ctx_t* weft_backend_ctx_create(const weft_backend_cfg_t* cfg_in) {
         }
         ctx->n_entries++;
     }
-    for (uint32_t i = 0; i < WB_RUNTIME_MAX; i++) {
-        const weft_backend_ops_t* ops =
-            atomic_load_explicit(&g_runtime_ops[i], memory_order_acquire);
-        if (ops == NULL || ctx->n_entries >= WEFT_BACKEND_MAX_BACKENDS) {
+    for (uint32_t i = 0; i < WB_RUNTIME_MAX && ctx->n_entries < WEFT_BACKEND_MAX_BACKENDS; i++) {
+        const weft_backend_ops_t* ops = atomic_load_explicit(&g_runtime_ops[i], memory_order_acquire);
+        if (ops == NULL) {
             continue;
         }
         wb_entry_t* e = &ctx->entries[ctx->n_entries];
@@ -568,10 +567,11 @@ weft_backend_ctx_t* weft_backend_ctx_create(const weft_backend_cfg_t* cfg_in) {
                 e->caps = caps;
                 e->death_reason = WEFT_BACKEND_EREFUSED;
             }
+        } else {
+            e->caps = caps;
         }
         ctx->n_entries++;
     }
-
     // ---- Phase 2: deterministic total order (stable insertion sort) ----
     for (uint32_t i = 1; i < ctx->n_entries; i++) {
         wb_entry_t key = ctx->entries[i];

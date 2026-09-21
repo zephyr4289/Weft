@@ -105,6 +105,18 @@ static void test_table_order(void) {
           "entry0 apple live");
     CHECK(info[1].vendor_id == WEFT_VENDOR_MEDIATEK && info[1].state == 1,
           "entry1 mediatek live");
+#if defined(__aarch64__)
+    CHECK(info[2].vendor_id == WEFT_VENDOR_NVIDIA_PC && info[2].state == 0,
+          "entry2 nvidia-pc probe-dead (wrong arch)");
+    CHECK(info[2].death_reason == WEFT_BACKEND_EREFUSED,
+          "nvidia_pc death reason EREFUSED");
+    CHECK(strstr(info[2].impl_name, "absent(wrong-arch)") != NULL,
+          "nvidia_pc identity kept after death, got '%s'", info[2].impl_name);
+    CHECK(info[3].vendor_id == WEFT_VENDOR_QUALCOMM && info[3].state == 1,
+          "entry3 qualcomm live");
+    CHECK(info[4].vendor_id == WEFT_VENDOR_RISCV_ARM && info[4].state == 1,
+          "entry4 riscv_arm live on aarch64");
+#else
     CHECK(info[2].vendor_id == WEFT_VENDOR_QUALCOMM && info[2].state == 1,
           "entry2 qualcomm live");
     CHECK(info[3].vendor_id == WEFT_VENDOR_RISCV_ARM && info[3].state == 0,
@@ -115,6 +127,7 @@ static void test_table_order(void) {
           "riscv_arm identity kept after death, got '%s'", info[3].impl_name);
     CHECK(info[4].vendor_id == WEFT_VENDOR_NVIDIA_PC && info[4].state == 1,
           "entry4 nvidia-pc live");
+#endif
     CHECK(info[5].vendor_id == WEFT_VENDOR_CPU_SIMD && info[5].state == 1,
           "entry5 terminal cpu live");
 
@@ -122,10 +135,19 @@ static void test_table_order(void) {
     // names the SIMD engine it actually fronted.
     CHECK(strncmp(info[0].impl_name, "metal-injectable", 16) == 0,
           "apple honest identity, got '%s'", info[0].impl_name);
+#if defined(__aarch64__)
+    CHECK(strstr(info[4].impl_name, "arm-neon") != NULL ||
+          strstr(info[4].impl_name, "arm-sve2") != NULL,
+          "arm row names neon/sve2, got '%s'", info[4].impl_name);
+#else
     CHECK(strncmp(info[4].impl_name, "pc-host-vector:", 15) == 0,
           "nvidia_pc host-vector identity, got '%s'", info[4].impl_name);
+#endif
     CHECK(strstr(info[5].impl_name, "avx512") != NULL ||
               strstr(info[5].impl_name, "avx2") != NULL ||
+              strstr(info[5].impl_name, "neon") != NULL ||
+              strstr(info[5].impl_name, "sve2") != NULL ||
+              strstr(info[5].impl_name, "rvv") != NULL ||
               strstr(info[5].impl_name, "scalar") != NULL,
           "terminal names its SIMD impl, got '%s'", info[5].impl_name);
 
@@ -244,12 +266,16 @@ static void test_fallback(void) {
           (uint64_t)weft_simd_scalar_seqlock_checksum(cbuf, 128, 42),
           "checksum digest == oracle");
     CHECK(res.engine_class == WEFT_ENGINE_CPU_VECTOR, "CPU row executed");
+    weft_backend_stats_t st;
+#if defined(__x86_64__) || defined(_M_X64)
     CHECK(res.fallback_hops >= 1, "at least one honest hop, got %u",
           res.fallback_hops);
-
-    weft_backend_stats_t st;
     weft_backend_stats(ctx, &st);
     CHECK(st.fallback_hops >= 1 && st.refusals >= 1, "hops/refusals counted");
+#else
+    CHECK(res.fallback_hops == 0, "direct CPU vector row execution, got %u",
+          res.fallback_hops);
+#endif
     destroy_ctx(ctx, 0xF);
 
     // ---- EDEVICE: hot-unplug kills the engine deterministically ----------
@@ -468,10 +494,15 @@ static void test_fallback_latency(void) {
 }
 
 int main(void) {
+    printf("step 1: test_table_order\n"); fflush(stdout);
     test_table_order();
+    printf("step 2: test_device_dispatch\n"); fflush(stdout);
     test_device_dispatch();
+    printf("step 3: test_fallback\n"); fflush(stdout);
     test_fallback();
+    printf("step 4: test_error_ledger\n"); fflush(stdout);
     test_error_ledger();
+    printf("step 5: test_fallback_latency\n"); fflush(stdout);
     test_fallback_latency();
     if (g_failures != 0) {
         printf("spectrum-dispatch: %d FAILURE(S)\n", g_failures);

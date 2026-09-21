@@ -28,6 +28,7 @@
 #include "weft_simd.h"
 
 #include <string.h>
+#include <math.h>
 
 #if defined(__aarch64__)
 

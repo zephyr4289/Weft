@@ -328,6 +328,26 @@ static void golden_fixtures(void) {
 
 static void api_checks(void) {
     weft_simd_force_auto();
+#if defined(__aarch64__)
+    CHECK(strcmp(weft_simd_active_impl_name(), "neon") == 0 ||
+              strcmp(weft_simd_active_impl_name(), "sve2") == 0 ||
+              strcmp(weft_simd_active_impl_name(), "scalar") == 0,
+          "auto resolves to a compiled arm impl, got %s",
+          weft_simd_active_impl_name());
+    CHECK(weft_simd_impl_available("scalar") == 1, "scalar available");
+    CHECK(weft_simd_impl_available("nope") == 0, "bogus name unavailable");
+    CHECK(weft_simd_force_impl("nope") == -1, "bogus pin refused");
+    CHECK(weft_simd_force_impl("neon") == 0, "neon pin");
+    CHECK(strcmp(weft_simd_active_impl_name(), "neon") == 0, "pinned name");
+#elif defined(__riscv)
+    CHECK(strcmp(weft_simd_active_impl_name(), "rvv") == 0 ||
+              strcmp(weft_simd_active_impl_name(), "scalar") == 0,
+          "auto resolves to a compiled riscv impl, got %s",
+          weft_simd_active_impl_name());
+    CHECK(weft_simd_impl_available("scalar") == 1, "scalar available");
+    CHECK(weft_simd_impl_available("nope") == 0, "bogus name unavailable");
+    CHECK(weft_simd_force_impl("nope") == -1, "bogus pin refused");
+#else
     CHECK(strcmp(weft_simd_active_impl_name(), "avx512") == 0 ||
               strcmp(weft_simd_active_impl_name(), "avx2") == 0 ||
               strcmp(weft_simd_active_impl_name(), "scalar") == 0,
@@ -338,6 +358,7 @@ static void api_checks(void) {
     CHECK(weft_simd_force_impl("nope") == -1, "bogus pin refused");
     CHECK(weft_simd_force_impl("avx512") == 0, "avx512 pin");
     CHECK(strcmp(weft_simd_active_impl_name(), "avx512") == 0, "pinned name");
+#endif
     weft_simd_force_scalar();
     CHECK(strcmp(weft_simd_active_impl_name(), "scalar") == 0, "scalar pin");
     weft_simd_force_auto();

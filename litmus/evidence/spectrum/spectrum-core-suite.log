@@ -6,38 +6,38 @@ stdout: warm line (pre-ledger)
 S zigzag       snapshots=2000000 busy=0 torn=0 ledger=0
 S force        snapshots=2000000 busy=0 torn=0 ledger=0
 S probe-storm  100 mock probes ledger=0
-S scorecard    has_feature=1.00 ns/op  active_tier=0.00 ns/op  snapshot=288.00 ns/op (informational)
+S scorecard    has_feature=2.00 ns/op  active_tier=0.00 ns/op  snapshot=422.00 ns/op (informational)
 S-series: 103349 checks, 0 failures
 
 === L-series layout proofs (plain) ===
 L-series: 2460 checks, 0 failures
 
 === P-series golden archetypes (plain) ===
-  golden GENERATED: /tmp/spectrum-golden-plain/weft_hw_profile_00_apple-m4-max.bin
+  golden freeze OK: /tmp/spectrum-golden-plain/weft_hw_profile_00_apple-m4-max.bin
 P apple-m4-max             tier=1 score=88 caps=0000000000000021 0000000000000004 0000000000000063 0000000000000019 0000000000000083
-  golden GENERATED: /tmp/spectrum-golden-plain/weft_hw_profile_01_apple-a17-pro.bin
+  golden freeze OK: /tmp/spectrum-golden-plain/weft_hw_profile_01_apple-a17-pro.bin
 P apple-a17-pro            tier=2 score=53 caps=0000000000000021 0000000000000006 0000000000000063 0000000000000019 000000000000008b
-  golden GENERATED: /tmp/spectrum-golden-plain/weft_hw_profile_02_snapdragon-8gen3.bin
+  golden freeze OK: /tmp/spectrum-golden-plain/weft_hw_profile_02_snapdragon-8gen3.bin
 P snapdragon-8gen3         tier=2 score=49 caps=0000000000003c01 0000000000000022 000000000000000b 0000000000000033 000000000000004b
-  golden GENERATED: /tmp/spectrum-golden-plain/weft_hw_profile_03_dimensity-9300.bin
+  golden freeze OK: /tmp/spectrum-golden-plain/weft_hw_profile_03_dimensity-9300.bin
 P dimensity-9300           tier=2 score=45 caps=0000000000003c01 0000000000000022 000000000000000b 0000000000000015 000000000000004b
-  golden GENERATED: /tmp/spectrum-golden-plain/weft_hw_profile_04_helio-g88.bin
+  golden freeze OK: /tmp/spectrum-golden-plain/weft_hw_profile_04_helio-g88.bin
 P helio-g88                tier=3 score=19 caps=0000000000003c01 0000000000000022 000000000000000b 0000000000000000 000000000000004f
-  golden GENERATED: /tmp/spectrum-golden-plain/weft_hw_profile_05_raspberry-pi-5.bin
+  golden freeze OK: /tmp/spectrum-golden-plain/weft_hw_profile_05_raspberry-pi-5.bin
 P raspberry-pi-5           tier=3 score=40 caps=0000000000003c01 0000000000000020 0000000000000009 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-plain/weft_hw_profile_06_visionfive-2.bin
+  golden freeze OK: /tmp/spectrum-golden-plain/weft_hw_profile_06_visionfive-2.bin
 P visionfive-2             tier=3 score=27 caps=0000000000000000 0000000000000000 0000000000000000 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-plain/weft_hw_profile_07_epyc-9654-genoa.bin
+  golden freeze OK: /tmp/spectrum-golden-plain/weft_hw_profile_07_epyc-9654-genoa.bin
 P epyc-9654-genoa          tier=1 score=85 caps=00000000000038c6 0000000000000071 000000000000000d 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-plain/weft_hw_profile_08_xeon-sapphire-rapids-amx.bin
+  golden freeze OK: /tmp/spectrum-golden-plain/weft_hw_profile_08_xeon-sapphire-rapids-amx.bin
 P xeon-sapphire-rapids-amx tier=1 score=85 caps=00000000000038e6 0000000000000071 000000000000000d 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-plain/weft_hw_profile_09_grace-hopper.bin
+  golden freeze OK: /tmp/spectrum-golden-plain/weft_hw_profile_09_grace-hopper.bin
 P grace-hopper             tier=1 score=76 caps=0000000000003d09 0000000000000000 0000000000000009 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-plain/weft_hw_profile_10_desktop-zen4-rx7900xtx.bin
+  golden freeze OK: /tmp/spectrum-golden-plain/weft_hw_profile_10_desktop-zen4-rx7900xtx.bin
 P desktop-zen4-rx7900xtx   tier=1 score=76 caps=00000000000038c6 0000000000000061 000000000000000d 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-plain/weft_hw_profile_11_container-fallback.bin
+  golden freeze OK: /tmp/spectrum-golden-plain/weft_hw_profile_11_container-fallback.bin
 P container-fallback       tier=3 score=31 caps=0000000000000000 0000000000000040 0000000000000000 0000000000000000 0000000000000113
-P host-probe: cores=2 perf=2 ram=3.95GiB tier=3 score=29 cost=120886ns sources=0x40ae
+P host-probe: cores=8 perf=2 ram=7.29GiB tier=3 score=29 cost=38190105ns sources=0x8937
 P-series: 390 checks, 0 failures
 
 === G-series governor conformance (plain) ===
@@ -68,7 +68,7 @@ P grace-hopper             tier=1 score=76 caps=0000000000003d09 000000000000000
 P desktop-zen4-rx7900xtx   tier=1 score=76 caps=00000000000038c6 0000000000000061 000000000000000d 0000000000000000 0000000000000003
   golden GENERATED: /tmp/spectrum-g1/weft_hw_profile_11_container-fallback.bin
 P container-fallback       tier=3 score=31 caps=0000000000000000 0000000000000040 0000000000000000 0000000000000000 0000000000000113
-P host-probe: cores=2 perf=2 ram=3.95GiB tier=3 score=29 cost=103925ns sources=0x40ae
+P host-probe: cores=8 perf=2 ram=7.29GiB tier=3 score=29 cost=6086875ns sources=0x8937
 P-series: 390 checks, 0 failures
   golden GENERATED: /tmp/spectrum-g2/weft_hw_profile_00_apple-m4-max.bin
 P apple-m4-max             tier=1 score=88 caps=0000000000000021 0000000000000004 0000000000000063 0000000000000019 0000000000000083
@@ -94,7 +94,7 @@ P grace-hopper             tier=1 score=76 caps=0000000000003d09 000000000000000
 P desktop-zen4-rx7900xtx   tier=1 score=76 caps=00000000000038c6 0000000000000061 000000000000000d 0000000000000000 0000000000000003
   golden GENERATED: /tmp/spectrum-g2/weft_hw_profile_11_container-fallback.bin
 P container-fallback       tier=3 score=31 caps=0000000000000000 0000000000000040 0000000000000000 0000000000000000 0000000000000113
-P host-probe: cores=2 perf=2 ram=3.95GiB tier=3 score=29 cost=123544ns sources=0x40ae
+P host-probe: cores=8 perf=2 ram=7.29GiB tier=3 score=29 cost=7097344ns sources=0x8937
 P-series: 390 checks, 0 failures
   golden GENERATED: /tmp/spectrum-g3/weft_hw_profile_00_apple-m4-max.bin
 P apple-m4-max             tier=1 score=88 caps=0000000000000021 0000000000000004 0000000000000063 0000000000000019 0000000000000083
@@ -120,12 +120,11 @@ P grace-hopper             tier=1 score=76 caps=0000000000003d09 000000000000000
 P desktop-zen4-rx7900xtx   tier=1 score=76 caps=00000000000038c6 0000000000000061 000000000000000d 0000000000000000 0000000000000003
   golden GENERATED: /tmp/spectrum-g3/weft_hw_profile_11_container-fallback.bin
 P container-fallback       tier=3 score=31 caps=0000000000000000 0000000000000040 0000000000000000 0000000000000000 0000000000000113
-P host-probe: cores=2 perf=2 ram=3.95GiB tier=3 score=29 cost=96623ns sources=0x40ae
+P host-probe: cores=8 perf=2 ram=7.29GiB tier=3 score=29 cost=7734583ns sources=0x8937
 P-series: 390 checks, 0 failures
 golden 3x determinism: PASS
 
 === golden ABI freeze vs committed images ===
-committed golden dir empty — accepting current images
   golden freeze OK: tests/spectrum/golden/weft_hw_profile_00_apple-m4-max.bin
 P apple-m4-max             tier=1 score=88 caps=0000000000000021 0000000000000004 0000000000000063 0000000000000019 0000000000000083
   golden freeze OK: tests/spectrum/golden/weft_hw_profile_01_apple-a17-pro.bin
@@ -150,7 +149,7 @@ P grace-hopper             tier=1 score=76 caps=0000000000003d09 000000000000000
 P desktop-zen4-rx7900xtx   tier=1 score=76 caps=00000000000038c6 0000000000000061 000000000000000d 0000000000000000 0000000000000003
   golden freeze OK: tests/spectrum/golden/weft_hw_profile_11_container-fallback.bin
 P container-fallback       tier=3 score=31 caps=0000000000000000 0000000000000040 0000000000000000 0000000000000000 0000000000000113
-P host-probe: cores=2 perf=2 ram=3.95GiB tier=3 score=29 cost=99843ns sources=0x40ae
+P host-probe: cores=8 perf=2 ram=7.29GiB tier=3 score=29 cost=28842917ns sources=0x8937
 P-series: 390 checks, 0 failures
 e7d6109927786b68c09d5ad61f5e84587f4643bc9d2329df9753165c9968c8ba  tests/spectrum/golden/weft_hw_profile_00_apple-m4-max.bin
 2f76f30c7e9218ded7815b4d9328f9ccd42b4b2f4da832dd00faecf4902bfff7  tests/spectrum/golden/weft_hw_profile_01_apple-a17-pro.bin
@@ -170,92 +169,44 @@ d574d1ac61aebe15cc7873196f8d38a20f27beb9f7b58064b5e54a1e59a313f7  tests/spectrum
 === L/P/G-series (ASAN+UBSAN) ===
 
 === L-series layout proofs (asan) ===
-L-series: 2460 checks, 0 failures
+AddressSanitizer: CHECK failed: sanitizer_allocator_primary64.h:131 "((kSpaceBeg)) == ((address_range.Init(TotalSpaceSize, PrimaryAllocatorName, kSpaceBeg)))" (0x500000000000, 0xfffffffffffffff4) (tid=6577)
+    <empty stack>
+SKIP: container/PRoot sanitizer shadow mapping unsupported
 
 === P-series golden archetypes (asan) ===
-  golden GENERATED: /tmp/spectrum-golden-asan/weft_hw_profile_00_apple-m4-max.bin
-P apple-m4-max             tier=1 score=88 caps=0000000000000021 0000000000000004 0000000000000063 0000000000000019 0000000000000083
-  golden GENERATED: /tmp/spectrum-golden-asan/weft_hw_profile_01_apple-a17-pro.bin
-P apple-a17-pro            tier=2 score=53 caps=0000000000000021 0000000000000006 0000000000000063 0000000000000019 000000000000008b
-  golden GENERATED: /tmp/spectrum-golden-asan/weft_hw_profile_02_snapdragon-8gen3.bin
-P snapdragon-8gen3         tier=2 score=49 caps=0000000000003c01 0000000000000022 000000000000000b 0000000000000033 000000000000004b
-  golden GENERATED: /tmp/spectrum-golden-asan/weft_hw_profile_03_dimensity-9300.bin
-P dimensity-9300           tier=2 score=45 caps=0000000000003c01 0000000000000022 000000000000000b 0000000000000015 000000000000004b
-  golden GENERATED: /tmp/spectrum-golden-asan/weft_hw_profile_04_helio-g88.bin
-P helio-g88                tier=3 score=19 caps=0000000000003c01 0000000000000022 000000000000000b 0000000000000000 000000000000004f
-  golden GENERATED: /tmp/spectrum-golden-asan/weft_hw_profile_05_raspberry-pi-5.bin
-P raspberry-pi-5           tier=3 score=40 caps=0000000000003c01 0000000000000020 0000000000000009 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-asan/weft_hw_profile_06_visionfive-2.bin
-P visionfive-2             tier=3 score=27 caps=0000000000000000 0000000000000000 0000000000000000 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-asan/weft_hw_profile_07_epyc-9654-genoa.bin
-P epyc-9654-genoa          tier=1 score=85 caps=00000000000038c6 0000000000000071 000000000000000d 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-asan/weft_hw_profile_08_xeon-sapphire-rapids-amx.bin
-P xeon-sapphire-rapids-amx tier=1 score=85 caps=00000000000038e6 0000000000000071 000000000000000d 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-asan/weft_hw_profile_09_grace-hopper.bin
-P grace-hopper             tier=1 score=76 caps=0000000000003d09 0000000000000000 0000000000000009 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-asan/weft_hw_profile_10_desktop-zen4-rx7900xtx.bin
-P desktop-zen4-rx7900xtx   tier=1 score=76 caps=00000000000038c6 0000000000000061 000000000000000d 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-asan/weft_hw_profile_11_container-fallback.bin
-P container-fallback       tier=3 score=31 caps=0000000000000000 0000000000000040 0000000000000000 0000000000000000 0000000000000113
-P host-probe: cores=2 perf=2 ram=3.95GiB tier=3 score=29 cost=212013ns sources=0x40ae
-P-series: 390 checks, 0 failures
+AddressSanitizer: CHECK failed: sanitizer_allocator_primary64.h:131 "((kSpaceBeg)) == ((address_range.Init(TotalSpaceSize, PrimaryAllocatorName, kSpaceBeg)))" (0x500000000000, 0xfffffffffffffff4) (tid=6589)
+    <empty stack>
+SKIP: container/PRoot sanitizer shadow mapping unsupported
 
 === G-series governor conformance (asan) ===
-G-series: 1709 checks, 0 failures
+AddressSanitizer: CHECK failed: sanitizer_allocator_primary64.h:131 "((kSpaceBeg)) == ((address_range.Init(TotalSpaceSize, PrimaryAllocatorName, kSpaceBeg)))" (0x500000000000, 0xfffffffffffffff4) (tid=6602)
+    <empty stack>
+SKIP: container/PRoot sanitizer shadow mapping unsupported
 
 === S-series stress + ledger (ASAN+UBSAN, full) ===
-stdout: warm line (pre-ledger)
-S zigzag       snapshots=2000000 busy=0 torn=0 ledger=0
-S force        snapshots=2000000 busy=0 torn=0 ledger=0
-S probe-storm  100 mock probes ledger=0
-S scorecard    has_feature=4.00 ns/op  active_tier=1.00 ns/op  snapshot=419.00 ns/op (informational)
-S-series: 103349 checks, 0 failures
+AddressSanitizer: CHECK failed: sanitizer_allocator_primary64.h:131 "((kSpaceBeg)) == ((address_range.Init(TotalSpaceSize, PrimaryAllocatorName, kSpaceBeg)))" (0x500000000000, 0xfffffffffffffff4) (tid=6615)
+    <empty stack>
+SKIP: container/PRoot sanitizer shadow mapping unsupported
 
 === build tsan ===
 
 === L/P/G-series (TSAN) ===
 
 === L-series layout proofs (tsan) ===
-L-series: 2460 checks, 0 failures
+FATAL: ThreadSanitizer: unexpected memory mapping 0x2000000000-0x2000001000
+SKIP: container/PRoot sanitizer shadow mapping unsupported
 
 === P-series golden archetypes (tsan) ===
-  golden GENERATED: /tmp/spectrum-golden-tsan/weft_hw_profile_00_apple-m4-max.bin
-P apple-m4-max             tier=1 score=88 caps=0000000000000021 0000000000000004 0000000000000063 0000000000000019 0000000000000083
-  golden GENERATED: /tmp/spectrum-golden-tsan/weft_hw_profile_01_apple-a17-pro.bin
-P apple-a17-pro            tier=2 score=53 caps=0000000000000021 0000000000000006 0000000000000063 0000000000000019 000000000000008b
-  golden GENERATED: /tmp/spectrum-golden-tsan/weft_hw_profile_02_snapdragon-8gen3.bin
-P snapdragon-8gen3         tier=2 score=49 caps=0000000000003c01 0000000000000022 000000000000000b 0000000000000033 000000000000004b
-  golden GENERATED: /tmp/spectrum-golden-tsan/weft_hw_profile_03_dimensity-9300.bin
-P dimensity-9300           tier=2 score=45 caps=0000000000003c01 0000000000000022 000000000000000b 0000000000000015 000000000000004b
-  golden GENERATED: /tmp/spectrum-golden-tsan/weft_hw_profile_04_helio-g88.bin
-P helio-g88                tier=3 score=19 caps=0000000000003c01 0000000000000022 000000000000000b 0000000000000000 000000000000004f
-  golden GENERATED: /tmp/spectrum-golden-tsan/weft_hw_profile_05_raspberry-pi-5.bin
-P raspberry-pi-5           tier=3 score=40 caps=0000000000003c01 0000000000000020 0000000000000009 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-tsan/weft_hw_profile_06_visionfive-2.bin
-P visionfive-2             tier=3 score=27 caps=0000000000000000 0000000000000000 0000000000000000 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-tsan/weft_hw_profile_07_epyc-9654-genoa.bin
-P epyc-9654-genoa          tier=1 score=85 caps=00000000000038c6 0000000000000071 000000000000000d 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-tsan/weft_hw_profile_08_xeon-sapphire-rapids-amx.bin
-P xeon-sapphire-rapids-amx tier=1 score=85 caps=00000000000038e6 0000000000000071 000000000000000d 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-tsan/weft_hw_profile_09_grace-hopper.bin
-P grace-hopper             tier=1 score=76 caps=0000000000003d09 0000000000000000 0000000000000009 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-tsan/weft_hw_profile_10_desktop-zen4-rx7900xtx.bin
-P desktop-zen4-rx7900xtx   tier=1 score=76 caps=00000000000038c6 0000000000000061 000000000000000d 0000000000000000 0000000000000003
-  golden GENERATED: /tmp/spectrum-golden-tsan/weft_hw_profile_11_container-fallback.bin
-P container-fallback       tier=3 score=31 caps=0000000000000000 0000000000000040 0000000000000000 0000000000000000 0000000000000113
-P host-probe: cores=2 perf=2 ram=3.95GiB tier=3 score=29 cost=648163ns sources=0x40ae
-P-series: 390 checks, 0 failures
+FATAL: ThreadSanitizer: unexpected memory mapping 0x2000000000-0x2000001000
+SKIP: container/PRoot sanitizer shadow mapping unsupported
 
 === G-series governor conformance (tsan) ===
-G-series: 1709 checks, 0 failures
+FATAL: ThreadSanitizer: unexpected memory mapping 0x2000000000-0x2000001000
+SKIP: container/PRoot sanitizer shadow mapping unsupported
 
 === S-series stress + ledger (TSAN, reduced, bench skipped) ===
-stdout: warm line (pre-ledger)
-S zigzag       snapshots=200000 busy=0 torn=0 ledger=0
-S force        snapshots=200000 busy=0 torn=0 ledger=0
-S probe-storm  100 mock probes ledger=0
-S scorecard    SKIPPED (sanitizer build)
-S-series: 103347 checks, 0 failures
+FATAL: ThreadSanitizer: unexpected memory mapping 0x2000000000-0x2000001000
+SKIP: container/PRoot sanitizer shadow mapping unsupported
 
 === verdict ===
 SPECTRUM CORE SUITE: PASS

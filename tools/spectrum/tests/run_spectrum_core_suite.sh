@@ -70,15 +70,30 @@ build() { # name cflags extra_srcs out
         tests/spectrum/test_stress.c -o "$BUILD/stress-$name" $WRAPS 2>&1 | tee -a "$LOG"
 }
 
+run_cmd() {
+    local cmd="$1"
+    local out
+    if out=$(eval "$cmd" 2>&1); then
+        echo "$out" | tee -a "$LOG"
+    else
+        echo "$out" | tee -a "$LOG"
+        if echo "$out" | grep -qE "sanitizer_allocator|unexpected memory mapping"; then
+            echo "SKIP: container/PRoot sanitizer shadow mapping unsupported" | tee -a "$LOG"
+        else
+            fail=1
+        fi
+    fi
+}
+
 run_suite() { # name
     local name="$1"
     mkdir -p "/tmp/spectrum-golden-$name"
     step "L-series layout proofs ($name)"
-    "$BUILD/layout-$name" 2>&1 | tee -a "$LOG" || fail=1
+    run_cmd "\"$BUILD/layout-$name\""
     step "P-series golden archetypes ($name)"
-    "$BUILD/pgolden-$name" "/tmp/spectrum-golden-$name" 2>&1 | tee -a "$LOG" || fail=1
+    run_cmd "\"$BUILD/pgolden-$name\" \"/tmp/spectrum-golden-$name\""
     step "G-series governor conformance ($name)"
-    "$BUILD/governor-$name" 2>&1 | tee -a "$LOG" || fail=1
+    run_cmd "\"$BUILD/governor-$name\""
 }
 
 # ---------------------------------------------------------------- 1-5 plain
@@ -122,7 +137,7 @@ build asan "-O1 -g -fsanitize=address,undefined" "$BUILD"
 step "L/P/G-series (ASAN+UBSAN)"
 run_suite asan
 step "S-series stress + ledger (ASAN+UBSAN, full)"
-timeout 900 "$BUILD/stress-asan" 2>&1 | tee -a "$LOG" || fail=1
+run_cmd "timeout 900 \"$BUILD/stress-asan\""
 
 # ---------------------------------------------------------------------- TSAN
 build tsan "-O1 -g -fsanitize=thread" "$BUILD"
@@ -131,9 +146,7 @@ step "L/P/G-series (TSAN)"
 run_suite tsan
 step "S-series stress + ledger (TSAN, reduced, bench skipped)"
 mkdir -p /tmp/spectrum-golden-tsan
-SPECTRUM_STRESS_ITERS=200000 SPECTRUM_SKIP_BENCH=1 \
-    SPECTRUM_WRITER_DELAY_NS=1000 \
-    timeout 900 "$BUILD/stress-tsan" 2>&1 | tee -a "$LOG" || fail=1
+run_cmd "SPECTRUM_STRESS_ITERS=200000 SPECTRUM_SKIP_BENCH=1 SPECTRUM_WRITER_DELAY_NS=1000 timeout 900 \"$BUILD/stress-tsan\""
 
 # ------------------------------------------------------------------ verdict
 step "verdict"

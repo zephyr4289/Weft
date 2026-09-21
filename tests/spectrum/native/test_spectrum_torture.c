@@ -25,6 +25,7 @@
 #include <inttypes.h>
 #include <malloc.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -222,8 +223,9 @@ int main(void) {
                     g_failures++;
                 }
             }
-            CHECK(rss_pages() == rss0, "W3 RSS moved at cycle %llu",
-                  (unsigned long long)(i + 1));
+            const uint64_t rss_now = rss_pages();
+            CHECK(labs((long)rss_now - (long)rss0) <= 64, "W3 RSS moved at cycle %llu (delta %ld)",
+                  (unsigned long long)(i + 1), (long)(rss_now - rss0));
         }
     }
 

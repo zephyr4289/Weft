@@ -37,7 +37,7 @@ export function getReact(): ReactImpl {
 export const spy = {
   counts: new Int32Array(64),
   mutations: 0,
-  enabled: false,
+  enabled: true,
   reset(): void {
     this.counts.fill(0);
     this.mutations = 0;

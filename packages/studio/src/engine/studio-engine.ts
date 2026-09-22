@@ -15,14 +15,16 @@ import {
 import { DEFAULT_RING_CAPACITY, FRAME_BUDGET_NS_240, hex8, clamp } from './types';
 import { fnv1a32 } from './types';
 
+export type FrameDrawerFn = (frame: number) => void;
+
 export interface FrameDrawers {
-  /** called in registration order inside the 240 Hz governor work callback */
-  ring?: (frame: number) => void;
-  telemetry?: (frame: number) => void;
-  cloud?: (frame: number) => void;
-  attitude?: (frame: number) => void;
-  renderSpy?: (frame: number) => void;
-  memoryGrid?: (frame: number) => void;
+  /** registered in order inside the 240 Hz governor work callback */
+  ring: FrameDrawerFn[];
+  telemetry: FrameDrawerFn[];
+  cloud: FrameDrawerFn[];
+  attitude: FrameDrawerFn[];
+  renderSpy: FrameDrawerFn[];
+  memoryGrid: FrameDrawerFn[];
 }
 
 const P = new Float64Array(3);
@@ -41,7 +43,7 @@ export class StudioEngine {
   readonly scheduler: FrameScheduler;
   readonly flight: FlightRecorder;
   replayer: TimeTravelReplayer | null = null;
-  drawers: FrameDrawers = {};
+  drawers: FrameDrawers = { ring: [], telemetry: [], cloud: [], attitude: [], renderSpy: [], memoryGrid: [] };
   /** live status values (status bar reads these directly — no React state) */
   live = {
     fps: 0,
@@ -95,13 +97,14 @@ export class StudioEngine {
       this.ingestion.stats.push(0, this.sim.nowNs);
       void priceLo;
     }
-    // hot planes
-    if (this.drawers.ring) this.drawers.ring(frame);
-    if (this.drawers.telemetry) this.drawers.telemetry(frame);
-    if (this.drawers.cloud) this.drawers.cloud(frame);
-    if (this.drawers.attitude) this.drawers.attitude(frame);
-    if (this.drawers.memoryGrid) this.drawers.memoryGrid(frame);
-    if (this.drawers.renderSpy) this.drawers.renderSpy(frame);
+    // hot planes (arrays — multiple panels may register per kind)
+    const dr = this.drawers;
+    for (let i = 0; i < dr.ring.length; i++) dr.ring[i](frame);
+    for (let i = 0; i < dr.telemetry.length; i++) dr.telemetry[i](frame);
+    for (let i = 0; i < dr.cloud.length; i++) dr.cloud[i](frame);
+    for (let i = 0; i < dr.attitude.length; i++) dr.attitude[i](frame);
+    for (let i = 0; i < dr.memoryGrid.length; i++) dr.memoryGrid[i](frame);
+    for (let i = 0; i < dr.renderSpy.length; i++) dr.renderSpy[i](frame);
     // status ledger
     const t1 = this.clock();
     const workNs = t1 - t0;

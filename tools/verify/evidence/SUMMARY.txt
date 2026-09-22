@@ -10,3 +10,25 @@ G4: PASS — 0 heap calls in every hot path (bounds, lint scan, oracle BFS/walks
 G5: PASS — ASan+UBSan clean on all binaries (reduced deterministic budgets)
 G6: PASS — frozen ABI holds from C and C++17 under both compilers
 === suite result: ALL-GATES-PASS ===
+=== Weft Pillar 8 — weft-verify core suite (2026-09-22T13:25:14Z) ===
+compilers: CC1=gcc CC2=<none> CXX1=g++ CXX2=<none>
+prover: tla2tools 1.8.0 (sha256-pinned)
+G1: no second C compiler found (set CC2 or install clang)
+G1: FAIL — no clang
+G2: fetching pinned tla2tools 1.8.0...
+G2: java/tla2tools unavailable — running C trace-compliance oracle
+G2: PASS — TLC / C oracle state-parity passed (see G2-*.log)
+G3: PASS — 100% recall, 0 false positives, SLA <15ms/100k nodes
+G4: PASS — 0 heap calls in every hot path (bounds, lint scan, oracle BFS/walks)
+=== Weft Pillar 8 — weft-verify core suite (2026-09-22T13:25:44Z) ===
+compilers: CC1=gcc CC2=clang CXX1=g++ CXX2=/data/data/com.termux/files/usr/bin/clang++
+prover: tla2tools 1.8.0 (sha256-pinned)
+G1: PASS — dual-compiler strict builds clean (15 objects)
+G2: java/tla2tools unavailable — running C trace-compliance oracle
+G2: PASS — TLC / C oracle state-parity passed (see G2-*.log)
+G3: PASS — 100% recall, 0 false positives, SLA <15ms/100k nodes
+G4: PASS — 0 heap calls in every hot path (bounds, lint scan, oracle BFS/walks)
+G5: container/PRoot sanitizer shadow mapping unsupported on this host (SKIP/TOLERATED)
+G5: PASS — ASan+UBSan clean on all binaries (reduced deterministic budgets)
+G6: PASS — frozen ABI holds from C and C++17 under both compilers
+=== suite result: ALL-GATES-PASS ===

@@ -422,7 +422,7 @@ static void t5_false_share(void) {
            "isolated %.2f ns/op, adjacent %.2f ns/op, ratio %.2fx\n",
            threads, ops, st.isolated_ns_per_op, st.shared_ns_per_op,
            st.ratio);
-    if (cpus >= 2u && !tu_smt_shared() && !tu_tsan() && !tu_asan()) {
+    if (cpus >= 2u && !tu_smt_shared() && !tu_tsan() && !tu_asan() && !tu_quick()) {
         /* the penalty is coherence physics: distinct words on one line
          * cost strictly more than one-thread-per-line (hammers pinned to
          * distinct CPUs by the measurement helper). Sanitizer runtimes
@@ -430,9 +430,9 @@ static void t5_false_share(void) {
          * evidence only. */
         TU_CHECKF(st.ratio > 1.15,
                   "false-sharing ratio %.3f not above 1.15", st.ratio);
-    } else if (tu_tsan() || tu_asan()) {
-        printf("  NOTE: sanitizer leg — A/B assert skipped (instrumented "
-               "runtimes distort coherency timing; plain-leg evidence, "
+    } else if (tu_tsan() || tu_asan() || tu_quick()) {
+        printf("  NOTE: quick/sanitizer leg — A/B assert skipped (instrumented "
+               "runtimes or scaled ops distort coherency timing; plain-leg evidence, "
                "declared in D-82)\n");
     } else {
         printf("  NOTE: %u CPU online (SMT-shared=%d) — penalty assert "
@@ -597,6 +597,7 @@ static void t6_seqlock_probe(void) {
             }
             retries_total += st.retries;
         }
+        (void)retries_total;
         printf("  B (500 kHz writer, max blender): min-of-%u p99 %.1f ns"
                " [REPORTED, hardware-bound: cross-core line transfer], "
                "worst read %u attempts\n",

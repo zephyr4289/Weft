@@ -265,40 +265,29 @@ int main(void) {
     pthread_t sim_tid;
     TU_CHECK(pthread_create(&sim_tid, NULL, torture_sim, &cycles) == 0);
 
-    /* watchdog: zero progress for 3 s fails the run; the sim thread is
-     * reaped exactly once (tryjoin success OR the abort path's join —
-     * never both: joining an already-reaped thread is UB) */
+    /* watchdog: zero progress for 3 s fails the run */
     uint64_t last_progress = 0ull;
     int stalls = 0;
-    int aborted = 0;
     for (;;) {
-        void *ret = NULL;
-        int rc = pthread_tryjoin_np(sim_tid, &ret);
-        if (rc == 0) {
-            break;  /* reaped by tryjoin — do NOT join again */
-        }
-        if (rc != EBUSY) {
-            aborted = 1;  /* unexpected pthread error: fail-closed path */
-            break;
-        }
         tu_usleep(100000);
         const uint64_t now_progress = atomic_load(&g_progress);
+        if (now_progress >= cycles) {
+            TU_CHECK(pthread_join(sim_tid, NULL) == 0);
+            break;
+        }
         if (now_progress == last_progress) {
             stalls++;
             if (stalls >= 30) {  /* 3 s with zero progress */
                 atomic_store(&g_abort_flag, 1);
                 printf("FAIL watchdog: sim stalled at %" PRIu64
                        " cycles for 3 s\n", now_progress);
-                aborted = 1;
+                TU_CHECK(pthread_join(sim_tid, NULL) == 0);
                 break;
             }
         } else {
             stalls = 0;
             last_progress = now_progress;
         }
-    }
-    if (aborted) {
-        TU_CHECK(pthread_join(sim_tid, NULL) == 0);
     }
 
     /* teardown the fleet */

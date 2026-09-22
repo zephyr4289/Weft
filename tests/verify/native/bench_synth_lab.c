@@ -80,7 +80,7 @@ static void b1_disabled_overhead(void) {
     TU_CHECK(weft_synth_net_init(&g_net, &cfg) == 0);
     TU_CHECK(twin_weft_synth_net_init(&g_net2, &cfg) == 0);
 
-    const uint64_t n = tu_iters(200000ull);
+    const uint64_t n = 1000000ull;
     const uint32_t reps = 5u;
     double best_fabric = 1e30, best_twin = 1e30;
     weft_synth_net_pkt_t pkt;

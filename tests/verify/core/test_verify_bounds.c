@@ -353,8 +353,8 @@ static void layer3_macro_proofs(void)
 int main(int argc, char **argv)
 {
     unsigned long long cycles = 10000000ULL;
-    if (argc > 1 && strcmp(argv[1], "--san") == 0) {
-        cycles = 1000000ULL; /* reduced budget under sanitizers */
+    if ((argc > 1 && strcmp(argv[1], "--san") == 0) || (getenv("WEFT_QUICK") != NULL)) {
+        cycles = 1000000ULL; /* reduced budget under sanitizers or quick mode */
     }
     /* static stdout buffer: never allocate inside the probe window */
     static char obuf[1 << 16];

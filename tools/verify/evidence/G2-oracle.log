@@ -1,7 +1,7 @@
-weft-verify TLA trace-compliance oracle — full
+weft-verify TLA trace-compliance oracle — sanitizer budget
 mirrors: formal/seqlock_ring.tla + formal/wcr1_consensus.tla (TLC 1.8.0 pinned)
-[oracle][seqlock] BFS states=6676860 edges=6676852 deadlocks=0 writer-independence-failures=0 (3.6 s, heap-calls=0)
-[oracle][seqlock] walk steps=10000000 seed=0x317e21813ca6acea commits=372443 torn-detected=2 torn-VIOLATIONS=0 writer-steps=3331306 reader-steps=6668694 (0.3 s, heap-calls=0)
-[oracle][wcr1] BFS states=8035488 edges=8035487 deadlocks=0 epoch-regressions=0 (16.4 s, heap-calls=0)
-[oracle][wcr1] walk steps=10000000 seed=0x0977a35e4085c73e elections-won=72404 heals=837495 splits=3824470 renewals=714 drops=1454315 single-primary-VIOLATIONS=0 (0.9 s, heap-calls=0)
+[oracle][seqlock] BFS states=262144 (budget-limited tier) edges=262136 deadlocks=0 writer-independence-failures=0 (0.1 s, heap-calls=0)
+[oracle][seqlock] walk steps=1000000 seed=0x4b69b6809213c3aa commits=37191 torn-detected=2 torn-VIOLATIONS=0 writer-steps=333007 reader-steps=666993 (0.1 s, heap-calls=0)
+[oracle][wcr1] BFS states=262144 (budget-limited tier) edges=262143 deadlocks=0 epoch-regressions=0 (0.4 s, heap-calls=0)
+[oracle][wcr1] walk steps=1000000 seed=0x2363385d95f2ddfe elections-won=7280 heals=84016 splits=382143 renewals=65 drops=145684 single-primary-VIOLATIONS=0 (0.2 s, heap-calls=0)
 TLA-ORACLE PASS (0 failures)

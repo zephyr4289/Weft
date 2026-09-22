@@ -15,5 +15,5 @@ engine: weftc-lint 1.0.0 (Weft Pillar 8, --lint-alloc) (ABI 0x0100)
   [clean-ts      ] nodes=28     funcs=2   hot=0 diags=0/0 (E=0 W=0) ok
 L1 corpus: 13 cases, planted=25 found=25 (recall 100.00%)
 L3 Law1: 100 scans x 106 nodes, heap calls during scan: 0
-L4 SLA: nodes=431775 (>100k? yes) best=1.400 ms avg=1.494 ms (3.2 ns/node) diags=486 — limit 15 ms: PASS
+L4 SLA: nodes=431775 (>100k? yes) best=2.043 ms avg=2.142 ms (4.7 ns/node) diags=486 — limit 15 ms: PASS
 LINT-ALLOC PASS (0 failures; recall 25/25)

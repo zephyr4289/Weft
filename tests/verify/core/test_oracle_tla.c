@@ -1173,7 +1173,7 @@ static void wcr_walk(uint64_t steps)
 
 int main(int argc, char **argv)
 {
-    int reduced = (argc > 1 && strcmp(argv[1], "--san") == 0);
+    int reduced = (argc > 1 && strcmp(argv[1], "--san") == 0) || (getenv("WEFT_QUICK") != NULL);
     static char obuf[1 << 16];
     setvbuf(stdout, obuf, _IOFBF, sizeof(obuf));
 

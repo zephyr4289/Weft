@@ -42,7 +42,7 @@ export function TelemetryPanel({ engine }: Props): unknown {
       kv(labels.current, 1, 'frame work p99'),
       kv(labels.current, 2, 'frame work max'),
       kv(labels.current, 4, 'msg rate (nominal)'),
-      kv(labels.current, 5, 'frames / skipped'),
+      kv(labels.current, 5, 'frames rendered'),
       kv(labels.current, 6, 'zero-copy index'),
     ),
   );
@@ -93,8 +93,9 @@ function draw(ctx: CanvasRenderingContext2D, w: number, h: number, frame: number
     labels.setNum(2, P3[2], fmtNs);
     const skipped = eng.scheduler.skipped;
     if (skipped !== lastSkipped) {
+      const perSec = (skipped - lastSkipped) * 4;
       lastSkipped = skipped;
-      labels.set(3, skipped === 0 ? '240 fps locked' : '240 fps · ' + skipped + ' skipped');
+      labels.set(3, perSec === 0 ? '240 fps locked' : '240 fps · gov-skip ' + perSec + '/s');
     }
     labels.setNum(4, eng.sim.stats.nominalMsgPerSec, fmtRate);
     labels.setNum(5, eng.scheduler.frameCount, fmtInt);

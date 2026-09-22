@@ -28,10 +28,13 @@ export function StatusBar({ engine, schemaHash }: Props): unknown {
     if ((frame & 0x3f) !== 0) return;
     const L = labels.current;
     L.setNum(0, eng.live.occupancy, fmtIntS);
+    // per-window skip rate (skipped is cumulative; rate = delta × 4 per second)
     const skipped = eng.scheduler.skipped;
     if (skipped !== statics.current.skipped) {
+      const delta = skipped - statics.current.skipped;
       statics.current.skipped = skipped;
-      L.set(2, skipped === 0 ? '240 fps' : (240 - skipped) + '/240 fps');
+      const perSec = delta * 4;
+      L.set(2, perSec === 0 ? '240 fps' : `240 fps · gov-skip ${perSec}/s`);
     }
     L.setNum(3, eng.live.zeroCopyIndex, zcS);
     L.setNum(4, eng.ring.counters.tornRetries, tornFmt);

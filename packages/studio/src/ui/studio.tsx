@@ -169,10 +169,9 @@ export function WeftStudio(): unknown {
     onMouseDown: () => openMenu && setOpenMenu(null),
   },
     hR('style', null, `
-      .studio-dock-left, .studio-dock-right { }
-      @media (max-width: 1080px) { .studio-dock-right { display: none; } }
-      @media (max-width: 940px) { .studio-dock-left { display: none; } }
-      @media (max-width: 720px) { .studio-bottom { display: none; } }
+      @media (max-width: 1080px) { .studio-dock-right { display: none !important; } }
+      @media (max-width: 940px) { .studio-dock-left { display: none !important; } }
+      @media (max-width: 720px) { .studio-bottom { display: none !important; } }
       .studio-root textarea::selection { background: rgba(53,116,240,.4); }
       .studio-root pre::selection { background: transparent; }
     `),
@@ -212,9 +211,9 @@ export function WeftStudio(): unknown {
       showLeft ? hR('div', { className: CLS_DOCK_LEFT, style: dockLeft },
         hR('div', { style: twHeader }, 'PROJECT · SCHEMA TREE'),
         hR('div', { style: { flex: 1, minHeight: 0 } },
-          ProjectTreePanel({ parse, layout, onOpenFile: () => setTab('schema'), activeFile: 'main.weft' })),
+          hR(ProjectTreePanel, { parse, layout, onOpenFile: () => setTab('schema'), activeFile: 'main.weft' })),
         hR('div', { style: twHeader }, 'DELIVERABLES'),
-        hR('div', { style: { height: 210, flexShrink: 0 } }, DeliverablesPanel()),
+        hR('div', { style: { height: 210, flexShrink: 0 } }, hR(DeliverablesPanel, null)),
       ) : null,
       // center
       hR('div', { style: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' } },
@@ -226,16 +225,16 @@ export function WeftStudio(): unknown {
           }, label)),
         ),
         hR('div', { style: { flex: 1, minHeight: 0, position: 'relative' } },
-          tab === 'schema' ? SchemaDesignerPanel({ src, onSrc: setSrc, parse, layout, schemaHash: parse.doc?.hash ?? '' })
-            : tab === 'cache' ? CacheMapperPanel({ layout, engine, lineSize })
-            : tab === 'ring' ? RingMonitorPanel({ engine })
-            : TimeTravelPanel({ engine }),
+          tab === 'schema' ? hR(SchemaDesignerPanel, { src, onSrc: setSrc, parse, layout, schemaHash: parse.doc?.hash ?? '' })
+            : tab === 'cache' ? hR(CacheMapperPanel, { layout, engine, lineSize })
+            : tab === 'ring' ? hR(RingMonitorPanel, { engine })
+            : hR(TimeTravelPanel, { engine }),
         ),
       ),
       // right dock
       showRight ? hR('div', { className: CLS_DOCK_RIGHT, style: dockRight },
         hR('div', { style: twHeader }, 'RENDER SPY'),
-        hR('div', { style: { height: 260, flexShrink: 0, position: 'relative' } }, RenderSpyPanel({ engine })),
+        hR('div', { style: { height: 260, flexShrink: 0, position: 'relative' } }, hR(RenderSpyPanel, { engine })),
         hR('div', { style: twHeader }, 'PROBLEMS'),
         hR('div', { style: { flex: 1, minHeight: 0, overflow: 'auto', padding: '6px 10px' } },
           parse.diagnostics.length === 0
@@ -247,10 +246,10 @@ export function WeftStudio(): unknown {
     ),
     // ---------------- bottom dock ----------------
     showBottom ? hR('div', { className: CLS_BOTTOM, style: { height: 280, flexShrink: 0, borderTop: `1px solid ${T.border}`, background: T.bg } },
-      TelemetryPanel({ engine }),
+      hR(TelemetryPanel, { engine }),
     ) : null,
     // ---------------- status bar ----------------
-    StatusBar({ engine, schemaHash: parse.doc?.hash ?? '' }),
+    hR(StatusBar, { engine, schemaHash: parse.doc?.hash ?? '' }),
   );
 }
 

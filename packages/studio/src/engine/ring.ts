@@ -47,7 +47,13 @@ export class RingMap {
     }
     this.capacity = capacity;
     const total = capacity * SLOT_SIZE;
-    this.buffer = new SharedArrayBuffer(total);
+    // STUDIO-SEAMS-V1 §2: SharedArrayBuffer only on cross-origin-isolated
+    // hosts; plain ArrayBuffer everywhere else (same DataView/Uint8Array API).
+    const sabAvailable =
+      typeof SharedArrayBuffer !== 'undefined' &&
+      typeof crossOriginIsolated !== 'undefined' &&
+      (crossOriginIsolated as boolean) === true;
+    this.buffer = sabAvailable ? new SharedArrayBuffer(total) : new ArrayBuffer(total);
     this.view = new DataView(this.buffer);
     this.bytes = new Uint8Array(this.buffer);
     this.readMarks = new Int32Array(capacity);

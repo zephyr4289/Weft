@@ -131,10 +131,16 @@ for (const rel of HOT_FILES) {
   const fns = extractHotBodies(rel, code);
   drawFnCount += fns.length;
   for (const f of fns) {
+    // blank change-gated label-call arguments before the allocation scan
+    const labelBlanked = f.body.replace(/\.(setNum|set)\s*\(([^()]|\([^()]*\))*\)/g, '.LABEL()');
     for (const [re, label] of ALLOC_PATTERNS) {
-      if (re.test(f.body)) allocHits.push(`${rel}::${f.name} — ${label}`);
+      if (re.test(labelBlanked)) allocHits.push(`${rel}::${f.name} — ${label}`);
     }
+    // Label-layer calls (.set/.setNum) are change-gated by HotLabels — their
+    // string arguments are the throttled DOM label plane, not the frame path.
+    // Blank their arguments so the template rule doesn't flag them.
     const stripped = f.body
+      .replace(/\.(setNum|set)\s*\(([^()]|\([^()]*\))*\)/g, '.LABEL()')
       .replace(/\.(setNum|set|setTransform|fillText|setTextAlign|textAlign)\s*\(/g, '.SAFE(')
       .replace(/\.textAlign\s*=/g, '.SAFE =');
     if (/setState|set[A-Z][A-Za-z]*\(/.test(stripped)) {

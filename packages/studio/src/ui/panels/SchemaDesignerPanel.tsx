@@ -223,6 +223,7 @@ export function SchemaDesignerPanel({ src, onSrc, parse, layout, schemaHash }: P
             ref: preRef as never,
             style: preStyle,
             'aria-hidden': true,
+            dangerouslySetInnerHTML: { __html: lines.join('\n') },
           }),
           // squiggle layer
           h('div', { style: { position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', paddingTop: PAD_Y, paddingLeft: PAD_X } },

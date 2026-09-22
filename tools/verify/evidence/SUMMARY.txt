@@ -1,0 +1,12 @@
+=== Weft Pillar 8 — weft-verify core suite (2026-09-22T11:12:01Z) ===
+compilers: CC1=gcc CC2=/home/z/my-project/.clang-pkg/root/usr/lib/llvm-19/bin/clang CXX1=g++ CXX2=/home/z/my-project/.clang-pkg/root/usr/lib/llvm-19/bin/clang++
+prover: tla2tools 1.8.0 (sha256-pinned)
+G1: PASS — dual-compiler strict builds clean (15 objects)
+G2: TLC seqlock_ring (CI tier)...
+G2: TLC wcr1_consensus (CI tier)...
+G2: PASS — TLC proven both models + C oracle state-parity (see G2-*.log)
+G3: PASS — 100% recall, 0 false positives, SLA <15ms/100k nodes
+G4: PASS — 0 heap calls in every hot path (bounds, lint scan, oracle BFS/walks)
+G5: PASS — ASan+UBSan clean on all binaries (reduced deterministic budgets)
+G6: PASS — frozen ABI holds from C and C++17 under both compilers
+=== suite result: ALL-GATES-PASS ===

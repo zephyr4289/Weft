@@ -1,0 +1,3 @@
+/home/z/my-project/weft-repo/build/verify/fixture_poison.c:1:52: error: call to 'malloc' in @hot function 'bad' [alloc-heap]
+/home/z/my-project/weft-repo/build/verify/fixture_poison.c:1:52: note: Law 1: preallocate from a stack buffer or an arena slot; the hot plane never touches the heap allocator
+weftc-lint: 1 diagnostic(s) across 1 file(s)

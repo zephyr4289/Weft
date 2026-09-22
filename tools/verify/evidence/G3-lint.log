@@ -1,0 +1,19 @@
+weftc --lint-alloc corpus suite — full
+engine: weftc-lint 1.0.0 (Weft Pillar 8, --lint-alloc) (ABI 0x0100)
+  [c-poisoned    ] nodes=106    funcs=1   hot=1 diags=8/8 (E=8 W=0) ok
+  [cpp-attrs     ] nodes=38     funcs=1   hot=1 diags=2/2 (E=2 W=0) ok
+  [attr-gcc      ] nodes=33     funcs=1   hot=1 diags=1/1 (E=1 W=0) ok
+  [rust-poison   ] nodes=120    funcs=2   hot=1 diags=4/4 (E=3 W=1) ok
+  [rust-leak     ] nodes=34     funcs=1   hot=1 diags=1/1 (E=1 W=0) ok
+  [ts-poison     ] nodes=42     funcs=1   hot=1 diags=3/3 (E=3 W=0) ok
+  [swift-poison  ] nodes=27     funcs=1   hot=1 diags=2/2 (E=2 W=0) ok
+  [dart-poison   ] nodes=30     funcs=1   hot=1 diags=2/2 (E=2 W=0) ok
+  [recursion     ] nodes=79     funcs=4   hot=1 diags=2/2 (E=2 W=0) ok
+  [clean-c       ] nodes=69     funcs=2   hot=0 diags=0/0 (E=0 W=0) ok
+  [clean-fp-traps] nodes=50     funcs=3   hot=0 diags=0/0 (E=0 W=0) ok
+  [clean-rust    ] nodes=43     funcs=1   hot=0 diags=0/0 (E=0 W=0) ok
+  [clean-ts      ] nodes=28     funcs=2   hot=0 diags=0/0 (E=0 W=0) ok
+L1 corpus: 13 cases, planted=25 found=25 (recall 100.00%)
+L3 Law1: 100 scans x 106 nodes, heap calls during scan: 0
+L4 SLA: nodes=431775 (>100k? yes) best=1.400 ms avg=1.494 ms (3.2 ns/node) diags=486 — limit 15 ms: PASS
+LINT-ALLOC PASS (0 failures; recall 25/25)

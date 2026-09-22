@@ -1,0 +1,32 @@
+weft_verify bounds stress — --san
+engine: abi=0x0100 violations=0
+L1 known-answer edges: done (0 failures)
+L2 stress: 1000000 cycles, 0 mismatches, 447 macro violations observed, counter delta 447, 8.9 ms (8.9 ns/check-set)
+L3 macro proofs: done
+VERIFY-BOUNDS PASS (0 failures)
+weftc --lint-alloc corpus suite — sanitizer budget
+engine: weftc-lint 1.0.0 (Weft Pillar 8, --lint-alloc) (ABI 0x0100)
+  [c-poisoned    ] nodes=106    funcs=1   hot=1 diags=8/8 (E=8 W=0) ok
+  [cpp-attrs     ] nodes=38     funcs=1   hot=1 diags=2/2 (E=2 W=0) ok
+  [attr-gcc      ] nodes=33     funcs=1   hot=1 diags=1/1 (E=1 W=0) ok
+  [rust-poison   ] nodes=120    funcs=2   hot=1 diags=4/4 (E=3 W=1) ok
+  [rust-leak     ] nodes=34     funcs=1   hot=1 diags=1/1 (E=1 W=0) ok
+  [ts-poison     ] nodes=42     funcs=1   hot=1 diags=3/3 (E=3 W=0) ok
+  [swift-poison  ] nodes=27     funcs=1   hot=1 diags=2/2 (E=2 W=0) ok
+  [dart-poison   ] nodes=30     funcs=1   hot=1 diags=2/2 (E=2 W=0) ok
+  [recursion     ] nodes=79     funcs=4   hot=1 diags=2/2 (E=2 W=0) ok
+  [clean-c       ] nodes=69     funcs=2   hot=0 diags=0/0 (E=0 W=0) ok
+  [clean-fp-traps] nodes=50     funcs=3   hot=0 diags=0/0 (E=0 W=0) ok
+  [clean-rust    ] nodes=43     funcs=1   hot=0 diags=0/0 (E=0 W=0) ok
+  [clean-ts      ] nodes=28     funcs=2   hot=0 diags=0/0 (E=0 W=0) ok
+L1 corpus: 13 cases, planted=25 found=25 (recall 100.00%)
+L3 Law1: 100 scans x 106 nodes, heap calls during scan: 0
+L4 SLA: nodes=61337 (>100k? no (san mode)) best=1.536 ms avg=1.566 ms (25.0 ns/node) diags=69 — limit 15 ms: PASS
+LINT-ALLOC PASS (0 failures; recall 25/25)
+weft-verify TLA trace-compliance oracle — sanitizer budget
+mirrors: formal/seqlock_ring.tla + formal/wcr1_consensus.tla (TLC 1.8.0 pinned)
+[oracle][seqlock] BFS states=262144 (budget-limited tier) edges=262136 deadlocks=0 writer-independence-failures=0 (0.1 s, heap-calls=0)
+[oracle][seqlock] walk steps=1000000 seed=0x4b69b6809213c3aa commits=37191 torn-detected=2 torn-VIOLATIONS=0 writer-steps=333007 reader-steps=666993 (0.1 s, heap-calls=0)
+[oracle][wcr1] BFS states=262144 (budget-limited tier) edges=262143 deadlocks=0 epoch-regressions=0 (0.4 s, heap-calls=0)
+[oracle][wcr1] walk steps=1000000 seed=0x2363385d95f2ddfe elections-won=7280 heals=84016 splits=382143 renewals=65 drops=145684 single-primary-VIOLATIONS=0 (0.3 s, heap-calls=0)
+TLA-ORACLE PASS (0 failures)

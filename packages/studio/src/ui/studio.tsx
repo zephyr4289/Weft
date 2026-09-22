@@ -168,6 +168,14 @@ export function WeftStudio(): unknown {
     style: { ...root },
     onMouseDown: () => openMenu && setOpenMenu(null),
   },
+    hR('style', null, `
+      .studio-dock-left, .studio-dock-right { }
+      @media (max-width: 1080px) { .studio-dock-right { display: none; } }
+      @media (max-width: 940px) { .studio-dock-left { display: none; } }
+      @media (max-width: 720px) { .studio-bottom { display: none; } }
+      .studio-root textarea::selection { background: rgba(53,116,240,.4); }
+      .studio-root pre::selection { background: transparent; }
+    `),
     // ---------------- menu bar ----------------
     hR('div', { style: menuBar },
       hR('span', { style: { display: 'flex', alignItems: 'center', gap: 8 } },
@@ -201,7 +209,7 @@ export function WeftStudio(): unknown {
     // ---------------- main area ----------------
     hR('div', { style: { flex: 1, display: 'flex', minHeight: 0 } },
       // left dock
-      showLeft ? hR('div', { style: dockLeft },
+      showLeft ? hR('div', { className: CLS_DOCK_LEFT, style: dockLeft },
         hR('div', { style: twHeader }, 'PROJECT · SCHEMA TREE'),
         hR('div', { style: { flex: 1, minHeight: 0 } },
           ProjectTreePanel({ parse, layout, onOpenFile: () => setTab('schema'), activeFile: 'main.weft' })),
@@ -225,7 +233,7 @@ export function WeftStudio(): unknown {
         ),
       ),
       // right dock
-      showRight ? hR('div', { style: dockRight },
+      showRight ? hR('div', { className: CLS_DOCK_RIGHT, style: dockRight },
         hR('div', { style: twHeader }, 'RENDER SPY'),
         hR('div', { style: { height: 260, flexShrink: 0, position: 'relative' } }, RenderSpyPanel({ engine })),
         hR('div', { style: twHeader }, 'PROBLEMS'),
@@ -238,7 +246,7 @@ export function WeftStudio(): unknown {
       ) : null,
     ),
     // ---------------- bottom dock ----------------
-    showBottom ? hR('div', { style: { height: 280, flexShrink: 0, borderTop: `1px solid ${T.border}`, background: T.bg } },
+    showBottom ? hR('div', { className: CLS_BOTTOM, style: { height: 280, flexShrink: 0, borderTop: `1px solid ${T.border}`, background: T.bg } },
       TelemetryPanel({ engine }),
     ) : null,
     // ---------------- status bar ----------------
@@ -257,6 +265,11 @@ const root: Record<string, string | number> = {
   height: '100vh', width: '100%', display: 'flex', flexDirection: 'column',
   background: T.bg, color: T.text, overflow: 'hidden', userSelect: 'none' as never,
 };
+
+// className hooks for the responsive <style> block above
+const CLS_DOCK_LEFT = 'studio-dock-left';
+const CLS_DOCK_RIGHT = 'studio-dock-right';
+const CLS_BOTTOM = 'studio-bottom';
 
 const menuBar: Record<string, string | number> = {
   height: 36, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 2,

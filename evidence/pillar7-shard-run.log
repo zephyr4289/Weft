@@ -1,8 +1,8 @@
 
 ======================================================================
-  WEFT STUDIO MANAGED SUITE — Pillar 7 (branch feat/studio-managed, 2e9c2fe)
+  WEFT STUDIO MANAGED SUITE — Pillar 7 (branch feat/studio-managed, c838127)
 ======================================================================
-started: 2026-09-22T05:10:57Z
+started: 2026-09-22T05:21:12Z
 
 ======================================================================
   STAGE 1 — integrity + embed parity + boundary law
@@ -38,7 +38,7 @@ started: 2026-09-22T05:10:57Z
   PASS  package.json name
   PASS  zero runtime dependencies
   PASS  peer dep react only
-  PASS  branch touches only managed territory (40 files) — core/c untouched
+  PASS  branch touches only managed territory (58 files) — core/c untouched
   PASS  webapp embed parity — EMBED PARITY OK — 26 files byte-identical to packages/studio/src
 STAGE 1: PASS
 [stage 1] PASS (0s)
@@ -48,8 +48,8 @@ STAGE 1: PASS
 ======================================================================
 {
   "messages": 1000000,
-  "hot_growth_kib": -16.891,
-  "control_growth_mib": 48.08,
+  "hot_growth_kib": -16.414,
+  "control_growth_mib": 48.07,
   "gate_hot_kib": 64,
   "gate_control_mib_min": 4,
   "ok": true
@@ -60,15 +60,18 @@ STAGE 1: PASS
   STAGE 3 — zero-re-render proof (10,000-frame burst)
 ======================================================================
   PASS  root mounted and engine attached — root renders = 3 (mount lifecycle: shell → mounted → engine)
-  PASS  canvas refs bound to fake surfaces — bound = 3
+  PASS  canvas refs bound to fake surfaces — bound = 3 (schema tab mounts 3: spy, status, telemetry)
   PASS  engine attached through mount lifecycle — rate=1000000
   PASS  all 10000 frames executed — ran = 10000
+  PASS  4 hot panels mounted under the tree — mounted: 1,5,6,7
   PASS  hot components invoked exactly once — counts stable at [1,0,0,0,1,1,1]
   PASS  zero setState mutations during burst — mutations = 0
   PASS  hot plane painted — ctx calls = 140000
   PASS  flight log recorded the burst — 80000 records
-  PASS  burst completed in reasonable wall time — 858 ms
+  PASS  burst completed in reasonable wall time — 817 ms
   PASS  unmount detaches all drawers — 3 → 0
+  PASS  tab panels (Ring/Cache/TimeTravel) invoked exactly once over 2,000 more frames — canvases=4 grown=none paints=3379324
+  PASS  zero mutations in tab-panel burst — 0
 STAGE 3: PASS
 [stage 3] PASS (1s)
 
@@ -78,11 +81,11 @@ STAGE 3: PASS
   PASS  4800 consecutive frames executed — ran = 4800
   PASS  0 dropped/skipped frames (all attempts) — skipped = [0,0,0]
   PASS  0 timing stalls (work > budget) — stalls = 0 (budget 4166666 ns)
-  PASS  p99 frame work inside budget — p99 = 0.222 ms of 4.167 ms
-  PASS  max frame work inside budget — max = 0.558 ms
+  PASS  p99 frame work inside budget — p99 = 0.224 ms of 4.167 ms
+  PASS  max frame work inside budget — max = 0.324 ms
   PASS  stream ingested across the run — published = 61010471
   PASS  zero torn reads under the governor — torn = 0
-  PASS  run completed well under real-time — 973 ms wall for 4800 frames
+  PASS  run completed well under real-time — 981 ms wall for 4800 frames
 STAGE 4: PASS
 [stage 4] PASS (3s)
 
@@ -125,7 +128,7 @@ STAGE 5: PASS
   PASS  golden dart deterministic
   PASS  golden swift — 9a645c0ff645 vs 9a645c0ff645
   PASS  golden swift deterministic
-  PASS  codegen latency < 1 ms per target — max 0.496 ms
+  PASS  codegen latency < 1 ms per target — max 0.437 ms
 STAGE 6: PASS
 [stage 6] PASS (0s)
 
@@ -142,15 +145,15 @@ STAGE 6: PASS
   PASS  ui/panels/TimeTravelPanel.tsx structure
   PASS  ui/panels/CacheMapperPanel.tsx structure
   PASS  ui/hooks.ts structure
-  PASS  engine+UI payload < 160 KiB gzipped (instant zero-install budget) — 56 KiB gz / 162 KiB raw across 26 files
-  PASS  payload < 500 KiB raw (15 MB desktop bundle share) — 162 KiB
+  PASS  engine+UI payload < 160 KiB gzipped (instant zero-install budget) — 57 KiB gz / 163 KiB raw across 26 files
+  PASS  payload < 500 KiB raw (15 MB desktop bundle share) — 163 KiB
   PASS  Tauri launcher bundle budget < 15 MB — 14.2 MB declared
   PASS  Tauri cold start budget < 200 ms — 180 ms declared
 STAGE 7: PASS
-[stage 7] PASS (0s)
+[stage 7] PASS (1s)
 
 ======================================================================
   VERDICT
 ======================================================================
 ALL 7 STAGES GREEN — weftc-pillar7-managed is releasable.
-finished: 2026-09-22T05:11:02Z
+finished: 2026-09-22T05:21:18Z

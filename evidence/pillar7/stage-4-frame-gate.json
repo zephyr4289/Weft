@@ -19,12 +19,12 @@
     {
       "name": "p99 frame work inside budget",
       "ok": true,
-      "detail": "p99 = 0.222 ms of 4.167 ms"
+      "detail": "p99 = 0.224 ms of 4.167 ms"
     },
     {
       "name": "max frame work inside budget",
       "ok": true,
-      "detail": "max = 0.558 ms"
+      "detail": "max = 0.324 ms"
     },
     {
       "name": "stream ingested across the run",
@@ -39,19 +39,19 @@
     {
       "name": "run completed well under real-time",
       "ok": true,
-      "detail": "973 ms wall for 4800 frames"
+      "detail": "981 ms wall for 4800 frames"
     }
   ],
   "ok": true,
   "metrics": {
     "frames": 4800,
     "skipped": 0,
-    "stalls": 0,
-    "p50_ns": 197530,
-    "p99_ns": 222393,
-    "max_ns": 558170,
+    "stalls": 1,
+    "p50_ns": 205204,
+    "p99_ns": 223601,
+    "max_ns": 324280,
     "budget_ns": 4166666,
-    "wall_ms": 973,
+    "wall_ms": 981,
     "published": 61010471,
     "torn": 0
   }

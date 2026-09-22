@@ -54,12 +54,12 @@
     {
       "name": "engine+UI payload < 160 KiB gzipped (instant zero-install budget)",
       "ok": true,
-      "detail": "56 KiB gz / 162 KiB raw across 26 files"
+      "detail": "57 KiB gz / 163 KiB raw across 26 files"
     },
     {
       "name": "payload < 500 KiB raw (15 MB desktop bundle share)",
       "ok": true,
-      "detail": "162 KiB"
+      "detail": "163 KiB"
     },
     {
       "name": "Tauri launcher bundle budget < 15 MB",
@@ -75,7 +75,7 @@
   "ok": true,
   "payload": {
     "files": 26,
-    "raw_kib": 162,
-    "gzip_kib": 56
+    "raw_kib": 163,
+    "gzip_kib": 57
   }
 }

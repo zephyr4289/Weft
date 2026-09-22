@@ -1,0 +1,143 @@
+{
+  "schema_hash": "06bfa14666db8191",
+  "structs": [
+    {
+      "name": "Level",
+      "size": 16,
+      "alignment": 8,
+      "used": 13,
+      "padding": 3,
+      "efficiency": 0.813,
+      "leaves": [
+        {
+          "f": "Level.price",
+          "t": "i64",
+          "off": 0,
+          "size": 8,
+          "w": -1
+        },
+        {
+          "f": "Level.qty",
+          "t": "u32",
+          "off": 8,
+          "size": 4,
+          "w": -1
+        },
+        {
+          "f": "Level.flags",
+          "t": "u8",
+          "off": 12,
+          "size": 1,
+          "w": -1
+        }
+      ],
+      "pads": [
+        {
+          "off": 13,
+          "size": 3
+        }
+      ]
+    },
+    {
+      "name": "MarketTick",
+      "size": 128,
+      "alignment": 64,
+      "used": 52,
+      "padding": 76,
+      "efficiency": 0.406,
+      "leaves": [
+        {
+          "f": "MarketTick.ts_ns",
+          "t": "u64",
+          "off": 0,
+          "size": 8,
+          "w": 0
+        },
+        {
+          "f": "bid.price",
+          "t": "i64",
+          "off": 8,
+          "size": 8,
+          "w": 0
+        },
+        {
+          "f": "bid.qty",
+          "t": "u32",
+          "off": 16,
+          "size": 4,
+          "w": 0
+        },
+        {
+          "f": "bid.flags",
+          "t": "u8",
+          "off": 20,
+          "size": 1,
+          "w": 0
+        },
+        {
+          "f": "ask.price",
+          "t": "i64",
+          "off": 24,
+          "size": 8,
+          "w": 1
+        },
+        {
+          "f": "ask.qty",
+          "t": "u32",
+          "off": 32,
+          "size": 4,
+          "w": 1
+        },
+        {
+          "f": "ask.flags",
+          "t": "u8",
+          "off": 36,
+          "size": 1,
+          "w": 1
+        },
+        {
+          "f": "MarketTick.last_px",
+          "t": "i64",
+          "off": 40,
+          "size": 8,
+          "w": 1
+        },
+        {
+          "f": "MarketTick.venue",
+          "t": "u16",
+          "off": 48,
+          "size": 2,
+          "w": -1
+        },
+        {
+          "f": "MarketTick.seq",
+          "t": "u64",
+          "off": 64,
+          "size": 8,
+          "w": -1
+        }
+      ],
+      "pads": [
+        {
+          "off": 50,
+          "size": 14
+        },
+        {
+          "off": 72,
+          "size": 56
+        }
+      ]
+    }
+  ],
+  "hazards64": 1,
+  "hazards128": 1,
+  "goldens": {
+    "c": "a7d648f8e5c5648ce07597812ba4a46e0f4ee110cd8813a496b60b14fd7d16ea",
+    "cpp": "fb1ee9dd670323594dd3f1de3b961bfc7c338e7896398e880175aefe5b7d8f89",
+    "rust": "0aff3f98ef803867d4378a8e0fbf1c16f8786bbb731a25b2398cfd6c8002370b",
+    "typescript": "758af63f558301d266a00d2945d0cc51f6a0c5839a5be37683feaeabb82ce74b",
+    "python": "b37a00c31283659ef4c8a60c512d807c2debf900e249e06d79b33e06c57d3002",
+    "dart": "057e33368d69bf0e425061817ec29dc3d5ad86c925d859e1a2f8f33db3d03b12",
+    "swift": "9a645c0ff6456dbb65aa227c7e02bc688bfe5f1327360003f47485eb101bdc3b"
+  }
+}

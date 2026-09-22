@@ -1,4 +1,4 @@
-  R9 seek: 287 ns/seek over 4096 frames (SLA < 500)
+  R9 seek: 256 ns/seek over 4096 frames (SLA < 500)
   R9 walk: 124 ns/frame over 4096 frames (SLA < 500)
   R9 crc32c: hw=0 check=e3069283
 test_oracle_weftrec (R-series): 17602 checks, 0 failures -> PASS

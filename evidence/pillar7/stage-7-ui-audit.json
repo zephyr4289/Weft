@@ -54,7 +54,7 @@
     {
       "name": "engine+UI payload < 160 KiB gzipped (instant zero-install budget)",
       "ok": true,
-      "detail": "57 KiB gz / 163 KiB raw across 26 files"
+      "detail": "56 KiB gz / 163 KiB raw across 26 files"
     },
     {
       "name": "payload < 500 KiB raw (15 MB desktop bundle share)",
@@ -76,6 +76,6 @@
   "payload": {
     "files": 26,
     "raw_kib": 163,
-    "gzip_kib": 57
+    "gzip_kib": 56
   }
 }

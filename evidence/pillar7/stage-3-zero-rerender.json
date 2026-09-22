@@ -49,7 +49,7 @@
     {
       "name": "burst completed in reasonable wall time",
       "ok": true,
-      "detail": "817 ms"
+      "detail": "2450 ms"
     },
     {
       "name": "unmount detaches all drawers",

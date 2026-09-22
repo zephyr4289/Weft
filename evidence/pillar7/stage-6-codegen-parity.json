@@ -104,7 +104,7 @@
     {
       "name": "codegen latency < 1 ms per target",
       "ok": true,
-      "detail": "max 0.437 ms"
+      "detail": "max 0.639 ms"
     }
   ],
   "ok": true

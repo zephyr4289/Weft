@@ -4,5 +4,5 @@
   F-A: 6000000 schema cycles (0 refusals, 92 determinism re-checks)
   F-B: 4000000 trace cycles (1000629 clean bit-exact walks, 13509473 frames verified)
   F-B refusals: EPARSE=344265 EALIGN=11063 ETRUNC=333814 ECRC=1963549 EBOUNDS=0
-  total: 10000000 cycles in 104874 ms
+  total: 10000000 cycles in 126598 ms
 test_fuzz_studio (F-series): 1 checks, 0 failures -> PASS

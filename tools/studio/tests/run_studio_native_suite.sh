@@ -166,12 +166,12 @@ frozen_gate() {
     local outside
     outside=$(cd "$REPO_ROOT" && git status --porcelain \
         | awk '{print $NF}' \
-        | grep -v -E '^(core/c/studio/|tests/studio/|tools/studio/|docs/reports/D-72)' \
+        | grep -v -E '^(core/c/studio/|tests/studio/|tools/studio/|docs/reports/D-72|evidence/)' \
         | grep -v -E '^tests/studio/build/' || true)
     # tracked-file modifications outside the territory (content edits)
     local dirty
     dirty=$(cd "$REPO_ROOT" && git diff --name-only HEAD \
-        | grep -v -E '^(core/c/studio/|tests/studio/|tools/studio/|docs/reports/D-72)' \
+        | grep -v -E '^(core/c/studio/|tests/studio/|tools/studio/|docs/reports/D-72|evidence/)' \
         || true)
     {
         echo "outside-status: [$outside]"

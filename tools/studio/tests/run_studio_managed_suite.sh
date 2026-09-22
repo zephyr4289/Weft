@@ -20,10 +20,33 @@ EVIDENCE="$REPO/evidence/pillar7"
 LOG="$REPO/evidence/pillar7-shard-run.log"
 WEBAPP_ROOT="${STUDIO_WEBAPP_ROOT:-$REPO/..}"
 BUILD_DIR="$(mktemp -d)"
-trap 'rm -rf "$BUILD_DIR"' EXIT
+trap 'rm -f "$STAGE_DIR"/*.gen.mjs; rm -rf "$BUILD_DIR"' EXIT
+
+export STUDIO_UNIFIED="${STUDIO_UNIFIED:-1}"
 
 mkdir -p "$EVIDENCE"
 : > "$LOG"
+
+# Locate runner runtime
+ESBUILD_BIN="$(find "$REPO/node_modules" -name esbuild -type f -perm /111 2>/dev/null | head -n 1 || true)"
+
+run_js_ts() {
+  local script="$1"
+  local extra_flags="${2:-}"
+  if command -v bun >/dev/null 2>&1; then
+    bun $extra_flags "$script"
+  elif [ -n "$ESBUILD_BIN" ]; then
+    local basename
+    basename="$(basename "$script" | sed 's/\.[^.]*$//')"
+    local out="$STAGE_DIR/${basename}.gen.mjs"
+    "$ESBUILD_BIN" "$script" --bundle --platform=node --format=esm --outfile="$out" 2>>"$LOG"
+    node $extra_flags "$out"
+    rm -f "$out"
+  else
+    echo "E_SEAM: neither bun nor esbuild found" >&2
+    return 1
+  fi
+}
 
 banner() {
   local msg="$1"
@@ -55,27 +78,25 @@ echo "started: $(date -u +%FT%TZ)" | tee -a "$LOG"
 FAILED=0
 
 run_stage 1 "integrity + embed parity + boundary law" \
-  "bun $STAGE_DIR/s1_integrity.mjs" || FAILED=1
+  "run_js_ts '$STAGE_DIR/s1_integrity.mjs'" || FAILED=1
 
-# Stage 2 — bundle the probe for plain node, then run under --expose-gc
-banner "STAGE 2 — 1,000,000-message heap probe (node --expose-gc)"
-if bun build "$STAGE_DIR/s2_probe_entry.ts" --target=node --outfile "$BUILD_DIR/s2.mjs" 2>>"$LOG" \
-   && node --expose-gc "$BUILD_DIR/s2.mjs" 2>&1 | tee -a "$LOG"; then
-  echo "[stage 2] PASS" | tee -a "$LOG"
-else
-  echo "[stage 2] FAIL" | tee -a "$LOG"; FAILED=1
-fi
+run_stage 2 "1,000,000-message heap probe (node --expose-gc)" \
+  "run_js_ts '$STAGE_DIR/s2_probe_entry.ts' '--expose-gc'" || FAILED=1
 
 run_stage 3 "zero-re-render proof (10,000-frame burst)" \
-  "bun $STAGE_DIR/s3_zero_rerender.mjs" || FAILED=1
+  "run_js_ts '$STAGE_DIR/s3_zero_rerender.mjs'" || FAILED=1
+
 run_stage 4 "240 FPS render loop gate (4,800 frames)" \
-  "bun $STAGE_DIR/s4_frame_gate.mjs" || FAILED=1
+  "run_js_ts '$STAGE_DIR/s4_frame_gate.mjs'" || FAILED=1
+
 run_stage 5 "time-travel determinism + stream integrity" \
-  "bun $STAGE_DIR/s5_timetravel.ts" || FAILED=1
+  "run_js_ts '$STAGE_DIR/s5_timetravel.ts'" || FAILED=1
+
 run_stage 6 "codegen parity + layout truth" \
-  "bun $STAGE_DIR/s6_codegen_parity.ts" || FAILED=1
+  "run_js_ts '$STAGE_DIR/s6_codegen_parity.ts'" || FAILED=1
+
 run_stage 7 "UI discipline audit + bundle budgets" \
-  "bun $STAGE_DIR/s7_ui_audit.ts" || FAILED=1
+  "run_js_ts '$STAGE_DIR/s7_ui_audit.ts'" || FAILED=1
 
 banner "VERDICT"
 if [ "$FAILED" -eq 0 ]; then

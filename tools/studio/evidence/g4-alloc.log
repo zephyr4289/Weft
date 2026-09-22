@@ -1,5 +1,5 @@
 alloc probe: warming
-  200000 cycles in 1316 ms
+  200000 cycles in 1668 ms
   interposition events: 0 (LAW 1: must be 0)
   mallinfo2 arena delta: 0 B, uordblks delta: 0 B
 test_alloc_probe (A-series): 2 checks, 0 failures -> PASS

@@ -53,6 +53,9 @@ check('false-sharing hazards match manifest',
   `64B: ${layout.hazards64.length} (manifest ${manifest.hazards64}) · 128B: ${layout.hazards128.length} (manifest ${manifest.hazards128})`);
 check('canonical schema exhibits the teaching hazard', layout.hazards64.length >= 1);
 
+// warmup JIT before measuring latency
+for (const target of CODEGEN_TARGETS) generate(target, parsed.doc!, layout);
+
 // golden hash parity + determinism + latency
 let latencyOk = true;
 let maxMs = 0;

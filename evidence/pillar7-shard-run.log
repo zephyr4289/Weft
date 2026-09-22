@@ -1,12 +1,16 @@
 
 ======================================================================
-  WEFT STUDIO MANAGED SUITE — Pillar 7 (branch feat/studio-managed, c838127)
+  WEFT STUDIO MANAGED SUITE — Pillar 7 (branch feat/weft-studio-unified, 1140868)
 ======================================================================
-started: 2026-09-22T05:21:12Z
+started: 2026-09-22T07:49:02Z
 
 ======================================================================
   STAGE 1 — integrity + embed parity + boundary law
 ======================================================================
+
+  tests/studio/managed/s1_integrity.gen.mjs  3.9kb
+
+⚡ Done in 54ms
   PASS  artifact packages/studio/src/engine/types.ts
   PASS  artifact packages/studio/src/engine/schema.ts
   PASS  artifact packages/studio/src/engine/layout.ts
@@ -38,27 +42,35 @@ started: 2026-09-22T05:21:12Z
   PASS  package.json name
   PASS  zero runtime dependencies
   PASS  peer dep react only
-  PASS  branch touches only managed territory (58 files) — core/c untouched
+  PASS  branch touches only managed territory (unified mode) — core/c integrated from Engineers 1 & 2
   PASS  webapp embed parity — EMBED PARITY OK — 26 files byte-identical to packages/studio/src
 STAGE 1: PASS
-[stage 1] PASS (0s)
+[stage 1] PASS (1s)
 
 ======================================================================
   STAGE 2 — 1,000,000-message heap probe (node --expose-gc)
 ======================================================================
+
+  tests/studio/managed/s2_probe_entry.gen.mjs  9.0kb
+
+⚡ Done in 48ms
 {
   "messages": 1000000,
-  "hot_growth_kib": -16.414,
-  "control_growth_mib": 48.07,
+  "hot_growth_kib": -2.43,
+  "control_growth_mib": 48.08,
   "gate_hot_kib": 64,
   "gate_control_mib_min": 4,
   "ok": true
 }
-[stage 2] PASS
+[stage 2] PASS (2s)
 
 ======================================================================
   STAGE 3 — zero-re-render proof (10,000-frame burst)
 ======================================================================
+
+  tests/studio/managed/s3_zero_rerender.gen.mjs  148.6kb
+
+⚡ Done in 105ms
   PASS  root mounted and engine attached — root renders = 3 (mount lifecycle: shell → mounted → engine)
   PASS  canvas refs bound to fake surfaces — bound = 3 (schema tab mounts 3: spy, status, telemetry)
   PASS  engine attached through mount lifecycle — rate=1000000
@@ -68,30 +80,38 @@ STAGE 1: PASS
   PASS  zero setState mutations during burst — mutations = 0
   PASS  hot plane painted — ctx calls = 140000
   PASS  flight log recorded the burst — 80000 records
-  PASS  burst completed in reasonable wall time — 817 ms
+  PASS  burst completed in reasonable wall time — 2450 ms
   PASS  unmount detaches all drawers — 3 → 0
   PASS  tab panels (Ring/Cache/TimeTravel) invoked exactly once over 2,000 more frames — canvases=4 grown=none paints=3379324
   PASS  zero mutations in tab-panel burst — 0
 STAGE 3: PASS
-[stage 3] PASS (1s)
+[stage 3] PASS (4s)
 
 ======================================================================
   STAGE 4 — 240 FPS render loop gate (4,800 frames)
 ======================================================================
+
+  tests/studio/managed/s4_frame_gate.gen.mjs  30.3kb
+
+⚡ Done in 66ms
   PASS  4800 consecutive frames executed — ran = 4800
   PASS  0 dropped/skipped frames (all attempts) — skipped = [0,0,0]
   PASS  0 timing stalls (work > budget) — stalls = 0 (budget 4166666 ns)
-  PASS  p99 frame work inside budget — p99 = 0.224 ms of 4.167 ms
-  PASS  max frame work inside budget — max = 0.324 ms
+  PASS  p99 frame work inside budget — p99 = 0.870 ms of 4.167 ms
+  PASS  max frame work inside budget — max = 3.807 ms
   PASS  stream ingested across the run — published = 61010471
   PASS  zero torn reads under the governor — torn = 0
-  PASS  run completed well under real-time — 981 ms wall for 4800 frames
+  PASS  run completed well under real-time — 2932 ms wall for 4800 frames
 STAGE 4: PASS
-[stage 4] PASS (3s)
+[stage 4] PASS (10s)
 
 ======================================================================
   STAGE 5 — time-travel determinism + stream integrity
 ======================================================================
+
+  tests/studio/managed/s5_timetravel.gen.mjs  11.6kb
+
+⚡ Done in 122ms
   PASS  50000 records captured — 50000
   PASS  scrub determinism across two passes (1,000 indices) — 0 mismatches
   PASS  state is non-trivial (distinct hashes) — 991 distinct states over 1,000 indices
@@ -103,11 +123,15 @@ STAGE 4: PASS
   PASS  bundle trailer CRC verifies
   PASS  corrupted stream rejected (fail-closed) — E_EXPORT: header crc mismatch
 STAGE 5: PASS
-[stage 5] PASS (0s)
+[stage 5] PASS (1s)
 
 ======================================================================
   STAGE 6 — codegen parity + layout truth
 ======================================================================
+
+  tests/studio/managed/s6_codegen_parity.gen.mjs  29.5kb
+
+⚡ Done in 57ms
   PASS  canonical schema parses clean
   PASS  layout pass clean
   PASS  schema hash stable — 06bfa14666db8191 vs 06bfa14666db8191
@@ -128,13 +152,17 @@ STAGE 5: PASS
   PASS  golden dart deterministic
   PASS  golden swift — 9a645c0ff645 vs 9a645c0ff645
   PASS  golden swift deterministic
-  PASS  codegen latency < 1 ms per target — max 0.437 ms
+  PASS  codegen latency < 1 ms per target — max 0.639 ms
 STAGE 6: PASS
-[stage 6] PASS (0s)
+[stage 6] PASS (1s)
 
 ======================================================================
   STAGE 7 — UI discipline audit + bundle budgets
 ======================================================================
+
+  tests/studio/managed/s7_ui_audit.gen.mjs  6.3kb
+
+⚡ Done in 51ms
   PASS  hot draw functions audited (13 found) — 13
   PASS  no per-frame allocation patterns in hot draws — clean
   PASS  no setState in hot draws — clean
@@ -145,7 +173,7 @@ STAGE 6: PASS
   PASS  ui/panels/TimeTravelPanel.tsx structure
   PASS  ui/panels/CacheMapperPanel.tsx structure
   PASS  ui/hooks.ts structure
-  PASS  engine+UI payload < 160 KiB gzipped (instant zero-install budget) — 57 KiB gz / 163 KiB raw across 26 files
+  PASS  engine+UI payload < 160 KiB gzipped (instant zero-install budget) — 56 KiB gz / 163 KiB raw across 26 files
   PASS  payload < 500 KiB raw (15 MB desktop bundle share) — 163 KiB
   PASS  Tauri launcher bundle budget < 15 MB — 14.2 MB declared
   PASS  Tauri cold start budget < 200 ms — 180 ms declared
@@ -156,4 +184,4 @@ STAGE 7: PASS
   VERDICT
 ======================================================================
 ALL 7 STAGES GREEN — weftc-pillar7-managed is releasable.
-finished: 2026-09-22T05:21:18Z
+finished: 2026-09-22T07:49:23Z

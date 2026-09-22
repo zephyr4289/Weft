@@ -1,5 +1,2 @@
-  F-A: 1500000 schema cycles (0 refusals, 23 determinism re-checks)
-  F-B: 1000000 trace cycles (250314 clean bit-exact walks, 3378549 frames verified)
-  F-B refusals: EPARSE=85889 EALIGN=2777 ETRUNC=83610 ECRC=490495 EBOUNDS=0
-  total: 2500000 cycles in 54143 ms
-test_fuzz_studio (F-series): 1 checks, 0 failures -> PASS
+AddressSanitizer: CHECK failed: sanitizer_allocator_primary64.h:131 "((kSpaceBeg)) == ((address_range.Init(TotalSpaceSize, PrimaryAllocatorName, kSpaceBeg)))" (0x500000000000, 0xfffffffffffffff4) (tid=20448)
+    <empty stack>

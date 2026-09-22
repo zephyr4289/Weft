@@ -14,7 +14,12 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 
-#define _POSIX_C_SOURCE 199309L
+#ifndef _ISOC11_SOURCE
+#define _ISOC11_SOURCE
+#endif
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
 
 #include "weft_studio.h"
 #include "weft_studio_internal.h"
@@ -22,6 +27,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#if defined(__ANDROID__) || !defined(aligned_alloc)
+static inline void *weft_test_aligned_alloc(size_t alignment, size_t size) {
+    void *ptr = NULL;
+    if (posix_memalign(&ptr, alignment, size) != 0) return NULL;
+    return ptr;
+}
+#define aligned_alloc weft_test_aligned_alloc
+#endif
 
 static int g_failures = 0;
 static int g_checks = 0;

@@ -108,10 +108,8 @@ int weftrec_crc32c_hw_active(void)
 }
 
 #elif !defined(WEFT_STUDIO_WASM_PORTABLE) && defined(__aarch64__)
-#  define WEFTREC_CRC_ARM 1
-/* ARMv8 CRC32C builtins behind a target attribute (compile-guarded;
- * runtime enablement rides the CPU feature probe of the host build). */
-__attribute__((target("crc")))
+#  if defined(__ARM_FEATURE_CRC32)
+#    include <arm_acle.h>
 static uint32_t crc32c_arm64(const void *data, size_t len)
 {
     const uint8_t *p = (const uint8_t *)data;
@@ -133,16 +131,24 @@ static uint32_t crc32c_arm64(const void *data, size_t len)
         crc = __crc32cb(crc, p[i]);
     return crc ^ 0xFFFFFFFFu;
 }
-static uint32_t (*crc32c_dispatch)(const void *, size_t) = weftrec_crc32c_sw;
-static int crc32c_hw = 0;
 uint32_t weftrec_crc32c(const void *data, size_t len)
 {
-    return crc32c_dispatch(data, len);
+    return crc32c_arm64(data, len);
 }
 int weftrec_crc32c_hw_active(void)
 {
-    return crc32c_hw;
+    return 1;
 }
+#  else
+uint32_t weftrec_crc32c(const void *data, size_t len)
+{
+    return weftrec_crc32c_sw(data, len);
+}
+int weftrec_crc32c_hw_active(void)
+{
+    return 0;
+}
+#  endif
 
 #else /* portable / wasm profile */
 uint32_t weftrec_crc32c(const void *data, size_t len)

@@ -1,1 +1,2 @@
-test_oracle_lsp (L-series): 50 checks, 0 failures -> PASS
+AddressSanitizer: CHECK failed: sanitizer_allocator_primary64.h:131 "((kSpaceBeg)) == ((address_range.Init(TotalSpaceSize, PrimaryAllocatorName, kSpaceBeg)))" (0x500000000000, 0xfffffffffffffff4) (tid=20251)
+    <empty stack>

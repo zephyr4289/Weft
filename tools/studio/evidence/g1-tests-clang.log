@@ -1,0 +1,24 @@
+/data/data/com.termux/files/home/Weft/tests/studio/core/test_oracle_weftrec.c:26:13: error: call to undeclared library function 'aligned_alloc' with type 'void *(unsigned long, unsigned long)'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+   26 |     g_buf = aligned_alloc(64, 1 << 22);
+      |             ^
+/data/data/com.termux/files/home/Weft/tests/studio/core/test_oracle_weftrec.c:26:13: note: include the header <stdlib.h> or explicitly provide a declaration for 'aligned_alloc'
+1 error generated.
+/data/data/com.termux/files/home/Weft/tests/studio/core/test_oracle_weftrec.c:26:13: error: call to undeclared library function 'aligned_alloc' with type 'void *(unsigned long, unsigned long)'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+   26 |     g_buf = aligned_alloc(64, 1 << 22);
+      |             ^
+/data/data/com.termux/files/home/Weft/tests/studio/core/test_oracle_weftrec.c:26:13: note: include the header <stdlib.h> or explicitly provide a declaration for 'aligned_alloc'
+1 error generated.
+Pointer tag for 0x324b00000005d106 was truncated, see 'https://source.android.com/devices/tech/debug/tagged-pointers'.
+PLEASE submit a bug report to https://github.com/llvm/llvm-project/issues/ and include the crash backtrace.
+clang: error: unable to execute command: Aborted
+clang: error: linker command failed due to signal (use -v to see invocation)
+/data/data/com.termux/files/home/Weft/tests/studio/core/test_oracle_weftrec.c:439:1: error: function definition is not allowed here
+  439 | {
+      | ^
+/data/data/com.termux/files/home/Weft/tests/studio/core/test_oracle_weftrec.c:451:2: error: expected '}'
+  451 | }
+      |  ^
+/data/data/com.termux/files/home/Weft/tests/studio/core/test_oracle_weftrec.c:371:1: note: to match this '{'
+  371 | {
+      | ^
+2 errors generated.

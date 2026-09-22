@@ -1,5 +1,2 @@
-  R9 seek: 173 ns/seek over 4096 frames (SLA < 100)
-  (SLA gates skipped: sanitized/instrumented build)
-  R9 walk: 92 ns/frame over 4096 frames (SLA < 50)
-  R9 crc32c: hw=1 check=e3069283
-test_oracle_weftrec (R-series): 17600 checks, 0 failures -> PASS
+AddressSanitizer: CHECK failed: sanitizer_allocator_primary64.h:131 "((kSpaceBeg)) == ((address_range.Init(TotalSpaceSize, PrimaryAllocatorName, kSpaceBeg)))" (0x500000000000, 0xfffffffffffffff4) (tid=20341)
+    <empty stack>

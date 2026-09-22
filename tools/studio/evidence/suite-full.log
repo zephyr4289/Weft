@@ -1,0 +1,38 @@
+== Weft Studio core suite (Pillar 7) ==
+gcc:   gcc (Debian 14.2.0-19) 14.2.0
+clang: /home/z/my-project/scripts/clang-root/usr/lib/llvm-19/bin/clang Debian clang version 19.1.7 (3+b1)
+
+-- G1: dual-compiler strict builds
+GATE G1   PASS  kernel freeze (weft.c/weft.h untouched)
+GATE G1   PASS  strict builds: gcc + clang, wasm profile, tools
+-- G2: oracle suites
+  C7 compile+2x codegen: 17435 ns/cycle (budget 1000000)
+test_weftc_inmem (C-series): 203 checks, 0 failures -> PASS
+test_oracle_lsp (L-series): 50 checks, 0 failures -> PASS
+  R9 seek: 94 ns/seek over 4096 frames (SLA < 100)
+  R9 walk: 12 ns/frame over 4096 frames (SLA < 50)
+  R9 crc32c: hw=1 check=e3069283
+test_oracle_weftrec (R-series): 17602 checks, 0 failures -> PASS
+GATE G2   PASS  compiler parity + LSP goldens + weftrec oracles + SLA gates
+-- G3: 10M-cycle fuzz (fixed seeds)
+  F-B 3M cycles
+  F-A: 6000000 schema cycles (0 refusals, 92 determinism re-checks)
+  F-B: 4000000 trace cycles (1000629 clean bit-exact walks, 13509473 frames verified)
+  F-B refusals: EPARSE=344265 EALIGN=11063 ETRUNC=333814 ECRC=1963549 EBOUNDS=0
+  total: 10000000 cycles in 59687 ms
+test_fuzz_studio (F-series): 1 checks, 0 failures -> PASS
+GATE G3   PASS  10,000,000 cycles, 0 crashes, deterministic
+-- G4: allocation probe (Law 1)
+alloc probe: warming
+  200000 cycles in 805 ms
+  interposition events: 0 (LAW 1: must be 0)
+  mallinfo2 arena delta: 0 B, uordblks delta: 0 B
+test_alloc_probe (A-series): 2 checks, 0 failures -> PASS
+GATE G4   PASS  0 allocation events over 200,000 cycles
+-- G5: sanitizers (ASan + UBSan)
+GATE G5   PASS  ASan+UBSan clean (oracles + 2.5M-cycle reduced fuzz)
+-- G6: ABI freeze, C++17 gate, stdio transcript
+GATE G6   PASS  ABI asserts + C++17 + stdio transcript byte-exact + inspect round-trip
+
+ALL GATES GREEN: G1 G2 G3 G4 G5 G6
+evidence: /home/z/my-project/weft-repo/tools/studio/evidence/

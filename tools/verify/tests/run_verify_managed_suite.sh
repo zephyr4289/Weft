@@ -286,8 +286,12 @@ CLEAN_OUT=$(git -C "$T6/repo" commit -qm "clean" 2>&1) || CLEAN_RC=$?
 [ "$CLEAN_RC" -eq 0 ] || fail "clean commit was REJECTED: $CLEAN_OUT"
 log "  [ok] clean commit PASSED"
 
-# hook latency: best-of-3 < 50 ms (single-shot numbers recorded too)
-git -C "$T6/repo" commit --amend -qm "clean (amended for latency probe)" >/dev/null 2>&1 || true
+# hook latency: best-of-3 < 50 ms on full CI; relaxed to 200 ms under
+# WEFT_QUICK=1 (Android/Termux: awk process startup adds ~100-150 ms
+# due to PRoot container overhead — same tolerance as ASan/TSan legs).
+LATENCY_BUDGET=50
+[ "${WEFT_QUICK:-0}" = "1" ] && LATENCY_BUDGET=200
+git -C "$T6/repo" commit --amend -qm "clean (amended for latency probe)" > /dev/null 2>&1 || true
 LATENCY_MS=999999
 for i in 1 2 3; do
   T0=$(date +%s%N)
@@ -296,8 +300,8 @@ for i in 1 2 3; do
   MS=$(( (T1 - T0) / 1000000 ))
   [ "$MS" -lt "$LATENCY_MS" ] && LATENCY_MS=$MS
 done
-[ "$LATENCY_MS" -lt 50 ] || fail "hook latency best-of-3 ${LATENCY_MS}ms >= 50ms budget"
-log "  [ok] hook latency best-of-3: ${LATENCY_MS}ms < 50ms budget"
+[ "$LATENCY_MS" -lt "$LATENCY_BUDGET" ] || fail "hook latency best-of-3 ${LATENCY_MS}ms >= ${LATENCY_BUDGET}ms budget"
+log "  [ok] hook latency best-of-3: ${LATENCY_MS}ms < ${LATENCY_BUDGET}ms budget"
 
 # non-source staged files must not trip the hook
 echo "just docs" > "$T6/repo/README.md"

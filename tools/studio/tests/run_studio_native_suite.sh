@@ -44,11 +44,12 @@ TOLERATED_UNITS=""
 
 log()  { printf '%s\n' "$*" | tee -a "$LOGDIR/suite.log"; }
 
-# environment-failure signatures for TSan-in-container (tolerated, never green)
+# environment-failure signatures for ASan/TSan-in-container (tolerated, never green)
 is_env_failure() {
     grep -qE "ThreadSanitizer: unexpected memory mapping|\
 FATAL: ThreadSanitizer|Cannot create memory:|\
-LLVM TSan: failed to allocate" "$1" 2>/dev/null
+sanitizer_allocator_primary64|AddressSanitizer: CHECK failed|\
+Shadow memory range|LLVM TSan: failed to allocate" "$1" 2>/dev/null
 }
 
 run_unit() {
@@ -210,14 +211,13 @@ fi
 # score
 # ---------------------------------------------------------------------------
 
-TOTAL=$((PASS + FAIL))
-DENOM=$((TOTAL - TOLERATED))
+DENOM=$((PASS + FAIL))
 log "----------------------------------------------------------------"
 log "studio-native suite: $PASS pass / $FAIL fail / $TOLERATED tolerated"
 if [ -n "$FAILED_UNITS" ]; then
     log "failed units:$FAILED_UNITS"
 fi
-if [ "$DENOM" -gt 0 ] && [ "$((PASS * 100 / DENOM))" -ge 90 ]; then
+if [ "$DENOM" -gt 0 ] && [ "$((PASS * 100 / DENOM))" -ge 90 ] && [ "$FAIL" -eq 0 ]; then
     log "SCORE $((PASS * 100 / DENOM))% (>= 90% bar) — GREEN"
     exit 0
 fi

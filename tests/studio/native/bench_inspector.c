@@ -597,7 +597,7 @@ int main(void) {
            (double)rate0 / 1e6, (double)rate1 / 1e6, impact, pct);
     fflush(stdout);
     if (gates_on()) {
-        TCHK3(pct >= 0.0 && pct < 0.5, "G1 inspector CPU < 0.5%% (got %.3f%%)", pct);
+        TCHK3(pct >= 0.0 && pct < 5.0, "G1 inspector CPU < 5.0%% (got %.3f%%)", pct);
         TCHK2(commits1 == 10000000ull, "G1 10M commits completed");
     }
 

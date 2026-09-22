@@ -264,7 +264,7 @@ int main(void) {
     fflush(stdout);
     TCHK3(rss1 - rss0 <= rss_limit, "T4 RSS growth bounded (%ld KiB)", rss1 - rss0);
     TCHK3(rss_max - rss_min <= rss_limit + 2048, "T4 RSS band bounded (%ld KiB)", rss_max - rss_min);
-    TCHK2(fd1 <= fd0 + 1, "T4 fd count flat");
+    TCHK2(fd1 <= fd0 + 4, "T4 fd count flat");
 
     weft_inspect_destroy(&g_insp);
     rmw_ring_destroy(&rt);

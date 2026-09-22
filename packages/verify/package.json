@@ -1,0 +1,34 @@
+{
+  "name": "@weft/verify",
+  "version": "1.0.0",
+  "description": "Weft developer verification suite: unified `weft verify` CLI, cross-language zero-allocation linter (TS/C/C++/Rust/Swift/Dart), formal model checks (exhaustive triad-handoff + seqlock-parity, >=1e7 state-space tally), deterministic synthetic chaos suites, and dark-theme HTML/JSON verification scorecards. Zero runtime dependencies.",
+  "type": "module",
+  "bin": {
+    "weft-verify": "bin/weft-verify.mjs",
+    "weft": "bin/weft-verify.mjs"
+  },
+  "engines": {
+    "node": ">=22.6"
+  },
+  "dependencies": {},
+  "peerDependencies": {},
+  "devDependencies": {},
+  "files": [
+    "bin/",
+    "src/",
+    "formal/",
+    "README.md",
+    "package.json"
+  ],
+  "keywords": [
+    "weft",
+    "zero-copy",
+    "zero-allocation",
+    "verification",
+    "linter",
+    "formal-methods",
+    "chaos-engineering",
+    "seqlock"
+  ],
+  "license": "Apache-2.0"
+}

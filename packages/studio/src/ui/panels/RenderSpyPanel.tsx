@@ -39,10 +39,9 @@ export function RenderSpyPanel({ engine }: Props): unknown {
     if ((frame & 0x7f) === 0) {
       for (let i = 0; i < ROWS.length; i++) {
         const id = ROWS[i];
-        const v = spy.counts[id];
-        labels.set(i, fmtInt(v));
+        labels.current.setNum(i, spy.counts[id], fmtInt);
       }
-      labels.set(ROWS.length, fmtInt(spy.mutations));
+      labels.current.setNum(ROWS.length, spy.mutations, fmtInt);
     }
   });
 

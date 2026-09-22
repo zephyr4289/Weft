@@ -19,6 +19,9 @@ import type { StudioEngine } from '../engine/studio-engine';
 
 type R = ReturnType<typeof getReact>;
 
+/** Shared 2D-context options — module-level so the frame wrapper allocates nothing. */
+const CTX_2D_OPTS: { alpha: boolean } = { alpha: true };
+
 export function useHotCanvas(
   engine: StudioEngine | null,
   kind: 'ring' | 'telemetry' | 'cloud' | 'attitude' | 'renderSpy' | 'memoryGrid',
@@ -36,12 +39,12 @@ export function useHotCanvas(
 
   React.useEffect(() => {
     if (!engine) return;
-    const wrapper = (frame: number) => {
+    const drawWrapper = (frame: number) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const ctx = canvas.getContext('2d', { alpha: true });
+      const ctx = canvas.getContext('2d', CTX_2D_OPTS);
       if (!ctx) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min((typeof window !== 'undefined' && window.devicePixelRatio) || 1, 2);
       const w = canvas.clientWidth | 0;
       const h = canvas.clientHeight | 0;
       if (w > 0 && h > 0 && (canvas.width !== ((w * dpr) | 0) || canvas.height !== ((h * dpr) | 0))) {
@@ -53,9 +56,9 @@ export function useHotCanvas(
       drawRef.current(ctx, w, h, frame);
     };
     const arr = engine.drawers[kind];
-    arr.push(wrapper);
+    arr.push(drawWrapper);
     return () => {
-      const idx = arr.indexOf(wrapper);
+      const idx = arr.indexOf(drawWrapper);
       if (idx >= 0) arr.splice(idx, 1);
     };
   }, [engine, kind]);
@@ -69,6 +72,7 @@ export function useHotCanvas(
 export class HotLabels {
   private els: (HTMLElement | null)[] = [];
   private last: (string | undefined)[] = [];
+  private lastNum = new Float64Array(64);
 
   bind(i: number): (el: HTMLElement | null) => void {
     return (el) => { this.els[i] = el; };
@@ -80,6 +84,17 @@ export class HotLabels {
     this.last[i] = value;
     const el = this.els[i];
     if (el) el.textContent = value;
+  }
+
+  /**
+   * Numeric label: compares the RAW number first; the formatted string is
+   * produced ONLY when the displayed value actually changes. fmt must be a
+   * stable module-level function reference (never an inline closure).
+   */
+  setNum(i: number, v: number, fmt: (n: number) => string): void {
+    if (this.lastNum[i] === v && this.last[i] !== undefined) return;
+    this.lastNum[i] = v;
+    this.set(i, fmt(v));
   }
 }
 

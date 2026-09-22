@@ -1,0 +1,56 @@
+{
+  "stage": 3,
+  "checks": [
+    {
+      "name": "root mounted and engine attached",
+      "ok": true,
+      "detail": "root renders = 3 (mount lifecycle: shell → mounted → engine)"
+    },
+    {
+      "name": "canvas refs bound to fake surfaces",
+      "ok": true,
+      "detail": "bound = 3"
+    },
+    {
+      "name": "engine attached through mount lifecycle",
+      "ok": true,
+      "detail": "rate=1000000"
+    },
+    {
+      "name": "all 10000 frames executed",
+      "ok": true,
+      "detail": "ran = 10000"
+    },
+    {
+      "name": "hot components invoked exactly once",
+      "ok": true,
+      "detail": "counts stable at [1,0,0,0,1,1,1]"
+    },
+    {
+      "name": "zero setState mutations during burst",
+      "ok": true,
+      "detail": "mutations = 0"
+    },
+    {
+      "name": "hot plane painted",
+      "ok": true,
+      "detail": "ctx calls = 140000"
+    },
+    {
+      "name": "flight log recorded the burst",
+      "ok": true,
+      "detail": "80000 records"
+    },
+    {
+      "name": "burst completed in reasonable wall time",
+      "ok": true,
+      "detail": "858 ms"
+    },
+    {
+      "name": "unmount detaches all drawers",
+      "ok": true,
+      "detail": "3 → 0"
+    }
+  ],
+  "ok": true
+}

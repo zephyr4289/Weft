@@ -172,7 +172,7 @@ function hex(v: number): string {
 
 let lastRecordCount = 0;
 
-/** Hot: record-rate sparkline + checkpoint ticks + tail cursor. */
+/** Hot: record-rate sparkline (geometry only) + change-gated record label. */
 function drawSpark(ctx: CanvasRenderingContext2D, w: number, hh: number, _frame: number, eng: StudioEngine, labels: HotLabels): void {
   const count = eng.flight.recordCount;
   rateRing.copyWithin(0, 1);
@@ -181,23 +181,30 @@ function drawSpark(ctx: CanvasRenderingContext2D, w: number, hh: number, _frame:
   ctx.clearRect(0, 0, w, hh);
   ctx.fillStyle = '#232527';
   ctx.fillRect(0, 0, w, hh);
-  const max = Math.max(4, ...Array.from(rateRing));
+  let max = 4;
+  for (let i = 0; i < rateRing.length; i++) if (rateRing[i] > max) max = rateRing[i];
   const colW = w / rateRing.length;
   for (let i = 0; i < rateRing.length; i++) {
     const v = rateRing[i] / max;
-    ctx.fillStyle = `rgba(53,116,240,${0.25 + v * 0.65})`;
+    ctx.fillStyle = rateRing[i] === 0 ? SPARK_ZERO : SPARK_LUT[(v * 64) | 0];
     const bh = Math.max(1, v * (hh - 24));
     ctx.fillRect(i * colW, hh - 14 - bh, Math.max(1, colW - 1), bh);
   }
-  // checkpoint ticks (fixed grid note: the sparkline is per-frame, not per-record)
-  ctx.fillStyle = 'rgba(220,168,120,.75)';
   ctx.fillStyle = '#6F737A';
   ctx.font = '9px ui-monospace, monospace';
-  ctx.fillText(`flight log ingest — records/frame (peak ${fmtInt(max)})`, 8, hh - 3);
+  ctx.fillText('flight log ingest — records/frame', 8, hh - 3);
   if ((eng.live.frame & 0x3f) === 0) {
-    labels.set(0, `${fmtInt(count)} records`);
+    labels.setNum(0, count, recordsFmt);
   }
 }
+function recordsFmt(v: number): string { return Math.round(v) + ' records'; }
+
+const SPARK_ZERO = 'rgba(53,116,240,.12)';
+const SPARK_LUT: string[] = (() => {
+  const lut: string[] = [];
+  for (let i = 0; i <= 64; i++) lut.push(`rgba(53,116,240,${(0.25 + (i / 64) * 0.65).toFixed(3)})`);
+  return lut;
+})();
 
 // ---------------------------------------------------------------- helpers --
 

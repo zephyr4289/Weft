@@ -57,52 +57,53 @@ function kv(labels: HotLabels, i: number, name: string): unknown {
 
 const P3 = new Float64Array(3);
 
+const ROW_NAMES = ['p50', 'p99', 'max'] as const;
+const BUDGET_TEXT = `frame budget 240 Hz = 4.17 ms (drop-not-queue; late = skip)`;
+
 function draw(ctx: CanvasRenderingContext2D, w: number, h: number, frame: number, eng: StudioEngine, labels: HotLabels): void {
   const budgetNs = eng.budgetNs();
   eng.scheduler.percentiles(P3);
 
-  // --- frame-work scorecard (budget gauge) ---
+  // --- frame-work scorecard (budget gauge; geometry only, closure-free) ---
   ctx.clearRect(0, 0, w, h);
-  const rows: Array<[string, number]> = [
-    ['p50', P3[0]], ['p99', P3[1]], ['max', P3[2]],
-  ];
   const rowH = 26;
   const barW = w - 150;
-  rows.forEach((r, i) => {
-    const y = 14 + i * rowH;
+  for (let ri = 0; ri < 3; ri++) {
+    const name = ri === 0 ? 'p50' : ri === 1 ? 'p99' : 'max';
+    const val = P3[ri];
+    const y = 14 + ri * rowH;
     ctx.fillStyle = T.textDim;
     ctx.font = '10px ui-monospace, monospace';
-    ctx.fillText(r[0], 14, y + 10);
+    ctx.fillText(name, 14, y + 10);
     // budget track
     ctx.fillStyle = '#26282B';
     ctx.fillRect(50, y + 2, barW, 12);
-    const t = Math.min(1, r[1] / budgetNs);
+    const t = Math.min(1, val / budgetNs);
     ctx.fillStyle = t > 0.9 ? T.redBright : t > 0.6 ? T.yellow : T.greenBright;
     ctx.fillRect(50, y + 2, Math.max(2, t * barW), 12);
-    // budget marker
-    ctx.fillStyle = T.textDim;
-    ctx.fillText(fmtNs(r[1]), 56 + Math.min(1, t) * barW, y + 12);
-  });
-  // budget legend
+  }
+  // budget legend (static string constant — zero runtime allocation)
   ctx.fillStyle = T.textDim;
   ctx.font = '9px ui-monospace, monospace';
-  ctx.fillText(`frame budget 240 Hz = ${fmtNs(budgetNs)} (drop-not-queue; late = skip)`, 14, h - 10);
+  ctx.fillText(BUDGET_TEXT, 14, h - 10);
 
-  // --- message rate ring (background strip) ---
-  ringMsg.copyWithin(0, 1);
-  ringMsg[ringMsg.length - 1] = eng.ring.counters.published;
   if ((frame & 0x3f) === 0) {
-    labels.set(0, fmtNs(P3[0]));
-    labels.set(1, fmtNs(P3[1]));
-    labels.set(2, fmtNs(P3[2]));
-    labels.set(3, '240 fps locked');
-    labels.set(4, fmtRate(eng.sim.stats.nominalMsgPerSec));
-    labels.set(5, `${fmtInt(eng.scheduler.frameCount)} / ${fmtInt(eng.scheduler.skipped)}`);
-    labels.set(6, eng.live.zeroCopyIndex.toFixed(4));
+    labels.setNum(0, P3[0], fmtNs);
+    labels.setNum(1, P3[1], fmtNs);
+    labels.setNum(2, P3[2], fmtNs);
+    const skipped = eng.scheduler.skipped;
+    if (skipped !== lastSkipped) {
+      lastSkipped = skipped;
+      labels.set(3, skipped === 0 ? '240 fps locked' : '240 fps · ' + skipped + ' skipped');
+    }
+    labels.setNum(4, eng.sim.stats.nominalMsgPerSec, fmtRate);
+    labels.setNum(5, eng.scheduler.frameCount, fmtInt);
+    labels.setNum(6, eng.live.zeroCopyIndex, zcFmt);
   }
 }
 
-// ---------------------------------------------------------------- helpers --
+let lastSkipped = -1;
+function zcFmt(v: number): string { return v.toFixed(4); }
 
 function hT(type: string, props: Record<string, unknown> | null, ...children: unknown[]): unknown {
   const React = getReact() as unknown as { createElement: (...a: unknown[]) => unknown };

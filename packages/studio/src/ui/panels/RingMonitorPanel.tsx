@@ -58,6 +58,12 @@ export function RingMonitorPanel({ engine }: Props): unknown {
         ),
         hRing('div', { style: { flex: 1, position: 'relative', minHeight: 260 } },
           hRing('canvas', { ref: ring.ref as never, style: { position: 'absolute', inset: 0, width: '100%', height: '100%' } }),
+          // DOM center readout (labels live outside the frame path — Law 4)
+          hRing('div', { style: { position: 'absolute', left: 0, right: 0, top: '50%', transform: 'translateY(-58%)', textAlign: 'center' as never, pointerEvents: 'none' as never } },
+            hRing('div', { ref: labels.current.bind(7) as never, style: { color: T.textBright, fontSize: 22, fontWeight: 700, fontFamily: MONOR } }, '—'),
+            hRing('div', { style: { color: T.textDim, fontSize: 10, fontFamily: MONOR } }, 'slots resident'),
+            hRing('div', { ref: labels.current.bind(8) as never, style: { color: T.textDim, fontSize: 10, fontFamily: MONOR, marginTop: 2 } }, 'w-head —'),
+          ),
         ),
         hRing('div', { style: { display: 'flex', gap: 12, padding: '8px 12px', flexWrap: 'wrap' as never } },
           legend(SLOT_FREE, 'FREE'),
@@ -84,6 +90,8 @@ export function RingMonitorPanel({ engine }: Props): unknown {
         ),
         hRing('div', { style: { flex: 1, position: 'relative', minHeight: 140, borderTop: `1px solid ${T.borderSoft}` } },
           hRing('canvas', { ref: heat.ref as never, style: { position: 'absolute', inset: 0, width: '100%', height: '100%' } }),
+          hRing('div', { style: { position: 'absolute', left: 8, bottom: 4, color: T.textDim, fontSize: 9, fontFamily: MONOR, pointerEvents: 'none' as never } },
+            'producer backpressure — msgs/frame (rung scale 0…60k)'),
         ),
       ),
     ),
@@ -132,7 +140,7 @@ function drawRing(ctx: CanvasRenderingContext2D, w: number, hh: number, engine: 
     ctx.globalAlpha = 1;
   }
 
-  // write head marker
+  // write head marker (geometry only — labels live in the DOM layer)
   const headCell = Math.floor((head / cap) * CELLS) % CELLS;
   const ha = (headCell / CELLS) * Math.PI * 2 - Math.PI / 2 + (0.41 / CELLS) * Math.PI * 2;
   ctx.beginPath();
@@ -141,18 +149,18 @@ function drawRing(ctx: CanvasRenderingContext2D, w: number, hh: number, engine: 
   ctx.strokeStyle = T.yellow;
   ctx.lineWidth = 2.5;
   ctx.stroke();
-
-  // center readout (geometry only)
-  ctx.textAlign = 'center';
-  ctx.fillStyle = T.textBright;
-  ctx.font = '600 20px ui-monospace, monospace';
-  ctx.fillText(String(engine.live.occupancy), cx, cy - 4);
-  ctx.font = '10px ui-monospace, monospace';
-  ctx.fillStyle = T.textDim;
-  ctx.fillText('slots resident', cx, cy + 12);
-  ctx.fillText(`w-head ${head}`, cx, cy + 30);
-  ctx.textAlign = 'left';
+  ctx.lineWidth = 1;
 }
+
+/** Precomputed heat color LUT (64 steps) — zero string allocation per frame. */
+const HEAT_LUT: string[] = (() => {
+  const lut: string[] = [];
+  for (let i = 0; i <= 64; i++) {
+    const t = i / 64;
+    lut.push(`rgb(${Math.round(73 + t * 151)},${Math.round(156 - t * 48)},${Math.round(84 - t * 9)})`);
+  }
+  return lut;
+})();
 
 function drawHeat(ctx: CanvasRenderingContext2D, w: number, hh: number, engine: StudioEngine): void {
   ctx.clearRect(0, 0, w, hh);
@@ -169,29 +177,28 @@ function drawHeat(ctx: CanvasRenderingContext2D, w: number, hh: number, engine: 
     const v = heatCols[i] / max;
     if (v <= 0) continue;
     const t = v > 1 ? 1 : v;
-    const r = Math.round(73 + t * 151);
-    const g = Math.round(156 - t * 48);
-    const b = Math.round(84 - t * 9);
-    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillStyle = HEAT_LUT[(t * 64) | 0];
     const bh = Math.max(2, t * (hh - 18));
     ctx.fillRect(i * colW, hh - 12 - bh, Math.max(1, colW), bh);
   }
-  ctx.fillStyle = '#6F737A';
-  ctx.font = '9px ui-monospace, monospace';
-  ctx.fillText('producer backpressure — msgs/frame (rung scale 0…60k)', 8, hh - 3);
 }
 
 function updateLabels(labels: HotLabels, engine: StudioEngine, frame: number): void {
   if ((frame & 0x3f) !== 0) return; // ~4 Hz at 240 Hz
   const occ = engine.live.occupancy;
-  labels.set(0, `${occ} · ${((occ / engine.ring.capacity) * 100).toFixed(2)}%`);
-  labels.set(1, fmtInt(engine.ring.counters.published));
-  labels.set(2, fmtInt(engine.ring.counters.dropped));
-  labels.set(3, fmtInt(engine.ring.counters.tornRetries));
-  labels.set(4, fmtInt(engine.ring.slotSeq((engine.ring.writeIndex + engine.ring.capacity - 1) % engine.ring.capacity)));
-  labels.set(5, fmtRate(engine.live.msgPerSec || engine.sim.stats.producedTicks * 240));
-  labels.set(6, engine.live.zeroCopyIndex.toFixed(4));
+  labels.setNum(0, occ / engine.ring.capacity * 100, pctFmt);
+  labels.setNum(1, engine.ring.counters.published, fmtInt);
+  labels.setNum(2, engine.ring.counters.dropped, fmtInt);
+  labels.setNum(3, engine.ring.counters.tornRetries, fmtInt);
+  labels.setNum(4, engine.ring.slotSeq((engine.ring.writeIndex + engine.ring.capacity - 1) % engine.ring.capacity), fmtInt);
+  labels.setNum(5, engine.live.msgPerSec || engine.sim.stats.producedTicks * 240, fmtRate);
+  labels.setNum(6, engine.live.zeroCopyIndex, num4);
+  labels.setNum(7, occ, fmtInt);
+  labels.setNum(8, engine.ring.writeIndex, fmtInt);
 }
+
+function pctFmt(v: number): string { return v.toFixed(2) + '%'; }
+function num4(v: number): string { return v.toFixed(4); }
 
 // ---------------------------------------------------------------- helpers --
 

@@ -31,19 +31,18 @@ export class FrameScheduler {
   /** Deterministic virtual advance over [fromNs, fromNs + dtNs). */
   advance(fromNs: number, dtNs: number, clock: () => number): number {
     const end = fromNs + dtNs;
-    let ran = 0;
-    let guard = 0;
-    while (this.vDueNs < end && guard < 4096) {
+    let n = Math.floor((end - this.vDueNs) / PERIOD_240_NS + 1e-6);
+    if (n < 0) n = 0;
+    if (n > 4_000_000) n = 4_000_000;
+    for (let i = 0; i < n; i++) {
       const t0 = clock();
-      this.work(this.framesRun + ran);
+      this.work(this.framesRun + i);
       const t1 = clock();
       this.recordWork(t1 - t0);
-      ran++;
-      guard++;
-      this.vDueNs += PERIOD_240_NS;
     }
-    this.framesRun += ran;
-    return ran;
+    this.vDueNs += n * PERIOD_240_NS;
+    this.framesRun += n;
+    return n;
   }
 
   /** Live wall-clock driver. Returns 'ran' | 'skipped' | 'idle'. */
@@ -95,6 +94,8 @@ export class FrameScheduler {
     this.framesSkipped = 0;
     this.maxWorkNs = 0;
     this.stallFrames = 0;
-    this.vDueNs = 0;
+    // NOTE: vDueNs is a clock, not a statistic — resetStats must NOT touch it
+    // (StudioEngine.runVirtual advances from vNowNs; zeroing vDueNs here would
+    // double-count warmup frames).
   }
 }

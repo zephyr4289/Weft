@@ -3,8 +3,9 @@
 /**
  * Weft Studio — Status bar (hot): /dev/shm buffer occupancy bar, active
  * writer/reader counts, locked FPS, zero-copy memory efficiency index, torn
- * reads, incidents, schema hash. DOM-only updates at 4 Hz via direct text/
- * style mutation. No React re-renders while streaming.
+ * reads, incidents, schema hash. DOM-only updates at 4 Hz; numeric labels are
+ * value-change-gated (strings produced only when the displayed value
+ * changes). No React re-renders while streaming.
  */
 
 import { getReact, SPY } from '../../engine/react-adapter';
@@ -16,21 +17,46 @@ interface Props { engine: StudioEngine | null; schemaHash: string }
 
 export function StatusBar({ engine, schemaHash }: Props): unknown {
   markRender(SPY.STATUS_BAR);
-  const React = getReact() as unknown as { useRef: (v: never) => { current: never } };
+  const React = getReact() as unknown as { useRef: (v: never) => { current: never }; useEffect: (fn: () => void | (() => void), deps?: unknown[]) => void };
   const labels = React.useRef(new HotLabels()) as unknown as { current: HotLabels };
+  const statics = React.useRef({ skipped: -1 }) as unknown as { current: { skipped: number } };
   const occRef = React.useRef(null) as unknown as { current: HTMLDivElement | null };
   const eng = engine;
 
-  useHotCanvas(engine, 'renderSpy', (_ctx, _w, _h, frame) => {
+  const statusCanvas = useHotCanvas(engine, 'renderSpy', (_ctx, _w, _h, frame) => {
     if (!eng) return;
     if ((frame & 0x3f) !== 0) return;
-    const el = (i: number) => labels.set(i, value(i, eng));
-    for (let i = 0; i < 8; i++) el(i);
+    const L = labels.current;
+    L.setNum(0, eng.live.occupancy, fmtIntS);
+    const skipped = eng.scheduler.skipped;
+    if (skipped !== statics.current.skipped) {
+      statics.current.skipped = skipped;
+      L.set(2, skipped === 0 ? '240 fps' : (240 - skipped) + '/240 fps');
+    }
+    L.setNum(3, eng.live.zeroCopyIndex, zcS);
+    L.setNum(4, eng.ring.counters.tornRetries, tornFmt);
+    L.setNum(5, eng.ring.counters.dropped, dropFmt);
+    L.setNum(6, eng.live.frame, frameFmt);
     const occ = occRef.current;
-    if (occ) occ.style.width = `${Math.min(100, (eng.live.occupancy / eng.ring.capacity) * 100).toFixed(2)}%`;
+    if (occ) {
+      const pct = (eng.live.occupancy / eng.ring.capacity) * 100;
+      if (occ.style.width !== pctStr(pct)) occ.style.width = pctStr(pct);
+    }
   });
 
+  // one-time static labels (mount lifecycle — cold plane)
+  React.useEffect(() => {
+    if (!eng) return;
+    const L = labels.current;
+    L.set(1, `writers ${eng.live.writers} · readers ${eng.live.readers}`);
+    L.set(7, `schema ${eng.schemaHashShort()}`);
+    L.set(8, 'seam: managed-mirror');
+  }, [eng]);
+
   return hB('div', { style: bar },
+    // hidden hot-plane canvas: drives the 4 Hz status mutation loop (Law 4)
+    hB('div', { style: { position: 'absolute', width: 0, height: 0, overflow: 'hidden' } },
+      hB('canvas', { ref: statusCanvas.ref as never })),
     // /dev/shm occupancy
     hB('div', { style: cell },
       hB('span', { style: dim }, '/dev/shm'),
@@ -44,23 +70,18 @@ export function StatusBar({ engine, schemaHash }: Props): unknown {
     hB('span', { ref: labels.current.bind(4) as never, style: val }, 'torn —'),
     hB('span', { ref: labels.current.bind(5) as never, style: val }, 'dropped —'),
     hB('span', { flex: 1 }),
-    hB('span', { ref: labels.current.bind(6) as never, style: { ...val, color: T.textDim } }, `schema ${schemaHash.slice(0, 12)}`),
-    hB('span', { ref: labels.current.bind(7) as never, style: { ...val, color: T.textDim } }, 'seam: managed-mirror'),
+    hB('span', { ref: labels.current.bind(6) as never, style: { ...val, color: T.textDim } }, 'frame —'),
+    hB('span', { ref: labels.current.bind(7) as never, style: { ...val, color: T.textDim } }, 'schema —'),
+    hB('span', { ref: labels.current.bind(8) as never, style: { ...val, color: T.textDim } }, 'seam: managed-mirror'),
   );
 }
 
-function value(i: number, eng: StudioEngine): string {
-  switch (i) {
-    case 0: return `${eng.live.occupancy}`;
-    case 1: return `writers ${eng.live.writers} · readers ${eng.live.readers}`;
-    case 2: return `${eng.scheduler.skipped ? `${240 - eng.scheduler.skipped}/240` : '240'} fps`;
-    case 3: return `zc-index ${eng.live.zeroCopyIndex.toFixed(4)}`;
-    case 4: return `torn ${eng.ring.counters.tornRetries}`;
-    case 5: return `dropped ${eng.ring.counters.dropped}`;
-    case 6: return `frame ${eng.live.frame}`;
-    default: return `heap-hint ${(eng.live.zeroCopyIndex * 0).toFixed(0)} KiB`;
-  }
-}
+function pctStr(p: number): string { return (p < 0.01 ? 0 : p).toFixed(2) + '%'; }
+function fmtIntS(v: number): string { return Math.round(v).toString(); }
+function zcS(v: number): string { return 'zc-index ' + v.toFixed(4); }
+function tornFmt(v: number): string { return 'torn ' + Math.round(v); }
+function dropFmt(v: number): string { return 'dropped ' + Math.round(v); }
+function frameFmt(v: number): string { return 'frame ' + Math.round(v); }
 
 // ---------------------------------------------------------------- helpers --
 
@@ -72,7 +93,7 @@ function hB(type: string, props: Record<string, unknown> | null, ...children: un
 const bar: Record<string, string | number> = {
   height: 30, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 16,
   padding: '0 12px', background: T.chrome, borderTop: `1px solid ${T.border}`,
-  fontFamily: 'ui-monospace, monospace',
+  fontFamily: 'ui-monospace, monospace', position: 'relative' as never,
 };
 
 const cell: Record<string, string | number> = { display: 'flex', alignItems: 'center', gap: 8 };

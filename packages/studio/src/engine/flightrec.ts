@@ -24,13 +24,15 @@ const GROW_RECORDS = 8192;
 
 /** u64 before/after folds are kept as two u32 lanes (hi, lo) — no BigInt. */
 export class FlightRecorder {
-  private buf = new Uint8Array(GROW_RECORDS * SREC_RECORD_SIZE);
-  private dv = new DataView(this.buf.buffer);
+  private buf: Uint8Array;
+  private dv: DataView;
   private count = 0;
   readonly openedNs: number;
   readonly schemaHash: string;
 
-  constructor(schemaHash: string, openedNs = 0) {
+  constructor(schemaHash: string, openedNs = 0, initialCapacityRecords = 131072) {
+    this.buf = new Uint8Array(initialCapacityRecords * SREC_RECORD_SIZE);
+    this.dv = new DataView(this.buf.buffer);
     this.schemaHash = schemaHash;
     this.openedNs = openedNs;
   }

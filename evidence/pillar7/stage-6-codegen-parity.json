@@ -1,0 +1,111 @@
+{
+  "stage": 6,
+  "checks": [
+    {
+      "name": "canonical schema parses clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "layout pass clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "schema hash stable",
+      "ok": true,
+      "detail": "06bfa14666db8191 vs 06bfa14666db8191"
+    },
+    {
+      "name": "layout facts match manifest (sizes/aligns/offsets/writers)",
+      "ok": true,
+      "detail": "2 structs verified"
+    },
+    {
+      "name": "false-sharing hazards match manifest",
+      "ok": true,
+      "detail": "64B: 1 (manifest 1) · 128B: 1 (manifest 1)"
+    },
+    {
+      "name": "canonical schema exhibits the teaching hazard",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "golden c",
+      "ok": true,
+      "detail": "a7d648f8e5c5 vs a7d648f8e5c5"
+    },
+    {
+      "name": "golden c deterministic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "golden cpp",
+      "ok": true,
+      "detail": "fb1ee9dd6703 vs fb1ee9dd6703"
+    },
+    {
+      "name": "golden cpp deterministic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "golden rust",
+      "ok": true,
+      "detail": "0aff3f98ef80 vs 0aff3f98ef80"
+    },
+    {
+      "name": "golden rust deterministic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "golden typescript",
+      "ok": true,
+      "detail": "758af63f5583 vs 758af63f5583"
+    },
+    {
+      "name": "golden typescript deterministic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "golden python",
+      "ok": true,
+      "detail": "b37a00c31283 vs b37a00c31283"
+    },
+    {
+      "name": "golden python deterministic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "golden dart",
+      "ok": true,
+      "detail": "057e33368d69 vs 057e33368d69"
+    },
+    {
+      "name": "golden dart deterministic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "golden swift",
+      "ok": true,
+      "detail": "9a645c0ff645 vs 9a645c0ff645"
+    },
+    {
+      "name": "golden swift deterministic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "codegen latency < 1 ms per target",
+      "ok": true,
+      "detail": "max 0.496 ms"
+    }
+  ],
+  "ok": true
+}

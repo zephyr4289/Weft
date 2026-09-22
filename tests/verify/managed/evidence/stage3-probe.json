@@ -1,0 +1,14 @@
+{
+  "iterations": 1000000,
+  "rounds": 3,
+  "growthKiB": -0.4,
+  "perRoundKiB": [
+    -0.4,
+    -0.4,
+    0.1
+  ],
+  "commits": 3200000,
+  "reads": 3200000,
+  "gateKiB": 64,
+  "pass": true
+}

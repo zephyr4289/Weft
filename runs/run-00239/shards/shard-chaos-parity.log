@@ -1,0 +1,74 @@
+==================================================
+SHARD: chaos-parity
+DESCRIPTION: Cross-language chaos parity — C==TS==JVM==Dart byte-identical verdicts
+STATUS: PASSED ✅
+COMMIT: b88de687fe9a3800dd5d62d47cbbf787430928dd
+RUN: 239
+==================================================
+
+
+=== Build C oracle ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_FANOUT_CHAOS_FREE_MODE=1 -o fanout-chaos fanout.c frame_cursor.c weft.c fanout_simd.c fanout_chaos.c fanout_chaos_runner.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+
+=== 1. C reference oracle (sanity: deterministic double-run) ===
+C oracle deterministic: byte-identical double-run
+
+=== 2. TS port (node, always) ===
+[ts] BYTE-IDENTICAL to C on both v1 configs
+[ts] BYTE-IDENTICAL to C on the v2 extended config (faultMask=15)
+
+=== 3. JVM port (kotlinc when present) ===
+[jvm] BYTE-IDENTICAL to C on both v1 configs
+
+=== 4. Dart port (dart when present) ===
+dart not found — Dart parity leg SKIPPED (declared; flutter-packages CI covers)
+
+=== 5. Swift port (SOURCE-ONLY here; golden-fixture parity via XCTest on macOS) ===
+Swift parity is proven in the Apple leg (Tests/WeftTests/FanoutChaosTests.swift
+diffs the committed golden fixture byte-for-byte) — declared, not silent.
+
+=== 6. Golden fixture = the C oracle, reproduced here and now ===
+golden fixture reproduced byte-for-byte
+
+=== 7. Extended golden fixture (v2, Issue #16) = the C oracle, reproduced here and now ===
+extended golden fixture reproduced byte-for-byte
+chaos-parity shard: PASS
+ or '@OptIn(kotlin.ExperimentalUnsignedTypes::class)'
+                payload[wSlot][wWord] = tword(wSeq.toInt(), wWord)
+                ^^^^^^^
+core/kotlin/FanoutChaos.kt:160:17: warning: this declaration needs opt-in. Its usage should be marked with '@kotlin.ExperimentalUnsignedTypes' or '@OptIn(kotlin.ExperimentalUnsignedTypes::class)'
+                payload[wSlot][wWord] = tword(wSeq.toInt(), wWord)
+                ^^^^^^^^^^^^^^
+core/kotlin/FanoutChaos.kt:209:33: warning: this declaration needs opt-in. Its usage should be marked with '@kotlin.ExperimentalUnsignedTypes' or '@OptIn(kotlin.ExperimentalUnsignedTypes::class)'
+                rTarget[i][w] = payload[rSlot[i]][w].toLong()
+                                ^^^^^^^
+core/kotlin/FanoutChaos.kt:209:33: warning: this declaration needs opt-in. Its usage should be marked with '@kotlin.ExperimentalUnsignedTypes' or '@OptIn(kotlin.ExperimentalUnsignedTypes::class)'
+                rTarget[i][w] = payload[rSlot[i]][w].toLong()
+                                ^^^^^^^^^^^^^^^^^
+core/kotlin/FanoutChaos.kt:316:17: warning: this declaration needs opt-in. Its usage should be marked with '@kotlin.ExperimentalUnsignedTypes' or '@OptIn(kotlin.ExperimentalUnsignedTypes::class)'
+    val draws = uintArrayOf(1034221180u, 2302191726u, 1921777443u, 3822789115u,
+                ^^^^^^^^^^^
+core/kotlin/FanoutChaos.kt:318:18: warning: this declaration needs opt-in. Its usage should be marked with '@kotlin.ExperimentalUnsignedTypes' or '@OptIn(kotlin.ExperimentalUnsignedTypes::class)'
+    for (want in draws) {
+                 ^^^^^
+[jvm] BYTE-IDENTICAL to C on both v1 configs
+
+=== 4. Dart port (dart when present) ===
+dart not found — Dart parity leg SKIPPED (declared; flutter-packages CI covers)
+
+=== 5. Swift port (SOURCE-ONLY here; golden-fixture parity via XCTest on macOS) ===
+Swift parity is proven in the Apple leg (Tests/WeftTests/FanoutChaosTests.swift
+diffs the committed golden fixture byte-for-byte) — declared, not silent.
+
+=== 6. Golden fixture = the C oracle, reproduced here and now ===
+golden fixture reproduced byte-for-byte
+
+=== 7. Extended golden fixture (v2, Issue #16) = the C oracle, reproduced here and now ===
+extended golden fixture reproduced byte-for-byte
+chaos-parity shard: PASS

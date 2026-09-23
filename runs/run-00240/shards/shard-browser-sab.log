@@ -1,0 +1,8 @@
+==================================================
+SHARD: browser-sab
+DESCRIPTION: chromium: crossOriginIsolated + SAB kernel roundtrip + 1W/2R fanout
+STATUS: FAILED ❌
+COMMIT: 8662a0f530463564d7001bc2652004cfb77b4139
+RUN: 240
+==================================================
+

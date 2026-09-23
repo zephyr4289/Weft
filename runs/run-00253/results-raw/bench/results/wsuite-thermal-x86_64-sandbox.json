@@ -1,0 +1,139 @@
+{
+  "directive": "WO-P5-RELEASE \u00a71.T3 (CI inline)",
+  "scope": "thermal-proxy W2 \u00d7 all four backends \u00d7 sustained",
+  "duration_s": 5,
+  "env": {
+    "env_label": "x86_64-sandbox",
+    "python3_version": "3.12.14",
+    "harness_version": "thermal_proxy_inline.py v1 (CI)",
+    "utc_timestamp": "2026-09-23T13:32:28Z"
+  },
+  "env_label": "x86_64-sandbox",
+  "honesty_label": "Headless server has no meaningful thermal envelope; if the FPS curve is flat, the report says 'no thermal decay observable on headless server \u2014 expected; device thermal is Phase 6+.' No invented throttling (WO-P5-RELEASE decision 4).",
+  "runs": [
+    {
+      "backend": "A",
+      "duration_s": 5,
+      "sample_hz": 1.0,
+      "samples": [
+        {
+          "t_s": 1.0,
+          "fps": 504.1,
+          "frame_idx": 505
+        },
+        {
+          "t_s": 2.0,
+          "fps": 504.6,
+          "frame_idx": 1010
+        },
+        {
+          "t_s": 3.0,
+          "fps": 507.8,
+          "frame_idx": 1518
+        },
+        {
+          "t_s": 4.0,
+          "fps": 507.8,
+          "frame_idx": 2026
+        }
+      ],
+      "fps_first_quarter_avg": 504.1,
+      "fps_last_quarter_avg": 507.8,
+      "decay_pct": -0.73,
+      "flat": true
+    },
+    {
+      "backend": "B",
+      "duration_s": 5,
+      "sample_hz": 1.0,
+      "samples": [
+        {
+          "t_s": 1.0,
+          "fps": 655.4,
+          "frame_idx": 656
+        },
+        {
+          "t_s": 2.0,
+          "fps": 669.2,
+          "frame_idx": 1326
+        },
+        {
+          "t_s": 3.0,
+          "fps": 673.4,
+          "frame_idx": 2000
+        },
+        {
+          "t_s": 4.0,
+          "fps": 673.7,
+          "frame_idx": 2674
+        }
+      ],
+      "fps_first_quarter_avg": 655.4,
+      "fps_last_quarter_avg": 673.7,
+      "decay_pct": -2.79,
+      "flat": true
+    },
+    {
+      "backend": "C",
+      "duration_s": 5,
+      "sample_hz": 1.0,
+      "samples": [
+        {
+          "t_s": 1.0,
+          "fps": 670.5,
+          "frame_idx": 671
+        },
+        {
+          "t_s": 2.0,
+          "fps": 662.4,
+          "frame_idx": 1334
+        },
+        {
+          "t_s": 3.0,
+          "fps": 670.7,
+          "frame_idx": 2005
+        },
+        {
+          "t_s": 4.0,
+          "fps": 667.3,
+          "frame_idx": 2673
+        }
+      ],
+      "fps_first_quarter_avg": 670.5,
+      "fps_last_quarter_avg": 667.3,
+      "decay_pct": 0.48,
+      "flat": true
+    },
+    {
+      "backend": "D",
+      "duration_s": 5,
+      "sample_hz": 1.0,
+      "samples": [
+        {
+          "t_s": 1.0,
+          "fps": 378.0,
+          "frame_idx": 378
+        },
+        {
+          "t_s": 2.0,
+          "fps": 379.9,
+          "frame_idx": 758
+        },
+        {
+          "t_s": 3.0,
+          "fps": 380.5,
+          "frame_idx": 1139
+        },
+        {
+          "t_s": 4.0,
+          "fps": 378.4,
+          "frame_idx": 1518
+        }
+      ],
+      "fps_first_quarter_avg": 378.0,
+      "fps_last_quarter_avg": 378.4,
+      "decay_pct": -0.11,
+      "flat": true
+    }
+  ]
+}

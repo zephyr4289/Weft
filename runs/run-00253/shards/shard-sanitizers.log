@@ -1,0 +1,8 @@
+==================================================
+SHARD: sanitizers
+DESCRIPTION: TIER4 memory-safety audit: ASan+UBSan + TSan, zero findings
+STATUS: FAILED ❌
+COMMIT: 2460ac50eaaf024831302a709407bcd39c9317af
+RUN: 253
+==================================================
+

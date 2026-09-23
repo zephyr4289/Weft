@@ -1,0 +1,8 @@
+==================================================
+SHARD: weft-cluster
+DESCRIPTION: RFC-0018 WCR1: CL-ring/CL-consensus x sanitizers + split-brain torture + bench scoreboard
+STATUS: FAILED ❌
+COMMIT: 2460ac50eaaf024831302a709407bcd39c9317af
+RUN: 253
+==================================================
+

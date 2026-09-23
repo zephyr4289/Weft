@@ -1,0 +1,33 @@
+==================================================
+SHARD: heddle-canvas
+DESCRIPTION: Project heddle-2.0 Pillar 4: WHP1 plane contract + Law-1 60k-frame zero-alloc gate + 240 FPS budget bench + native Vulkan SSBO probe (lavapipe) + Chromium COOP/COEP rig with cross-tier bit-exact oracle
+STATUS: FAILED ❌
+COMMIT: 2460ac50eaaf024831302a709407bcd39c9317af
+RUN: 253
+==================================================
+
+=== 1/5 unit battery (vitest) ===
+[2m      Tests [22m [1m[32m65 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (66)[39m
+[2m   Start at [22m 13:33:11
+[2m   Duration [22m 1.39s[2m (transform 357ms, setup 0ms, collect 583ms, tests 1.36s, environment 1ms, prepare 576ms)[22m
+
+=== 2/5 Law-1: instrument calibration + 60,000-frame gate ===
+calibrate-clean:   PASS — 4144 B attributed to engine modules over 4000 frames
+calibrate-planted: FAIL (instrument did NOT catch the allocator!) — 8232 B caught across 1 samples
+law1-instrument:   BROKEN
+/oracle.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 56[2mms[22m[39m
+ [32m✓[39m test/shaders.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 200[2mms[22m[39m
+ [32m✓[39m test/layout_parity.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 819[2mms[22m[39m
+   [33m[2m✓[22m[39m WHP1 layout parity: native/whp1_layout.h == src/plane/whp1.ts[2m > [22mthe C plane-size function agrees with whp1PlaneBytes (via clang eval) [33m807[2mms[22m[39m
+ [32m✓[39m test/law1.test.ts [2m([22m[2m6 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m test/budget.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m65 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (66)[39m
+[2m   Start at [22m 13:33:11
+[2m   Duration [22m 1.39s[2m (transform 357ms, setup 0ms, collect 583ms, tests 1.36s, environment 1ms, prepare 576ms)[22m
+
+=== 2/5 Law-1: instrument calibration + 60,000-frame gate ===
+calibrate-clean:   PASS — 4144 B attributed to engine modules over 4000 frames
+calibrate-planted: FAIL (instrument did NOT catch the allocator!) — 8232 B caught across 1 samples
+law1-instrument:   BROKEN

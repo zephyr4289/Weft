@@ -1,0 +1,10 @@
+==================================================
+SHARD: heddle-canvas
+DESCRIPTION: Project heddle-2.0 Pillar 4: WHP1 plane contract + Law-1 60k-frame zero-alloc gate + 240 FPS budget bench + native Vulkan SSBO probe (lavapipe) + Chromium COOP/COEP rig with cross-tier bit-exact oracle
+STATUS: FAILED ❌
+COMMIT: 7d95ce7f483086054ac90b7535a9787c0b5451e7
+RUN: 227
+==================================================
+
+=== 1/5 unit battery (vitest) ===
+sh: 1: vitest: not found

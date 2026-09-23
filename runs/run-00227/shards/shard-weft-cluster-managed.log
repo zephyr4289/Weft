@@ -1,0 +1,101 @@
+==================================================
+SHARD: weft-cluster-managed
+DESCRIPTION: Project weft-cluster Pillar 3: TS wire/client/topology/router/metrics, Python wire/router/UDP parity, live UDP mesh, 100k zero-alloc probes, 1M fps burst, rendezvous router
+STATUS: PASSED ✅
+COMMIT: 7d95ce7f483086054ac90b7535a9787c0b5451e7
+RUN: 227
+==================================================
+
+[1/8] kernel-core integrity (Law 3: core/c/weft.{c,h} byte-frozen)
+    core/c/weft.{c,h} untouched
+[2/8] TS wire vectors + cross-language guard
+✔ crosslang: TS still decodes the frozen WCN1 vectors byte-exactly (1.177777ms)
+✔ crosslang: TS rejects malformed fixtures with the frozen codes (0.231459ms)
+✔ crosslang: FNV/CRC reference vectors match the fixture (0.257297ms)
+✔ crc32 IEEE vectors (parity with Python zlib.crc32) (0.760198ms)
+✔ fnv1a64 topic hash vectors (parity with Python impl) (0.219754ms)
+✔ WCN1 header: little-endian byte layout is normative (0.192282ms)
+✔ WCN1 round-trip: encode -> decode -> same fields (3.217603ms)
+✔ Law 4: malformed datagrams map to the exact error taxonomy (0.281816ms)
+✔ error names are stable (Law 4 contract) (0.237274ms)
+✔ WGS1 gossip: encode + entries + decode round-trip (0.28029ms)
+✔ WGS1: entry_count overrun is WC_E_TRUNCATED, not a crash (0.088159ms)
+✔ Law 1: decodeInto is allocation-free (structural check) (0.228908ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 80.575868
+[3/8] Python wire + router vector parity
+.........                                                                [100%]
+9 passed in 0.24s
+[4/8] TypeScript suite
+✔ shm: publish -> subscribe async iterator, seq monotonic, payload intact (8.931145ms)
+✔ shm: two subscribers fan out independently; unsubscribe stops flow (10.929813ms)
+✔ shm: tryLatest reads newest without advancing the iterator (6.446917ms)
+✔ Law 4: stale seq replays are dropped and counted (datagram path) (1.499905ms)
+✔ udp: two clients, SUB control plane, live datagram pub/sub (35.972457ms)
+✔ udp: publisher with zero subscribers stays silent (no peers dup) (0.585192ms)
+✔ crosslang: TS still decodes the frozen WCN1 vectors byte-exactly (1.100448ms)
+✔ crosslang: TS rejects malformed fixtures with the frozen codes (0.316868ms)
+✔ crosslang: FNV/CRC reference vectors match the fixture (0.385173ms)
+✔ registry: counters, gauges, histogram quantile sanity (1.897772ms)
+✔ histogram bucket bounds follow the 1, 2, 3, 4, 6, 8, 12... sequence (0.356057ms)
+✔ prometheus: exposition format with cumulative histogram buckets (1.023357ms)
+✔ otel: OTLP/JSON document shape (resourceMetrics -> metrics) (1.402116ms)
+✔ perfetto: .pftrace protobuf round-trips packets and track events (1.431711ms)
+✔ prometheus: embedded /metrics server answers 200 over real HTTP (46.638033ms)
+✔ router: deterministic owner across calls and instances (1.249754ms)
+✔ router: cross-language owner vector (node seeds 11,22,33,44 / telemetry) (1.45546ms)
+✔ router: 8-node balance within 3x envelope (6.059867ms)
+✔ router: minimal disruption — adding 1 of 9 nodes moves ~1/9 of topics (7.000492ms)
+✔ router: unrouted topic -> WC_E_TOPIC_UNROUTED (0.375374ms)
+✔ router: removeNode stops routing to it; version bumps (0.214261ms)
+✔ membership: upsert + hash-index lookup round-trip (1.036769ms)
+✔ membership: open addressing survives heavy collisions (1.004015ms)
+✔ gossip: 3 engines converge to a full membership view (socketless) (2.008472ms)
+✔ gossip: stale incarnation ignored, higher incarnation wins (0.303748ms)
+✔ gossip: LEAVING is sticky at equal incarnation, revive needs higher (0.194722ms)
+✔ gossip: SWIM refutation — falsely-leaving node bumps incarnation (0.195364ms)
+✔ gossip: silent nodes suspect then evicted (fake clock) (0.299266ms)
+✔ gossip: graceful leave announces and propagates LEAVING (0.269818ms)
+✔ crc32 IEEE vectors (parity with Python zlib.crc32) (0.720364ms)
+✔ fnv1a64 topic hash vectors (parity with Python impl) (0.214ms)
+✔ WCN1 header: little-endian byte layout is normative (0.1876ms)
+✔ WCN1 round-trip: encode -> decode -> same fields (3.26741ms)
+✔ Law 4: malformed datagrams map to the exact error taxonomy (0.231305ms)
+✔ error names are stable (Law 4 contract) (0.186175ms)
+✔ WGS1 gossip: encode + entries + decode round-trip (0.264332ms)
+✔ WGS1: entry_count overrun is WC_E_TRUNCATED, not a crash (0.081441ms)
+✔ Law 1: decodeInto is allocation-free (structural check) (0.243162ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2156.922636
+[5/8] Python suite
+.....s.........                                                          [100%]
+14 passed, 1 skipped in 8.57s
+[6/8] live cross-language UDP cluster (both directions)
+..                                                                       [100%]
+2 passed in 8.30s
+[7/8] zero-allocation probes (100k ops each, post-warmup, --expose-gc)
+    {"mode":"publish","iters":100000,"heapBefore":7446048,"heapAfter":7446104,"deltaBytes":56}
+    {"mode":"subscribe","iters":100000,"heapBefore":7521816,"heapAfter":7518400,"deltaBytes":-3416}
+    {"mode":"metrics","iters":100000,"heapBefore":7359936,"heapAfter":7359624,"deltaBytes":-312}
+    {"mode":"router","iters":100000,"heapBefore":7395744,"heapAfter":7395704,"deltaBytes":-40}
+[8/8] performance gates
+    [8a] 4-node demo smoke (monotonicity must PASS)
+    demo PASS (monotonic, 0 gaps, 0 stale)
+    [8b] mesh burst >= 1,000,000 fps (mandate D)
+    {"kind":"weft-cluster-mesh-burst","transport":"loopback-shm (simulated cluster)","nodes":4,"consumers":3,"topics":1,"payloadBytes":64,"fpsTarget":1000000,"seconds":2,"publishedFrames":2000000,"ingestedFrames":6000000,"expectedIngest":6000000,"achievedFps":1371417,"fanoutWritesPerSec":4114250,"elapsedSec":1.46,"sequenceGaps":0,"hopLatencyNs":{"p50":768,"p99":1536},"at":"2026-09-23T10:10:51.859Z"}
+    [8c] membership lookup latency (mandate B1)
+    {"kind":"weft-cluster-router-bench","membershipLookupNs":{"p50":12.2,"p99":26.4},"routerOwnerNs":{"p50":915.6,"p99":934.8,"nodes":8},"mandate":"lock-free cluster state table lookups < 10 ns (Pillar 3 mandate B1)"}
+    lookup p50 12.2ns (gate 25ns; mandate 10ns is bare-metal — delta recorded in D-33)
+weft-cluster-managed shard: ALL 8 STAGES GREEN

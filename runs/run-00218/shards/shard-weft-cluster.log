@@ -1,0 +1,160 @@
+==================================================
+SHARD: weft-cluster
+DESCRIPTION: RFC-0018 WCR1: CL-ring/CL-consensus x sanitizers + split-brain torture + bench scoreboard
+STATUS: PASSED ✅
+COMMIT: 7eecbc248e711e67d54cdc4d2cc2b3feafb6dea9
+RUN: 218
+==================================================
+
+
+=== build cluster targets ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o cluster-ring-test cluster/weft_cluster_ring.c cluster/weft_cluster_consensus.c cluster/cluster_ring_test.c
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o cluster-ring-test-asan cluster/weft_cluster_ring.c cluster/weft_cluster_consensus.c cluster/cluster_ring_test.c
+gcc -O0 -g -fsanitize=thread -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o cluster-ring-test-tsan cluster/weft_cluster_ring.c cluster/weft_cluster_consensus.c cluster/cluster_ring_test.c
+cluster/weft_cluster_ring.c: In function ‘wcr1_seqreg_publish’:
+cluster/weft_cluster_ring.c:249:5: warning: ‘atomic_thread_fence’ is not supported with ‘-fsanitize=thread’ [-Wtsan]
+  249 |     __atomic_thread_fence(__ATOMIC_RELEASE);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cluster/weft_cluster_ring.c:252:5: warning: ‘atomic_thread_fence’ is not supported with ‘-fsanitize=thread’ [-Wtsan]
+  252 |     __atomic_thread_fence(__ATOMIC_RELEASE);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cluster/weft_cluster_ring.c: In function ‘wcr1_consume’:
+cluster/weft_cluster_ring.c:554:5: warning: ‘atomic_thread_fence’ is not supported with ‘-fsanitize=thread’ [-Wtsan]
+  554 |     __atomic_thread_fence(__ATOMIC_RELEASE);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cluster/weft_cluster_ring.c:557:5: warning: ‘atomic_thread_fence’ is not supported with ‘-fsanitize=thread’ [-Wtsan]
+  557 |     __atomic_thread_fence(__ATOMIC_RELEASE);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cluster/weft_cluster_consensus.c: In function ‘wcr1_consensus_read’:
+cluster/weft_cluster_consensus.c:276:9: warning: ‘atomic_thread_fence’ is not supported with ‘-fsanitize=thread’ [-Wtsan]
+  276 |         __atomic_thread_fence(__ATOMIC_ACQUIRE); /* rmb: fields before hb2 */
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cluster/weft_cluster_consensus.c: In function ‘wcr1_consensus_block_write’:
+cluster/weft_cluster_consensus.c:315:5: warning: ‘atomic_thread_fence’ is not supported with ‘-fsanitize=thread’ [-Wtsan]
+  315 |     __atomic_thread_fence(__ATOMIC_RELEASE);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cluster/weft_cluster_consensus.c:318:5: warning: ‘atomic_thread_fence’ is not supported with ‘-fsanitize=thread’ [-Wtsan]
+  318 |     __atomic_thread_fence(__ATOMIC_RELEASE);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cluster/weft_cluster_consensus.c:324:5: warning: ‘atomic_thread_fence’ is not supported with ‘-fsanitize=thread’ [-Wtsan]
+  324 |     __atomic_thread_fence(__ATOMIC_RELEASE);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cluster/weft_cluster_consensus.c:327:5: warning: ‘atomic_thread_fence’ is not supported with ‘-fsanitize=thread’ [-Wtsan]
+  327 |     __atomic_thread_fence(__ATOMIC_RELEASE);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o cluster-consensus-test cluster/weft_cluster_ring.c cluster/weft_cluster_consensus.c cluster/sim_cluster.c cluster/cluster_consensus_test.c
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o cluster-consensus-test-asan cluster/weft_cluster_ring.c cluster/weft_cluster_consensus.c cluster/sim_cluster.c cluster/cluster_consensus_test.c
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o split-brain-torture cluster/weft_cluster_ring.c cluster/weft_cluster_consensus.c cluster/sim_cluster.c cluster/split_brain_torture.c
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o split-brain-torture-asan cluster/weft_cluster_ring.c cluster/weft_cluster_consensus.c cluster/sim_cluster.c cluster/split_brain_torture.c
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o cluster-bench cluster/weft_cluster_ring.c cluster/weft_cluster_consensus.c cluster/sim_cluster.c cluster/cluster_bench.c
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+
+=== CL-ring conformance (plain) ===
+R1   crc32/LE/two-store encoding                          PASS
+R2   region create golden bytes                           PASS
+R3   attach validation ladder (12 refusals)               PASS
+R4   100k publish/acquire/consume, zero alloc             PASS
+R5   two-store tear detection (bounded -> E_SEQ_TORN)     PASS
+R6   in-band backpressure + ring-full refusal             PASS
+R7   overrun + message_seq alias guards                   PASS
+R8   slot header golden layout + opt-in CRC               PASS
+R9   consumer watermark two-store protocol                PASS
+R10  zero-roundtrip remote slot addressing                PASS
+     (fork ipc: 0 torn backoffs survived)
+R11  fork cross-process 100k msgs, zero tears             PASS
+
+cluster_ring_test: ALL PASS (0 failures)
+
+=== CL-ring conformance (ASAN) ===
+R1   crc32/LE/two-store encoding                          PASS
+R2   region create golden bytes                           PASS
+R3   attach validation ladder (12 refusals)               PASS
+R4   100k publish/acquire/consume, zero alloc             PASS
+R5   two-store tear detection (bounded -> E_SEQ_TORN)     PASS
+R6   in-band backpressure + ring-full refusal             PASS
+R7   overrun + message_seq alias guards                   PASS
+R8   slot header golden layout + opt-in CRC               PASS
+R9   consumer watermark two-store protocol                PASS
+R10  zero-roundtrip remote slot addressing                PASS
+     (fork ipc: 0 torn backoffs survived)
+R11  fork cross-process 100k msgs, zero tears             PASS
+
+cluster_ring_test: ALL PASS (0 failures)
+
+=== CL-ring conformance (TSAN) ===
+R1   crc32/LE/two-store encoding                          PASS
+R2   region create golden bytes                           PASS
+R3   attach validation ladder (12 refusals)               PASS
+R4   100k publish/acquire/consume, zero alloc             PASS
+R5   two-store tear detection (bounded -> E_SEQ_TORN)     PASS
+R6   in-band backpressure + ring-full refusal             PASS
+R7   overrun + message_seq alias guards                   PASS
+R8   slot header golden layout + opt-in CRC               PASS
+R9   consumer watermark two-store protocol                PASS
+R10  zero-roundtrip remote slot addressing                PASS
+     (fork ipc: 0 torn backoffs survived)
+R11  fork cross-process 100k msgs, zero tears             PASS
+
+cluster_ring_test: ALL PASS (0 failures)
+
+=== CL-consensus conformance (plain) ===
+C1   cold-boot election: 1 leader, all converged          PASS
+C2   lease stability across 20 lease periods              PASS
+C3-5 quorum loss, fencing, partition heal + convergence   PASS
+C6   vote uniqueness (one grant per term per node)        PASS
+C7   clock skew gate at attach                            PASS
+C8   zombie eviction after 3 frozen leases                PASS
+C9   consensus seqlock: stable, torn, pairing guards      PASS
+C10  100k cluster sync ops, zero alloc, intact payloads   PASS
+
+cluster_consensus_test: ALL PASS (0 failures)
+
+=== CL-consensus conformance (ASAN) ===
+C1   cold-boot election: 1 leader, all converged          PASS
+C2   lease stability across 20 lease periods              PASS
+C3-5 quorum loss, fencing, partition heal + convergence   PASS
+C6   vote uniqueness (one grant per term per node)        PASS
+C7   clock skew gate at attach                            PASS
+C8   zombie eviction after 3 frozen leases                PASS
+C9   consensus seqlock: stable, torn, pairing guards      PASS
+C10  100k cluster sync ops, zero alloc, intact payloads   PASS
+
+cluster_consensus_test: ALL PASS (0 failures)
+
+=== split-brain torture (plain) ===
+SB1  dueling candidates resolve, never two leaders        PASS
+SB2  byzantine same-term view: E_SPLIT_BRAIN + tie-break  PASS
+     sb3: 3000 rounds, 44071 ops, 1708 published, 1701 delivered, 0 fenced, 24 elections (18 won), 13 quorum-losses, 172 dropped, 0 bp, 1591 flips, 375 heals, 1 evicted
+SB3  7-node random-partition torture, all invariants      PASS
+SB4  leader crash -> re-election -> fenced recovery       PASS
+
+split_brain_torture: ALL PASS (0 failures)
+
+=== split-brain torture (ASAN) ===
+SB1  dueling candidates resolve, never two leaders        PASS
+SB2  byzantine same-term view: E_SPLIT_BRAIN + tie-break  PASS
+     sb3: 3000 rounds, 44071 ops, 1708 published, 1701 delivered, 0 fenced, 24 elections (18 won), 13 quorum-losses, 172 dropped, 0 bp, 1591 flips, 375 heals, 1 evicted
+SB3  7-node random-partition torture, all invariants      PASS
+SB4  leader crash -> re-election -> fenced recovery       PASS
+
+split_brain_torture: ALL PASS (0 failures)
+
+=== cluster-bench scoreboard (protocol-engine overhead, local transport) ===
+{"mode":"calib","ops":1000000,"ns_per_op":0.00,"a":0,"b":0}
+{"mode":"publish","ops":1000000,"ns_per_op":30.49,"a":128,"b":64}
+{"mode":"publish","ops":1000000,"ns_per_op":30.99,"a":192,"b":128}
+{"mode":"publish","ops":1000000,"ns_per_op":48.24,"a":512,"b":448}
+{"mode":"publish","ops":1000000,"ns_per_op":136.77,"a":2048,"b":1984}
+{"mode":"publish","ops":1000000,"ns_per_op":264.89,"a":4096,"b":4032}
+{"mode":"acquire+consume","ops":999424,"ns_per_op":7.57,"a":128,"b":0}
+{"mode":"roundtrip","ops":500000,"ns_per_op":29.32,"a":128,"b":0}
+{"mode":"seqreg","ops":10000000,"ns_per_op":7.17,"a":0,"b":0}
+{"mode":"consensus-write+read","ops":2000000,"ns_per_op":15.27,"a":0,"b":0}
+{"mode":"consensus-read","ops":2000000,"ns_per_op":3.76,"a":0,"b":0}
+{"mode":"cluster-sync","ops":100000,"ns_per_op":55.96,"a":5,"b":128}
+{"mode":"election","ops":3,"ns_per_op":6322.00,"a":23750000,"b":3}
+{"mode":"election","ops":5,"ns_per_op":7975.00,"a":23750000,"b":5}
+{"mode":"election","ops":7,"ns_per_op":27841.00,"a":23750000,"b":7}
+
+WEFT-CLUSTER SHARD: PASS

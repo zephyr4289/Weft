@@ -1,0 +1,44 @@
+==================================================
+SHARD: heddle-canvas
+DESCRIPTION: Project heddle-2.0 Pillar 4: WHP1 plane contract + Law-1 60k-frame zero-alloc gate + 240 FPS budget bench + native Vulkan SSBO probe (lavapipe) + Chromium COOP/COEP rig with cross-tier bit-exact oracle
+STATUS: FAILED ❌
+COMMIT: 14e29a7a011b2aa0822a96fff785a0a5dd530f33
+RUN: 232
+==================================================
+
+=== 1/5 unit battery (vitest) ===
+[2m      Tests [22m [1m[32m65 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (66)[39m
+[2m   Start at [22m 10:39:37
+[2m   Duration [22m 1.18s[2m (transform 303ms, setup 0ms, collect 546ms, tests 634ms, environment 2ms, prepare 603ms)[22m
+
+=== 2/5 Law-1: instrument calibration + 60,000-frame gate ===
+calibrate-clean:   PASS — 0 B attributed to engine modules over 4000 frames
+calibrate-planted: PASS — 16488 B caught across 1 samples
+law1-instrument:   CALIBRATED
+law1-gate:      PASS — sampling heap profiler: 0 B attributed to engine modules over 60000 frames (0 samples; total window incl. V8 internals 13704 B)
+law1-secondary: heapUsed delta 1202224 B over the same window — REPORTED, not gated (V8 bookkeeping moves this while the code allocates nothing; the profiler decides the claim)
+frame-budget:   PASS — p50 0.38 µs, p95 0.45 µs, p99 0.53 µs, worst 408.40 µs vs 4166.67 µs budget (0 violations)
+engine-stats:   draws 520000, uploads 520000 (19486.3 MiB), clean-lane skips 0, presents 130000
+tier3-decimate: 1,048,576-point window -> 1280 columns on CPU: 17511 µs (MEASURED, oracle road; GPU tiers do this in-shader)
+{"bench":"heddle-canvas-frame-budget","backend":"null","tick_hz":240,"load_samples_per_sec":100000,"frames":60000,"warmup":5000,"law1_engine_alloc_bytes":0,"law1_engine_alloc_samples":0,"law1_window_total_bytes":13704,"law1_heapused_delta_reported":1202224,"law1_pass":true,"p50_micros":0.38,"p95_micros":0.45,"p99_micros":0.53,"worst_micros":408.4,"budget_violations":0,"draws":520000,"upload_calls":520000,"uploaded_mib":19486.29,"clean_lane_skips":0,"tier3_decimate_1m_micros":17511,"label":"ENGINE path on NullHAL (no GPU in CI); tier frame costs in the browser leg"}
+=== 3/5 native Vulkan probe (WHP1 plane as SSBO, bit-exact) ===
+regime-A-linear: writePos=600000 vis=600000 windowStart=600000 bucket=469 -> 0/1280 column mismatches [BIT-EXACT]
+regime-B-wrapped: writePos=1060921 vis=1048576 windowStart=12345 bucket=820 -> 0/1280 column mismatches [BIT-EXACT]
+heddle-vk-probe: ALL BIT-EXACT (plane=4196480 B bound at lane offset 2176, storage-buffer compute over producer memory; ICD per VK_ICD_FILENAMES)
+{"probe":"heddle-vk","capacity":1048576,"cols":1280,"plane_bytes":4196480,"verdict":"pass"}
+=== 4/5 browser rig (Chromium + COOP/COEP + SwiftShader) ===
+sh: 1: esbuild: not found
+rig bundle FAILED
+
+{"bench":"heddle-canvas-frame-budget","backend":"null","tick_hz":240,"load_samples_per_sec":100000,"frames":60000,"warmup":5000,"law1_engine_alloc_bytes":0,"law1_engine_alloc_samples":0,"law1_window_total_bytes":13704,"law1_heapused_delta_reported":1202224,"law1_pass":true,"p50_micros":0.38,"p95_micros":0.45,"p99_micros":0.53,"worst_micros":408.4,"budget_violations":0,"draws":520000,"upload_calls":520000,"uploaded_mib":19486.29,"clean_lane_skips":0,"tier3_decimate_1m_micros":17511,"label":"ENGINE path on NullHAL (no GPU in CI); tier frame costs in the browser leg"}
+=== 3/5 native Vulkan probe (WHP1 plane as SSBO, bit-exact) ===
+regime-A-linear: writePos=600000 vis=600000 windowStart=600000 bucket=469 -> 0/1280 column mismatches [BIT-EXACT]
+regime-B-wrapped: writePos=1060921 vis=1048576 windowStart=12345 bucket=820 -> 0/1280 column mismatches [BIT-EXACT]
+heddle-vk-probe: ALL BIT-EXACT (plane=4196480 B bound at lane offset 2176, storage-buffer compute over producer memory; ICD per VK_ICD_FILENAMES)
+{"probe":"heddle-vk","capacity":1048576,"cols":1280,"plane_bytes":4196480,"verdict":"pass"}
+=== 4/5 browser rig (Chromium + COOP/COEP + SwiftShader) ===
+added 1 package in 1s
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.3 MiB
+Chrome Headless Shell 153.0.8010.12 (playwright chromium-headless-shell v1243) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1243
+sh: 1: esbuild: not found
+rig bundle FAILED

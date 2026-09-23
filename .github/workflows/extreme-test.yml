@@ -254,8 +254,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-py-tectonic-
 
-      - name: Install Python deps (PyYAML, PyMuPDF, psutil, pytest)
-        run: pip install --quiet pyyaml pymupdf psutil pytest
+      - name: Install Python deps (PyYAML, PyMuPDF, psutil, pytest, numpy)
+        run: pip install --quiet pyyaml pymupdf psutil pytest numpy
 
       - name: Install tectonic + pandoc (for site + report scans)
         run: |
@@ -394,7 +394,7 @@ jobs:
           workspaces: core/rust
 
       - name: Install Python deps
-        run: pip install --quiet pyyaml pymupdf psutil pytest
+        run: pip install --quiet pyyaml pymupdf psutil pytest numpy
 
       - name: Install tectonic + pandoc (forensic-scan + site shards)
         if: matrix.shard == 'forensic-scan' || matrix.shard == 'site-determinism'

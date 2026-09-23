@@ -72,13 +72,13 @@ if (mode === 'producer') {
   // NEGATIVE control: RETAINED allocations whose set GROWS throughout the
   // measured phase (escape-analysis-proof AND warmup-proof — a fixed-size
   // retained pool saturates during warmup and shows zero net growth).
-  const keep = [];
-  growth = measure((iters) => {
+  growth = measure((iters, isWarmup) => {
+    if (isWarmup || !globalThis.__keep) globalThis.__keep = [];
     for (let i = 0; i < iters; i++) {
-      if ((i & 31) === 0) keep.push({ a: i, b: i, c: i, d: i });
+      if ((i & 7) === 0) globalThis.__keep.push({ a: i, b: i, c: i, d: i });
     }
   });
-  if (keep.length === -1) console.error('unreachable');
+  if (globalThis.__keep.length === -1) console.error('unreachable');
 } else {
   console.error(`unknown mode ${mode}`);
   process.exit(2);

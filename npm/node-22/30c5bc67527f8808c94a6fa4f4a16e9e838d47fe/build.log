@@ -1,0 +1,2597 @@
+=== Starting npm Packages CI (Node 22) ===
+[PASS] core/kotlin/FrameCursor.kt  <->  android/weft-core/src/main/kotlin/dev/weft/FrameCursor.kt
+[PASS] core/kotlin/Fanout.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Fanout.kt
+[PASS] core/kotlin/FanoutCompat.kt  <->  android/weft-core/src/main/kotlin/dev/weft/FanoutCompat.kt
+[PASS] core/kotlin/Steward.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Steward.kt
+[PASS] core/kotlin/TriadNative.kt  <->  android/weft-core/src/main/kotlin/dev/weft/TriadNative.kt
+[PASS] core/kotlin/Weft.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Weft.kt
+[PASS] core/kotlin/Governor.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Governor.kt
+[PASS] core/kotlin/Recycler.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Recycler.kt
+[PASS] core/kotlin/GovernedFanoutConsumer.kt  <->  android/weft-core/src/main/kotlin/dev/weft/GovernedFanoutConsumer.kt
+[PASS] core/kotlin/FanoutVhBridge.java  <->  android/weft-core/src/main/java/dev/weft/FanoutVhBridge.java
+[PASS] core/dart/frame_cursor.dart  <->  packages/flutter_weft/lib/src/reference/frame_cursor.dart
+[PASS] core/dart/fanout.dart  <->  packages/flutter_weft/lib/src/reference/fanout.dart
+[PASS] core/dart/heddle.dart  <->  packages/flutter_weft/lib/src/reference/heddle.dart
+[PASS] core/dart/steward.dart  <->  packages/flutter_weft/lib/src/reference/steward.dart
+[PASS] core/dart/weft.dart  <->  packages/flutter_weft/lib/src/reference/weft.dart
+[PASS] core/ts/weft.ts  <->  packages/core/src/weft.ts
+[PASS] core/ts/fanout.ts  <->  packages/core/src/fanout.ts
+[PASS] core/ts/verified.ts  <->  packages/core/src/verified.ts
+[PASS] core/kotlin/Verified.kt  <->  android/weft-core/src/main/kotlin/dev/weft/Verified.kt
+[PASS] core/dart/verified.dart  <->  packages/flutter_weft/lib/src/reference/verified.dart
+[PASS] core/dart/governor.dart  <->  packages/flutter_weft/lib/src/reference/governor.dart
+[PASS] core/dart/recycler.dart  <->  packages/flutter_weft/lib/src/reference/recycler.dart
+[PASS] core/dart/governed_consumer.dart  <->  packages/flutter_weft/lib/src/reference/governed_consumer.dart
+[PASS] core/kotlin/BlendQ12.kt  <->  android/weft-core/src/main/kotlin/dev/weft/BlendQ12.kt
+[PASS] core/kotlin/RenderQos.kt  <->  android/weft-core/src/main/kotlin/dev/weft/RenderQos.kt
+[PASS] core/dart/blend_q12.dart  <->  packages/flutter_weft/lib/src/reference/blend_q12.dart
+[PASS] core/dart/render_qos.dart  <->  packages/flutter_weft/lib/src/reference/render_qos.dart
+{"shard":"binding-parity","passed":27,"failed":0,"total":27,"cells":{"core/kotlin/FrameCursor.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Fanout.kt":{"status":"PASS","detail":"identical"},"core/kotlin/FanoutCompat.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Steward.kt":{"status":"PASS","detail":"identical"},"core/kotlin/TriadNative.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Weft.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Governor.kt":{"status":"PASS","detail":"identical"},"core/kotlin/Recycler.kt":{"status":"PASS","detail":"identical"},"core/kotlin/GovernedFanoutConsumer.kt":{"status":"PASS","detail":"identical"},"core/kotlin/FanoutVhBridge.java":{"status":"PASS","detail":"identical"},"core/dart/frame_cursor.dart":{"status":"PASS","detail":"identical"},"core/dart/fanout.dart":{"status":"PASS","detail":"identical"},"core/dart/heddle.dart":{"status":"PASS","detail":"identical"},"core/dart/steward.dart":{"status":"PASS","detail":"identical"},"core/dart/weft.dart":{"status":"PASS","detail":"identical"},"core/ts/weft.ts":{"status":"PASS","detail":"identical"},"core/ts/fanout.ts":{"status":"PASS","detail":"identical"},"core/ts/verified.ts":{"status":"PASS","detail":"identical"},"core/kotlin/Verified.kt":{"status":"PASS","detail":"identical"},"core/dart/verified.dart":{"status":"PASS","detail":"identical"},"core/dart/governor.dart":{"status":"PASS","detail":"identical"},"core/dart/recycler.dart":{"status":"PASS","detail":"identical"},"core/dart/governed_consumer.dart":{"status":"PASS","detail":"identical"},"core/kotlin/BlendQ12.kt":{"status":"PASS","detail":"identical"},"core/kotlin/RenderQos.kt":{"status":"PASS","detail":"identical"},"core/dart/blend_q12.dart":{"status":"PASS","detail":"identical"},"core/dart/render_qos.dart":{"status":"PASS","detail":"identical"}}}
+✅ Binding parity: 27/27 pairs byte-identical
+
+=== heddles <-> packages surface parity (shim re-exports) ===
+[PASS] heddles/react/WeftCanvas.tsx  ->  packages/react/src/index.ts
+[PASS] heddles/vue/useWeft.ts  ->  packages/vue/src/index.ts
+[PASS] heddles/svelte/weft-action.ts  ->  packages/svelte/src/index.ts
+[PASS] heddles/react-native/weft-rn.ts  ->  packages/react-native/src/index.ts
+✅ Heddles surface parity: 4/4 shims aligned
+{"shard":"binding-parity","byte_pairs":{"passed":27,"failed":0,"total":27},"shim_pairs":{"passed":4,"failed":0,"total":4,"cells":{"heddles/react/WeftCanvas.tsx":{"status":"PASS","detail":"surface parity"},"heddles/vue/useWeft.ts":{"status":"PASS","detail":"surface parity"},"heddles/svelte/weft-action.ts":{"status":"PASS","detail":"surface parity"},"heddles/react-native/weft-rn.ts":{"status":"PASS","detail":"surface parity"}}}}
+Scope: all 24 workspace projects
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +447
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 447, reused 436, downloaded 0, added 447, done
+
+devDependencies:
++ @microsoft/api-extractor 7.59.1
++ tsup 8.5.1
++ typescript 5.9.3
+
+Done in 2.1s
+Scope: 23 of 24 workspace projects
+packages/core build$ tsup
+packages/heddle-canvas build$ tsup
+packages/core build: [34mCLI[39m Building entry: src/index.ts, src/worker.ts
+packages/core build: [34mCLI[39m Using tsconfig: tsconfig.json
+packages/core build: [34mCLI[39m tsup v8.5.1
+packages/core build: [34mCLI[39m Using tsup config: /home/runner/work/Weft/Weft/packages/core/tsup.config.ts
+packages/heddle-canvas build: [34mCLI[39m Building entry: src/index.ts
+packages/heddle-canvas build: [34mCLI[39m Using tsconfig: tsconfig.json
+packages/heddle-canvas build: [34mCLI[39m tsup v8.5.1
+packages/heddle-canvas build: [34mCLI[39m Using tsup config: /home/runner/work/Weft/Weft/packages/heddle-canvas/tsup.config.ts
+packages/heddle-canvas build: [34mCLI[39m Target: es2022
+packages/heddle-canvas build: [34mCLI[39m Cleaning output folder
+packages/heddle-canvas build: [34mESM[39m Build start
+packages/heddle-canvas build: [34mCJS[39m Build start
+packages/core build: [34mCLI[39m Target: es2022
+packages/core build: [34mCLI[39m Cleaning output folder
+packages/core build: [34mESM[39m Build start
+packages/core build: [34mCJS[39m Build start
+packages/heddle-canvas build: [34mDTS[39m Build start
+packages/core build: [34mDTS[39m Build start
+packages/core build: [32mCJS[39m [1mdist/worker.js     [22m[32m5.27 KB[39m
+packages/core build: [32mCJS[39m [1mdist/index.js      [22m[32m83.18 KB[39m
+packages/core build: [32mCJS[39m [1mdist/worker.js.map [22m[32m16.83 KB[39m
+packages/core build: [32mCJS[39m [1mdist/index.js.map  [22m[32m221.69 KB[39m
+packages/core build: [32mCJS[39m ⚡️ Build success in 1202ms
+packages/core build: [32mESM[39m [1mdist/worker.mjs     [22m[32m5.09 KB[39m
+packages/core build: [32mESM[39m [1mdist/index.mjs      [22m[32m81.19 KB[39m
+packages/core build: [32mESM[39m [1mdist/worker.mjs.map [22m[32m16.83 KB[39m
+packages/core build: [32mESM[39m [1mdist/index.mjs.map  [22m[32m221.69 KB[39m
+packages/core build: [32mESM[39m ⚡️ Build success in 1204ms
+packages/heddle-canvas build: [32mESM[39m [1mdist/index.js     [22m[32m103.78 KB[39m
+packages/heddle-canvas build: [32mESM[39m [1mdist/index.js.map [22m[32m266.91 KB[39m
+packages/heddle-canvas build: [32mESM[39m ⚡️ Build success in 1424ms
+packages/heddle-canvas build: [32mCJS[39m [1mdist/index.cjs     [22m[32m105.96 KB[39m
+packages/heddle-canvas build: [32mCJS[39m [1mdist/index.cjs.map [22m[32m266.91 KB[39m
+packages/heddle-canvas build: [32mCJS[39m ⚡️ Build success in 1423ms
+packages/heddle-canvas build: [32mDTS[39m ⚡️ Build success in 2802ms
+packages/heddle-canvas build: [32mDTS[39m [1mdist/index.d.ts  [22m[32m41.35 KB[39m
+packages/heddle-canvas build: [32mDTS[39m [1mdist/index.d.cts [22m[32m41.35 KB[39m
+packages/heddle-canvas build: Done
+packages/core build: [32mDTS[39m ⚡️ Build success in 2970ms
+packages/core build: [32mDTS[39m [1mdist/index.d.mts         [22m[32m15.65 KB[39m
+packages/core build: [32mDTS[39m [1mdist/worker.d.mts        [22m[32m5.48 KB[39m
+packages/core build: [32mDTS[39m [1mdist/weft-BrIlH2fY.d.mts [22m[32m4.04 KB[39m
+packages/core build: [32mDTS[39m [1mdist/index.d.ts          [22m[32m15.65 KB[39m
+packages/core build: [32mDTS[39m [1mdist/worker.d.ts         [22m[32m5.47 KB[39m
+packages/core build: [32mDTS[39m [1mdist/weft-BrIlH2fY.d.ts  [22m[32m4.04 KB[39m
+packages/core build: Done
+fixtures/node-litmus build$ tsup litmus-packaged.ts --format esm --target node20
+packages/react build$ tsup
+packages/react-native build$ tsup
+packages/svelte build$ tsup
+fixtures/node-litmus build: [34mCLI[39m Building entry: litmus-packaged.ts
+fixtures/node-litmus build: [34mCLI[39m tsup v8.5.1
+fixtures/node-litmus build: [34mCLI[39m Target: node20
+fixtures/node-litmus build: [34mESM[39m Build start
+fixtures/node-litmus build: [32mESM[39m [1mdist/litmus-packaged.js [22m[32m21.43 KB[39m
+fixtures/node-litmus build: [32mESM[39m ⚡️ Build success in 48ms
+packages/react-native build: [34mCLI[39m Building entry: src/index.ts
+packages/react-native build: [34mCLI[39m Using tsconfig: tsconfig.json
+packages/react-native build: [34mCLI[39m tsup v8.5.1
+packages/react-native build: [34mCLI[39m Using tsup config: /home/runner/work/Weft/Weft/packages/react-native/tsup.config.ts
+fixtures/node-litmus build: Done
+packages/vue build$ tsup
+packages/react-native build: [34mCLI[39m Target: es2022
+packages/react-native build: [34mCLI[39m Cleaning output folder
+packages/react-native build: [34mESM[39m Build start
+packages/react-native build: [34mCJS[39m Build start
+packages/react build: [34mCLI[39m Building entry: src/index.ts
+packages/react build: [34mCLI[39m Using tsconfig: tsconfig.json
+packages/react build: [34mCLI[39m tsup v8.5.1
+packages/react build: [34mCLI[39m Using tsup config: /home/runner/work/Weft/Weft/packages/react/tsup.config.ts
+packages/react-native build: [32mESM[39m [1mdist/index.mjs     [22m[32m11.17 KB[39m
+packages/react-native build: [32mESM[39m [1mdist/index.mjs.map [22m[32m38.33 KB[39m
+packages/react-native build: [32mESM[39m ⚡️ Build success in 57ms
+packages/react-native build: [32mCJS[39m [1mdist/index.js     [22m[32m12.67 KB[39m
+packages/react-native build: [32mCJS[39m [1mdist/index.js.map [22m[32m38.40 KB[39m
+packages/react-native build: [32mCJS[39m ⚡️ Build success in 57ms
+packages/react build: [34mCLI[39m Target: es2022
+packages/react build: [34mCLI[39m Cleaning output folder
+packages/react build: [34mESM[39m Build start
+packages/react build: [34mCJS[39m Build start
+packages/react build: [32mESM[39m [1mdist/index.mjs     [22m[32m5.68 KB[39m
+packages/react build: [32mESM[39m [1mdist/index.mjs.map [22m[32m16.94 KB[39m
+packages/react build: [32mESM[39m ⚡️ Build success in 74ms
+packages/react build: [32mCJS[39m [1mdist/index.js     [22m[32m7.49 KB[39m
+packages/react build: [32mCJS[39m [1mdist/index.js.map [22m[32m16.96 KB[39m
+packages/react build: [32mCJS[39m ⚡️ Build success in 74ms
+packages/svelte build: [34mCLI[39m Building entry: src/index.ts
+packages/svelte build: [34mCLI[39m Using tsconfig: tsconfig.json
+packages/svelte build: [34mCLI[39m tsup v8.5.1
+packages/svelte build: [34mCLI[39m Using tsup config: /home/runner/work/Weft/Weft/packages/svelte/tsup.config.ts
+packages/svelte build: [34mCLI[39m Target: es2022
+packages/svelte build: [34mCLI[39m Cleaning output folder
+packages/svelte build: [34mESM[39m Build start
+packages/svelte build: [34mCJS[39m Build start
+packages/svelte build: [32mESM[39m [1mdist/index.mjs     [22m[32m1.15 KB[39m
+packages/svelte build: [32mESM[39m [1mdist/index.mjs.map [22m[32m4.43 KB[39m
+packages/svelte build: [32mESM[39m ⚡️ Build success in 43ms
+packages/svelte build: [32mCJS[39m [1mdist/index.js     [22m[32m2.18 KB[39m
+packages/svelte build: [32mCJS[39m [1mdist/index.js.map [22m[32m4.48 KB[39m
+packages/svelte build: [32mCJS[39m ⚡️ Build success in 43ms
+packages/react-native build: [34mDTS[39m Build start
+packages/react build: [34mDTS[39m Build start
+packages/vue build: [34mCLI[39m Building entry: src/index.ts
+packages/vue build: [34mCLI[39m Using tsconfig: tsconfig.json
+packages/vue build: [34mCLI[39m tsup v8.5.1
+packages/vue build: [34mCLI[39m Using tsup config: /home/runner/work/Weft/Weft/packages/vue/tsup.config.ts
+packages/vue build: [34mCLI[39m Target: es2022
+packages/vue build: [34mCLI[39m Cleaning output folder
+packages/vue build: [34mESM[39m Build start
+packages/vue build: [34mCJS[39m Build start
+packages/vue build: [32mCJS[39m [1mdist/index.js     [22m[32m4.18 KB[39m
+packages/vue build: [32mCJS[39m [1mdist/index.js.map [22m[32m8.62 KB[39m
+packages/vue build: [32mCJS[39m ⚡️ Build success in 50ms
+packages/vue build: [32mESM[39m [1mdist/index.mjs     [22m[32m3.09 KB[39m
+packages/vue build: [32mESM[39m [1mdist/index.mjs.map [22m[32m8.58 KB[39m
+packages/vue build: [32mESM[39m ⚡️ Build success in 55ms
+packages/svelte build: [34mDTS[39m Build start
+packages/vue build: [34mDTS[39m Build start
+packages/svelte build: [32mDTS[39m ⚡️ Build success in 2050ms
+packages/svelte build: [32mDTS[39m [1mdist/index.d.mts [22m[32m645.00 B[39m
+packages/svelte build: [32mDTS[39m [1mdist/index.d.ts  [22m[32m645.00 B[39m
+packages/svelte build: Done
+packages/react-native build: [32mDTS[39m ⚡️ Build success in 2946ms
+packages/react-native build: [32mDTS[39m [1mdist/index.d.mts [22m[32m5.96 KB[39m
+packages/react-native build: [32mDTS[39m [1mdist/index.d.ts  [22m[32m5.96 KB[39m
+packages/react-native build: Done
+packages/react build: [32mDTS[39m ⚡️ Build success in 3459ms
+packages/react build: [32mDTS[39m [1mdist/index.d.mts [22m[32m36.68 KB[39m
+packages/react build: [32mDTS[39m [1mdist/index.d.ts  [22m[32m36.68 KB[39m
+packages/react build: Done
+packages/vue build: [32mDTS[39m ⚡️ Build success in 2562ms
+packages/vue build: [32mDTS[39m [1mdist/index.d.mts [22m[32m1.99 KB[39m
+packages/vue build: [32mDTS[39m [1mdist/index.d.ts  [22m[32m1.99 KB[39m
+packages/vue build: Done
+demos/web build$ tsc && vite build
+fixtures/vite-react build$ vite build
+fixtures/vite-react build: [36mvite v6.4.3 [32mbuilding for production...[36m[39m
+fixtures/vite-react build: transforming...
+fixtures/vite-react build: [32m✓[39m 28 modules transformed.
+fixtures/vite-react build: rendering chunks...
+fixtures/vite-react build: computing gzip size...
+fixtures/vite-react build: [2mdist/[22m[32mindex.html                [39m[1m[2m  0.33 kB[22m[1m[22m[2m │ gzip:  0.24 kB[22m
+fixtures/vite-react build: [2mdist/[22m[2massets/[22m[36mindex-DgIEMwtT.js  [39m[1m[2m151.94 kB[22m[1m[22m[2m │ gzip: 48.92 kB[22m
+fixtures/vite-react build: [32m✓ built in 1.52s[39m
+fixtures/vite-react build: Done
+demos/web build: [36mvite v6.4.3 [32mbuilding for production...[36m[39m
+demos/web build: transforming...
+demos/web build: [32m✓[39m 39 modules transformed.
+demos/web build: rendering chunks...
+demos/web build: computing gzip size...
+demos/web build: [2mdist/[22m[32mindex.html                [39m[1m[2m  0.47 kB[22m[1m[22m[2m │ gzip:  0.35 kB[22m
+demos/web build: [2mdist/[22m[2massets/[22m[36mindex-BfGpNA1C.js  [39m[1m[2m203.83 kB[22m[1m[22m[2m │ gzip: 64.29 kB[22m
+demos/web build: [32m✓ built in 917ms[39m
+demos/web build: Done
+Scope: 18 of 24 workspace projects
+packages/core test$ vitest run
+packages/fintech test$ node --test test/*.test.mjs
+packages/heddle-canvas test$ vitest run
+packages/heddle-core test$ node --test test/*.test.mjs
+packages/fintech test: TAP version 13
+packages/heddle-core test: TAP version 13
+packages/heddle-core test: # Subtest: fixture hpl1-basic-4x8: manifest sha256 matches bytes
+packages/heddle-core test: ok 1 - fixture hpl1-basic-4x8: manifest sha256 matches bytes
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 8.108664
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: fixture hpl1-basic-4x8: validates and parses field-by-field through heddle-core
+packages/heddle-core test: ok 2 - fixture hpl1-basic-4x8: validates and parses field-by-field through heddle-core
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 1.718093
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: fixture hpl1-edge-1x2: manifest sha256 matches bytes
+packages/heddle-core test: ok 3 - fixture hpl1-edge-1x2: manifest sha256 matches bytes
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 6.38984
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: fixture hpl1-edge-1x2: validates and parses field-by-field through heddle-core
+packages/heddle-core test: ok 4 - fixture hpl1-edge-1x2: validates and parses field-by-field through heddle-core
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 4.961999
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: fixture magic is the pinned HPL1 magic
+packages/heddle-core test: ok 5 - fixture magic is the pinned HPL1 magic
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.272059
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/fintech test: # Subtest: aggregation: levels accumulate size + order count; best tracks extremes
+packages/fintech test: ok 1 - aggregation: levels accumulate size + order count; best tracks extremes
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 19.542868
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: partial execute keeps level; full execute frees slot back to the ring
+packages/fintech test: ok 2 - partial execute keeps level; full execute frees slot back to the ring
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 12.971599
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: cancel reduces; delete removes; both O(1) with free-ring reuse
+packages/fintech test: ok 3 - cancel reduces; delete removes; both O(1) with free-ring reuse
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 8.601005
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: replace moves the order and resets time priority (ITCH U semantics)
+packages/fintech test: ok 4 - replace moves the order and resets time priority (ITCH U semantics)
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 7.199274
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: reject paths are counted, never thrown, and leave state consistent
+packages/fintech test: ok 5 - reject paths are counted, never thrown, and leave state consistent
+packages/heddle-core test: # Subtest: align8 + geometry derivation matches the spec tables
+packages/heddle-core test: ok 6 - align8 + geometry derivation matches the spec tables
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 3.754121
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: isPow2 gate
+packages/heddle-core test: ok 7 - isPow2 gate
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.305772
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane accepts a well-formed plane and returns geometry
+packages/heddle-core test: ok 8 - validatePlane accepts a well-formed plane and returns geometry
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.564335
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane fails closed: bad magic
+packages/heddle-core test: ok 9 - validatePlane fails closed: bad magic
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 3.783806
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane fails closed: bad version
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 10.937395
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: pool exhaustion counting is exact
+packages/fintech test: ok 6 - pool exhaustion counting is exact
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 16.224502
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: u64 refs beyond 2^53 are exact through lo/hi pairs (no double materialization)
+packages/fintech test: ok 7 - u64 refs beyond 2^53 are exact through lo/hi pairs (no double materialization)
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 9.428543
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: trade messages never rest on the book
+packages/fintech test: ok 8 - trade messages never rest on the book
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 11.235001
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: best prices converge when both sides rest at the same tick
+packages/fintech test: ok 9 - best prices converge when both sides rest at the same tick
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 20.077438
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/heddle-core test: ok 10 - validatePlane fails closed: bad version
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.361677
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane fails closed: LE flag clear
+packages/heddle-core test: ok 11 - validatePlane fails closed: LE flag clear
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.257512
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane fails closed: laneCount 0
+packages/heddle-core test: ok 12 - validatePlane fails closed: laneCount 0
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.318585
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane fails closed: laneCount > MAX
+packages/heddle-core test: ok 13 - validatePlane fails closed: laneCount > MAX
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.212728
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane fails closed: non-pow2 samples
+packages/heddle-core test: ok 14 - validatePlane fails closed: non-pow2 samples
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.553075
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane fails closed: ringMask drift
+packages/heddle-core test: ok 15 - validatePlane fails closed: ringMask drift
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 5.639888
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane fails closed: dirtyWords drift
+packages/heddle-core test: ok 16 - validatePlane fails closed: dirtyWords drift
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.282589
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane fails closed: stride drift
+packages/heddle-core test: ok 17 - validatePlane fails closed: stride drift
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.347239
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane fails closed: ringBase drift
+packages/heddle-core test: ok 18 - validatePlane fails closed: ringBase drift
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.257472
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane fails closed: totalBytes drift
+packages/heddle-core test: ok 19 - validatePlane fails closed: totalBytes drift
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.154369
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: validatePlane rejects undersized buffers and bad byteOffset
+packages/heddle-core test: ok 20 - validatePlane rejects undersized buffers and bad byteOffset
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.258043
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: constants are the pinned HPL1 v1 values
+packages/heddle-core test: ok 21 - constants are the pinned HPL1 v1 values
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.145622
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: readLane returns published stats in place (zero new objects)
+packages/heddle-core test: ok 22 - readLane returns published stats in place (zero new objects)
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 8.09072
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: readRecent returns newest-first ring order and wraps
+packages/heddle-core test: ok 23 - readRecent returns newest-first ring order and wraps
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 7.371656
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: readRecent underrun: fewer samples than requested returns available count
+packages/heddle-core test: ok 24 - readRecent underrun: fewer samples than requested returns available count
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.510264
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: lane out of range is a caller error (Law 4 taxonomy code 5)
+packages/heddle-core test: ok 25 - lane out of range is a caller error (Law 4 taxonomy code 5)
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.760172
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: header seqlock read + epoch change detection
+packages/heddle-core test: ok 26 - header seqlock read + epoch change detection
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 7.501269
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: dirty mask: producer-set bits observed, consumers never write
+packages/heddle-core test: ok 27 - dirty mask: producer-set bits observed, consumers never write
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.687356
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: torn seqlock: a concurrent writer is detected, value NOT returned
+packages/heddle-core test: ok 28 - torn seqlock: a concurrent writer is detected, value NOT returned
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.397854
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: reader works on a plain ArrayBuffer (fixture mode, non-shared)
+packages/heddle-core test: ok 29 - reader works on a plain ArrayBuffer (fixture mode, non-shared)
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.397794
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: SharedArrayBuffer path uses Atomics gates
+packages/heddle-core test: ok 30 - SharedArrayBuffer path uses Atomics gates
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 6.764651
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: lane ctrl block stride is pinned at 64 and layout matches spec offsets
+packages/heddle-core test: ok 31 - lane ctrl block stride is pinned at 64 and layout matches spec offsets
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 7.638635
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/fintech test: # Subtest: TS MDP1 checkpoints reproduce the frozen parity hashes bit-for-bit
+packages/fintech test: ok 10 - TS MDP1 checkpoints reproduce the frozen parity hashes bit-for-bit
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 31.000566
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: final book state matches the frozen manifest stats
+packages/fintech test: ok 11 - final book state matches the frozen manifest stats
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 9.660958
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: engine is deterministic: two fresh runs produce identical snapshots
+packages/fintech test: ok 12 - engine is deterministic: two fresh runs produce identical snapshots
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 35.539525
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: throughput sanity: 2,048-message golden stream parses in < 100ms
+packages/fintech test: ok 13 - throughput sanity: 2,048-message golden stream parses in < 100ms
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 11.093486
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: telemetry records the run with zero-allocation slot updates
+packages/fintech test: ok 14 - telemetry records the run with zero-allocation slot updates
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 16.398748
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/heddle-core test: # Subtest: publishLane: seqlock is even at rest, odd only mid-write (single thread probe)
+packages/heddle-core test: ok 32 - publishLane: seqlock is even at rest, odd only mid-write (single thread probe)
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 8.24548
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: publishLane: stats update in place, min/max/avg correct over the session
+packages/heddle-core test: ok 33 - publishLane: stats update in place, min/max/avg correct over the session
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.904382
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: running average converges to exact mean (recurrence honesty)
+packages/heddle-core test: ok 34 - running average converges to exact mean (recurrence honesty)
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 3.744803
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: NaN and Infinity are rejected with HPL1_INVALID_SAMPLE — never published
+packages/heddle-core test: ok 35 - NaN and Infinity are rejected with HPL1_INVALID_SAMPLE — never published
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 1.089718
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/fintech test: # Subtest: view decodes big-endian wire fields exactly
+packages/fintech test: ok 15 - view decodes big-endian wire fields exactly
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 9.678761
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: execute / cancel / replace / trade field offsets are per-spec
+packages/fintech test: ok 16 - execute / cancel / replace / trade field offsets are per-spec
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 0.403445
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: golden stream framing: message count and type census match scenario
+packages/fintech test: ok 17 - golden stream framing: message count and type census match scenario
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 53.33909
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: unknown message types are skipped by length prefix, never fatal
+packages/fintech test: ok 18 - unknown message types are skipped by length prefix, never fatal
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 6.541754
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/heddle-core test: # Subtest: head wraps by mask and laneFlags gain ACTIVE on first publish
+packages/heddle-core test: ok 36 - head wraps by mask and laneFlags gain ACTIVE on first publish
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.333644
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: publishTick publishes globals under the header seqlock
+packages/heddle-core test: ok 37 - publishTick publishes globals under the header seqlock
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.904451
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: epochRestart bumps epoch, resets session stats, keeps samplesSeen monotonic
+packages/heddle-core test: ok 38 - epochRestart bumps epoch, resets session stats, keeps samplesSeen monotonic
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 3.552965
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: producer geometry agrees with the fixture generator (layout parity)
+packages/heddle-core test: ok 39 - producer geometry agrees with the fixture generator (layout parity)
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.805687
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/fintech test: # Subtest: corrupt framing (length beyond buffer) fails closed with E_TRUNC
+packages/fintech test: ok 19 - corrupt framing (length beyond buffer) fails closed with E_TRUNC
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 6.435596
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: incremental pumping via resume produces identical state
+packages/fintech test: ok 20 - incremental pumping via resume produces identical state
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 43.983055
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: system events advance lastTs but never rest orders
+packages/fintech test: ok 21 - system events advance lastTs but never rest orders
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 15.324149
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: CRC-32 matches the standard check vector ("123456789" -> 0xCBF43926)
+packages/fintech test: ok 22 - CRC-32 matches the standard check vector ("123456789" -> 0xCBF43926)
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 1.469157
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: CRC table is idempotent and complete
+packages/fintech test: ok 23 - CRC table is idempotent and complete
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 0.204452
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: empty book snapshot: magic, version, zero levels, valid CRC
+packages/fintech test: ok 24 - empty book snapshot: magic, version, zero levels, valid CRC
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 4.245239
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: snapshot reflects aggregated top-of-book levels best-first
+packages/fintech test: ok 25 - snapshot reflects aggregated top-of-book levels best-first
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 19.384532
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: crossed and locked flags derive from best prices
+packages/fintech test: ok 26 - crossed and locked flags derive from best prices
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 22.111613
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: CRC flips when a payload byte is corrupted (fail-closed detection)
+packages/fintech test: ok 27 - CRC flips when a payload byte is corrupted (fail-closed detection)
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 9.680915
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: seq, msg_count and trade_count round-trip through the wire
+packages/fintech test: ok 28 - seq, msg_count and trade_count round-trip through the wire
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 19.205036
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/heddle-core test: # Subtest: renders once per interval at 240 Hz on a virtual clock
+packages/heddle-core test: ok 40 - renders once per interval at 240 Hz on a virtual clock
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 2.142587
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: does not render before the interval elapses
+packages/heddle-core test: ok 41 - does not render before the interval elapses
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.42209
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: drop-not-queue: a 10 ms stall is followed by ONE frame, skips counted
+packages/heddle-core test: ok 42 - drop-not-queue: a 10 ms stall is followed by ONE frame, skips counted
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.446955
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: a 1-second stall produces ~240 skips and one render — never 240 renders
+packages/heddle-core test: ok 43 - a 1-second stall produces ~240 skips and one render — never 240 renders
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.257292
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: frame context object is REUSED across frames (Law 1)
+packages/heddle-core test: ok 44 - frame context object is REUSED across frames (Law 1)
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.424694
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: pause/resume: paused pumps render nothing; resume does not catch up
+packages/heddle-core test: ok 45 - pause/resume: paused pumps render nothing; resume does not catch up
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.391692
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: startWithTimer drives a real timer loop (setTimeout path)
+packages/heddle-core test: ok 46 - startWithTimer drives a real timer loop (setTimeout path)
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 19.959647
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: # Subtest: hz guard
+packages/heddle-core test: ok 47 - hz guard
+packages/heddle-core test:   ---
+packages/heddle-core test:   duration_ms: 0.698927
+packages/heddle-core test:   type: 'test'
+packages/heddle-core test:   ...
+packages/heddle-core test: 1..47
+packages/heddle-core test: # tests 47
+packages/heddle-core test: # suites 0
+packages/heddle-core test: # pass 47
+packages/heddle-core test: # fail 0
+packages/heddle-core test: # cancelled 0
+packages/heddle-core test: # skipped 0
+packages/heddle-core test: # todo 0
+packages/heddle-core test: # duration_ms 552.193752
+packages/heddle-core test: Done
+packages/heddle-hotplane test$ node test/golden.test.mjs
+packages/fintech test: # Subtest: <WeftOrderBook /> renders once and frames never re-invoke the component
+packages/fintech test: ok 29 - <WeftOrderBook /> renders once and frames never re-invoke the component
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 20.879729
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: controller draws on seq change, skips identical frames, honors CRC
+packages/fintech test: ok 30 - controller draws on seq change, skips identical frames, honors CRC
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 9.884466
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: 240 FPS virtual clock: 4,800 frames, simulated 0.5ms cost -> 0 dropped
+packages/fintech test: ok 31 - 240 FPS virtual clock: 4,800 frames, simulated 0.5ms cost -> 0 dropped
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 77.3036
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: negative control: simulated 5ms cost MUST trip the drop counter
+packages/fintech test: ok 32 - negative control: simulated 5ms cost MUST trip the drop counter
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 8.311774
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: degrade/restore: context loss flips FALLBACK without throwing (W4-04)
+packages/fintech test: ok 33 - degrade/restore: context loss flips FALLBACK without throwing (W4-04)
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 5.872332
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: telemetry bar: 10,000 updates mutate nodes in place; ZERO setState
+packages/fintech test: ok 34 - telemetry bar: 10,000 updates mutate nodes in place; ZERO setState
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 32.685357
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: unmount cleanup: stop() detaches without leaks (no timer left running)
+packages/fintech test: ok 35 - unmount cleanup: stop() detaches without leaks (no timer left running)
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 5.306165
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/core test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+packages/fintech test: # Subtest: golden SBE stream: 4096 records, values exact, extensions skipped
+packages/fintech test: ok 36 - golden SBE stream: 4096 records, values exact, extensions skipped
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 16.461867
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: field values are exact per record (seq = i+1, bid = 100000 + i%7)
+packages/fintech test: ok 37 - field values are exact per record (seq = i+1, bid = 100000 + i%7)
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 1.646148
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: unknown templates are skipped by transport length (forward compat)
+packages/fintech test: ok 38 - unknown templates are skipped by transport length (forward compat)
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 0.281306
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: # Subtest: truncated stream fails closed (no partial record visits)
+packages/fintech test: ok 39 - truncated stream fails closed (no partial record visits)
+packages/fintech test:   ---
+packages/fintech test:   duration_ms: 0.473134
+packages/fintech test:   type: 'test'
+packages/fintech test:   ...
+packages/fintech test: 1..39
+packages/fintech test: # tests 39
+packages/fintech test: # suites 0
+packages/fintech test: # pass 39
+packages/fintech test: # fail 0
+packages/fintech test: # cancelled 0
+packages/fintech test: # skipped 0
+packages/fintech test: # todo 0
+packages/fintech test: # duration_ms 680.886198
+packages/heddle-hotplane test: PASS J1 mode decoded (state)
+packages/heddle-hotplane test: PASS J1 lane_count decoded
+packages/heddle-hotplane test: PASS J1 lane_stride decoded
+packages/heddle-hotplane test: PASS J1 sample_size decoded
+packages/heddle-hotplane test: PASS J1 slot_capacity decoded
+packages/heddle-hotplane test: PASS J1 plane_size decoded
+packages/heddle-hotplane test: PASS J1 create_stamp_ns decoded
+packages/heddle-hotplane test: PASS J1 magic constant parity
+packages/heddle-hotplane test: PASS J2 begin_seq
+packages/heddle-hotplane test: PASS J2 commit_seq
+packages/heddle-hotplane test: PASS J2 dirty_mask
+packages/heddle-hotplane test: PASS J2 dirty_transitions
+packages/heddle-hotplane test: PASS J2 render_frame_id
+packages/heddle-hotplane test: PASS J2 epoch (derived from commit_seq)
+packages/heddle-hotplane test: PASS J3 lane 0 commit_count
+packages/heddle-hotplane test: PASS J3 lane 0 min/max/current raw bits
+packages/heddle-hotplane test: PASS J3 lane 0 bbox [0,31]
+packages/heddle-hotplane test: PASS J4 lane 0: all 32 cells byte-exact
+packages/heddle-hotplane test: PASS J3 lane 1 commit_count
+packages/heddle-hotplane test: PASS J3 lane 1 min/max/current raw bits
+packages/heddle-hotplane test: PASS J3 lane 1 bbox [0,31]
+packages/heddle-hotplane test: PASS J4 lane 1: all 32 cells byte-exact
+packages/heddle-hotplane test: PASS J3 lane 2 commit_count
+packages/heddle-hotplane test: PASS J3 lane 2 min/max/current raw bits
+packages/heddle-hotplane test: PASS J3 lane 2 bbox [2,31]
+packages/heddle-hotplane test: PASS J4 lane 2: all 32 cells byte-exact
+packages/heddle-hotplane test: PASS J3 lane 3 commit_count
+packages/heddle-hotplane test: PASS J3 lane 3 min/max/current raw bits
+packages/heddle-hotplane test: PASS J3 lane 3 bbox [0,31]
+packages/heddle-hotplane test: PASS J4 lane 3: all 32 cells byte-exact
+packages/heddle-hotplane test: PASS J5 harvest returns mask 0xf
+packages/heddle-hotplane test: PASS J5 second harvest empty
+packages/heddle-hotplane test: PASS J5 remark visible next harvest
+packages/heddle-hotplane test: PASS J5 frame ids 1, 2
+packages/heddle-hotplane test: PASS J6 producer-role harvest refused
+packages/heddle-hotplane test: PASS J6 misaligned offset refused
+packages/heddle-hotplane test: PASS J6 corrupt magic refused
+packages/heddle-hotplane test: J-SERIES: 37 checks, 0 failures
+packages/fintech test: Done
+packages/heddle-hotplane test: Done
+packages/react-hooks test$ node --test test/hooks.test.mjs
+packages/react-tensor test$ node --test test/*.test.mjs
+packages/core test: [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/Weft/Weft/packages/core[39m
+packages/react-tensor test: TAP version 13
+packages/heddle-canvas test: [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/Weft/Weft/packages/heddle-canvas[39m
+packages/react-hooks test: TAP version 13
+packages/react-hooks test: # Subtest: createFrameSource: subscribe/emit/unsubscribe lifecycle
+packages/react-hooks test: ok 1 - createFrameSource: subscribe/emit/unsubscribe lifecycle
+packages/react-hooks test:   ---
+packages/react-hooks test:   duration_ms: 4.869367
+packages/react-hooks test:   type: 'test'
+packages/react-hooks test:   ...
+packages/react-hooks test: # Subtest: useWeftBuffer: 10,000 frames, ONE render — the zero-rerender contract
+packages/react-hooks test: ok 2 - useWeftBuffer: 10,000 frames, ONE render — the zero-rerender contract
+packages/react-hooks test:   ---
+packages/react-hooks test:   duration_ms: 11.653706
+packages/react-hooks test:   type: 'test'
+packages/react-hooks test:   ...
+packages/react-hooks test: # Subtest: useWeftBuffer: StrictMode double-mount leaves exactly one subscription
+packages/react-hooks test: ok 3 - useWeftBuffer: StrictMode double-mount leaves exactly one subscription
+packages/react-hooks test:   ---
+packages/react-hooks test:   duration_ms: 0.428882
+packages/react-hooks test:   type: 'test'
+packages/react-hooks test:   ...
+packages/react-hooks test: # Subtest: useWeftBuffer: latest-ref — new closure per render without resubscribe
+packages/react-hooks test: ok 4 - useWeftBuffer: latest-ref — new closure per render without resubscribe
+packages/react-hooks test:   ---
+packages/react-hooks test:   duration_ms: 0.427099
+packages/react-hooks test:   type: 'test'
+packages/react-hooks test:   ...
+packages/react-hooks test: # Subtest: useWeftCanvas: coalescing — 100 frames, one tick, newest frame wins
+packages/react-hooks test: ok 5 - useWeftCanvas: coalescing — 100 frames, one tick, newest frame wins
+packages/react-hooks test:   ---
+packages/react-hooks test:   duration_ms: 1.296776
+packages/react-hooks test:   type: 'test'
+packages/react-hooks test:   ...
+packages/react-hooks test: # Subtest: useWeftCanvas: parks when hidden, resumes on visibilitychange
+packages/react-hooks test: ok 6 - useWeftCanvas: parks when hidden, resumes on visibilitychange
+packages/react-hooks test:   ---
+packages/react-hooks test:   duration_ms: 0.467695
+packages/react-hooks test:   type: 'test'
+packages/react-hooks test:   ...
+packages/react-hooks test: # Subtest: useWeftCanvas: unmount cancels pending rAF and detaches listeners
+packages/react-hooks test: ok 7 - useWeftCanvas: unmount cancels pending rAF and detaches listeners
+packages/react-hooks test:   ---
+packages/react-hooks test:   duration_ms: 0.584142
+packages/react-hooks test:   type: 'test'
+packages/react-hooks test:   ...
+packages/react-hooks test: # Subtest: createSampleRing: fixed capacity, wraparound order, callback iteration
+packages/react-hooks test: ok 8 - createSampleRing: fixed capacity, wraparound order, callback iteration
+packages/react-hooks test:   ---
+packages/react-hooks test:   duration_ms: 1.190897
+packages/react-hooks test:   type: 'test'
+packages/react-hooks test:   ...
+packages/react-hooks test: # Subtest: drawFrameGraph: auto-scale and painter ops (allocation-free reads)
+packages/react-hooks test: ok 9 - drawFrameGraph: auto-scale and painter ops (allocation-free reads)
+packages/react-hooks test:   ---
+packages/react-hooks test:   duration_ms: 0.900674
+packages/react-hooks test:   type: 'test'
+packages/react-hooks test:   ...
+packages/react-hooks test: # Subtest: attachWebSocket: binary messages flow, strings ignored, detach works
+packages/react-hooks test: ok 10 - attachWebSocket: binary messages flow, strings ignored, detach works
+packages/react-hooks test:   ---
+packages/react-hooks test:   duration_ms: 0.784768
+packages/react-hooks test:   type: 'test'
+packages/react-hooks test:   ...
+packages/react-hooks test: # Subtest: package surface: index.js re-exports the full API
+packages/react-hooks test: ok 11 - package surface: index.js re-exports the full API
+packages/react-hooks test:   ---
+packages/react-hooks test:   duration_ms: 0.515594
+packages/react-hooks test:   type: 'test'
+packages/react-hooks test:   ...
+packages/react-hooks test: 1..11
+packages/react-hooks test: # tests 11
+packages/react-hooks test: # suites 0
+packages/react-hooks test: # pass 11
+packages/react-hooks test: # fail 0
+packages/react-hooks test: # cancelled 0
+packages/react-hooks test: # skipped 0
+packages/react-hooks test: # todo 0
+packages/react-hooks test: # duration_ms 255.782275
+packages/react-tensor test: # Subtest: controller: every NEW frame renders exactly once — zero React involvement
+packages/react-tensor test: ok 1 - controller: every NEW frame renders exactly once — zero React involvement
+packages/react-tensor test:   ---
+packages/react-tensor test:   duration_ms: 20.415721
+packages/react-tensor test:   type: 'test'
+packages/react-tensor test:   ...
+packages/react-tensor test: # Subtest: controller: overlay receives the frame view and scratch is reused
+packages/react-tensor test: ok 2 - controller: overlay receives the frame view and scratch is reused
+packages/react-tensor test:   ---
+packages/react-tensor test:   duration_ms: 0.591497
+packages/react-tensor test:   type: 'test'
+packages/react-tensor test:   ...
+packages/react-tensor test: # Subtest: controller: requires ring and canvas (fail-fast)
+packages/react-tensor test: ok 3 - controller: requires ring and canvas (fail-fast)
+packages/react-tensor test:   ---
+packages/react-tensor test:   duration_ms: 9.295233
+packages/react-tensor test:   type: 'test'
+packages/react-tensor test:   ...
+packages/react-hooks test: Done
+packages/robotics test$ node --test test/*.test.mjs
+packages/react-tensor test: # Subtest: useWeftTensorCanvas: single effect, live statsRef, clean teardown
+packages/react-tensor test: ok 4 - useWeftTensorCanvas: single effect, live statsRef, clean teardown
+packages/react-tensor test:   ---
+packages/react-tensor test:   duration_ms: 3.778166
+packages/react-tensor test:   type: 'test'
+packages/react-tensor test:   ...
+packages/react-tensor test: # Subtest: useWeftTensorCanvas: no canvas -> no effect work, no crash
+packages/react-tensor test: ok 5 - useWeftTensorCanvas: no canvas -> no effect work, no crash
+packages/react-tensor test:   ---
+packages/react-tensor test:   duration_ms: 0.323755
+packages/react-tensor test:   type: 'test'
+packages/react-tensor test:   ...
+packages/react-tensor test: 1..5
+packages/react-tensor test: # tests 5
+packages/react-tensor test: # suites 0
+packages/react-tensor test: # pass 5
+packages/react-tensor test: # fail 0
+packages/react-tensor test: # cancelled 0
+packages/react-tensor test: # skipped 0
+packages/react-tensor test: # todo 0
+packages/react-tensor test: # duration_ms 342.475813
+packages/react-tensor test: Done
+packages/spectrum-managed test$ node --test test/*.test.mjs
+packages/robotics test: TAP version 13
+packages/spectrum-managed test: TAP version 13
+packages/robotics test: # Subtest: point cloud viewer: null canvas degrades to FALLBACK banner (W4-04)
+packages/robotics test: ok 1 - point cloud viewer: null canvas degrades to FALLBACK banner (W4-04)
+packages/robotics test:   ---
+packages/robotics test:   duration_ms: 1.775059
+packages/robotics test:   type: 'test'
+packages/robotics test:   ...
+packages/robotics test: # Subtest: point cloud viewer: 1,000 live frames drive the engine, ZERO re-renders
+packages/robotics test: ok 2 - point cloud viewer: 1,000 live frames drive the engine, ZERO re-renders
+packages/robotics test:   ---
+packages/robotics test:   duration_ms: 18.005703
+packages/robotics test:   type: 'test'
+packages/robotics test:   ...
+packages/robotics test: # Subtest: attitude indicator: IMU quats drive canvas engine without re-render
+packages/robotics test: ok 3 - attitude indicator: IMU quats drive canvas engine without re-render
+packages/robotics test:   ---
+packages/robotics test:   duration_ms: 5.452427
+packages/robotics test:   type: 'test'
+packages/robotics test:   ...
+packages/robotics test: # Subtest: mvp matrix: deterministic output
+packages/robotics test: ok 4 - mvp matrix: deterministic output
+packages/robotics test:   ---
+packages/robotics test:   duration_ms: 5.134863
+packages/robotics test:   type: 'test'
+packages/robotics test:   ...
+packages/spectrum-managed test: # Subtest: WASM SIMD128 is available on this runtime (Node 22/24 lane)
+packages/spectrum-managed test: ok 1 - WASM SIMD128 is available on this runtime (Node 22/24 lane)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 5.951691
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: SharedArrayBuffer detection returns a boolean and never throws
+packages/spectrum-managed test: ok 2 - SharedArrayBuffer detection returns a boolean and never throws
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.275685
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: WebGPU absent in bare Node -> false without throwing
+packages/spectrum-managed test: ok 3 - WebGPU absent in bare Node -> false without throwing
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.441515
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: worker count is a positive integer (navigator.hardwareConcurrency in Node >=21)
+packages/spectrum-managed test: ok 4 - worker count is a positive integer (navigator.hardwareConcurrency in Node >=21)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.404065
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: simdWidthFromFeatures mirrors the SHP1 ISA mapping
+packages/spectrum-managed test: ok 5 - simdWidthFromFeatures mirrors the SHP1 ISA mapping
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.318305
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: fallback profile is coherent and tier-graded (E_PROBE_UNAVAILABLE path)
+packages/spectrum-managed test: ok 6 - fallback profile is coherent and tier-graded (E_PROBE_UNAVAILABLE path)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 5.903641
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: detectInto reuses the caller flyweight (no new object)
+packages/spectrum-managed test: ok 7 - detectInto reuses the caller flyweight (no new object)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.393937
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/robotics test: # Subtest: header fail-closed: short / magic / version / geometry
+packages/robotics test: ok 5 - header fail-closed: short / magic / version / geometry
+packages/robotics test:   ---
+packages/robotics test:   duration_ms: 14.526567
+packages/robotics test:   type: 'test'
+packages/robotics test:   ...
+packages/robotics test: # Subtest: acquire newest-wins with exact field decode
+packages/robotics test: ok 6 - acquire newest-wins with exact field decode
+packages/robotics test:   ---
+packages/robotics test:   duration_ms: 0.82358
+packages/robotics test:   type: 'test'
+packages/robotics test:   ...
+packages/robotics test: # Subtest: torn record counted, never thrown (drop-not-block)
+packages/robotics test: ok 7 - torn record counted, never thrown (drop-not-block)
+packages/robotics test:   ---
+packages/robotics test:   duration_ms: 0.490908
+packages/robotics test:   type: 'test'
+packages/robotics test:   ...
+packages/robotics test: # Subtest: topic filter counts filtered
+packages/robotics test: ok 8 - topic filter counts filtered
+packages/robotics test:   ---
+packages/robotics test:   duration_ms: 11.087475
+packages/robotics test:   type: 'test'
+packages/robotics test:   ...
+packages/robotics test: # Subtest: points window is a zero-copy view over ring bytes
+packages/robotics test: ok 9 - points window is a zero-copy view over ring bytes
+packages/robotics test:   ---
+packages/robotics test:   duration_ms: 0.61499
+packages/robotics test:   type: 'test'
+packages/robotics test:   ...
+packages/robotics test: # Subtest: frm1 descriptor decode (fail-closed)
+packages/robotics test: ok 10 - frm1 descriptor decode (fail-closed)
+packages/robotics test:   ---
+packages/robotics test:   duration_ms: 0.396081
+packages/robotics test:   type: 'test'
+packages/robotics test:   ...
+packages/robotics test: # Subtest: boxes window decode
+packages/robotics test: ok 11 - boxes window decode
+packages/robotics test:   ---
+packages/robotics test:   duration_ms: 6.4434
+packages/robotics test:   type: 'test'
+packages/robotics test:   ...
+packages/robotics test: # Subtest: FROZEN fixture parity: rng1-ring.bin (10 records, 1 torn)
+packages/robotics test: ok 12 - FROZEN fixture parity: rng1-ring.bin (10 records, 1 torn)
+packages/robotics test:   ---
+packages/robotics test:   duration_ms: 0.667187
+packages/robotics test:   type: 'test'
+packages/robotics test:   ...
+packages/spectrum-managed test: # Subtest: constants match the normative table (§4.1)
+packages/spectrum-managed test: ok 8 - constants match the normative table (§4.1)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 8.529813
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: FROZEN 130-tick vector: identical cap/rung/tierStage sequence
+packages/spectrum-managed test: ok 9 - FROZEN 130-tick vector: identical cap/rung/tierStage sequence
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 1.012714
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: cadenceTick returns a primitive and mutates the flyweight in place
+packages/spectrum-managed test: ok 10 - cadenceTick returns a primitive and mutates the flyweight in place
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.218509
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: ladder clamps at the bottom rung under endless severe heat
+packages/spectrum-managed test: ok 11 - ladder clamps at the bottom rung under endless severe heat
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.315
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: recovery never exceeds rung 0 and re-accumulates the cool window
+packages/spectrum-managed test: ok 12 - recovery never exceeds rung 0 and re-accumulates the cool window
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 3.586127
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: hidden visibility freezes streaks (no ladder movement while backgrounded)
+packages/spectrum-managed test: ok 13 - hidden visibility freezes streaks (no ladder movement while backgrounded)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.289191
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: tier ceiling: a down-tiered T3 device never runs above its profile max
+packages/spectrum-managed test: ok 14 - tier ceiling: a down-tiered T3 device never runs above its profile max
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.269414
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: tier staging vector (rule 5): 3 pressures -> stage 2, budget halves, hold
+packages/spectrum-managed test: ok 15 - tier staging vector (rule 5): 3 pressures -> stage 2, budget halves, hold
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.414856
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: effectiveBudgetBytes pure integer halving
+packages/spectrum-managed test: ok 16 - effectiveBudgetBytes pure integer halving
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.665114
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/robotics test: 1..12
+packages/robotics test: # tests 12
+packages/robotics test: # suites 0
+packages/robotics test: # pass 12
+packages/robotics test: # fail 0
+packages/robotics test: # cancelled 0
+packages/robotics test: # skipped 0
+packages/robotics test: # todo 0
+packages/robotics test: # duration_ms 487.67183
+packages/robotics test: Done
+packages/weft-cluster test$ node --test test/*.test.mjs
+packages/spectrum-managed test: # Subtest: paint writes tier/features/thermal/cadence from the flyweights
+packages/spectrum-managed test: ok 17 - paint writes tier/features/thermal/cadence from the flyweights
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 14.031582
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: ZERO re-render: 10,000 telemetry updates, 0 setState, single render
+packages/spectrum-managed test: ok 18 - ZERO re-render: 10,000 telemetry updates, 0 setState, single render
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 88.22819
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: fail-safe: destroyed row -> FALLBACK banner, not a throw; heal clears it
+packages/spectrum-managed test: ok 19 - fail-safe: destroyed row -> FALLBACK banner, not a throw; heal clears it
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.402613
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: paint survives a totally hostile state object (never throws into host)
+packages/spectrum-managed test: ok 20 - paint survives a totally hostile state object (never throws into host)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.454911
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: mounted HUD cleans its interval on unmount (zero leaky listeners/timers)
+packages/spectrum-managed test: ok 21 - mounted HUD cleans its interval on unmount (zero leaky listeners/timers)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 13.029137
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: visibilitychange writes the primitive into the flyweight
+packages/spectrum-managed test: ok 22 - visibilitychange writes the primitive into the flyweight
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 9.751126
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: battery listeners update permille/charging primitives (async attach)
+packages/spectrum-managed test: ok 23 - battery listeners update permille/charging primitives (async attach)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.605552
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: absent APIs keep UNKNOWN sentinels (Law 4, no crash)
+packages/spectrum-managed test: ok 24 - absent APIs keep UNKNOWN sentinels (Law 4, no crash)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.342961
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: double attach on the same doc counts a leak (dev-surface, no hot path)
+packages/spectrum-managed test: ok 25 - double attach on the same doc counts a leak (dev-surface, no hot path)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.321751
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: primeUnknown fills only undefined fields
+packages/spectrum-managed test: ok 26 - primeUnknown fills only undefined fields
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.40615
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: golden flagship decodes byte-parity vs expected_profile.json
+packages/spectrum-managed test: ok 27 - golden flagship decodes byte-parity vs expected_profile.json
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 2.161843
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: golden mid decodes byte-parity (u64 fields via lo/hi pairs)
+packages/spectrum-managed test: ok 28 - golden mid decodes byte-parity (u64 fields via lo/hi pairs)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.49743
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: golden budget decodes byte-parity
+packages/spectrum-managed test: ok 29 - golden budget decodes byte-parity
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.370623
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: torn fixture -> E_CRC_MISMATCH (fail-closed, no garbage decode)
+packages/spectrum-managed test: ok 30 - torn fixture -> E_CRC_MISMATCH (fail-closed, no garbage decode)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.29413
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: Law 4 matrix: bad magic / bad version / bad size / reserved dirty
+packages/spectrum-managed test: ok 31 - Law 4 matrix: bad magic / bad version / bad size / reserved dirty
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.487942
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: zero-copy proof: view sees in-place mutations of the underlying buffer
+packages/spectrum-managed test: ok 32 - zero-copy proof: view sees in-place mutations of the underlying buffer
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.398966
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: snapshotInto copies primitives into a caller-owned flyweight
+packages/spectrum-managed test: ok 33 - snapshotInto copies primitives into a caller-owned flyweight
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.727942
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: crc32 reference vectors (IEEE 802.3)
+packages/spectrum-managed test: ok 34 - crc32 reference vectors (IEEE 802.3)
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.20301
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: # Subtest: ERROR_NAMES covers the full 15-code taxonomy
+packages/spectrum-managed test: ok 35 - ERROR_NAMES covers the full 15-code taxonomy
+packages/spectrum-managed test:   ---
+packages/spectrum-managed test:   duration_ms: 0.477703
+packages/spectrum-managed test:   type: 'test'
+packages/spectrum-managed test:   ...
+packages/spectrum-managed test: 1..35
+packages/spectrum-managed test: # tests 35
+packages/spectrum-managed test: # suites 0
+packages/spectrum-managed test: # pass 35
+packages/spectrum-managed test: # fail 0
+packages/spectrum-managed test: # cancelled 0
+packages/spectrum-managed test: # skipped 0
+packages/spectrum-managed test: # todo 0
+packages/spectrum-managed test: # duration_ms 673.789615
+packages/spectrum-managed test: Done
+packages/weft-tensor test$ node --test test/*.test.mjs
+packages/weft-cluster test: TAP version 13
+packages/weft-tensor test: TAP version 13
+packages/weft-cluster test: # Subtest: shm: publish -> subscribe async iterator, seq monotonic, payload intact
+packages/weft-cluster test: ok 1 - shm: publish -> subscribe async iterator, seq monotonic, payload intact
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 37.808197
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/heddle-canvas test:  [32m✓[39m test/engine.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 168[2mms[22m[39m
+packages/weft-cluster test: # Subtest: shm: two subscribers fan out independently; unsubscribe stops flow
+packages/weft-cluster test: ok 2 - shm: two subscribers fan out independently; unsubscribe stops flow
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 41.020324
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: shm: tryLatest reads newest without advancing the iterator
+packages/weft-cluster test: ok 3 - shm: tryLatest reads newest without advancing the iterator
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 8.035568
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: Law 4: stale seq replays are dropped and counted (datagram path)
+packages/weft-cluster test: ok 4 - Law 4: stale seq replays are dropped and counted (datagram path)
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.792933
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: udp: two clients, SUB control plane, live datagram pub/sub
+packages/weft-cluster test: ok 5 - udp: two clients, SUB control plane, live datagram pub/sub
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 58.947071
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: udp: publisher with zero subscribers stays silent (no peers dup)
+packages/weft-cluster test: ok 6 - udp: publisher with zero subscribers stays silent (no peers dup)
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 1.05357
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/heddle-canvas test:  [32m✓[39m test/layout_parity.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 522[2mms[22m[39m
+packages/heddle-canvas test:    [33m[2m✓[22m[39m WHP1 layout parity: native/whp1_layout.h == src/plane/whp1.ts[2m > [22mthe C plane-size function agrees with whp1PlaneBytes (via clang eval) [33m505[2mms[22m[39m
+packages/core test:  [32m✓[39m test/weft.test.ts [2m([22m[2m43 tests[22m[2m)[22m[33m 718[2mms[22m[39m
+packages/core test:    [33m[2m✓[22m[39m Weft writer cursor[2m > [22mdemo-scale hot loop: 1,000 publish/claim cycles through the public cursor API with stable views [33m384[2mms[22m[39m
+packages/heddle-canvas test:  [32m✓[39m test/plane.test.ts [2m([22m[2m26 tests[22m[2m)[22m[33m 1179[2mms[22m[39m
+packages/heddle-canvas test:    [33m[2m✓[22m[39m WHP1 writer protocol (SynthProducer = executable spec)[2m > [22msynthSample is f32-stable and clamped (cross-engine hash precondition) [33m1023[2mms[22m[39m
+packages/core test:  [32m✓[39m test/verified.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 1112[2mms[22m[39m
+packages/core test:    [33m[2m✓[22m[39m V8: pre-keyed verifier (stream consumer)[2m > [22maccept/reject identical to one-shot verify across 1000 frames [33m363[2mms[22m[39m
+packages/heddle-canvas test:  [32m✓[39m test/shaders.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 144[2mms[22m[39m
+packages/core test:  [32m✓[39m test/fanout.test.ts [2m([22m[2m28 tests[22m[2m)[22m[33m 1247[2mms[22m[39m
+packages/core test:    [33m[2m✓[22m[39m fanout cross-thread protocol litmus[2m > [22mgeometry variant (M=8, P=640, 50k frames): zero torn claims [33m435[2mms[22m[39m
+packages/heddle-canvas test:  [32m✓[39m test/dirty_mask.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 236[2mms[22m[39m
+packages/heddle-canvas test:  [32m✓[39m test/law1.test.ts [2m([22m[2m6 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[90m 21[2mms[22m[39m
+packages/weft-cluster test: # Subtest: crosslang: TS still decodes the frozen WCN1 vectors byte-exactly
+packages/weft-cluster test: ok 7 - crosslang: TS still decodes the frozen WCN1 vectors byte-exactly
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 1.790328
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: crosslang: TS rejects malformed fixtures with the frozen codes
+packages/weft-cluster test: ok 8 - crosslang: TS rejects malformed fixtures with the frozen codes
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.458548
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: crosslang: FNV/CRC reference vectors match the fixture
+packages/weft-cluster test: ok 9 - crosslang: FNV/CRC reference vectors match the fixture
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.462926
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: registry: counters, gauges, histogram quantile sanity
+packages/weft-cluster test: ok 10 - registry: counters, gauges, histogram quantile sanity
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 14.915284
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: histogram bucket bounds follow the 1, 2, 3, 4, 6, 8, 12... sequence
+packages/weft-cluster test: ok 11 - histogram bucket bounds follow the 1, 2, 3, 4, 6, 8, 12... sequence
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 2.966588
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: prometheus: exposition format with cumulative histogram buckets
+packages/weft-cluster test: ok 12 - prometheus: exposition format with cumulative histogram buckets
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 2.854939
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: otel: OTLP/JSON document shape (resourceMetrics -> metrics)
+packages/weft-cluster test: ok 13 - otel: OTLP/JSON document shape (resourceMetrics -> metrics)
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 6.075201
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: perfetto: .pftrace protobuf round-trips packets and track events
+packages/weft-cluster test: ok 14 - perfetto: .pftrace protobuf round-trips packets and track events
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 2.311212
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: prometheus: embedded /metrics server answers 200 over real HTTP
+packages/weft-cluster test: ok 15 - prometheus: embedded /metrics server answers 200 over real HTTP
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 109.909529
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: router: deterministic owner across calls and instances
+packages/weft-cluster test: ok 16 - router: deterministic owner across calls and instances
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 13.309481
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: router: cross-language owner vector (node seeds 11,22,33,44 / telemetry)
+packages/weft-cluster test: ok 17 - router: cross-language owner vector (node seeds 11,22,33,44 / telemetry)
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 25.857528
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: router: 8-node balance within 3x envelope
+packages/weft-cluster test: ok 18 - router: 8-node balance within 3x envelope
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 77.89169
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: router: minimal disruption — adding 1 of 9 nodes moves ~1/9 of topics
+packages/weft-cluster test: ok 19 - router: minimal disruption — adding 1 of 9 nodes moves ~1/9 of topics
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 53.53532
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: router: unrouted topic -> WC_E_TOPIC_UNROUTED
+packages/weft-cluster test: ok 20 - router: unrouted topic -> WC_E_TOPIC_UNROUTED
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.283971
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: router: removeNode stops routing to it; version bumps
+packages/weft-cluster test: ok 21 - router: removeNode stops routing to it; version bumps
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.225472
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: membership: upsert + hash-index lookup round-trip
+packages/weft-cluster test: ok 22 - membership: upsert + hash-index lookup round-trip
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 7.902509
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: membership: open addressing survives heavy collisions
+packages/weft-cluster test: ok 23 - membership: open addressing survives heavy collisions
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 4.569997
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: gossip: 3 engines converge to a full membership view (socketless)
+packages/weft-cluster test: ok 24 - gossip: 3 engines converge to a full membership view (socketless)
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 23.991698
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: gossip: stale incarnation ignored, higher incarnation wins
+packages/weft-cluster test: ok 25 - gossip: stale incarnation ignored, higher incarnation wins
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.685662
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: gossip: LEAVING is sticky at equal incarnation, revive needs higher
+packages/weft-cluster test: ok 26 - gossip: LEAVING is sticky at equal incarnation, revive needs higher
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.491809
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: gossip: SWIM refutation — falsely-leaving node bumps incarnation
+packages/weft-cluster test: ok 27 - gossip: SWIM refutation — falsely-leaving node bumps incarnation
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.566219
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: gossip: silent nodes suspect then evicted (fake clock)
+packages/weft-cluster test: ok 28 - gossip: silent nodes suspect then evicted (fake clock)
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.491048
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: gossip: graceful leave announces and propagates LEAVING
+packages/weft-cluster test: ok 29 - gossip: graceful leave announces and propagates LEAVING
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 11.733604
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: crc32 IEEE vectors (parity with Python zlib.crc32)
+packages/weft-cluster test: ok 30 - crc32 IEEE vectors (parity with Python zlib.crc32)
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 1.744803
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: fnv1a64 topic hash vectors (parity with Python impl)
+packages/weft-cluster test: ok 31 - fnv1a64 topic hash vectors (parity with Python impl)
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 6.521947
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: WCN1 header: little-endian byte layout is normative
+packages/weft-cluster test: ok 32 - WCN1 header: little-endian byte layout is normative
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.396061
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: WCN1 round-trip: encode -> decode -> same fields
+packages/weft-cluster test: ok 33 - WCN1 round-trip: encode -> decode -> same fields
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 10.583523
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: Law 4: malformed datagrams map to the exact error taxonomy
+packages/weft-cluster test: ok 34 - Law 4: malformed datagrams map to the exact error taxonomy
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.39046
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: error names are stable (Law 4 contract)
+packages/heddle-canvas test:  [32m✓[39m test/oracle.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 418[2mms[22m[39m
+packages/heddle-canvas test:    [33m[2m✓[22m[39m reference window walk (cpu_oracle)[2m > [22m1M-point window decimates within the frame budget envelope (sanity) [33m354[2mms[22m[39m
+packages/weft-cluster test: ok 35 - error names are stable (Law 4 contract)
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.388947
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: WGS1 gossip: encode + entries + decode round-trip
+packages/weft-cluster test: ok 36 - WGS1 gossip: encode + entries + decode round-trip
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.659523
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: WGS1: entry_count overrun is WC_E_TRUNCATED, not a crash
+packages/weft-cluster test: ok 37 - WGS1: entry_count overrun is WC_E_TRUNCATED, not a crash
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.231092
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: # Subtest: Law 1: decodeInto is allocation-free (structural check)
+packages/weft-cluster test: ok 38 - Law 1: decodeInto is allocation-free (structural check)
+packages/weft-cluster test:   ---
+packages/weft-cluster test:   duration_ms: 0.685853
+packages/weft-cluster test:   type: 'test'
+packages/weft-cluster test:   ...
+packages/weft-cluster test: 1..38
+packages/weft-cluster test: # tests 38
+packages/weft-cluster test: # suites 0
+packages/weft-cluster test: # pass 38
+packages/weft-cluster test: # fail 0
+packages/weft-cluster test: # cancelled 0
+packages/weft-cluster test: # skipped 0
+packages/weft-cluster test: # todo 0
+packages/weft-cluster test: # duration_ms 2565.559529
+packages/weft-cluster test: Done
+packages/heddle-canvas test:  [32m✓[39m test/budget.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+packages/heddle-canvas test: [2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+packages/heddle-canvas test: [2m      Tests [22m [1m[32m65 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (66)[39m
+packages/heddle-canvas test: [2m   Start at [22m 14:09:24
+packages/heddle-canvas test: [2m   Duration [22m 3.89s[2m (transform 1.06s, setup 0ms, collect 1.72s, tests 2.70s, environment 2ms, prepare 2.45s)[22m
+packages/heddle-canvas test: Done
+packages/core test:  [32m✓[39m test/cadence-predictive.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 1142[2mms[22m[39m
+packages/core test:    [33m[2m✓[22m[39m RFC-0012 §PREDICTIVE_PACED[2m > [22mPC8 (integer equivalence): tick-for-tick identical to PACED_INTERPOLATE on every stable integer beat g=1..12 [33m526[2mms[22m[39m
+packages/core test:    [33m[2m✓[22m[39m RFC-0012 §PREDICTIVE_PACED[2m > [22mPC9 (the judder gate): on the 12/5 beat every post-warmup window is monotone and within 5% of the ideal fractional ladder [33m313[2mms[22m[39m
+packages/core test:  [32m✓[39m test/governor.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 61[2mms[22m[39m
+packages/core test:  [32m✓[39m test/cadence.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 2312[2mms[22m[39m
+packages/core test:    [33m[2m✓[22m[39m RFC-0009 §cadence — cross-policy gates[2m > [22mPC1: no policy ever presents twice in one tick (structural: one step, one decision) [33m1826[2mms[22m[39m
+packages/core test:  [32m✓[39m test/worker.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 144[2mms[22m[39m
+packages/core test:  [32m✓[39m test/cursor.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+packages/core test:  [32m✓[39m test/blend.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 95[2mms[22m[39m
+packages/core test:  [32m✓[39m test/trend.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 30[2mms[22m[39m
+packages/core test:  [32m✓[39m test/chaos.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 33[2mms[22m[39m
+packages/core test:  [32m✓[39m test/replay.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 3865[2mms[22m[39m
+packages/core test:    [33m[2m✓[22m[39m RFC 0019 replay fold (TS port)[2m > [22mR7: checkpoint jump equivalence [33m328[2mms[22m[39m
+packages/core test:    [33m[2m✓[22m[39m RFC 0019 replay fold (TS port)[2m > [22mR8: 100k soak — pinned cross-port parity vector [33m3522[2mms[22m[39m
+packages/core test: [2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+packages/core test: [2m      Tests [22m [1m[32m160 passed[39m[22m[90m (160)[39m
+packages/core test: [2m   Start at [22m 14:09:24
+packages/core test: [2m   Duration [22m 7.59s[2m (transform 1.18s, setup 0ms, collect 2.50s, tests 10.78s, environment 3ms, prepare 2.68s)[22m
+packages/core test: Done
+packages/weft-tensor test: # Subtest: zero-alloc probe [ring] — 100k steady-state ops stay flat
+packages/weft-tensor test: ok 1 - zero-alloc probe [ring] — 100k steady-state ops stay flat
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 367.444311
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: zero-alloc probe [ingest] — 100k steady-state ops stay flat
+packages/weft-tensor test: ok 2 - zero-alloc probe [ingest] — 100k steady-state ops stay flat
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 452.774793
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: zero-alloc probe [audio] — 100k steady-state ops stay flat
+packages/weft-tensor test: ok 3 - zero-alloc probe [audio] — 100k steady-state ops stay flat
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 556.536284
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: zero-alloc probe [render] — 100k steady-state ops stay flat
+packages/weft-tensor test: ok 4 - zero-alloc probe [render] — 100k steady-state ops stay flat
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 5791.68245
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: zero-alloc probe [overlay] — 100k steady-state ops stay flat
+packages/weft-tensor test: ok 5 - zero-alloc probe [overlay] — 100k steady-state ops stay flat
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 72.857988
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: negative control: a deliberately-allocating loop IS caught
+packages/weft-tensor test: ok 6 - negative control: a deliberately-allocating loop IS caught
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 63.789146
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: f32 fixture: header fields, 10 frames, dyadic payload parity
+packages/weft-tensor test: ok 7 - f32 fixture: header fields, 10 frames, dyadic payload parity
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 8.877823
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: u8 fixture: header fields, 6 frames, byte payload parity
+packages/weft-tensor test: ok 8 - u8 fixture: header fields, 6 frames, byte payload parity
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 7.505697
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: WebCodecs sync fast path: bytes land in ring, no intermediate
+packages/weft-tensor test: ok 9 - WebCodecs sync fast path: bytes land in ring, no intermediate
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 9.830073
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: WebCodecs async fast path resolves after the GPU readback lands
+packages/weft-tensor test: ok 10 - WebCodecs async fast path resolves after the GPU readback lands
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.569616
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: copyTo failure is a DROP, never a throw into the frame loop
+packages/weft-tensor test: ok 11 - copyTo failure is a DROP, never a throw into the frame loop
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 8.937134
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: legacy sync copyTo returning void still commits the full slot
+packages/weft-tensor test: ok 12 - legacy sync copyTo returning void still commits the full slot
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 2.214311
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: ImageData + raw paths
+packages/weft-tensor test: ok 13 - ImageData + raw paths
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.815485
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: ingestor dtype gate: f32 ring rejected (Law 4)
+packages/weft-tensor test: ok 14 - ingestor dtype gate: f32 ring rejected (Law 4)
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.820945
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: AudioPcmFeeder: exact-fit chunks roll one slot per chunk
+packages/weft-tensor test: ok 15 - AudioPcmFeeder: exact-fit chunks roll one slot per chunk
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 8.967641
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: AudioPcmFeeder: chunk spanning slot boundaries carries with zero gaps
+packages/weft-tensor test: ok 16 - AudioPcmFeeder: chunk spanning slot boundaries carries with zero gaps
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.831094
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: AudioPcmFeeder: tiny chunks accumulate then roll (worklet cadence)
+packages/weft-tensor test: ok 17 - AudioPcmFeeder: tiny chunks accumulate then roll (worklet cadence)
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 2.81281
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: AudioPcmFeeder dtype gate + chunk size gate (Law 4)
+packages/weft-tensor test: ok 18 - AudioPcmFeeder dtype gate + chunk size gate (Law 4)
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 5.989371
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: crc32 matches node:zlib over the static header region
+packages/weft-tensor test: ok 19 - crc32 matches node:zlib over the static header region
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 1.952752
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: f16FromBits matches numpy float16 decode exactly
+packages/weft-tensor test: ok 20 - f16FromBits matches numpy float16 decode exactly
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.574825
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: f16ToBits matches numpy round-to-nearest-even
+packages/weft-tensor test: ok 21 - f16ToBits matches numpy round-to-nearest-even
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.571519
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: fourcc round-trips as LE ASCII
+packages/weft-tensor test: ok 22 - fourcc round-trips as LE ASCII
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.3154
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: validateRingHeader accepts both golden fixtures
+packages/weft-tensor test: ok 23 - validateRingHeader accepts both golden fixtures
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 3.739985
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: fail-closed corruption matrix — every mutation gets a machine-readable code
+packages/weft-tensor test: ok 24 - fail-closed corruption matrix — every mutation gets a machine-readable code
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 7.72147
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: dtype validity table
+packages/weft-tensor test: ok 25 - dtype validity table
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.241842
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: create() writes a self-validating header (round trip through attach)
+packages/weft-tensor test: ok 26 - create() writes a self-validating header (round trip through attach)
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 3.620741
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: Canvas2DPlane: ONE ImageData reused, pixel-accurate blit per frame
+packages/weft-tensor test: ok 27 - Canvas2DPlane: ONE ImageData reused, pixel-accurate blit per frame
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 12.905115
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: Canvas2DPlane dtype gate (Law 4)
+packages/weft-tensor test: ok 28 - Canvas2DPlane dtype gate (Law 4)
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.891938
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: OverlayScratch + drawBoxes2D: bounded, reused, pixel records
+packages/weft-tensor test: ok 29 - OverlayScratch + drawBoxes2D: bounded, reused, pixel records
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 6.820746
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: drawSkeleton2D honours confidence gating
+packages/weft-tensor test: ok 30 - drawSkeleton2D honours confidence gating
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 2.414616
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: WebGL2Plane: zero-alloc texSubImage2D from the slot view + fullscreen tri
+packages/weft-tensor test: ok 31 - WebGL2Plane: zero-alloc texSubImage2D from the slot view + fullscreen tri
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 3.361106
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: create + typed commit + acquireLatest returns exact values, zero surprises
+packages/weft-tensor test: ok 32 - create + typed commit + acquireLatest returns exact values, zero surprises
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 12.585877
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: byte commit path (Uint8Array) with short payload (bounded loop, no throw)
+packages/weft-tensor test: ok 33 - byte commit path (Uint8Array) with short payload (bounded loop, no throw)
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.538597
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: acquireLatest(lastSeq) returns null when nothing new; acquireFrame bounds
+packages/weft-tensor test: ok 34 - acquireLatest(lastSeq) returns null when nothing new; acquireFrame bounds
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.530422
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: overrun: slotCount=2, 5 commits -> old seq gone, latest correct
+packages/weft-tensor test: ok 35 - overrun: slotCount=2, 5 commits -> old seq gone, latest correct
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.717823
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: torn read: uncommitted slot is invisible, then visible after commit marker
+packages/weft-tensor test: ok 36 - torn read: uncommitted slot is invisible, then visible after commit marker
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 6.284053
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: zero-copy begin/finish path matches convenience commit
+packages/weft-tensor test: ok 37 - zero-copy begin/finish path matches convenience commit
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.377436
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: commit rejects wrong dtype / oversized payloads (fail-closed)
+packages/weft-tensor test: ok 38 - commit rejects wrong dtype / oversized payloads (fail-closed)
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.989751
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: create() input validation is fail-closed
+packages/weft-tensor test: ok 39 - create() input validation is fail-closed
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 8.537527
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: waitForNewFrame resolves via injected scheduler; timeout path returns null
+packages/weft-tensor test: ok 40 - waitForNewFrame resolves via injected scheduler; timeout path returns null
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 31.973085
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: SharedArrayBuffer smoke: create(shared) + atomics publish + acquire
+packages/weft-tensor test: ok 41 - SharedArrayBuffer smoke: create(shared) + atomics publish + acquire
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.934809
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: ring stats counters are sealed and monotonic
+packages/weft-tensor test: ok 42 - ring stats counters are sealed and monotonic
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.339765
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: detectRuntime identifies node (this process)
+packages/weft-tensor test: ok 43 - detectRuntime identifies node (this process)
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 1.367809
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: detectRuntime: browser / deno / bun / worker / electron fakes
+packages/weft-tensor test: ok 44 - detectRuntime: browser / deno / bun / worker / electron fakes
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 8.613459
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: runtimeMatrix feature list stays sorted/deterministic
+packages/weft-tensor test: ok 45 - runtimeMatrix feature list stays sorted/deterministic
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 1.006101
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: # Subtest: assertShareable accepts SAB, rejects plain ArrayBuffer
+packages/weft-tensor test: ok 46 - assertShareable accepts SAB, rejects plain ArrayBuffer
+packages/weft-tensor test:   ---
+packages/weft-tensor test:   duration_ms: 0.772825
+packages/weft-tensor test:   type: 'test'
+packages/weft-tensor test:   ...
+packages/weft-tensor test: 1..46
+packages/weft-tensor test: # tests 46
+packages/weft-tensor test: # suites 0
+packages/weft-tensor test: # pass 46
+packages/weft-tensor test: # fail 0
+packages/weft-tensor test: # cancelled 0
+packages/weft-tensor test: # skipped 0
+packages/weft-tensor test: # todo 0
+packages/weft-tensor test: # duration_ms 7477.310017
+packages/weft-tensor test: Done
+packages/react test$ vitest run
+packages/react-heddle test$ node --test test/*.test.mjs
+packages/react-native test$ vitest run
+packages/svelte test$ vitest run
+packages/react-heddle test: TAP version 13
+packages/react-heddle test: # Subtest: WeftCanvas: engine init once, render per scheduled frame, ZERO setState
+packages/react-heddle test: ok 1 - WeftCanvas: engine init once, render per scheduled frame, ZERO setState
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 122.912303
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: WeftCanvas: engine without init/render is a Law-4 fatal (BAD_RENDER_ENGINE)
+packages/react-heddle test: ok 2 - WeftCanvas: engine without init/render is a Law-4 fatal (BAD_RENDER_ENGINE)
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 1.341319
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: WeftCanvas: null GPU context → CONTEXT_LOST fatal
+packages/react-heddle test: ok 3 - WeftCanvas: null GPU context → CONTEXT_LOST fatal
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 0.572992
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: WeftCanvas: webglcontextlost event → explicit CONTEXT_LOST fallback (Law 4)
+packages/react-heddle test: ok 4 - WeftCanvas: webglcontextlost event → explicit CONTEXT_LOST fallback (Law 4)
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 0.575506
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: WeftCanvas: Page Visibility pauses the scheduler, resume does not catch up
+packages/react-heddle test: ok 5 - WeftCanvas: Page Visibility pauses the scheduler, resume does not catch up
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 1.256951
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: WeftCanvas: raw SharedArrayBuffer plane prop (no PlaneContext) also works
+packages/react-heddle test: ok 6 - WeftCanvas: raw SharedArrayBuffer plane prop (no PlaneContext) also works
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 5.670718
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: useWeftSignal: binds node, mutates nodeValue per tick, ZERO setState
+packages/react-heddle test: ok 7 - useWeftSignal: binds node, mutates nodeValue per tick, ZERO setState
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 25.565239
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: useWeftSignal: textDivider honored (custom cadence)
+packages/react-heddle test: ok 8 - useWeftSignal: textDivider honored (custom cadence)
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 4.727754
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: useWeftStats: stable object mutated in place — identity never changes
+packages/react-heddle test: ok 9 - useWeftStats: stable object mutated in place — identity never changes
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 6.736459
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: useWeftBuffer: stable buffer + publish routes through the producer
+packages/react-heddle test: ok 10 - useWeftBuffer: stable buffer + publish routes through the producer
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 14.822238
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: useWeftBuffer: publish without producer fails EXPLICITLY (Law 4)
+packages/react-heddle test: ok 11 - useWeftBuffer: publish without producer fails EXPLICITLY (Law 4)
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 0.938756
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: provider resolution: hooks read the plane from context when no prop given
+packages/react-heddle test: ok 12 - provider resolution: hooks read the plane from context when no prop given
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 5.79372
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: no plane anywhere → explicit HPL1_PLAN_DETACHED error, not a mystery
+packages/react-heddle test: ok 13 - no plane anywhere → explicit HPL1_PLAN_DETACHED error, not a mystery
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 0.450472
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: 100k frames through signal + stats: zero setState (mandate-scale re-render probe)
+packages/react-heddle test: ok 14 - 100k frames through signal + stats: zero setState (mandate-scale re-render probe)
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 122.316342
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: HUD builds 7 telemetry rows and streams values from the plane
+packages/react-heddle test: ok 15 - HUD builds 7 telemetry rows and streams values from the plane
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 6.043285
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: HUD FPS(prod) rises with publish rate; MEM throughput reflects lane 0
+packages/react-heddle test: ok 16 - HUD FPS(prod) rises with publish rate; MEM throughput reflects lane 0
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 2.9933
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: ISOLATION: a host UI crash does not stop the HUD (rows keep updating)
+packages/react-heddle test: ok 17 - ISOLATION: a host UI crash does not stop the HUD (rows keep updating)
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 0.982448
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: WORKER CRASH: explicit FALLBACK banner, HUD stays alive (Law 4)
+packages/react-heddle test: ok 18 - WORKER CRASH: explicit FALLBACK banner, HUD stays alive (Law 4)
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 10.727587
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: Seqlock tears surface in the TEARS row — never silent
+packages/react-heddle test: ok 19 - Seqlock tears surface in the TEARS row — never silent
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 0.443981
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: <WeftHud /> mounts on ref host and destroy() removes the box + stops ticks
+packages/react-heddle test: ok 20 - <WeftHud /> mounts on ref host and destroy() removes the box + stops ticks
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 0.618076
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: mountWeftHud with a null host fails explicitly (Law 4)
+packages/react-heddle test: ok 21 - mountWeftHud with a null host fails explicitly (Law 4)
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 0.959985
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: Oscilloscope engine: newest-first window, full wave path drawn per frame
+packages/react-heddle test: ok 22 - Oscilloscope engine: newest-first window, full wave path drawn per frame
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 13.840209
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: Candlestick engine: OHLC derivation is exact on a monotonic ramp
+packages/react-heddle test: ok 23 - Candlestick engine: OHLC derivation is exact on a monotonic ramp
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 1.278782
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: Candlestick engine: mixed direction yields red down-candles
+packages/react-heddle test: ok 24 - Candlestick engine: mixed direction yields red down-candles
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 0.939548
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: OrderBook engine: one row per lane level, mid line drawn
+packages/react-heddle test: ok 25 - OrderBook engine: one row per lane level, mid line drawn
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 0.90386
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: AudioMeter engine: levels clamp, peak-hold holds then releases
+packages/react-heddle test: ok 26 - AudioMeter engine: levels clamp, peak-hold holds then releases
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 0.799756
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: Visualizer components wire through WeftCanvas with ZERO setState
+packages/react-heddle test: ok 27 - Visualizer components wire through WeftCanvas with ZERO setState
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 2.776644
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: # Subtest: All four visualizers exist with stable component identity
+packages/react-heddle test: ok 28 - All four visualizers exist with stable component identity
+packages/react-heddle test:   ---
+packages/react-heddle test:   duration_ms: 0.357088
+packages/react-heddle test:   type: 'test'
+packages/react-heddle test:   ...
+packages/react-heddle test: 1..28
+packages/react-heddle test: # tests 28
+packages/react-heddle test: # suites 0
+packages/react-heddle test: # pass 28
+packages/react-heddle test: # fail 0
+packages/react-heddle test: # cancelled 0
+packages/react-heddle test: # skipped 0
+packages/react-heddle test: # todo 0
+packages/react-heddle test: # duration_ms 546.622149
+packages/react-heddle test: Done
+packages/vue test$ vitest run
+packages/svelte test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+packages/react test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+packages/react-native test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+packages/svelte test: [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/Weft/Weft/packages/svelte[39m
+packages/react test: [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/Weft/Weft/packages/react[39m
+packages/react-native test: [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/Weft/Weft/packages/react-native[39m
+packages/vue test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+packages/vue test: [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/Weft/Weft/packages/vue[39m
+packages/svelte test:  [32m✓[39m test/weft-fanout-action.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 25[2mms[22m[39m
+packages/svelte test:  [32m✓[39m test/weft-action.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 33[2mms[22m[39m
+packages/svelte test: [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+packages/svelte test: [2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+packages/svelte test: [2m   Start at [22m 14:09:34
+packages/svelte test: [2m   Duration [22m 1.89s[2m (transform 918ms, setup 0ms, collect 1.68s, tests 57ms, environment 1ms, prepare 659ms)[22m
+packages/svelte test: Done
+packages/react-native test:  [32m✓[39m test/weft-fanout-rn.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 33[2mms[22m[39m
+packages/react-native test:  [32m✓[39m test/governed-ui-thread.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 538[2mms[22m[39m
+packages/react-native test:    [33m[2m✓[22m[39m RFC-0009 Series 7 — governed UI-thread worklets[2m > [22mworklet flattening is byte-identical to @weft/core on the canonical trace (all three policies) [33m516[2mms[22m[39m
+packages/react-native test:  [32m✓[39m test/ui-thread.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 790[2mms[22m[39m
+packages/react-native test:    [33m[2m✓[22m[39m Phase-7 UI-thread port[2m > [22mUT1 integrity: 20k frames, concurrent-style interleave, zero torn accepted [33m784[2mms[22m[39m
+packages/react-native test:  [32m✓[39m test/weft-rn.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 28[2mms[22m[39m
+packages/react-native test: [2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+packages/react-native test: [2m      Tests [22m [1m[32m20 passed[39m[22m[90m (20)[39m
+packages/react-native test: [2m   Start at [22m 14:09:34
+packages/react-native test: [2m   Duration [22m 2.85s[2m (transform 1.22s, setup 0ms, collect 2.91s, tests 1.39s, environment 4ms, prepare 1.33s)[22m
+packages/react-native test: Done
+packages/react test: [90mstderr[2m | test/WeftFanoutCanvas.test.tsx[2m > [22m[2mWeftFanoutCanvas[2m > [22m[2mrenders a canvas element
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftFanoutCanvas.test.tsx[2m > [22m[2mWeftFanoutCanvas[2m > [22m[2mclaims and draws inside the frame callback (draw receives the reader buffer + claim)
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftFanoutCanvas.test.tsx[2m > [22m[2mWeftFanoutCanvas[2m > [22m[2mmulti-canvas: two components on one broadcaster are two independent readers
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftFanoutCanvas.test.tsx[2m > [22m[2mWeftFanoutCanvas[2m > [22m[2msurvives draw identity changes without restarting the loop
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftFanoutCanvas.test.tsx[2m > [22m[2mWeftFanoutCanvas[2m > [22m[2mthe claim record is identity-stable across frames (zero alloc through the binding)
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftFanoutCanvas.test.tsx[2m > [22m[2mWeftFanoutCanvas[2m > [22m[2mlatest-wins through the binding: each pump draws the then-freshest frame
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test:  [32m✓[39m test/WeftFanoutCanvas.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[90m 94[2mms[22m[39m
+packages/react test: [90mstderr[2m | test/WeftHud.test.tsx[2m > [22m[2mWeftHud (RFC 0016 §9)[2m > [22m[2mteardown cancels the loop
+packages/react test: [22m[39mWarning: An update to Root inside a test was not wrapped in act(...).
+packages/react test: When testing, code that causes React state updates should be wrapped into act(...):
+packages/react test: act(() => {
+packages/react test:   /* fire events that update state */
+packages/react test: });
+packages/react test: /* assert on the output */
+packages/react test: This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+packages/react test:  [32m✓[39m test/WeftHud.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[90m 53[2mms[22m[39m
+packages/react test: [90mstderr[2m | test/WeftCanvas.test.tsx[2m > [22m[2mWeftCanvas[2m > [22m[2mrenders a canvas element
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftCanvas.test.tsx[2m > [22m[2mWeftCanvas[2m > [22m[2mclaims and reads the live buffer inside the frame callback (draw receives payload)
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftCanvas.test.tsx[2m > [22m[2mWeftCanvas[2m > [22m[2msurvives draw identity changes without restarting the loop (no teardown on rerender)
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftCanvas.test.tsx[2m > [22m[2mWeftCanvas[2m > [22m[2mrestarts the loop only when the Weft instance changes
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test: [90mstderr[2m | test/WeftCanvas.test.tsx[2m > [22m[2mWeftCanvas[2m > [22m[2mdraws the freshest frame after additional publishes (latest-wins through the binding)
+packages/react test: [22m[39mWarning: The current testing environment is not configured to support act(...)
+packages/react test: Warning: The current testing environment is not configured to support act(...)
+packages/react test:  [32m✓[39m test/WeftCanvas.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[90m 117[2mms[22m[39m
+packages/react test: [2m Test Files [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+packages/react test: [2m      Tests [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+packages/react test: [2m   Start at [22m 14:09:34
+packages/react test: [2m   Duration [22m 3.11s[2m (transform 897ms, setup 0ms, collect 1.75s, tests 264ms, environment 4.43s, prepare 997ms)[22m
+packages/react test: Done
+packages/vue test:  [32m✓[39m test/useWeft.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 28[2mms[22m[39m
+packages/vue test:  [32m✓[39m test/useWeftFanout.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 33[2mms[22m[39m
+packages/vue test: [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+packages/vue test: [2m      Tests [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+packages/vue test: [2m   Start at [22m 14:09:35
+packages/vue test: [2m   Duration [22m 2.70s[2m (transform 292ms, setup 0ms, collect 695ms, tests 61ms, environment 2.63s, prepare 768ms)[22m
+packages/vue test: Done
+
+[1mapi-extractor 7.59.1 [36m - https://api-extractor.com/[39m
+[22m
+Analysis will use the bundled TypeScript version 5.9.3
+[33mWarning: dist/index.d.ts:161:25 - (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag[39m
+
+API Extractor completed successfully
+
+[1mapi-extractor 7.59.1 [36m - https://api-extractor.com/[39m
+[22m
+Analysis will use the bundled TypeScript version 5.9.3
+
+API Extractor completed successfully
+
+[1mapi-extractor 7.59.1 [36m - https://api-extractor.com/[39m
+[22m
+Analysis will use the bundled TypeScript version 5.9.3
+
+API Extractor completed successfully
+
+[1mapi-extractor 7.59.1 [36m - https://api-extractor.com/[39m
+[22m
+Analysis will use the bundled TypeScript version 5.9.3
+
+API Extractor completed successfully
+
+[1mapi-extractor 7.59.1 [36m - https://api-extractor.com/[39m
+[22m
+Analysis will use the bundled TypeScript version 5.9.3
+[33mWarning: dist/index.d.ts:96:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/index.d.ts:98:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/index.d.ts:100:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/index.d.ts:102:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+
+API Extractor completed successfully
+
+> fixture-node-litmus@0.1.0 build /home/runner/work/Weft/Weft/fixtures/node-litmus
+> tsup litmus-packaged.ts --format esm --target node20
+
+[34mCLI[39m Building entry: litmus-packaged.ts
+[34mCLI[39m tsup v8.5.1
+[34mCLI[39m Target: node20
+[34mESM[39m Build start
+[32mESM[39m [1mdist/litmus-packaged.js [22m[32m21.43 KB[39m
+[32mESM[39m ⚡️ Build success in 19ms
+L8 roundtrip=true unknown=true negotiation=true coexist=true pass=true
+{"test":"L8-envelope","lang":"ts","pass":true,"metrics":{"roundtrip":true,"unknown_fields":true,"negotiation":true,"coexist":true}}
+L7 reclaim_ok=true post_revoke_revoked=100 poison_intact=true pass=true
+{"test":"L7-revocation","lang":"ts","pass":true,"metrics":{"reclaim_ok":true,"post_revoke_revoked":100,"poison_intact":true,"first_revoked_at":0}}
+L6 trials=200 violations=0 seed=0x00c0ffee pass=true
+{"test":"L6-ownership","lang":"ts","pass":true,"metrics":{"trials":200,"frames_per_trial":64,"violations":0,"seed":"0x00c0ffee"}}
+
+> fixture-vite-react@0.1.0 build /home/runner/work/Weft/Weft/fixtures/vite-react
+> vite build
+
+[36mvite v6.4.3 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 28 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                [39m[1m[2m  0.33 kB[22m[1m[22m[2m │ gzip:  0.24 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-DgIEMwtT.js  [39m[1m[2m151.94 kB[22m[1m[22m[2m │ gzip: 48.92 kB[22m
+[32m✓ built in 835ms[39m
+npm notice
+npm notice 📦  @weft/core@0.2.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 7.4kB README.md
+npm notice 16.1kB dist/index.d.mts
+npm notice 16.1kB dist/index.d.ts
+npm notice 85.3kB dist/index.js
+npm notice 227.5kB dist/index.js.map
+npm notice 83.2kB dist/index.mjs
+npm notice 227.5kB dist/index.mjs.map
+npm notice 4.1kB dist/weft-BrIlH2fY.d.mts
+npm notice 4.1kB dist/weft-BrIlH2fY.d.ts
+npm notice 5.6kB dist/worker.d.mts
+npm notice 5.6kB dist/worker.d.ts
+npm notice 5.4kB dist/worker.js
+npm notice 17.4kB dist/worker.js.map
+npm notice 5.2kB dist/worker.mjs
+npm notice 17.4kB dist/worker.mjs.map
+npm notice 943B package.json
+npm notice Tarball Details
+npm notice name: @weft/core
+npm notice version: 0.2.0
+npm notice filename: weft-core-0.2.0.tgz
+npm notice package size: 181.0 kB
+npm notice unpacked size: 729.9 kB
+npm notice shasum: d0c71c586b3bff3b60ce3b208c0c70e7aadbc28f
+npm notice integrity: sha512-SPvEzWiroD+tq[...]hM+M9d+hIIHVg==
+npm notice total files: 17
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/core@0.2.0
+npm notice
+npm notice 📦  @weft/fintech@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 806B package.json
+npm notice 15.7kB src/book.js
+npm notice 4.4kB src/index.d.ts
+npm notice 746B src/index.js
+npm notice 6.5kB src/itch.js
+npm notice 5.6kB src/mdp1.js
+npm notice 6.5kB src/orderbook-canvas.js
+npm notice 4.3kB src/react.js
+npm notice 4.6kB src/sbe.js
+npm notice 2.2kB src/telemetry.js
+npm notice 6.2kB test/book.test.mjs
+npm notice 4.0kB test/engine.test.mjs
+npm notice 4.9kB test/itch.test.mjs
+npm notice 4.6kB test/mdp1.test.mjs
+npm notice 6.6kB test/react.test.mjs
+npm notice 2.8kB test/sbe.test.mjs
+npm notice Tarball Details
+npm notice name: @weft/fintech
+npm notice version: 0.1.0
+npm notice filename: weft-fintech-0.1.0.tgz
+npm notice package size: 24.2 kB
+npm notice unpacked size: 81.7 kB
+npm notice shasum: 441edeb9360785ad772c185a779e68390a5e2e4d
+npm notice integrity: sha512-HzsY8GVHiNvM8[...]mWzEasCWmjUoQ==
+npm notice total files: 17
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/fintech@0.1.0
+npm notice
+npm notice 📦  @weft/heddle-canvas@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 3.9kB README.md
+npm notice 108.6kB dist/index.cjs
+npm notice 273.8kB dist/index.cjs.map
+npm notice 42.5kB dist/index.d.cts
+npm notice 42.5kB dist/index.d.ts
+npm notice 106.3kB dist/index.js
+npm notice 273.8kB dist/index.js.map
+npm notice 1.2kB package.json
+npm notice 530B shaders/glsl/webgl2/candles.frag
+npm notice 1.5kB shaders/glsl/webgl2/candles.vert
+npm notice 107B shaders/glsl/webgl2/depth_ladder.frag
+npm notice 1.1kB shaders/glsl/webgl2/depth_ladder.vert
+npm notice 1.9kB shaders/glsl/webgl2/oscillo_decimate_tf.vert
+npm notice 308B shaders/glsl/webgl2/oscillo_pass.frag
+npm notice 107B shaders/glsl/webgl2/oscillo_ribbon.frag
+npm notice 1.1kB shaders/glsl/webgl2/oscillo_ribbon.vert
+npm notice 107B shaders/glsl/webgl2/pointcloud.frag
+npm notice 1.2kB shaders/glsl/webgl2/pointcloud.vert
+npm notice 3.2kB shaders/msl/heddle_shaders.metal
+npm notice 1.9kB shaders/vk/osc_decimate.comp
+npm notice 3.3kB shaders/vk/osc_decimate.spv
+npm notice 3.2kB shaders/wgsl/candles.wgsl
+npm notice 2.2kB shaders/wgsl/depth_ladder.wgsl
+npm notice 2.0kB shaders/wgsl/oscillo_decimate.wgsl
+npm notice 1.8kB shaders/wgsl/oscillo_ribbon.wgsl
+npm notice 2.9kB shaders/wgsl/pointcloud.wgsl
+npm notice Tarball Details
+npm notice name: @weft/heddle-canvas
+npm notice version: 0.1.0
+npm notice filename: weft-heddle-canvas-0.1.0.tgz
+npm notice package size: 218.1 kB
+npm notice unpacked size: 882.1 kB
+npm notice shasum: c12b840520a8a83e6c9f794db592defb00d19e8f
+npm notice integrity: sha512-DIPnsVvipWfd+[...]LZQFLMRMaBDnQ==
+npm notice total files: 27
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/heddle-canvas@0.1.0
+npm notice
+npm notice 📦  @weft/heddle-core@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 2.1kB README.md
+npm notice 782B package.json
+npm notice 3.7kB probes/alloc-probe.mjs
+npm notice 1.3kB src/errors.js
+npm notice 4.5kB src/index.d.ts
+npm notice 602B src/index.js
+npm notice 6.4kB src/layout.js
+npm notice 8.9kB src/plane.js
+npm notice 9.1kB src/producer.js
+npm notice 4.2kB src/scheduler.js
+npm notice Tarball Details
+npm notice name: @weft/heddle-core
+npm notice version: 0.1.0
+npm notice filename: weft-heddle-core-0.1.0.tgz
+npm notice package size: 13.5 kB
+npm notice unpacked size: 42.7 kB
+npm notice shasum: cd223d2eb94680ae35785583a7079d2da5918633
+npm notice integrity: sha512-Fq4KkH3w5hYTU[...]Xz2pNJ14EAzmA==
+npm notice total files: 11
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/heddle-core@0.1.0
+npm notice
+npm notice 📦  @weft/heddle-hotplane@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 1.9kB README.md
+npm notice 932B package.json
+npm notice 12.3kB src/hotplane.js
+npm notice 2.4kB src/index.d.ts
+npm notice 125B src/index.js
+npm notice 4.6kB src/layout.js
+npm notice Tarball Details
+npm notice name: @weft/heddle-hotplane
+npm notice version: 0.1.0
+npm notice filename: weft-heddle-hotplane-0.1.0.tgz
+npm notice package size: 7.5 kB
+npm notice unpacked size: 23.2 kB
+npm notice shasum: 91dbde90a7e4d651bcf8b120b49ebc0c5eac0e1a
+npm notice integrity: sha512-tphlV5NdAK+Gz[...]+D9OYjFvOjaLA==
+npm notice total files: 7
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/heddle-hotplane@0.1.0
+npm notice
+npm notice 📦  @weft/react-hooks@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 3.0kB README.md
+npm notice 695B package.json
+npm notice 7.1kB src/core.js
+npm notice 3.1kB src/index.d.ts
+npm notice 565B src/index.js
+npm notice Tarball Details
+npm notice name: @weft/react-hooks
+npm notice version: 0.1.0
+npm notice filename: weft-react-hooks-0.1.0.tgz
+npm notice package size: 5.8 kB
+npm notice unpacked size: 15.6 kB
+npm notice shasum: 8401eed35b398eaf490f41de2112df3457e77817
+npm notice integrity: sha512-yFoQEo6k1ux1M[...]9LMa6/YQkPcfg==
+npm notice total files: 6
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/react-hooks@0.1.0
+npm notice
+npm notice 📦  @weft/react-tensor@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 2.5kB README.md
+npm notice 733B package.json
+npm notice 4.4kB src/core.js
+npm notice 1.3kB src/index.d.ts
+npm notice 410B src/index.js
+npm notice Tarball Details
+npm notice name: @weft/react-tensor
+npm notice version: 0.1.0
+npm notice filename: weft-react-tensor-0.1.0.tgz
+npm notice package size: 4.4 kB
+npm notice unpacked size: 10.4 kB
+npm notice shasum: 9ae69439556f62fab75b3c47201a0f1021f8de13
+npm notice integrity: sha512-cg9rsc8vndA96[...]jfW8Fq1bBmw6A==
+npm notice total files: 6
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/react-tensor@0.1.0
+npm notice
+npm notice 📦  @weft/robotics@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 3.0kB README.md
+npm notice 861B package.json
+npm notice 3.3kB probes/alloc-probe.mjs
+npm notice 2.3kB src/index.d.ts
+npm notice 165B src/index.js
+npm notice 4.9kB src/react.js
+npm notice 7.9kB src/ring.js
+npm notice 6.6kB src/viewer-engine.js
+npm notice 6.8kB test/react.test.mjs
+npm notice 6.3kB test/ring.test.mjs
+npm notice Tarball Details
+npm notice name: @weft/robotics
+npm notice version: 0.1.0
+npm notice filename: weft-robotics-0.1.0.tgz
+npm notice package size: 13.6 kB
+npm notice unpacked size: 43.2 kB
+npm notice shasum: ef9be05dc86441f7477cc88b5a1f0a993378423c
+npm notice integrity: sha512-p63cs0dQckDmd[...]C6wB/gHFQmEbA==
+npm notice total files: 11
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/robotics@0.1.0
+npm notice
+npm notice 📦  @weft/spectrum@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 1.3kB package.json
+npm notice 5.9kB src/detect.js
+npm notice 5.4kB src/governor.js
+npm notice 5.8kB src/index.d.ts
+npm notice 268B src/index.js
+npm notice 4.3kB src/power.js
+npm notice 7.2kB src/react.js
+npm notice 9.2kB src/wire.js
+npm notice Tarball Details
+npm notice name: @weft/spectrum
+npm notice version: 0.1.0
+npm notice filename: weft-spectrum-0.1.0.tgz
+npm notice package size: 13.7 kB
+npm notice unpacked size: 40.4 kB
+npm notice shasum: a1f36b32ea254f6384b70be160b021b0dd0dcdd1
+npm notice integrity: sha512-vkXDNdKtNFNpX[...]yLnpMfHRIxX7A==
+npm notice total files: 9
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/spectrum@0.1.0
+npm notice
+npm notice 📦  @weft/verify@1.0.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 2.2kB README.md
+npm notice 1.5kB bin/weft-verify.mjs
+npm notice 3.9kB formal/TriadBuffer.tla
+npm notice 917B package.json
+npm notice 6.5kB src/chaos/index.ts
+npm notice 369B src/chaos/prng.ts
+npm notice 14.5kB src/cli.ts
+npm notice 4.1kB src/formal/index.ts
+npm notice 12.2kB src/formal/small.ts
+npm notice 1.1kB src/formal/types.ts
+npm notice 4.6kB src/formal/wide.ts
+npm notice 4.4kB src/lint/hot.ts
+npm notice 4.1kB src/lint/mask.ts
+npm notice 14.2kB src/lint/rules.ts
+npm notice 5.7kB src/lint/scan.ts
+npm notice 2.2kB src/ring/triad.ts
+npm notice 2.7kB src/runtime/probe.ts
+npm notice 9.1kB src/scorecard/html.ts
+npm notice 6.9kB src/scorecard/schema.ts
+npm notice Tarball Details
+npm notice name: @weft/verify
+npm notice version: 1.0.0
+npm notice filename: weft-verify-1.0.0.tgz
+npm notice package size: 30.8 kB
+npm notice unpacked size: 102.3 kB
+npm notice shasum: 9082e52c2f882b5078f14f5aba2f86fd17f1a907
+npm notice integrity: sha512-JlIB1zLFQ6/KS[...]NhOF80dGpmzVA==
+npm notice total files: 20
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/verify@1.0.0
+npm notice
+npm notice 📦  @weft/cluster@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 1.1kB package.json
+npm notice 14.2kB src/client.js
+npm notice 1.1kB src/crc32.js
+npm notice 1.5kB src/errors.js
+npm notice 3.1kB src/exporters/otel.js
+npm notice 4.9kB src/exporters/perfetto.js
+npm notice 2.7kB src/exporters/prometheus.js
+npm notice 1.2kB src/index.js
+npm notice 5.3kB src/mesh.js
+npm notice 5.2kB src/metrics.js
+npm notice 4.7kB src/router.js
+npm notice 17.2kB src/topology.js
+npm notice 178B src/transport/index.js
+npm notice 7.4kB src/transport/shm.js
+npm notice 9.1kB src/transport/udp.js
+npm notice 13.3kB src/wire.js
+npm notice Tarball Details
+npm notice name: @weft/cluster
+npm notice version: 0.1.0
+npm notice filename: weft-cluster-0.1.0.tgz
+npm notice package size: 29.7 kB
+npm notice unpacked size: 93.2 kB
+npm notice shasum: 140aaada25c152340dd28e45ad9f803fdd583b3b
+npm notice integrity: sha512-I67yugsNn6UOl[...]Crthgicg08E5g==
+npm notice total files: 17
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/cluster@0.1.0
+npm notice
+npm notice 📦  @weft/tensor@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 935B package.json
+npm notice 5.8kB src/frame-view.js
+npm notice 10.4kB src/index.d.ts
+npm notice 656B src/index.js
+npm notice 4.6kB src/ingest/audio.js
+npm notice 4.7kB src/ingest/video.js
+npm notice 13.0kB src/layout.js
+npm notice 2.7kB src/listener.js
+npm notice 2.6kB src/render/canvas2d.js
+npm notice 3.5kB src/render/overlay.js
+npm notice 4.7kB src/render/webgl2.js
+npm notice 19.6kB src/ring.js
+npm notice 2.2kB src/runtime.js
+npm notice Tarball Details
+npm notice name: @weft/tensor
+npm notice version: 0.1.0
+npm notice filename: weft-tensor-0.1.0.tgz
+npm notice package size: 24.0 kB
+npm notice unpacked size: 76.5 kB
+npm notice shasum: 2af969969d1453f490a739010bb9890b7bf8bfea
+npm notice integrity: sha512-nUtj/PxP3vO1d[...]9x7iAhmZ5nUcw==
+npm notice total files: 14
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/tensor@0.1.0
+npm notice
+npm notice 📦  @weft/react@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 37.6kB dist/index.d.mts
+npm notice 37.6kB dist/index.d.ts
+npm notice 7.7kB dist/index.js
+npm notice 17.4kB dist/index.js.map
+npm notice 5.8kB dist/index.mjs
+npm notice 17.4kB dist/index.mjs.map
+npm notice 1.0kB package.json
+npm notice Tarball Details
+npm notice name: @weft/react
+npm notice version: 0.1.0
+npm notice filename: weft-react-0.1.0.tgz
+npm notice package size: 14.0 kB
+npm notice unpacked size: 125.5 kB
+npm notice shasum: 8810f63bae992bfc62f88d35662d4b5a3c72afcc
+npm notice integrity: sha512-ii6EoJBQxrEP5[...]UDV6nov6ZB2/g==
+npm notice total files: 8
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/react@0.1.0
+npm notice
+npm notice 📦  @weft/react-heddle@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 2.4kB README.md
+npm notice 959B package.json
+npm notice 14.7kB src/core.js
+npm notice 8.6kB src/hud.js
+npm notice 2.9kB src/index.d.ts
+npm notice 870B src/index.js
+npm notice 12.5kB src/visualizers.js
+npm notice Tarball Details
+npm notice name: @weft/react-heddle
+npm notice version: 0.1.0
+npm notice filename: weft-react-heddle-0.1.0.tgz
+npm notice package size: 14.0 kB
+npm notice unpacked size: 43.9 kB
+npm notice shasum: 08b02764dea3403bfe8ef28240292a4ca3a6a8f5
+npm notice integrity: sha512-THNj/GJ5qLHkp[...]h1lhS7fMt9Gzg==
+npm notice total files: 8
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/react-heddle@0.1.0
+npm notice
+npm notice 📦  @weft/react-native@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 6.1kB dist/index.d.mts
+npm notice 6.1kB dist/index.d.ts
+npm notice 13.0kB dist/index.js
+npm notice 39.4kB dist/index.js.map
+npm notice 11.4kB dist/index.mjs
+npm notice 39.4kB dist/index.mjs.map
+npm notice 1.0kB package.json
+npm notice Tarball Details
+npm notice name: @weft/react-native
+npm notice version: 0.1.0
+npm notice filename: weft-react-native-0.1.0.tgz
+npm notice package size: 28.2 kB
+npm notice unpacked size: 117.6 kB
+npm notice shasum: c35c47588beeb9f37dfdba0eb13a9c78eb863625
+npm notice integrity: sha512-Ai9KpCewWZQXq[...]R6eOFUhxfMPbA==
+npm notice total files: 8
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/react-native@0.1.0
+npm notice
+npm notice 📦  @weft/svelte@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 645B dist/index.d.mts
+npm notice 645B dist/index.d.ts
+npm notice 2.2kB dist/index.js
+npm notice 4.6kB dist/index.js.map
+npm notice 1.2kB dist/index.mjs
+npm notice 4.5kB dist/index.mjs.map
+npm notice 934B package.json
+npm notice Tarball Details
+npm notice name: @weft/svelte
+npm notice version: 0.1.0
+npm notice filename: weft-svelte-0.1.0.tgz
+npm notice package size: 3.8 kB
+npm notice unpacked size: 15.8 kB
+npm notice shasum: 7cd53b5693bc9673853e252f282c469034cda371
+npm notice integrity: sha512-gyUpl679w2FoT[...]0eirOFI3DeQ1Q==
+npm notice total files: 8
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/svelte@0.1.0
+npm notice
+npm notice 📦  @weft/vue@0.1.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 2.0kB dist/index.d.mts
+npm notice 2.0kB dist/index.d.ts
+npm notice 4.3kB dist/index.js
+npm notice 8.9kB dist/index.js.map
+npm notice 3.2kB dist/index.mjs
+npm notice 8.8kB dist/index.mjs.map
+npm notice 984B package.json
+npm notice Tarball Details
+npm notice name: @weft/vue
+npm notice version: 0.1.0
+npm notice filename: weft-vue-0.1.0.tgz
+npm notice package size: 5.0 kB
+npm notice unpacked size: 31.2 kB
+npm notice shasum: 47d5212b4351d7683383ff8ab96e152fd1008e54
+npm notice integrity: sha512-LURwqc35BWU+S[...]1qhYeBbAt1mpw==
+npm notice total files: 8
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and default access (dry-run)
++ @weft/vue@0.1.0

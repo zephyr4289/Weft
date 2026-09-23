@@ -1,0 +1,530 @@
+==================================================
+SHARD: ipc-mesh
+DESCRIPTION: RFC-0016 zero-copy IPC mesh: sealed memfd + SCM_RIGHTS + lock-free registry + crash healing + 100k cross-process torture x sanitizers
+STATUS: PASSED ✅
+COMMIT: 30c5bc67527f8808c94a6fa4f4a16e9e838d47fe
+RUN: 261
+==================================================
+
+
+=== Build (plain + ASAN + TSAN) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o weft-shm-test weft_shm.c weft_ipc.c shm_ring.c fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c weft_shm_test.c -lrt -lpthread
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o weft-shm-test-asan weft_shm.c weft_ipc.c shm_ring.c fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c weft_shm_test.c -lrt -lpthread
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o weft-ipc-test weft_shm.c weft_ipc.c shm_ring.c fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c weft_ipc_test.c -lrt -lpthread
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+weft_ipc_test.c: In function ‘main’:
+weft_ipc_test.c:127:13: warning: ignoring return value of ‘write’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  127 |             write(fd, "garbage", 7);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~
+weft_ipc_test.c:140:17: warning: ignoring return value of ‘write’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  140 |                 write(fd, zero, sizeof zero);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o weft-ipc-test-asan weft_shm.c weft_ipc.c shm_ring.c fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c weft_ipc_test.c -lrt -lpthread
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+weft_ipc_test.c: In function ‘main’:
+weft_ipc_test.c:127:13: warning: ignoring return value of ‘write’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  127 |             write(fd, "garbage", 7);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~
+weft_ipc_test.c:140:17: warning: ignoring return value of ‘write’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  140 |                 write(fd, zero, sizeof zero);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gcc -O0 -g -fsanitize=thread -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o weft-ipc-test-tsan weft_shm.c weft_ipc.c shm_ring.c fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c weft_ipc_test.c -lrt -lpthread
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o weft-ipc-torture weft_shm.c weft_ipc.c shm_ring.c fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c weft_ipc_torture.c -lrt -lpthread
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o weft-ipc-torture-asan weft_shm.c weft_ipc.c shm_ring.c fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c weft_ipc_torture.c -lrt -lpthread
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+
+=== M-series: SHM fabric conformance (plain) ===
+=== M-series: Weft SHM fabric conformance (RFC-0016) ===
+  [PASS] M1a memfd create
+  [PASS] M1b seals GROW|SHRINK|SEAL applied
+  [PASS] M1c producer mapping writable
+  [PASS] M1d geometry identity
+  [PASS] M1e sealed ftruncate EPERM
+  [PASS] M1f writer attaches to sealed memfd ring
+  [PASS] M1g publish through seal
+  [PASS] M1h destroy idempotent path
+  [PASS] M2a RO view derived
+  [PASS] M2b RO fd present
+  [PASS] M2c RO fd is a session
+  [PASS] M2d frame 1 visible via RO view
+  [PASS] M2e payload bit-exact
+  [PASS] M2f writable mmap on RO view EACCES (kernel-enforced)
+  [PASS] M3a sendmsg SCM_RIGHTS
+  [PASS] M3b child: fd + frame + EACCES + sealed ftruncate EPERM
+  [PASS] M4a send data-only
+  [PASS] M4b data-only -> rc 1, no fd
+  [PASS] M4c send two-fd cmsg
+  [PASS] M4d double-fd cmsg refused
+  [PASS] M4e send_fd bad args
+  [PASS] M4f recv_fd bad args
+  [PASS] M5a anonymous SUBSCRIBE served
+  [PASS] M5b child: handshake grant + 100-round claims bit-exact
+  [PASS] M6a named listener created
+  [PASS] M6c accept
+  [PASS] M6d named-socket handshake served
+  [PASS] M6e named-socket client attached
+  [PASS] M6b duplicate listener refused
+  [PASS] M6f stale socket file taken over
+  [PASS] M6g connect to successor
+  [PASS] M7a session key
+  [PASS] M7b anonymous WRITE -> DENIED_ANON
+  [PASS] M7c forged HMAC tag -> DENIED_TOKEN
+  [PASS] M7d expired token -> DENIED_EXPIRED
+  [PASS] M7e stale-epoch token -> DENIED (protocol)
+  [PASS] M7f READ token requesting WRITE -> DENIED_PERMS
+  [PASS] M7g session mismatch -> DENIED_SESSION
+  [PASS] M8a PING served without a descriptor
+  [PASS] M8b PING: epoch + latest_seq echoed, no fd granted
+  [PASS] M10a WRITE-grant handshake served
+  [PASS] M10b WRITE grant: RW fd received, writable, frame bit-exact
+  [PASS] M11a lying GRANT delivered
+  [PASS] M11b geometry lie refused (-3): header is the authority
+  [PASS] M12a park exhausts budget (no frames) — bounded, Law 1
+  [PASS] M12b park observes the fresh frame (doorbell-free)
+  [PASS] M12c park idempotent when nothing newer
+  [PASS] M12d park bad args
+  [PASS] M9a handshake served (fork mesh)
+  [PASS] M9a handshake served (fork mesh)
+  [PASS] M9a handshake served (fork mesh)
+  [PASS] M9b 3 forked consumers x 10k frames: bit-exact, exact telescoping, EACCES/EPERM posture held
+=== M-series: 52 pass, 0 fail ===
+
+=== M-series: SHM fabric conformance (ASAN) ===
+=== M-series: Weft SHM fabric conformance (RFC-0016) ===
+  [PASS] M1a memfd create
+  [PASS] M1b seals GROW|SHRINK|SEAL applied
+  [PASS] M1c producer mapping writable
+  [PASS] M1d geometry identity
+  [PASS] M1e sealed ftruncate EPERM
+  [PASS] M1f writer attaches to sealed memfd ring
+  [PASS] M1g publish through seal
+  [PASS] M1h destroy idempotent path
+  [PASS] M2a RO view derived
+  [PASS] M2b RO fd present
+  [PASS] M2c RO fd is a session
+  [PASS] M2d frame 1 visible via RO view
+  [PASS] M2e payload bit-exact
+  [PASS] M2f writable mmap on RO view EACCES (kernel-enforced)
+  [PASS] M3a sendmsg SCM_RIGHTS
+  [PASS] M3b child: fd + frame + EACCES + sealed ftruncate EPERM
+  [PASS] M4a send data-only
+  [PASS] M4b data-only -> rc 1, no fd
+  [PASS] M4c send two-fd cmsg
+  [PASS] M4d double-fd cmsg refused
+  [PASS] M4e send_fd bad args
+  [PASS] M4f recv_fd bad args
+  [PASS] M5a anonymous SUBSCRIBE served
+  [PASS] M5b child: handshake grant + 100-round claims bit-exact
+  [PASS] M6a named listener created
+  [PASS] M6c accept
+  [PASS] M6d named-socket handshake served
+  [PASS] M6e named-socket client attached
+  [PASS] M6b duplicate listener refused
+  [PASS] M6f stale socket file taken over
+  [PASS] M6g connect to successor
+  [PASS] M7a session key
+  [PASS] M7b anonymous WRITE -> DENIED_ANON
+  [PASS] M7c forged HMAC tag -> DENIED_TOKEN
+  [PASS] M7d expired token -> DENIED_EXPIRED
+  [PASS] M7e stale-epoch token -> DENIED (protocol)
+  [PASS] M7f READ token requesting WRITE -> DENIED_PERMS
+  [PASS] M7g session mismatch -> DENIED_SESSION
+  [PASS] M8a PING served without a descriptor
+  [PASS] M8b PING: epoch + latest_seq echoed, no fd granted
+  [PASS] M10a WRITE-grant handshake served
+  [PASS] M10b WRITE grant: RW fd received, writable, frame bit-exact
+  [PASS] M11a lying GRANT delivered
+  [PASS] M11b geometry lie refused (-3): header is the authority
+  [PASS] M12a park exhausts budget (no frames) — bounded, Law 1
+  [PASS] M12b park observes the fresh frame (doorbell-free)
+  [PASS] M12c park idempotent when nothing newer
+  [PASS] M12d park bad args
+  [PASS] M9a handshake served (fork mesh)
+  [PASS] M9a handshake served (fork mesh)
+  [PASS] M9a handshake served (fork mesh)
+  [PASS] M9b 3 forked consumers x 10k frames: bit-exact, exact telescoping, EACCES/EPERM posture held
+=== M-series: 52 pass, 0 fail ===
+
+=== R-series: registry + tokens (plain) ===
+=== R-series: Weft IPC mesh registry + tokens (RFC-0016) ===
+  [PASS] R1a create-or-attach (creator)
+  [PASS] R1b exact registry size
+  [PASS] R1c second opener attaches
+  [PASS] R1d garbage object refused
+  [PASS] R1e zeroed-right-size decoy refused
+  [PASS] R1f absent registry, create disabled -> explicit failure
+  [PASS] R1g recreate
+  [PASS] R2a register (epoch 1)
+  [PASS] R2b fresh epoch = 1
+  [PASS] R2c heartbeat ok
+  [PASS] R2d second heartbeat
+  [PASS] R2e discover by exact name
+  [PASS] R2f immutable fields verbatim
+  [PASS] R2g advisory heartbeat + mirror
+  [PASS] R2h liveness verdict fresh+alive
+  [PASS] R2i clean unregister
+  [PASS] R2j unregister idempotent
+  [PASS] R2k DEAD entry not discovered
+  [PASS] R3a 8 threads x 30 register/unregister: zero duplicate names
+  [PASS] R3b registry empty after heal
+  [PASS] R4a producer crashed (SIGKILL)
+  [PASS] R4b fresh-heartbeat entry NOT crashed out (staleness gate)
+  [PASS] R4c stale + dead pid -> crashed out (both legs)
+  [PASS] R4d crashed session no longer discoverable
+  [PASS] R5a successor takeover from DEAD incumbent (epoch 2)
+  [PASS] R5b live incumbent refuses duplicate producer
+  [PASS] R5c tombstone reaped after clean detach
+  [PASS] R5d post-reap registration: fresh epoch (tombstone gone)
+  [PASS] R6a issue
+  [PASS] R6b verify happy path
+  [PASS] R6c claims codec round trip
+  [PASS] R6d tampered tag -> bad HMAC
+  [PASS] R6e tampered claims refused
+  [PASS] R6f wrong session
+  [PASS] R6g expired
+  [PASS] R6h epoch mismatch
+  [PASS] R6i all-zero token malformed
+  [PASS] R6j adapter grants WRITE from valid token
+  [PASS] R6k adapter denies tampered token
+  [PASS] R7a attach 1
+  [PASS] R7b advisory count = 3
+  [PASS] R7c clean leaves decrement exactly
+  [PASS] R7d leave-at-zero never wraps
+  [PASS] R7e unknown session refused
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8b child clean detach
+  [PASS] R8c cross-process discovery + live heartbeats observed
+  [PASS] R8d entry gone after clean detach
+  [PASS] R9a heal idempotent (second pass has nothing to do)
+  [PASS] R9b stale+dead pid crashed out
+  [PASS] R9c healed-out handle fails loudly (no silent zombie)
+  [PASS] R9d re-registration succeeds (gen+1)
+  [PASS] R10a monitor (read-only) view opens
+  [PASS] R10b monitor discovers
+  [PASS] R10c monitor refuses registration
+  [PASS] R10d monitor refuses consumer attach
+  [PASS] R10e monitor refuses healing (CAS would fault)
+  [PASS] R11a session for heal
+  [PASS] R11b healthy ring passes through
+  [PASS] R11c corrupted ring detected + Axis-3 recovered
+=== R-series: 65 pass, 0 fail ===
+
+=== R-series: registry + tokens (ASAN) ===
+=== R-series: Weft IPC mesh registry + tokens (RFC-0016) ===
+  [PASS] R1a create-or-attach (creator)
+  [PASS] R1b exact registry size
+  [PASS] R1c second opener attaches
+  [PASS] R1d garbage object refused
+  [PASS] R1e zeroed-right-size decoy refused
+  [PASS] R1f absent registry, create disabled -> explicit failure
+  [PASS] R1g recreate
+  [PASS] R2a register (epoch 1)
+  [PASS] R2b fresh epoch = 1
+  [PASS] R2c heartbeat ok
+  [PASS] R2d second heartbeat
+  [PASS] R2e discover by exact name
+  [PASS] R2f immutable fields verbatim
+  [PASS] R2g advisory heartbeat + mirror
+  [PASS] R2h liveness verdict fresh+alive
+  [PASS] R2i clean unregister
+  [PASS] R2j unregister idempotent
+  [PASS] R2k DEAD entry not discovered
+  [PASS] R3a 8 threads x 30 register/unregister: zero duplicate names
+  [PASS] R3b registry empty after heal
+  [PASS] R4a producer crashed (SIGKILL)
+  [PASS] R4b fresh-heartbeat entry NOT crashed out (staleness gate)
+  [PASS] R4c stale + dead pid -> crashed out (both legs)
+  [PASS] R4d crashed session no longer discoverable
+  [PASS] R5a successor takeover from DEAD incumbent (epoch 2)
+  [PASS] R5b live incumbent refuses duplicate producer
+  [PASS] R5c tombstone reaped after clean detach
+  [PASS] R5d post-reap registration: fresh epoch (tombstone gone)
+  [PASS] R6a issue
+  [PASS] R6b verify happy path
+  [PASS] R6c claims codec round trip
+  [PASS] R6d tampered tag -> bad HMAC
+  [PASS] R6e tampered claims refused
+  [PASS] R6f wrong session
+  [PASS] R6g expired
+  [PASS] R6h epoch mismatch
+  [PASS] R6i all-zero token malformed
+  [PASS] R6j adapter grants WRITE from valid token
+  [PASS] R6k adapter denies tampered token
+  [PASS] R7a attach 1
+  [PASS] R7b advisory count = 3
+  [PASS] R7c clean leaves decrement exactly
+  [PASS] R7d leave-at-zero never wraps
+  [PASS] R7e unknown session refused
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8b child clean detach
+  [PASS] R8c cross-process discovery + live heartbeats observed
+  [PASS] R8d entry gone after clean detach
+  [PASS] R9a heal idempotent (second pass has nothing to do)
+  [PASS] R9b stale+dead pid crashed out
+  [PASS] R9c healed-out handle fails loudly (no silent zombie)
+  [PASS] R9d re-registration succeeds (gen+1)
+  [PASS] R10a monitor (read-only) view opens
+  [PASS] R10b monitor discovers
+  [PASS] R10c monitor refuses registration
+  [PASS] R10d monitor refuses consumer attach
+  [PASS] R10e monitor refuses healing (CAS would fault)
+  [PASS] R11a session for heal
+  [PASS] R11b healthy ring passes through
+  [PASS] R11c corrupted ring detected + Axis-3 recovered
+=== R-series: 65 pass, 0 fail ===
+
+=== R-series: registry + tokens (TSAN — threaded surface, zero races) ===
+=== R-series: Weft IPC mesh registry + tokens (RFC-0016) ===
+  [PASS] R1a create-or-attach (creator)
+  [PASS] R1b exact registry size
+  [PASS] R1c second opener attaches
+  [PASS] R1d garbage object refused
+  [PASS] R1e zeroed-right-size decoy refused
+  [PASS] R1f absent registry, create disabled -> explicit failure
+  [PASS] R1g recreate
+  [PASS] R2a register (epoch 1)
+  [PASS] R2b fresh epoch = 1
+  [PASS] R2c heartbeat ok
+  [PASS] R2d second heartbeat
+  [PASS] R2e discover by exact name
+  [PASS] R2f immutable fields verbatim
+  [PASS] R2g advisory heartbeat + mirror
+  [PASS] R2h liveness verdict fresh+alive
+  [PASS] R2i clean unregister
+  [PASS] R2j unregister idempotent
+  [PASS] R2k DEAD entry not discovered
+  [PASS] R3a 8 threads x 30 register/unregister: zero duplicate names
+  [PASS] R3b registry empty after heal
+  [PASS] R4a producer crashed (SIGKILL)
+  [PASS] R4b fresh-heartbeat entry NOT crashed out (staleness gate)
+  [PASS] R4c stale + dead pid -> crashed out (both legs)
+  [PASS] R4d crashed session no longer discoverable
+  [PASS] R5a successor takeover from DEAD incumbent (epoch 2)
+=== R-series: Weft IPC mesh registry + tokens (RFC-0016) ===
+  [PASS] R1a create-or-attach (creator)
+  [PASS] R1b exact registry size
+  [PASS] R1c second opener attaches
+  [PASS] R1d garbage object refused
+  [PASS] R1e zeroed-right-size decoy refused
+  [PASS] R1f absent registry, create disabled -> explicit failure
+  [PASS] R1g recreate
+  [PASS] R2a register (epoch 1)
+  [PASS] R2b fresh epoch = 1
+  [PASS] R2c heartbeat ok
+  [PASS] R2d second heartbeat
+  [PASS] R2e discover by exact name
+  [PASS] R2f immutable fields verbatim
+  [PASS] R2g advisory heartbeat + mirror
+  [PASS] R2h liveness verdict fresh+alive
+  [PASS] R2i clean unregister
+  [PASS] R2j unregister idempotent
+  [PASS] R2k DEAD entry not discovered
+  [PASS] R3a 8 threads x 30 register/unregister: zero duplicate names
+  [PASS] R3b registry empty after heal
+  [PASS] R4a producer crashed (SIGKILL)
+  [PASS] R4b fresh-heartbeat entry NOT crashed out (staleness gate)
+  [PASS] R4c stale + dead pid -> crashed out (both legs)
+  [PASS] R4d crashed session no longer discoverable
+  [PASS] R5a successor takeover from DEAD incumbent (epoch 2)
+  [PASS] R5b live incumbent refuses duplicate producer
+  [PASS] R5c tombstone reaped after clean detach
+  [PASS] R5d post-reap registration: fresh epoch (tombstone gone)
+  [PASS] R6a issue
+  [PASS] R6b verify happy path
+  [PASS] R6c claims codec round trip
+  [PASS] R6d tampered tag -> bad HMAC
+  [PASS] R6e tampered claims refused
+  [PASS] R6f wrong session
+  [PASS] R6g expired
+  [PASS] R6h epoch mismatch
+  [PASS] R6i all-zero token malformed
+  [PASS] R6j adapter grants WRITE from valid token
+  [PASS] R6k adapter denies tampered token
+  [PASS] R7a attach 1
+  [PASS] R7b advisory count = 3
+  [PASS] R7c clean leaves decrement exactly
+  [PASS] R7d leave-at-zero never wraps
+  [PASS] R7e unknown session refused
+=== R-series: Weft IPC mesh registry + tokens (RFC-0016) ===
+  [PASS] R1a create-or-attach (creator)
+  [PASS] R1b exact registry size
+  [PASS] R1c second opener attaches
+  [PASS] R1d garbage object refused
+  [PASS] R1e zeroed-right-size decoy refused
+  [PASS] R1f absent registry, create disabled -> explicit failure
+  [PASS] R1g recreate
+  [PASS] R2a register (epoch 1)
+  [PASS] R2b fresh epoch = 1
+  [PASS] R2c heartbeat ok
+  [PASS] R2d second heartbeat
+  [PASS] R2e discover by exact name
+  [PASS] R2f immutable fields verbatim
+  [PASS] R2g advisory heartbeat + mirror
+  [PASS] R2h liveness verdict fresh+alive
+  [PASS] R2i clean unregister
+  [PASS] R2j unregister idempotent
+  [PASS] R2k DEAD entry not discovered
+  [PASS] R3a 8 threads x 30 register/unregister: zero duplicate names
+  [PASS] R3b registry empty after heal
+  [PASS] R4a producer crashed (SIGKILL)
+  [PASS] R4b fresh-heartbeat entry NOT crashed out (staleness gate)
+  [PASS] R4c stale + dead pid -> crashed out (both legs)
+  [PASS] R4d crashed session no longer discoverable
+  [PASS] R5a successor takeover from DEAD incumbent (epoch 2)
+  [PASS] R5b live incumbent refuses duplicate producer
+  [PASS] R5c tombstone reaped after clean detach
+  [PASS] R5d post-reap registration: fresh epoch (tombstone gone)
+  [PASS] R6a issue
+  [PASS] R6b verify happy path
+  [PASS] R6c claims codec round trip
+  [PASS] R6d tampered tag -> bad HMAC
+  [PASS] R6e tampered claims refused
+  [PASS] R6f wrong session
+  [PASS] R6g expired
+  [PASS] R6h epoch mismatch
+  [PASS] R6i all-zero token malformed
+  [PASS] R6j adapter grants WRITE from valid token
+  [PASS] R6k adapter denies tampered token
+  [PASS] R7a attach 1
+  [PASS] R7b advisory count = 3
+  [PASS] R7c clean leaves decrement exactly
+  [PASS] R7d leave-at-zero never wraps
+  [PASS] R7e unknown session refused
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8a discovered producer is ANOTHER process
+  [PASS] R8b child clean detach
+  [PASS] R8c cross-process discovery + live heartbeats observed
+  [PASS] R8d entry gone after clean detach
+  [PASS] R9a heal idempotent (second pass has nothing to do)
+  [PASS] R9b stale+dead pid crashed out
+  [PASS] R9c healed-out handle fails loudly (no silent zombie)
+  [PASS] R9d re-registration succeeds (gen+1)
+  [PASS] R10a monitor (read-only) view opens
+  [PASS] R10b monitor discovers
+  [PASS] R10c monitor refuses registration
+  [PASS] R10d monitor refuses consumer attach
+  [PASS] R10e monitor refuses healing (CAS would fault)
+  [PASS] R11a session for heal
+  [PASS] R11b healthy ring passes through
+  [PASS] R11c corrupted ring detected + Axis-3 recovered
+=== R-series: 65 pass, 0 fail ===
+
+=== ipc-torture memfd: 100k cross-process publications + mid-claim crash ===
+=== ipc-torture memfd: 100,000 cross-process publications ===
+  [PASS] 3 survivor consumers exited clean
+  [PASS] consumer #4 crashed mid-claim (SIGKILL, no cleanup)
+  [PASS] ring HEALTHY after consumer crash mid-claim (readers are stateless observers)
+  [PASS] payload bit-exact on every fresh claim (survivors)
+  [PASS] telescoping EXACT: fresh+drops == 100,000 per survivor
+  [PASS] victim progressed to frame seq >= 30,000 (fresh + telescoped) before crashing
+  [PASS] advisory n_consumers == 1 (crash leak visible, honest)
+  [PASS] producer heartbeats advanced through the run
+    [INFO] 100000 frames x 256B in 0.159s = 628527 pub/s (informational; 2 vCPU sandbox; 4 consumer processes claiming)
+    [INFO] consumer 0: fresh=95179 drops=4821 skip=1848 exhausted=0
+    [INFO] consumer 1: fresh=99406 drops=594 skip=7388 exhausted=0
+    [INFO] consumer 2: fresh=95174 drops=4826 skip=1848 exhausted=0
+    [INFO] consumer 3: fresh=14 drops=31888 skip=568 exhausted=0
+=== ipc-torture (memfd): 0 failures ===
+
+=== ipc-torture memfd (ASAN) ===
+=== ipc-torture memfd: 100,000 cross-process publications ===
+  [PASS] 3 survivor consumers exited clean
+  [PASS] consumer #4 crashed mid-claim (SIGKILL, no cleanup)
+  [PASS] ring HEALTHY after consumer crash mid-claim (readers are stateless observers)
+  [PASS] payload bit-exact on every fresh claim (survivors)
+  [PASS] telescoping EXACT: fresh+drops == 100,000 per survivor
+  [PASS] victim progressed to frame seq >= 30,000 (fresh + telescoped) before crashing
+  [PASS] advisory n_consumers == 1 (crash leak visible, honest)
+  [PASS] producer heartbeats advanced through the run
+    [INFO] 100000 frames x 256B in 0.182s = 550485 pub/s (informational; 2 vCPU sandbox; 4 consumer processes claiming)
+    [INFO] consumer 0: fresh=78642 drops=21358 skip=1814 exhausted=0
+    [INFO] consumer 1: fresh=92487 drops=7513 skip=1269 exhausted=0
+    [INFO] consumer 2: fresh=71072 drops=28928 skip=699 exhausted=0
+    [INFO] consumer 3: fresh=6097 drops=24116 skip=345 exhausted=0
+=== ipc-torture (memfd): 0 failures ===
+
+=== ipc-torture mesh: crashy restart + successor + exact cross-incarnation telescoping ===
+=== ipc-torture mesh: registry + crashy producer restart + successor (120,000 publications across 2 incarnations) ===
+  [PASS] producer P1 crashed (SIGKILL, no cleanup)
+  [PASS] successor producer P2: takeover (epoch 2), 60k frames, clean detach
+  [PASS] 3 consumers survived the crash + re-attached
+  [PASS] payload bit-exact ACROSS incarnations (pattern keyed by continued frame seq)
+  [PASS] telescoping spans the outage EXACTLY: fresh+drops == 120,000 per consumer
+  [PASS] every consumer observed the epoch 1 -> 2 transition
+  [PASS] mesh entry gone after successor clean detach + heal
+    [INFO] mesh consumer 0: fresh=118031 drops=1969 exhausted=0 epoch=2
+    [INFO] mesh consumer 1: fresh=119471 drops=529 exhausted=0 epoch=2
+    [INFO] mesh consumer 2: fresh=119601 drops=399 exhausted=0 epoch=2
+    [INFO] the drops count IS the outage gap + any claim-cadence losses — accounted, never phantom
+=== ipc-torture (mesh): 0 failures ===
+
+=== ipc-torture mesh (ASAN) ===
+=== ipc-torture mesh: registry + crashy producer restart + successor (120,000 publications across 2 incarnations) ===
+  [PASS] producer P1 crashed (SIGKILL, no cleanup)
+  [PASS] successor producer P2: takeover (epoch 2), 60k frames, clean detach
+  [PASS] 3 consumers survived the crash + re-attached
+  [PASS] payload bit-exact ACROSS incarnations (pattern keyed by continued frame seq)
+  [PASS] telescoping spans the outage EXACTLY: fresh+drops == 120,000 per consumer
+  [PASS] every consumer observed the epoch 1 -> 2 transition
+  [PASS] mesh entry gone after successor clean detach + heal
+    [INFO] mesh consumer 0: fresh=118234 drops=1766 exhausted=0 epoch=2
+    [INFO] mesh consumer 1: fresh=72343 drops=47657 exhausted=0 epoch=2
+    [INFO] mesh consumer 2: fresh=118743 drops=1257 exhausted=0 epoch=2
+    [INFO] the drops count IS the outage gap + any claim-cadence losses — accounted, never phantom
+=== ipc-torture (mesh): 0 failures ===
+
+=== ipc-torture latency: park (zero-syscall) vs eventfd (plain, measurement integrity) ===
+=== ipc-torture latency: park (zero-syscall) vs eventfd wake-up, cross-process ===
+  [PASS] park leg: 10,000 rounds, every frame claimed + verified
+  [PASS] eventfd leg: 10,000 wake-up rounds
+    park (zero-syscall)    p50=   561 ns  p99=   581 ns  max= 35083 ns
+    eventfd wake-up        p50=  8302 ns  p99= 11367 ns  max= 59750 ns
+    [INFO] park = bounded spin (burns CPU while waiting, Law 1 capped); eventfd = blocking (zero CPU while waiting, syscall + scheduler wakeup). Different tools — measured, not asserted.
+=== ipc-torture (latency): 0 failures ===
+
+=== Kernel freeze audit (weft/fanout/shm_ring/frame_cursor + Rust/TS kernels) ===
+kernel freeze: OK (0 diffs on all frozen files)
+
+=== Verdict ===
+ipc-mesh shard: ALL GATES GREEN

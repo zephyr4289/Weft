@@ -1,0 +1,141 @@
+{
+  "catalog": "weft-litmus",
+  "version": 3,
+  "run_utc": "2026-09-23T14:12:03.747104+00:00",
+  "honesty_label": "x86_64-sandbox (runtime-verified)",
+  "langs": [
+    "rust"
+  ],
+  "tests": [
+    "L1-tear",
+    "L2-writer-steps",
+    "L3-reader-steps",
+    "L4-freshness",
+    "L5-progress",
+    "L6-ownership",
+    "L7-revocation",
+    "L8-envelope",
+    "L9-cross-beam",
+    "L10-nested-revocation",
+    "L11-ffi-stress",
+    "L12-canary-corruption",
+    "L13-claim-retry",
+    "L14-mixed-endianness",
+    "L15-huge-payload",
+    "L16-rapid-reclaim"
+  ],
+  "matrix": {
+    "rust/L1-tear": {
+      "test": "L1-tear",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "holds_ms": [
+          5,
+          10,
+          50
+        ],
+        "claims": 797,
+        "claims_per_s": 105.9,
+        "torn": 0,
+        "drain_ok": true
+      }
+    },
+    "rust/L2-writer-steps": {
+      "test": "L2-writer-steps",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "holds_ms": [
+          0,
+          10,
+          25,
+          50,
+          100
+        ],
+        "publishes": 10000,
+        "max_wsteps": 1,
+        "bound": 2
+      }
+    },
+    "rust/L3-reader-steps": {
+      "test": "L3-reader-steps",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "claims": 2000,
+        "max_rsteps": 1,
+        "bound": 2
+      }
+    },
+    "rust/L4-freshness": {
+      "test": "L4-freshness",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "frames": 2000,
+        "freshness_violations": 0,
+        "future_violations": 0,
+        "drain_exact": true,
+        "stale_returns": 1
+      }
+    },
+    "rust/L5-progress": {
+      "test": "L5-progress",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "rates_hz": [
+          2000.0,
+          2000.0,
+          2000.0,
+          2000.0,
+          2000.0
+        ],
+        "ratio": 1.0,
+        "tolerance": 1.5,
+        "configs": 5
+      }
+    },
+    "rust/L6-ownership": {
+      "test": "L6-ownership",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "trials": 200,
+        "frames_per_trial": 64,
+        "violations": 0,
+        "seed": "0x00C0FFEE"
+      }
+    },
+    "rust/L7-revocation": {
+      "test": "L7-revocation",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "reclaim_ok": true,
+        "post_revoke_revoked": 100,
+        "poison_intact": true,
+        "first_revoked_at": 16993
+      }
+    },
+    "rust/L8-envelope": {
+      "test": "L8-envelope",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "roundtrip": true,
+        "unknown_fields": true,
+        "negotiation": true,
+        "coexist": true
+      }
+    }
+  },
+  "stderr_excerpts": {},
+  "declared_skips": [
+    {
+      "test": "L11-ffi-stress",
+      "reason": "script-orchestrated: litmus/ffi_stress/run.sh (shard leg)"
+    }
+  ]
+}

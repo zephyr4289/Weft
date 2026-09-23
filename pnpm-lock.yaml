@@ -142,6 +142,8 @@ importers:
 
   packages/weft-tensor: {}
 
+  packages/weft-cluster: {}
+
   packages/react-native:
     dependencies:
       '@weft/core':

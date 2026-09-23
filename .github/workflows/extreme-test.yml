@@ -191,6 +191,7 @@ jobs:
               {"shard": "weft-tensor-managed", "description": "Project weft-tensor Pillar 2: WTR1 layout, TS/Python ingestion engines, DLPack/NumPy bridge, cross-language parity, React/Flutter AI hooks/widgets, 120 FPS flight demo, alloc probes", "script": "ci/scripts/run_weft_tensor_managed_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "weft-cluster", "description": "RFC-0018 WCR1: CL-ring/CL-consensus x sanitizers + split-brain torture + bench scoreboard", "script": "ci/scripts/run_weft_cluster_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "weft-cluster-bypass", "description": "RFC-0019 Pillar 3: kernel-bypass cluster mesh — RoCEv2/IB one-sided RDMA (dlopen'd verbs + WRH1 golden handshake + deadline poll), eBPF/XDP line-rate steering (assembled bytecode + UMEM over WCR1), io_uring batched fallback (registered buffers + sticky ZC downgrade + kernel-UDP ping-pong), fabric refusal cascade, latency bench", "script": "ci/scripts/run_weft_cluster_bypass_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "weft-cluster-managed", "description": "Project weft-cluster Pillar 3: TS wire/client/topology/router/metrics, Python wire/router/UDP parity, live UDP mesh, 100k zero-alloc probes, 1M fps burst, rendezvous router", "script": "ci/scripts/run_weft_cluster_managed_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)
@@ -253,8 +254,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-py-tectonic-
 
-      - name: Install Python deps (PyYAML, PyMuPDF, psutil)
-        run: pip install --quiet pyyaml pymupdf psutil
+      - name: Install Python deps (PyYAML, PyMuPDF, psutil, pytest, numpy)
+        run: pip install --quiet pyyaml pymupdf psutil pytest numpy
 
       - name: Install tectonic + pandoc (for site + report scans)
         run: |
@@ -393,7 +394,7 @@ jobs:
           workspaces: core/rust
 
       - name: Install Python deps
-        run: pip install --quiet pyyaml pymupdf psutil
+        run: pip install --quiet pyyaml pymupdf psutil pytest numpy
 
       - name: Install tectonic + pandoc (forensic-scan + site shards)
         if: matrix.shard == 'forensic-scan' || matrix.shard == 'site-determinism'

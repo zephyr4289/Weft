@@ -1,0 +1,8 @@
+workflow: flutter-packages
+job:      Flutter & Dart FFI (windows-latest)
+status:   cancelled
+sha:      d361e60518bded3edfc9873cb192fa7f36eba074
+event:    pull_request
+run:      189
+date:     Wed Sep 23 12:48:47 UTC 2026
+ref:      refs/pull/53/merge

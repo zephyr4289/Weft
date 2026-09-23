@@ -1,0 +1,146 @@
+[
+  {
+    "num": 1,
+    "id": "kernel-core",
+    "name": "Kernel Core & Triad Protocol",
+    "tagline": "Off-Heap Zero-Copy Seqlock & Multi-Language Core",
+    "rfcs": [
+      "RFC-0001"
+    ],
+    "audits": [
+      "D-01",
+      "D-02",
+      "D-03"
+    ],
+    "specs": [
+      "docs/WHITEPAPER.md"
+    ],
+    "desc": "3 buffers + 1 atomic latest.exchange(AcqRel). Zero allocations on render loop. Verified across C, Rust, TS, Swift, Dart, Python, Kotlin, WASM."
+  },
+  {
+    "num": 2,
+    "id": "accelerated-tensor",
+    "name": "Accelerated Tensor",
+    "tagline": "Metal/Vulkan/GGML/ORT Zero-Copy Accelerator Bridges",
+    "rfcs": [
+      "RFC-0017"
+    ],
+    "audits": [
+      "D-29",
+      "D-30"
+    ],
+    "specs": [
+      "docs/weft-tensor/LAYOUT-V1.md"
+    ],
+    "desc": "Zero-copy tensor ring buffers, DLPack C-API integration, and hardware pre-processing pipelines across Apple Metal, Vulkan Compute, GGML, and ONNX Runtime."
+  },
+  {
+    "num": 3,
+    "id": "cluster-protocol",
+    "name": "Cluster Protocol",
+    "tagline": "XDP, io_uring & RDMA Kernel-Bypass Fabric",
+    "rfcs": [
+      "RFC-0018",
+      "RFC-0019"
+    ],
+    "audits": [
+      "D-31",
+      "D-32",
+      "D-33"
+    ],
+    "specs": [
+      "docs/weft-cluster/WIRE-V1.md"
+    ],
+    "desc": "WCR1 wire consensus protocol, eBPF XDP filter kernels, Linux io_uring zero-copy sockets, and InfiniBand RDMA memory-window transfers."
+  },
+  {
+    "num": 4,
+    "id": "heddle2-canvas",
+    "name": "Heddle 2.0 Canvas",
+    "tagline": "WHP1 HotPlane 240 FPS Hardware Canvas Engine",
+    "rfcs": [
+      "RFC-0022"
+    ],
+    "audits": [
+      "D-41",
+      "D-42",
+      "D-43"
+    ],
+    "specs": [
+      "docs/heddle2/HPL1-LAYOUT-V1.md",
+      "docs/heddle/HOTPLANE-LAYOUT-V2.md"
+    ],
+    "desc": "Zero-re-render UI binding layer, WHP1 1M-point waveform decimation, WebGL2 Transform Feedback, WGSL compute shaders, and native Vulkan lavapipe SSBO probes."
+  },
+  {
+    "num": 5,
+    "id": "spectrum-pipeline",
+    "name": "Spectrum Shader Pipeline",
+    "tagline": "Universal GPU & Shader Execution Pipeline",
+    "rfcs": [
+      "RFC-0020"
+    ],
+    "audits": [
+      "D-51",
+      "D-52"
+    ],
+    "specs": [
+      "docs/spectrum/SPECTRUM-WIRE-V1.md"
+    ],
+    "desc": "Cross-vendor hardware driver registry (Apple, MTK, NV, QCOM, ARM), SIMD vectorization (AVX-512, NEON, RVV), and dynamic governor frequency scaling."
+  },
+  {
+    "num": 6,
+    "id": "protocol-adapters",
+    "name": "Universal Protocol Adapters",
+    "tagline": "ITCH 5.0, SBE & ROS2 rmw_weft Managed Seams",
+    "rfcs": [
+      "RFC-0021"
+    ],
+    "audits": [
+      "D-61",
+      "D-62",
+      "D-63"
+    ],
+    "specs": [
+      "docs/adapters/MANAGED-SEAMS-V1.md"
+    ],
+    "desc": "O(1) L2/L3 order book engine, NASDAQ ITCH 5.0 & CME SBE wire decoders, MDP1 snapshot feeds, and ROS2 rmw_weft zero-copy middleware."
+  },
+  {
+    "num": 7,
+    "id": "studio-engine",
+    "name": "Weft Studio",
+    "tagline": "Developer Hot-Plane & Live IDE Profiler",
+    "rfcs": [
+      "RFC-0015"
+    ],
+    "audits": [
+      "D-71",
+      "D-72",
+      "D-73"
+    ],
+    "specs": [
+      "docs/studio/STUDIO-SEAMS-V1.md"
+    ],
+    "desc": "Android Studio-grade visual profiler, live atomic slot heatmap, flight-recorder time-travel debugger, weft-lsp server, and multi-language codegen."
+  },
+  {
+    "num": 8,
+    "id": "verify-governance",
+    "name": "Formal Verification & Governance",
+    "tagline": "TLA+ Proofs, AST Governance & Synthetic Silicon",
+    "rfcs": [
+      "RFC-0016"
+    ],
+    "audits": [
+      "D-81",
+      "D-82",
+      "D-83"
+    ],
+    "specs": [
+      "docs/pillars/NEXT-GEN-PILLARS-5-8.md"
+    ],
+    "desc": "TLA+ Model Checking for seqlock safety, AST static allocation scanners, synthetic silicon thermal curves, and automated CI allocation-lint hooks."
+  }
+]

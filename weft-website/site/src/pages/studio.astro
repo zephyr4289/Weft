@@ -1,0 +1,247 @@
+---
+import Base from '../layouts/Base.astro';
+import StudioMini from '../components/StudioMini.astro';
+const base = '/Weft';
+
+const panels = [
+  { id: 'ring', name: 'Ring Monitor', tag: 'ENGINEER-2 SEAM', color: 'cold',
+    body: 'Maps the raw seqlock memory region — 1,000,000 slots × 32 bytes — and decodes every field live: seq parity, writer lane, msg_type, timestamps, payload. This is not a log viewer; it reads the same bytes the kernel reads, zero-copy, through the inspector seam.',
+    facts: ['1 M slots × 32 B map', 'field-level decode', 'parity tripwires'] },
+  { id: 'spy', name: 'Render Spy', tag: 'STUI1 ENFORCEMENT', color: 'hot',
+    body: 'The Two-Plane Law made visible: HOT components must render exactly once per mount. The Spy instruments the heddle runtime and flags any second render of a hot component as a law violation — in the editor, in CI, and in production builds that opt in.',
+    facts: ['renders == 1 · enforced', 'violations fail the build', 'ships inside @weft/react-heddle'] },
+  { id: 'rec', name: 'Time-Travel Flight Recorder', tag: 'SREC1 SIDECAR', color: 'violet',
+    body: '.weftrec files record ring commits with monotonic timestamps. The debugger scrubs backward and forward through real state — O(log n) seek over CRC-32C-checksummed frames. Deterministic replay across languages is tested in CI (record in C, replay in TS).',
+    facts: ['O(log n) seek', 'CRC-32C framed', 'cross-language replay'] },
+  { id: 'line', name: 'Cache-Line Inspector', tag: 'LAW-4 TAXONOMY', color: 'cold',
+    body: 'Live view of 64-byte cache lines across hot structures, with false-sharing tripwires. When two writers land on one line, the Inspector says so — before your p99 does.',
+    facts: ['64 B line resolution', 'false-sharing alarms', 'pads audited against STUDIO-SEAMS §6'] },
+  { id: 'lsp', name: 'Schema Editor · weft-lsp + weftc-WASM', tag: 'ENGINEER-1 SEAM', color: 'hot',
+    body: 'A language server for .weftc schema files plus a WASM build of the compiler — full validation, completion and codegen with zero install. It runs in this browser tab and in the desktop shell identically.',
+    facts: ['7-language codegen', 'deterministic output', 'runs in-browser'] },
+  { id: 'cad', name: 'Cadence Governor', tag: 'DROP-NOT-QUEUE', color: 'cold',
+    body: 'Studio UI updates are governed to 240 Hz with a hard budget: p99 ≤ 4.166 ms. Under pressure the governor drops frames rather than queueing them — the same policy the kernel teaches, applied to the tool itself.',
+    facts: ['240 Hz target cadence', 'drop-not-queue', 'budget asserted in D-72'] },
+];
+
+const audits = [
+  { d: 'D-71', t: 'Engine core audit', note: 'gates G1–G6 green · strict gcc+clang dual builds' },
+  { d: 'D-72', t: 'Cadence & budget proof', note: 'malloc interposition: 0 allocations over 200,000 cycles' },
+  { d: 'D-73', t: 'Seam contracts sign-off', note: 'STUDIO-SEAMS-V1 declared normative' },
+];
+---
+
+<Base
+  title="Weft Studio — see the machine"
+  description="Android-Studio-grade visual suite for the Weft zero-copy ecosystem: Ring Monitor, time-travel flight recorder, Render Spy enforcing the Two-Plane Law, cache-line inspector, WASM schema compiler. Governed by STUDIO-SEAMS-V1."
+>
+  <section class="hero st-hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow cold">WEFT STUDIO · PILLAR 7 · v1 SHIPPED</p>
+        <h1>See the <em>machine</em>.</h1>
+        <p class="lede">
+          A continuous-state system deserves a continuous-state tool. Weft Studio is an
+          Android-Studio-grade visual suite for the zero-copy ecosystem — and it dogfoods the very
+          protocol it inspects: its own hot plane runs at 240 FPS through <code>@weft/react-heddle</code>,
+          and its React tree re-renders exactly once per mount. The product ships its own X-ray machine.
+        </p>
+        <ul class="st-chips">
+          <li><span class="badge hot">zero-dependency engine</span></li>
+          <li><span class="badge cold">Tauri desktop shell</span></li>
+          <li><span class="badge">sub-15 MB bundle target</span></li>
+          <li><span class="badge ok">audits D-71 · D-72 · D-73</span></li>
+        </ul>
+      </div>
+      <div class="reveal"><StudioMini /></div>
+    </div>
+  </section>
+
+  <!-- TWO-PLANE LAW -->
+  <section class="section" id="law">
+    <div class="container">
+      <p class="eyebrow">THE CONSTITUTION, APPLIED TO THE IDE ITSELF</p>
+      <h2 class="reveal">The Two-Plane Law · STUI1</h2>
+      <div class="stui1 reveal">
+        <div class="stui1-pane cold-pane">
+          <p class="mono-label cold">COLD PLANE · studio chrome</p>
+          <h3>Reactive. Normal. Allowed to re-render.</h3>
+          <p class="subtle">Menus, settings, file trees, theme — ordinary React state at human pace. Invalidated by user intent, diffed, patched. Exactly what frameworks were built for.</p>
+        </div>
+        <div class="stui1-divider" aria-hidden="true"><span>ONE RULE BETWEEN THEM</span></div>
+        <div class="stui1-pane hot-pane">
+          <p class="mono-label">HOT PLANE · monitors, traces, gauges</p>
+          <h3>Draw-phase only. One render per mount. Ever.</h3>
+          <p class="subtle">Every live readout claims a Triad buffer and paints it in the draw phase. A second render of a HOT component is not slow — it is a <b>law violation</b>, caught by the Render Spy and failed in CI.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PANEL WALKTHROUGH -->
+  <section class="section" id="panels">
+    <div class="container">
+      <p class="eyebrow">THE SIX PANELS</p>
+      <h2 class="reveal">An instrument wall with opinions.</h2>
+      <p class="lede reveal" style="max-width:58ch">Each panel is a seam contract from STUDIO-SEAMS-V1 — versioned, testable, and honest about what it shows.</p>
+      <div class="panel-list">
+        {panels.map((p, i) => (
+          <article class="panel-row card reveal" id={p.id}>
+            <div class="panel-num serif-em">0{i + 1}</div>
+            <div class="panel-body">
+              <p class:list={['mono-label', p.color === 'cold' && 'cold']}>{p.tag}</p>
+              <h3>{p.name}</h3>
+              <p class="subtle">{p.body}</p>
+              <ul class="panel-facts">{p.facts.map(f => <li class="num micro">{f}</li>)}</ul>
+            </div>
+            <div class:list={['panel-viz', `viz-${p.id}`]} aria-hidden="true">
+              {p.id === 'ring' && (
+                <div class="viz-slots">{Array.from({ length: 24 }, (_, k) => <i class:list={{ on: k % 5 === 2, odd: k % 7 === 3 }}></i>)}</div>
+              )}
+              {p.id === 'spy' && (
+                <div class="viz-spy"><span class="num">renders: 1</span><span class="ok-tick">✓ STUI1</span></div>
+              )}
+              {p.id === 'rec' && (
+                <div class="viz-rec"><i style="--x:12%"></i><i style="--x:31%"></i><i class="warn" style="--x:58%"></i><i style="--x:76%"></i><span class="scrub" style="--x:58%">⚑</span></div>
+              )}
+              {p.id === 'line' && (
+                <div class="viz-lines">{Array.from({ length: 8 }, (_, k) => <span class:list={{ clash: k === 3 }}>{'▮'.repeat(3)}</span>)}</div>
+              )}
+              {p.id === 'lsp' && (
+                <pre class="viz-code">schema orderbook &#123;
+  slot 32B seqlock &#123;
+    u32 seq @0; u16 writer @4;
+    u8  type @6; f64 price @16;
+  &#125;
+&#125; → c rust ts kt swift dart py</pre>
+              )}
+              {p.id === 'cad' && (
+                <div class="viz-cad">{Array.from({ length: 20 }, (_, k) => <i style={`--h:${k === 13 ? 96 : 24 + ((k * 29) % 46)}%`}></i>)}</div>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+      <div class="honesty card reveal" style="margin-top:2.4rem">
+        <p class="mono-label">HONESTY LABEL</p>
+        <p style="margin:.5rem 0 0" class="subtle">Panel visuals on this page are schema-faithful simulations built to the exact layouts in STUDIO-SEAMS-V1 — they demonstrate format and behavior, and are labeled as such everywhere they appear. They are not live captures of a running Studio instance.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE SLOT DECODER -->
+  <section class="section" id="slotdecoder">
+    <div class="container">
+      <p class="eyebrow cold">TOUCH THE MEMORY MAP</p>
+      <h2 class="reveal">One slot. Thirty-two bytes. <em>Hover every byte.</em></h2>
+      <p class="lede reveal" style="max-width:60ch">
+        This is the Ring Monitor's atomic unit rendered honestly: a live 32-byte seqlock slot with the
+        exact field layout from the seam contract. A simulated market-feed writer commits ticks while
+        you inspect — watch the seq field flip even→odd→even around each write. Odd means “writing”:
+        readers retry, never block.
+      </p>
+      <div class="reveal" data-slotdec>
+        <div class="sd-shell card">
+          <header class="sd-head">
+            <span class="mono-label">RING MONITOR · slot 0x0186A0 · lane 7 · MARKET_TICK</span>
+            <span class="sd-state badge cold">seq stable (even)</span>
+          </header>
+          <div class="sd-bytes" role="img" aria-label="32 hex bytes of a live seqlock slot"></div>
+          <div class="sd-detail">
+            <p class="mono-label">FIELD</p>
+            <p class="sd-detail-name">—</p>
+            <p class="sd-detail-desc subtle micro">Hover or tap any byte to decode its field.</p>
+          </div>
+          <footer class="sd-foot">
+            <span>seq <b class="sd-seq num">—</b></span>
+            <span>price <b class="sd-price num">—</b></span>
+            <span class="micro subtle">writer cadence 240 Hz · drop-not-queue</span>
+          </footer>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUDIT WALL -->
+  <section class="section" id="audits">
+    <div class="container">
+      <p class="eyebrow">GOVERNANCE</p>
+      <h2 class="reveal">Audited, pinned, on the record.</h2>
+      <div class="audit-grid">
+        {audits.map(a => (
+          <div class="card audit-card reveal">
+            <span class="audit-d serif-em">{a.d}</span>
+            <h3>{a.t}</h3>
+            <p class="subtle micro">{a.note}</p>
+            <a class="micro" href="https://github.com/zephyr4289/Weft/tree/main/evidence" target="_blank" rel="noopener">evidence/ →</a>
+          </div>
+        ))}
+      </div>
+      <p class="reveal" style="margin-top:2.6rem;display:flex;gap:1rem;flex-wrap:wrap">
+        <a class="btn btn-primary" href={`${base}/docs/studio`}>Read STUDIO-SEAMS-V1</a>
+        <a class="btn btn-ghost" href="https://github.com/zephyr4289/Weft/tree/main/packages/studio" target="_blank" rel="noopener">packages/studio source</a>
+      </p>
+    </div>
+  </section>
+
+  <script>import '../components/SlotDecoder.client.js';</script>
+
+  <style is:global>
+    .st-hero { min-height: auto; padding-top: 9rem; padding-bottom: 2rem; }
+    .st-hero h1 { font-size: var(--fs-display); line-height: 1; letter-spacing: -0.03em; margin: 1rem 0 1.3rem; font-weight: 540; }
+    .st-chips { list-style: none; display: flex; gap: .7rem; flex-wrap: wrap; padding: 0; margin: 1.8rem 0 0; }
+    section h2 { font-size: var(--fs-h2); margin: .8rem 0 1.1rem; letter-spacing: -0.015em; }
+
+    .stui1 { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.2rem; align-items: stretch; margin-top: 2.6rem; }
+    .stui1-pane { border-radius: var(--radius); padding: 2rem 1.8rem; border: 1px solid var(--line); }
+    .hot-pane { background: linear-gradient(160deg, rgba(245,165,36,.09), rgba(245,165,36,.02)); border-color: rgba(245,165,36,.3); }
+    .cold-pane { background: linear-gradient(200deg, rgba(83,215,251,.08), rgba(83,215,251,.02)); border-color: rgba(83,215,251,.28); }
+    .stui1-pane h3 { font-size: 1.25rem; margin: .8rem 0 .6rem; }
+    .stui1-divider { display: grid; place-items: center; }
+    .stui1-divider span { writing-mode: vertical-rl; font-family: var(--mono); font-size: .6rem; letter-spacing: .3em; color: var(--faint); border-block: 1px solid var(--line-strong); padding-block: 1rem; }
+    @media (max-width: 860px) { .stui1 { grid-template-columns: 1fr; } .stui1-divider span { writing-mode: horizontal-tb; } }
+
+    .panel-list { display: grid; gap: 1.2rem; margin-top: 2.6rem; }
+    .panel-row { display: grid; grid-template-columns: 70px 1.2fr 1fr; gap: 1.6rem; padding: 1.8rem; align-items: start; }
+    .panel-num { font-size: 2.8rem; line-height: 1; }
+    .panel-body h3 { font-size: 1.35rem; margin: .4rem 0 .6rem; }
+    .panel-body p { font-size: .92rem; }
+    .panel-facts { list-style: none; padding: 0; margin: 1rem 0 0; display: flex; gap: .5rem; flex-wrap: wrap; }
+    .panel-facts li { border: 1px solid var(--line-strong); border-radius: 999px; padding: .3rem .7rem; color: var(--mute); }
+    .panel-viz { border: 1px dashed var(--line-strong); border-radius: 10px; min-height: 150px; padding: 1rem; background: #0a0c11; display: grid; place-items: center; }
+    @media (max-width: 960px) { .panel-row { grid-template-columns: 1fr; } }
+    .viz-slots { display: grid; grid-template-columns: repeat(8, 16px); gap: 5px; }
+    .viz-slots i { width: 16px; height: 16px; border-radius: 3px; background: var(--ink-4); }
+    .viz-slots i.on { background: var(--cold); box-shadow: 0 0 8px rgba(83,215,251,.5); }
+    .viz-slots i.odd { background: var(--hot); }
+    .viz-spy { font-family: var(--mono); display: grid; gap: .6rem; text-align: center; color: var(--bone); }
+    .ok-tick { color: var(--ok); }
+    .viz-rec { position: relative; width: 100%; height: 40px; border-radius: 8px; background: rgba(167,139,250,.08); border: 1px solid var(--line); }
+    .viz-rec i { position: absolute; left: var(--x); top: 6px; bottom: 6px; width: 2px; background: var(--violet); }
+    .viz-rec i.warn { background: var(--bad); }
+    .scrub { position: absolute; left: var(--x); top: -10px; transform: translateX(-50%); color: var(--hot); }
+    .viz-lines { display: grid; gap: .35rem; font-size: .8rem; }
+    .viz-lines span { color: var(--cold); letter-spacing: .35em; }
+    .viz-lines span.clash { color: var(--bad); animation: blink 1.4s steps(2) infinite; }
+    @keyframes blink { 50% { opacity: .35; } }
+    .viz-code { font-family: var(--mono); font-size: .68rem; color: #d7dbe8; line-height: 1.6; margin: 0; }
+    .viz-cad { display: flex; align-items: flex-end; gap: 3px; height: 90px; width: 100%; }
+    .viz-cad i { flex: 1; height: var(--h); border-radius: 2px; background: linear-gradient(180deg, var(--cold), rgba(83,215,251,.12)); }
+    .viz-cad i[style*="96"] { background: linear-gradient(180deg, var(--bad), rgba(248,113,113,.2)); }
+
+    .sd-shell { padding: 0; overflow: hidden; max-width: 720px; margin-top: 2.4rem; }
+    .sd-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .9rem 1.1rem; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .sd-foot { display: flex; gap: 1.6rem; padding: .8rem 1.1rem; border-top: 1px solid var(--line); font-family: var(--mono); font-size: .74rem; color: var(--mute); flex-wrap: wrap; }
+    .sd-foot b { color: var(--bone); font-weight: 500; }
+    .sd-detail { padding: 1rem 1.1rem .4rem; min-height: 84px; }
+    .sd-detail-name { font-family: var(--mono); font-size: .95rem; color: var(--bone); margin: .3rem 0; }
+
+    .audit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-top: 2.4rem; }
+    @media (max-width: 860px) { .audit-grid { grid-template-columns: 1fr; } }
+    .audit-card { padding: 1.6rem; }
+    .audit-d { font-size: 2.2rem; display: block; margin-bottom: .4rem; }
+    .audit-card h3 { font-size: 1.05rem; margin-bottom: .5rem; }
+    .audit-card a { display: inline-block; margin-top: 1rem; color: var(--cold); }
+    .honesty { padding: 1.4rem 1.6rem; border-left: 2px solid var(--hot); font-size: .95rem; }
+  </style>
+</Base>

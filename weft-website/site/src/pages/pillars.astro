@@ -1,0 +1,100 @@
+---
+import Base from '../layouts/Base.astro';
+import pillarsData from '../data/pillars.json';
+
+const base = '/Weft';
+const pillars = pillarsData as { num: number; id: string; name: string; tagline: string; rfcs: string[]; audits: string[]; specs: string[]; desc: string }[];
+---
+
+<Base title="The Eight Pillars of Weft — Master System Architecture" description="Detailed specification for all 8 Pillars of Weft: C Kernel, Accelerated Tensor, Cluster Protocol, Heddle 2.0 Canvas, Spectrum Pipeline, Adapters, Studio & Formal Verification.">
+  
+  <section class="container hero-mini">
+    <div class="reveal">
+      <span class="mono-label text-hot">SYSTEM ARCHITECTURE MATRIX</span>
+      <h1>The Eight Pillars of Weft</h1>
+      <p class="sub">
+        A unified, wait-free continuous plane across C drivers, GPU shaders, eBPF network kernels, formal TLA+ proofs, and IDE profiling tooling.
+      </p>
+    </div>
+  </section>
+
+  <section class="container section">
+    <div class="pillars-master-list">
+      {pillars.map((p) => (
+        <div id={p.id} class="glass-card master-pillar-card reveal">
+          <div class="mp-header">
+            <div class="mp-num">PILLAR {p.num}</div>
+            <h2>{p.name}</h2>
+            <span class="mp-tagline">{p.tagline}</span>
+          </div>
+
+          <p class="mp-desc">{p.desc}</p>
+
+          <div class="mp-details">
+            <div class="mp-col">
+              <span class="mono-label">Normative RFCs</span>
+              <div class="tags">
+                {p.rfcs.map((rfc) => (
+                  <a href={`${base}/docs/${rfc.toLowerCase()}`} class="chip rfc-chip">{rfc}</a>
+                ))}
+              </div>
+            </div>
+
+            <div class="mp-col">
+              <span class="mono-label">Audit Reports</span>
+              <div class="tags">
+                {p.audits.map((a) => (
+                  <a href={`${base}/docs/d-${a.split('-')[1]}`} class="chip audit-chip">{a}</a>
+                ))}
+              </div>
+            </div>
+
+            <div class="mp-col">
+              <span class="mono-label">Specification Documents</span>
+              <div class="tags">
+                {p.specs.map((s) => (
+                  <a href={`${base}/docs/${s.split('/').pop()?.replace('.md','').toLowerCase()}`} class="chip spec-chip">{s.split('/').pop()}</a>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+</Base>
+
+<style>
+  .hero-mini { padding-top: 7rem; padding-bottom: 3rem; text-align: center; }
+  .hero-mini h1 { font-family: var(--serif); font-size: 3rem; margin-block: 0.6rem; }
+  .hero-mini .sub { max-width: 60ch; margin: 0 auto; color: var(--mute); font-size: 1.1rem; }
+  .text-hot { color: var(--hot); }
+
+  .pillars-master-list { display: flex; flex-direction: column; gap: 2rem; margin-bottom: 4rem; }
+  
+  .master-pillar-card { background: var(--panel); border: 1px solid var(--line-strong); padding: 2.5rem; border-radius: 12px; }
+  .mp-header { border-bottom: 1px solid var(--line); padding-bottom: 1rem; margin-bottom: 1.2rem; }
+  .mp-num { font-family: var(--mono); font-size: 0.75rem; font-weight: 700; color: var(--hot); letter-spacing: 0.05em; }
+  .mp-header h2 { font-family: var(--serif); font-size: 1.8rem; margin-block: 0.3rem; }
+  .mp-tagline { font-size: 0.95rem; color: var(--cold); font-weight: 500; }
+  .mp-desc { font-size: 1.05rem; color: var(--mute); line-height: 1.6; margin-bottom: 1.8rem; }
+
+  .mp-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; background: var(--ink-0); padding: 1.2rem; border-radius: 8px; border: 1px solid var(--line); }
+  .mp-col .mono-label { font-size: 0.7rem; color: var(--faint); margin-bottom: 0.5rem; display: block; }
+  .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+  .chip { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 4px; font-family: var(--mono); font-size: 0.75rem; text-decoration: none; transition: all 0.2s; }
+  .rfc-chip { background: rgba(245, 166, 35, 0.12); color: #f5a623; border: 1px solid rgba(245, 166, 35, 0.3); }
+  .rfc-chip:hover { background: rgba(245, 166, 35, 0.25); }
+
+  .audit-chip { background: rgba(61, 220, 151, 0.12); color: #3ddc97; border: 1px solid rgba(61, 220, 151, 0.3); }
+  .audit-chip:hover { background: rgba(61, 220, 151, 0.25); }
+
+  .spec-chip { background: rgba(83, 215, 251, 0.12); color: #53d7fb; border: 1px solid rgba(83, 215, 251, 0.3); }
+  .spec-chip:hover { background: rgba(83, 215, 251, 0.25); }
+
+  @media (max-width: 768px) {
+    .mp-details { grid-template-columns: 1fr; }
+  }
+</style>

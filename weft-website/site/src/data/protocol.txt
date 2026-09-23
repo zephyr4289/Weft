@@ -1,0 +1,14 @@
+writer.publish(seq, payload_len):
+    if revoked.load(Relaxed):                      # §6: checked FIRST
+        epoch.fetch_add(1, AcqRel)                 # ACK
+        return DROPPED_REVOKED
+    write envelope (v1, seq, payload_len) into buf[w_work]
+    write canary = seq at buf[w_work].tail
+    old = latest.exchange(w_work, AcqRel)          # THE atomic
+    w_work = old
+    return PUB_OK
+
+reader.claim():
+    mine = latest.exchange(r_work, AcqRel)         # THE atomic
+    r_work = mine
+    return mine    # read buf[mine] IN PLACE; held until next claim

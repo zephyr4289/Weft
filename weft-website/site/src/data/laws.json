@@ -1,0 +1,18 @@
+[
+  {
+    "title": "The reader is always right; the writer is never blocked",
+    "body": "No waits, no spins, no back-pressure."
+  },
+  {
+    "title": "Zero is a contract",
+    "body": "0 alloc/frame, 0 locks on the hot path, 0 GC scans, 0 torn reads."
+  },
+  {
+    "title": "Mechanism, not policy",
+    "body": "Weft owns the channel — buffer, protocol, lifecycle. It has no opinions about what you draw."
+  },
+  {
+    "title": "Honesty is a feature",
+    "body": "Every claim ships with its boundary. Non-goals are a first-class document."
+  }
+]

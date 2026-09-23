@@ -1,0 +1,16 @@
+{
+  "name": "weft-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "ingest": "node scripts/ingest.mjs",
+    "dev": "npm run ingest && astro dev",
+    "build": "npm run ingest && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^4.16.19",
+    "js-yaml": "^5.4.2"
+  }
+}

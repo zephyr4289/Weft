@@ -1,0 +1,74 @@
+---
+/* StudioMini — static, schema-faithful miniature of the Weft Studio chrome.
+   Pure markup + CSS (no JS): window frame, panel grid, ring-monitor strip,
+   render-spy badge. The interactive version of the slot inspector lives on
+   /studio. Labeled as a visualization, per the honesty policy. */
+const base = '/Weft';
+---
+
+<figure class="st-mini card" aria-label="Weft Studio interface mock (schema-faithful visualization)">
+  <div class="st-titlebar">
+    <span class="st-dots"><i></i><i></i><i></i></span>
+    <span class="st-title mono">weft-studio — orderbook.weftc</span>
+    <span class="st-badge ok">STUI1 · renders: 1</span>
+  </div>
+  <div class="st-body">
+    <aside class="st-side">
+      <span class="mono-label">MEMORY MAP</span>
+      {Array.from({ length: 7 }, (_, i) => (
+        <span class:list={['st-slot', { hot: i === 2, warm: i === 4 }]}>slot&nbsp;{(i * 142857).toString(16).toUpperCase().padStart(6, '0')}</span>
+      ))}
+    </aside>
+    <div class="st-main">
+      <div class="st-panel wide">
+        <header><span class="mono-label cold">RING MONITOR · seqlock parity</span><span class="micro subtle">even→odd→even</span></header>
+        <div class="st-parity">
+          {['E','O','E','E','O','E','E','E','O','E','E','O'].map((p, i) => (
+            <span class:list={['pb', { odd: p === 'O' }]}>{p}</span>
+          ))}
+        </div>
+      </div>
+      <div class="st-panel">
+        <header><span class="mono-label">FLIGHT RECORD</span><span class="micro subtle">.weftrec</span></header>
+        <div class="st-track"><i style="--x:18%"></i><i style="--x:34%"></i><i style="--x:52%; --ev:'⚠'"></i><i style="--x:71%"></i><i style="--x:89%"></i></div>
+        <span class="micro subtle st-timelabel">−4.2 s … scrub … +0.0 s</span>
+      </div>
+      <div class="st-panel">
+        <header><span class="mono-label">CADENCE 240 Hz</span><span class="micro subtle">p99 ≤ 4.166 ms</span></header>
+        <div class="st-bars">{Array.from({ length: 14 }, (_, i) => <i style={`--h:${30 + ((i * 37) % 60)}%`}></i>)}</div>
+      </div>
+    </div>
+  </div>
+  <figcaption class="micro subtle st-cap">Static visualization faithful to STUDIO-SEAMS-V1 panel schemas — not a live capture. <a href={`${base}/studio`}>Interactive tour →</a></figcaption>
+</figure>
+
+<style>
+.st-mini { padding: 0; overflow: hidden; font-size: .8rem; }
+.st-titlebar { display: flex; align-items: center; gap: .8rem; padding: .6rem .9rem; border-bottom: 1px solid var(--line); background: var(--ink-2); }
+.st-dots { display: inline-flex; gap: .35rem; }
+.st-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--ink-4); }
+.st-dots i:nth-child(1){background:#f87171aa}.st-dots i:nth-child(2){background:#f5a524aa}.st-dots i:nth-child(3){background:#4ade80aa}
+.st-title { color: var(--mute); font-size: .7rem; flex: 1; }
+.st-badge { font-size: .6rem; }
+.st-body { display: grid; grid-template-columns: 130px 1fr; min-height: 260px; }
+.st-side { border-right: 1px solid var(--line); padding: .8rem; display: grid; gap: .35rem; align-content: start; }
+.st-slot { font-family: var(--mono); font-size: .62rem; color: var(--faint); padding: .28rem .45rem; border-radius: 5px; border: 1px solid transparent; }
+.st-slot.hot { color: var(--hot); background: var(--hot-glow); border-color: rgba(245,165,36,.3); }
+.st-slot.warm { color: var(--cold); background: var(--cold-glow); border-color: rgba(83,215,251,.25); }
+.st-main { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; gap: .7rem; padding: .8rem; }
+.st-panel { border: 1px solid var(--line); border-radius: 8px; padding: .6rem .7rem; background: #0b0e14; display: grid; gap: .5rem; align-content: start; }
+.st-panel header { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+.st-panel.wide { grid-column: 1 / -1; }
+.st-parity { display: flex; gap: .3rem; }
+.pb { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 5px; font-family: var(--mono); font-size: .62rem; background: rgba(83,215,251,.08); color: var(--cold); border: 1px solid rgba(83,215,251,.2); }
+.pb.odd { background: var(--hot-glow); color: var(--hot); border-color: rgba(245,165,36,.35); animation: pbpulse 1.6s ease-in-out infinite; }
+@keyframes pbpulse { 50% { box-shadow: 0 0 12px rgba(245,165,36,.35); } }
+.st-track { position: relative; height: 26px; border-radius: 6px; background: linear-gradient(90deg, rgba(167,139,250,.12), rgba(167,139,250,.03)); border: 1px solid var(--line); }
+.st-track i { position: absolute; left: var(--x); top: 4px; bottom: 4px; width: 2px; background: var(--violet); }
+.st-track i:nth-child(3) { background: var(--bad); box-shadow: 0 0 10px rgba(248,113,113,.6); }
+.st-timelabel { text-align: center; }
+.st-bars { display: flex; align-items: flex-end; gap: 3px; height: 44px; }
+.st-bars i { flex: 1; height: var(--h); background: linear-gradient(180deg, var(--cold), rgba(83,215,251,.15)); border-radius: 2px; }
+.st-cap { padding: .6rem .9rem; border-top: 1px solid var(--line); }
+.st-cap a { color: var(--cold); }
+</style>

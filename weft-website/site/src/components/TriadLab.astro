@@ -1,0 +1,246 @@
+---
+---
+
+<div class="triad-wrap" id="triad-lab">
+  <div class="triad-stage">
+    <!-- writer -->
+    <div class="lane writer">
+      <span class="mono-label">WRITER · sensor @ <b id="tl-whz">240</b> Hz</span>
+      <div class="node"><span>w_work → buf<b id="tl-ww">1</b></span></div>
+      <button class="pub-btn" id="tl-pub" aria-label="Publish one frame">publish()</button>
+    </div>
+
+    <!-- the shared atomic + buffers -->
+    <div class="core-col">
+      <div class="buffers" id="tl-bufs">
+        {Array.from({ length: 3 }, (_, i) => (
+          <div class="buf" data-i={i} id={`tl-buf-${i}`}>
+            <span class="buf-name">buf[{i}]</span>
+            <span class="buf-seq num" id={`tl-seq-${i}`}>—</span>
+            <canvas width="88" height="46" id={`tl-mini-${i}`} aria-hidden="true"></canvas>
+          </div>
+        ))}
+      </div>
+      <div class="atomic" id="tl-atomic">
+        <span class="mono-label">latest · Int32</span>
+        <span class="atomic-val num" id="tl-latest">0</span>
+        <span class="micro subtle">single exchange(AcqRel) — no CAS, no lock</span>
+      </div>
+    </div>
+
+    <!-- reader -->
+    <div class="lane reader">
+      <span class="mono-label cold">READER · draw loop @ <b id="tl-rhz">60</b> Hz</span>
+      <div class="node"><span>r_work → buf<b id="tl-rw">2</b></span></div>
+      <button class="claim-btn" id="tl-claim" aria-label="Claim one frame">claim()</button>
+    </div>
+  </div>
+
+  <div class="triad-readout">
+    <div class="ro-left">
+      <p class="mono-label">ledger</p>
+      <table class="ledger">
+        <tbody>
+          <tr><td>publishes</td><td class="num" id="tl-pubs">0</td></tr>
+          <tr><td>claims</td><td class="num" id="tl-claims">0</td></tr>
+          <tr><td>torn reads</td><td class="num ok" id="tl-torn">0</td></tr>
+          <tr><td>seq regressions</td><td class="num ok" id="tl-reg">0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ro-mid">
+      <p class="mono-label">last observed seq stream</p>
+      <div class="seqstream" id="tl-stream" aria-live="off"></div>
+      <p class="micro subtle" style="margin-top:.7rem">
+        Reader holds a buffer while it draws. The writer can never touch what the reader holds —
+        ownership moved with the exchange. That is invariant <b>I1</b>, live in your browser.
+      </p>
+    </div>
+    <div class="ro-right">
+      <p class="mono-label">scenario</p>
+      <div class="scenarios" role="group" aria-label="Scenarios">
+        <button class="chip active" data-sc="steady">steady 4×1</button>
+        <button class="chip" data-sc="storm">writer storm</button>
+        <button class="chip" data-sc="stall">reader stall 50 ms</button>
+        <button class="chip" data-sc="auto">▶ auto-run</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+import { TriadEngine } from '../components/triad-engine.js';
+
+const root = document.getElementById('triad-lab');
+if (root) {
+  const engine = new TriadEngine(96);
+  let lastSeqPerBuf = [0, 0, 0];
+  let running = false, rafId = 0, acc = 0, last = performance.now(), stalled = false;
+  let scenario = 'steady';
+
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    latest: $('tl-latest'), ww: $('tl-ww'), rw: $('tl-rw'),
+    pubs: $('tl-pubs'), claims: $('tl-claims'), torn: $('tl-torn'), reg: $('tl-reg'),
+    stream: $('tl-stream'), whz: $('tl-whz'), rhz: $('tl-rhz'),
+  };
+
+  function writeSignal(buf, off) {
+    const f32 = new Float32Array(buf, off, 24);
+    for (let i = 0; i < 24; i++) f32[i] = Math.sin(i / 24 * Math.PI * 2 * (1 + (engine.seqCounter % 3)) + engine.seqCounter * 0.25);
+  }
+
+  function paintMini(i, owned) {
+    const cv = $(`tl-mini-${i}`); if (!cv) return;
+    const c = cv.getContext('2d');
+    c.clearRect(0, 0, cv.width, cv.height);
+    // read payload region of buffer i
+    const off = engine.bufOffset(i) + 16;
+    const f32 = new Float32Array(engine.buffer, off, 24);
+    c.strokeStyle = owned === 'w' ? '#f5a524' : owned === 'r' ? '#53d7fb' : 'rgba(139,147,167,.5)';
+    c.lineWidth = 1.5;
+    c.beginPath();
+    for (let k = 0; k < 24; k++) {
+      const x = 4 + (k / 23) * (cv.width - 8);
+      const y = cv.height / 2 - f32[k] * (cv.height / 2 - 5);
+      k ? c.lineTo(x, y) : c.moveTo(x, y);
+    }
+    c.stroke();
+  }
+
+  function render() {
+    els.latest.textContent = String(engine.latest);
+    els.ww.textContent = String(engine.wWork);
+    els.rw.textContent = String(engine.rWork);
+    for (let i = 0; i < 3; i++) {
+      const b = $(`tl-buf-${i}`);
+      b.classList.toggle('owned-w', engine.wWork === i);
+      b.classList.toggle('owned-r', engine.rWork === i);
+      b.classList.toggle('is-latest', engine.latest === i);
+      $(`tl-seq-${i}`).textContent = lastSeqPerBuf[i] ? `seq ${lastSeqPerBuf[i]}` : 'null frame';
+      const owner = engine.wWork === i ? 'w' : engine.rWork === i ? 'r' : null;
+      paintMini(i, owner);
+    }
+    const a = engine.audit();
+    els.pubs.textContent = a.publishes.toLocaleString();
+    els.claims.textContent = a.claims.toLocaleString();
+    els.torn.textContent = a.tornReads; els.torn.className = 'num ' + (a.tornReads ? 'bad' : 'ok');
+    els.reg.textContent = a.regressions; els.reg.className = 'num ' + (a.regressions ? 'bad' : 'ok');
+    // stream of last 18 observed seqs
+    const s = a && engine.stats.observedSeqs.slice(-18);
+    els.stream.innerHTML = s.map(v => `<span>${v}</span>`).join('');
+  }
+
+  function doPublish() {
+    engine.publish(writeSignal);
+    lastSeqPerBuf[(engine.latest)] = engine.seqCounter;
+    flash($('tl-atomic'));
+    render();
+  }
+  function doClaim() {
+    const c = engine.claim();
+    render();
+    const node = $(`tl-buf-${c.index}`);
+    node.classList.add('claimed'); setTimeout(() => node.classList.remove('claimed'), 420);
+  }
+  function flash(n) { n.classList.add('flash'); setTimeout(() => n.classList.remove('flash'), 300); }
+
+  $('tl-pub').addEventListener('click', doPublish);
+  $('tl-claim').addEventListener('click', () => { if (!stalled) doClaim(); });
+
+  document.querySelectorAll('.chip').forEach(chip => chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    scenario = chip.dataset.sc;
+    if (scenario === 'auto') { startAuto(); } else { stopAuto(); }
+    if (scenario === 'steady') { els.whz.textContent = '240'; els.rhz.textContent = '60'; }
+    if (scenario === 'storm') { els.whz.textContent = '960'; els.rhz.textContent = '60'; }
+    if (scenario === 'stall') { els.whz.textContent = '240'; els.rhz.textContent = '≈0'; }
+  }));
+
+  function startAuto() {
+    if (running) return; running = true; last = performance.now(); acc = 0;
+    tick();
+  }
+  function stopAuto() { running = false; stalled = false; cancelAnimationFrame(rafId); }
+
+  function tick() {
+    if (!running) return;
+    const now = performance.now();
+    const wHz = scenario === 'storm' ? 960 : 240;
+    acc += now - last; last = now;
+    const interval = 1000 / wHz;
+    let guard = 0;
+    while (acc >= interval && guard++ < 40) { acc -= interval; doPublish(); }
+    if (scenario !== 'stall') {
+      // reader at ~60Hz: claim once every other rAF-ish window
+      if (!tick._racc || now - tick._racc > 16) { tick._racc = now; doClaim(); }
+    } else {
+      // stall: hold 50ms then burst — demonstrates zero blocking on writer
+      if (!tick._stallUntil) tick._stallUntil = now + 50;
+      if (now >= tick._stallUntil) { tick._stallUntil = now + 500; doClaim(); }
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  render();
+}
+</script>
+
+<style>
+.triad-wrap { border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(180deg, #0d1017, #0a0c12); padding: clamp(1.2rem, 3vw, 2.4rem); }
+.triad-stage { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(300px, 2.2fr) minmax(150px, 1fr); gap: clamp(.8rem, 2.5vw, 2rem); align-items: center; }
+.lane { display: flex; flex-direction: column; gap: .8rem; align-items: flex-start; }
+.lane.reader { align-items: flex-end; }
+.node { border: 1px dashed var(--line-strong); border-radius: 10px; padding: .6rem .9rem; font-family: var(--mono); font-size: .78rem; color: var(--bone-dim); background: rgba(255,255,255,.02); }
+.writer .node { border-color: rgba(245,165,36,.4); }
+.reader .node { border-color: rgba(83,215,251,.4); }
+.pub-btn, .claim-btn {
+  font-family: var(--mono); font-size: .8rem; cursor: pointer; border-radius: 8px; padding: .55rem 1rem;
+  border: 1px solid rgba(245,165,36,.5); color: var(--hot); background: var(--hot-glow); transition: transform .15s var(--ease-out), box-shadow .2s;
+}
+.pub-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px -6px rgba(245,165,36,.5); }
+.claim-btn { border-color: rgba(83,215,251,.5); color: var(--cold); background: var(--cold-glow); }
+.claim-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px -6px rgba(83,215,251,.5); }
+.core-col { display: flex; flex-direction: column; gap: 1rem; }
+.buffers { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; }
+.buf {
+  border: 1px solid var(--line); border-radius: 10px; padding: .55rem .6rem .4rem; text-align: center;
+  background: var(--ink-2); transition: border-color .25s, box-shadow .25s, transform .25s;
+}
+.buf canvas { display: block; width: 100%; height: 46px; margin-top: .35rem; }
+.buf-name { font-family: var(--mono); font-size: .68rem; color: var(--mute); display: block; }
+.buf-seq { font-family: var(--mono); font-size: .62rem; color: var(--faint); display: block; min-height: 1em; }
+.buf.owned-w { border-color: rgba(245,165,36,.65); box-shadow: inset 0 0 24px -12px var(--hot); }
+.buf.owned-r { border-color: rgba(83,215,251,.65); box-shadow: inset 0 0 24px -12px var(--cold); }
+.buf.is-latest { outline: 1px solid rgba(167,139,250,.55); outline-offset: 2px; }
+.buf.claimed { transform: scale(1.04); }
+.atomic {
+  border: 1px solid rgba(167,139,250,.4); border-radius: 10px; padding: .8rem 1rem; text-align: center;
+  display: flex; flex-direction: column; gap: .15rem; background: rgba(167,139,250,.05); transition: box-shadow .2s;
+}
+.atomic .mono-label { color: var(--violet); }
+.atomic-val { font-family: var(--serif); font-size: 2rem; line-height: 1.1; color: var(--bone); }
+.atomic.flash { box-shadow: 0 0 0 3px rgba(167,139,250,.35), 0 0 34px -6px rgba(167,139,250,.6); }
+.triad-readout { display: grid; grid-template-columns: auto 1fr auto; gap: 2rem; margin-top: 1.6rem; padding-top: 1.4rem; border-top: 1px solid var(--line); align-items: start; }
+.ledger { border-collapse: collapse; font-size: .8rem; }
+.ledger td { padding: .18rem 1.2rem .18rem 0; color: var(--mute); font-family: var(--sans); }
+.ledger td.num { color: var(--bone); text-align: right; }
+.ledger .ok { color: var(--ok); } .ledger .bad { color: var(--bad); }
+.seqstream { display: flex; flex-wrap: wrap; gap: .3rem; max-width: 46ch; }
+.seqstream span { font-family: var(--mono); font-size: .66rem; padding: .18rem .42rem; border-radius: 5px; background: var(--ink-3); border: 1px solid var(--line); color: var(--bone-dim); }
+.seqstream span:last-child { border-color: rgba(83,215,251,.5); color: var(--cold); }
+.scenarios { display: flex; flex-wrap: wrap; gap: .5rem; max-width: 26ch; }
+.chip {
+  font-family: var(--mono); font-size: .7rem; padding: .4rem .7rem; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line-strong); background: transparent; color: var(--mute); transition: all .25s;
+}
+.chip:hover { color: var(--bone); border-color: var(--bone-dim); }
+.chip.active { color: var(--hot); border-color: rgba(245,165,36,.55); background: var(--hot-glow); }
+@media (max-width: 900px) {
+  .triad-stage { grid-template-columns: 1fr; }
+  .lane { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+  .lane.reader { flex-direction: row-reverse; }
+  .triad-readout { grid-template-columns: 1fr; }
+}
+</style>

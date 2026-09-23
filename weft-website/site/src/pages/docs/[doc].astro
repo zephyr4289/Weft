@@ -1,0 +1,205 @@
+---
+import Base from '../../layouts/Base.astro';
+import { md } from '../../../scripts/mdx.mjs';
+import measured from '../../data/measured.json';
+import litmus from '../../data/litmus.json';
+import invariants from '../../data/invariants.json';
+import laws from '../../data/laws.json';
+import rfcs from '../../data/rfcs-index.json';
+
+import envelopeTxt from '../../data/envelope.txt?raw';
+import protocolTxt from '../../data/protocol.txt?raw';
+
+// Build-time glob of all markdown files ingested into src/docs-repo/
+const rawDocs = import.meta.glob<string>('../../docs-repo/*.md', { query: '?raw', import: 'default', eager: true });
+
+export function getStaticPaths() {
+  const docMap = import.meta.glob<string>('../../docs-repo/*.md', { query: '?raw', import: 'default', eager: true });
+  
+  const repoPaths = Object.keys(docMap).map(filePath => {
+    const fileName = filePath.split('/').pop() || '';
+    const slug = fileName.replace('.md', '').toLowerCase();
+    return {
+      params: { doc: slug },
+      props: {
+        title: slug.toUpperCase(),
+        sub: `Verbatim document ${fileName} ingested from Weft repository source of truth`,
+        filePath: filePath,
+        kind: 'repo'
+      }
+    };
+  });
+
+  const digestPaths = [
+    { params: { doc: 'triad' }, props: { title: 'THE TRIAD PROTOCOL', sub: 'Site digest — every mechanism quoted verbatim from WHITEPAPER §3 with live pointers', kind: 'digest', sec: 'triad' } },
+    { params: { doc: 'envelope' }, props: { title: 'FRAME ENVELOPE', sub: 'Site digest — Tier-0 frozen header, decode rules, evolution policy (WHITEPAPER §4)', kind: 'digest', sec: 'envelope' } },
+    { params: { doc: 'revocation' }, props: { title: 'WRITER REVOCATION', sub: 'Site digest — I6, the ACK-before-poison handshake, the TSAN cautionary tale (WHITEPAPER §5)', kind: 'digest', sec: 'revocation' } },
+    { params: { doc: 'results' }, props: { title: 'MEASURED RESULTS', sub: 'Site digest — benches, litmus matrix, Loom, evidence triad (WHITEPAPER §6)', kind: 'digest', sec: 'results' } },
+    { params: { doc: 'laws' }, props: { title: 'THE FOUR LAWS', sub: 'Site digest — the constitution, one card per law, cross-linked to mechanisms (PHILOSOPHY §2)', kind: 'digest', sec: 'laws' } },
+    { params: { doc: 'litmus' }, props: { title: 'LITMUS CATALOG', sub: 'Machine-readable adversary specs shared by every language runner (docs/fixtures/LITMUS-CATALOG.json)', kind: 'digest', sec: 'litmus' } },
+    { params: { doc: 'rfcs' }, props: { title: 'RFC INDEX', sub: `All ${rfcs.length} RFCs — status as recorded in each file's header block`, kind: 'digest', sec: 'rfcs' } },
+  ];
+
+  return [...repoPaths, ...digestPaths];
+}
+
+const { doc } = Astro.params;
+const { title, sub, filePath, kind, sec } = Astro.props;
+
+let html = '';
+if (kind === 'repo' && filePath && rawDocs[filePath]) {
+  html = md(rawDocs[filePath]);
+}
+
+const base = '/Weft';
+const nav = [
+  ['whitepaper', 'Whitepaper'], ['triad', 'Triad protocol'], ['envelope', 'Frame envelope'],
+  ['revocation', 'Writer revocation'], ['results', 'Measured results'], ['laws', 'Four Laws'],
+  ['litmus', 'Litmus catalog'], ['philosophy', 'Philosophy'], ['glossary', 'Glossary'],
+  ['ports', 'Ports'], ['studio-seams-v1', 'Studio seams'], ['rfc-0001', 'RFC-0001'], ['rfcs', 'RFC index'],
+  ['errata', 'Errata'],
+];
+---
+
+<Base title={`${title} — Docs`} description={sub}>
+  <div class="docs-shell container">
+    <aside class="docs-nav" aria-label="Documentation">
+      <p class="mono-label">DOCUMENTATION</p>
+      <nav>
+        {nav.map(([slug, label]) => (
+          <a href={`${base}/docs/${slug}`} aria-current={doc === slug ? 'page' : undefined}>{label}</a>
+        ))}
+      </nav>
+      <p class="mono-label" style="margin-top:1.6rem">SOURCE OF TRUTH</p>
+      <p class="micro subtle">Repo pages are rendered verbatim from <span class="mono">zephyr4289/Weft@main</span>. Site digests quote mechanisms verbatim and link back.</p>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-head">
+        <p class="eyebrow">{kind === 'repo' ? 'VERBATIM FROM THE REPOSITORY' : 'SITE DIGEST · CROSS-LINKED'}</p>
+        <h1>{title}</h1>
+        <p class="subtle">{sub}</p>
+        {kind === 'repo' && (
+          <a class="micro mono" href={`https://github.com/zephyr4289/Weft/blob/main/${filePath?.split('/').pop()}`} target="_blank" rel="noopener">view source on GitHub ↗</a>
+        )}
+      </header>
+
+      {kind === 'repo' && <article class="prose" set:html={html} />}
+
+      {kind === 'digest' && sec === 'triad' && (
+        <article class="prose">
+          <h2>The problem each layer fails at</h2>
+          <p>Single buffer tears. Double buffering fixes tearing but adds back-pressure: a slow reader stalls the writer. Triple buffering removes both problems — <em>if</em> nobody can ever observe a stale view of who owns which buffer. That sentence is the entire content of the protocol.</p>
+          <h2>The protocol (verbatim, WHITEPAPER §3.2)</h2>
+          <pre class="doc-pre"><code>{protocolTxt}</code></pre>
+          <h2>Why it is wait-free</h2>
+          <ul>
+            <li><strong>publish()</strong>: write payload into the writer-owned buffer, then one <code>exchange(AcqRel)</code>. No loop, no branch on contention — bounded steps regardless of reader behavior (Law 1).</li>
+            <li><strong>claim()</strong>: one exchange takes <code>latest</code> → returns the buffer to the writer next time. The returned frame is always the freshest published one; superseded frames were never queued (drop-not-queue).</li>
+            <li><strong>No ABA:</strong> the same slot index can only reappear after its buffer has been fully reclaimed and rewritten under a fresh happens-before edge created by the exchanges themselves.</li>
+          </ul>
+          <h2>Invariants (WHITEPAPER §3.4) — full table</h2>
+          <table class="doc-table"><thead><tr><th>ID</th><th>Name</th><th>Mechanism</th></tr></thead><tbody>
+            {invariants.map(iv => <tr><td class="mono">{iv.id}</td><td><strong>{iv.name}</strong></td><td class="micro">{iv.mechanism}</td></tr>)}
+          </tbody></table>
+        </article>
+      )}
+
+      {kind === 'digest' && sec === 'envelope' && (
+        <article class="prose">
+          <h2>Tier 0 — frozen forever</h2>
+          <pre class="doc-pre"><code>{envelopeTxt}</code></pre>
+          <h2>Decode rules (§4.2, condensed verbatim)</h2>
+          <ul>
+            <li>A decoder that sees <code>version</code> above its supported maximum must reject the frame, not guess fields.</li>
+            <li><code>flags</code> bits are advisory unless named in an invariant; unknown bits must be ignored forward-compatibly.</li>
+            <li>Byte order is little-endian on every supported platform.</li>
+          </ul>
+        </article>
+      )}
+
+      {kind === 'digest' && sec === 'results' && (
+        <article class="prose">
+          <h2>Structural gates first, hardware numbers later</h2>
+          <p class="micro subtle">{measured.label}</p>
+          <table class="doc-table">
+            <thead><tr><th>Benchmark</th><th>C</th><th>Rust</th><th>TS</th></tr></thead>
+            <tbody>
+              <tr><td>B1 throughput (ops/s)</td><td class="mono">{measured.b1.ops_s.c.toLocaleString()}</td><td class="mono">{measured.b1.ops_s.rust.toLocaleString()}</td><td class="mono">{measured.b1.ops_s.ts.toLocaleString()}</td></tr>
+              <tr><td>B1 publish p99 (ns)</td><td class="mono">{measured.b1.publish_p99_ns.c}</td><td class="mono">{measured.b1.publish_p99_ns.rust}</td><td class="mono">{measured.b1.publish_p99_ns.ts}</td></tr>
+              <tr><td>B3 claim p50 @64B (ns)</td><td class="mono">{measured.b3.claim_p50_64B_ns.c}</td><td class="mono">{measured.b3.claim_p50_64B_ns.rust}</td><td class="mono">{measured.b3.claim_p50_64B_ns.ts}</td></tr>
+            </tbody>
+          </table>
+        </article>
+      )}
+
+      {kind === 'digest' && sec === 'laws' && (
+        <article class="prose">
+          {laws.map((l, i) => (
+            <section class="law-doc">
+              <h2><span class="serif-em" style="font-size:2rem;margin-right:.8rem">0{i + 1}</span>{l.title}</h2>
+              <p>{l.body}</p>
+            </section>
+          ))}
+        </article>
+      )}
+
+      {kind === 'digest' && sec === 'litmus' && (
+        <article class="prose">
+          <h2>One adversary spec, N runners</h2>
+          <table class="doc-table">
+            <thead><tr><th>ID</th><th>Adversary</th><th>Verdict rule</th></tr></thead>
+            <tbody>
+              {litmus.tests.map(t => <tr><td class="mono">{t.id}</td><td class="micro">{t.adversary}</td><td class="micro">{t.verdict}</td></tr>)}
+            </tbody>
+          </table>
+        </article>
+      )}
+
+      {kind === 'digest' && sec === 'rfcs' && (
+        <article class="prose">
+          <h2>Open governance, on the record</h2>
+          <table class="doc-table">
+            <thead><tr><th>RFC</th><th>Title</th><th>Status</th></tr></thead>
+            <tbody>
+              {rfcs.map(r => (
+                <tr>
+                  <td class="mono">{r.num}</td>
+                  <td><a href={`${base}/docs/rfc-${r.num}`}>{r.title}</a></td>
+                  <td class="micro">{r.status || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </article>
+      )}
+    </main>
+  </div>
+
+  <style is:global>
+    .docs-shell { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: clamp(2rem, 5vw, 4rem); padding-top: 8.5rem; padding-bottom: 5rem; }
+    .docs-nav { position: sticky; top: 6.5rem; align-self: start; max-height: calc(100svh - 8rem); overflow: auto; }
+    .docs-nav nav { display: grid; gap: .15rem; margin-top: .6rem; }
+    .docs-nav a { color: var(--mute); font-size: .88rem; padding: .4rem .6rem; border-radius: 7px; border-left: 2px solid transparent; text-decoration: none; }
+    .docs-nav a:hover { color: var(--bone); background: var(--ink-2); }
+    .docs-nav a[aria-current='page'] { color: var(--hot); border-left-color: var(--hot); background: var(--hot-glow); }
+    @media (max-width: 900px) { .docs-shell { grid-template-columns: 1fr; } .docs-nav { position: static; } }
+    .docs-head { border-bottom: 1px solid var(--line-strong); padding-bottom: 1.6rem; margin-bottom: 2.4rem; }
+    .docs-head h1 { font-size: clamp(2rem, 4.5vw, 3.2rem); margin: .6rem 0; letter-spacing: -0.02em; }
+    .docs-head a { color: var(--cold); }
+    .prose { max-width: 76ch; }
+    .prose h2 { font-size: 1.5rem; margin: 2.6rem 0 .9rem; letter-spacing: -0.01em; }
+    .prose h3 { font-size: 1.15rem; margin: 2rem 0 .6rem; }
+    .prose h4 { font-size: 1rem; margin: 1.6rem 0 .5rem; color: var(--bone-dim); }
+    .prose p { margin: 0 0 1.1rem; color: var(--bone-dim); }
+    .prose a { color: var(--cold); }
+    .prose ul, .prose ol { margin: 0 0 1.2rem; padding-left: 1.3rem; color: var(--bone-dim); }
+    .prose li { margin: .35rem 0; }
+    .prose code { font-family: var(--mono); font-size: .82em; background: var(--ink-3); border: 1px solid var(--line); border-radius: 5px; padding: .08em .35em; color: #e8ebf5; }
+    .doc-pre { background: #0a0c11; border: 1px solid var(--line); border-radius: 10px; padding: 1.2rem 1.4rem; overflow-x: auto; margin: 0 0 1.6rem; }
+    .doc-pre code { background: none; border: 0; padding: 0; font-size: .78rem; line-height: 1.65; }
+    .doc-table { width: 100%; border-collapse: collapse; margin: 0 0 1.8rem; font-size: .86rem; }
+    .doc-table th { text-align: left; font-family: var(--mono); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); padding: .55rem .6rem; border-bottom: 1px solid var(--line-strong); }
+    .doc-table td { padding: .55rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--bone-dim); }
+  </style>
+</Base>

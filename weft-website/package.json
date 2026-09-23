@@ -1,0 +1,22 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@astrojs/mdx": "^3.1.9",
+    "@astrojs/rss": "^4.0.19",
+    "astro": "^4.16.19",
+    "sharp": "^0.35.4"
+  },
+  "devDependencies": {
+    "js-yaml": "^5.4.2",
+    "sass": "^1.105.0"
+  }
+}

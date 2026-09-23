@@ -1,0 +1,47 @@
+{
+  "label": "[MEASURED x86_64-sandbox sha256:16b5c663]",
+  "b3": {
+    "ratio": {
+      "c": 1.175,
+      "rust": 1.211,
+      "ts": 0.627
+    },
+    "claim_p50_64B_ns": {
+      "c": 40,
+      "rust": 38,
+      "ts": 161
+    },
+    "claim_p50_64K_ns": {
+      "c": 47,
+      "rust": 46,
+      "ts": 101
+    }
+  },
+  "b5": {
+    "alloc_delta": {
+      "c": 0,
+      "rust": 0,
+      "ts": "advisory (GC-noisy)"
+    },
+    "rss_growth_pages": {
+      "c": 0,
+      "rust": 0,
+      "ts": 0
+    }
+  },
+  "b1": {
+    "ops_s": {
+      "c": 2916757,
+      "rust": 2327011,
+      "ts": 1611026
+    },
+    "publish_p99_ns": {
+      "c": 53,
+      "rust": 485,
+      "ts": 241
+    }
+  },
+  "litmusCells": "24/24 green (L1–L8 × C/Rust/TS, debug+release)",
+  "tsan": "zero reports across 40 executions",
+  "loom": "4/4 assertions hold over all interleavings (3 pub × 3 claim × 3 buffers)"
+}

@@ -1,0 +1,14 @@
+---
+import Base from '../layouts/Base.astro';
+const base = '/Weft';
+---
+<Base title="404 · Lost thread — Weft" description="This page unraveled.">
+  <section class="section" style="min-height:60vh;display:grid;place-items:center;text-align:center">
+    <div>
+      <p class="eyebrow">ERROR 404</p>
+      <h1 style="font-size:var(--fs-h1);margin:.6rem 0 1rem">Lost the <em>thread</em>.</h1>
+      <p class="subtle" style="max-width:44ch;margin-inline:auto">The page you requested was never woven into this site. Latest-wins applies to frames, not URLs.</p>
+      <p style="margin-top:2rem"><a class="btn btn-primary" href={`${base}/`}>Back to the loom</a></p>
+    </div>
+  </section>
+</Base>

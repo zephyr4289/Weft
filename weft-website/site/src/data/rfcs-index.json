@@ -1,0 +1,182 @@
+[
+  {
+    "num": "0001",
+    "title": "The Triad Protocol — ownership by atomic exchange",
+    "status": "Draft",
+    "file": "0001-triad-exchange-protocol.md"
+  },
+  {
+    "num": "0003",
+    "title": "Triad-2 GPU-Resident Mode",
+    "status": "Draft",
+    "file": "0003-triad2-gpu-resident.md"
+  },
+  {
+    "num": "0004",
+    "title": "Multi-Consumer Fan-Out Heddles",
+    "status": "Accepted",
+    "file": "0004-fanout-heddles.md"
+  },
+  {
+    "num": "0005",
+    "title": "VerifiedWeft Authenticated Frames",
+    "status": "Implemented",
+    "file": "0005-verifiedweft.md"
+  },
+  {
+    "num": "0006",
+    "title": "Android Process-Death ReattachPolicy",
+    "status": "Draft",
+    "file": "0006-reattach-policy.md"
+  },
+  {
+    "num": "0007",
+    "title": "Compose Multiplatform on iOS Evaluation",
+    "status": "Draft",
+    "file": "0007-compose-mp-ios-eval.md"
+  },
+  {
+    "num": "0008",
+    "title": "FrameCursor — freshness telemetry and adaptive draw budget (no kernel change)",
+    "status": "Accepted",
+    "file": "0008-freshness-telemetry.md"
+  },
+  {
+    "num": "0009",
+    "title": "The Freshness Governor — adaptive consumer strategy from framesBehind",
+    "status": "Draft",
+    "file": "0009-freshness-governor.md"
+  },
+  {
+    "num": "0010",
+    "title": ".weftrec Payload Compression (format v3)",
+    "status": "Draft",
+    "file": "0010-weftrec-compression.md"
+  },
+  {
+    "num": "0011",
+    "title": "Exhaustive State-Space Proofs, Chaos Injection & Crash Resilience",
+    "status": "Implemented",
+    "file": "0011-exhaustive-state-space-proofs.md"
+  },
+  {
+    "num": "0011",
+    "title": "Inter-Process Shared-Memory Ring Sessions",
+    "status": "Draft",
+    "file": "0011-ipc-shm-ring-sessions.md"
+  },
+  {
+    "num": "0012",
+    "title": "Hardware-Vectorized VerifiedWeft — AVX-512 Multi-Buffer & Cross-Impl Bit-Identity Gates",
+    "status": "Draft",
+    "file": "0012-hardware-vectorized-verifiedweft.md"
+  },
+  {
+    "num": "0012",
+    "title": "Predictive Cadence — clock-drift compensation & VRR alignment (PREDICTIVE_PACED)",
+    "status": "Draft",
+    "file": "0012-predictive-cadence.md"
+  },
+  {
+    "num": "0012",
+    "title": "Tail-Latency Eradication Layer (TLEL) — placement, prefetch, pinning, kernel-bypass ingestion",
+    "status": "Draft",
+    "file": "0012-tail-latency-turbo.md"
+  },
+  {
+    "num": "0013",
+    "title": "Zero-Copy GPU Streaming — Bind Kit, Storage/Texel/Image Roads, the fd Bridge, and the Vulkan ABI Audit",
+    "status": "Draft",
+    "file": "0013-zero-copy-gpu-streaming-and-abi-audit.md"
+  },
+  {
+    "num": "0014",
+    "title": ".weftrec v4 — Kernel Trace Events (format, parity scenario, JSON schema)",
+    "status": "Draft",
+    "file": "0014-weftrec-trace-standard.md"
+  },
+  {
+    "num": "0015",
+    "title": "weft_init Input Validation Wall and Construction Geometry Bounds",
+    "status": "Standard",
+    "file": "0015-weft-init-input-validation-guard.md"
+  },
+  {
+    "num": "0016",
+    "title": "The Heterogeneous Zero-Copy Mesh — DMA-BUF, External-Memory GPU Wraps, AF_XDP Ingestion & the Tensor Stream Bridge",
+    "status": "",
+    "file": "0016-heterogeneous-zerocopy-mesh.md"
+  },
+  {
+    "num": "0016",
+    "title": "Zero-Copy IPC Mesh — Sealed Descriptor Exchange, Lock-Free Registry, Crash Healing",
+    "status": "Draft",
+    "file": "0016-ipc-mesh-zero-copy.md"
+  },
+  {
+    "num": "0016",
+    "title": "weft_trace — Continuous Lock-Free Flight Recorder & Perfetto Bridge",
+    "status": "Draft",
+    "file": "0016-weft-flight-recorder.md"
+  },
+  {
+    "num": "0017",
+    "title": "Accelerator Zero-Copy Adapters (weft-tensor, Pillar 2)",
+    "status": "",
+    "file": "0017-accelerator-zero-copy-adapters.md"
+  },
+  {
+    "num": "0017",
+    "title": "weft_flow — Zero-Allocation Declarative Stream Operators",
+    "status": "Draft",
+    "file": "0017-weft-flow-operators.md"
+  },
+  {
+    "num": "0017",
+    "title": "weftc — Universal Zero-Serialization Schema Compiler and Static Layout Engine",
+    "status": "Draft",
+    "file": "0017-weftc-universal-schema.md"
+  },
+  {
+    "num": "0018",
+    "title": "WCR1 — Weft Cluster Ring v1: distributed zero-copy tensor fabric protocol, two-store seqlock, and ring-embedded consensus",
+    "status": "Implemented",
+    "file": "0018-weft-cluster-protocol.md"
+  },
+  {
+    "num": "0018",
+    "title": "weft_sync — Multi-Stream Temporal Synchronization (Sensor Fusion)",
+    "status": "Draft",
+    "file": "0018-weft-sync-sensor-fusion.md"
+  },
+  {
+    "num": "0019",
+    "title": "Kernel-Bypass Cluster Mesh — weft-cluster (RDMA, XDP, io_uring)",
+    "status": "Draft",
+    "file": "0019-kernel-bypass-cluster-mesh.md"
+  },
+  {
+    "num": "0019",
+    "title": "weft_replay — Deterministic Time-Travel Replay & State Reconstruction",
+    "status": "Draft",
+    "file": "0019-weft-time-travel-replay.md"
+  },
+  {
+    "num": "0020",
+    "title": "weft_trend — Predictive Lag-Trend Estimator for the Adaptive Governor",
+    "status": "Draft",
+    "file": "0020-weft-trend-predictive-governor.md"
+  },
+  {
+    "num": "0021",
+    "title": "weft-tensor — Realtime Edge-AI Zero-Copy Tensor Fabric (strided views, paged arenas, lock-free DMA tensor rings)",
+    "status": "Draft",
+    "file": "0021-weft-tensor-fabric.md"
+  },
+  {
+    "num": "0022",
+    "title": "heddle-2.0 — The 240 FPS Hardware Canvas Engine (WHP1 Hot-Plane binding, WGSL/GLSL/MSL shader suite, dirty-mask selective rasterization, tiered render HAL)",
+    "status": "Draft",
+    "file": "0022-heddle2-hardware-canvas-engine.md"
+  }
+]

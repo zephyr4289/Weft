@@ -1,0 +1,7 @@
+offset  size  field        value / meaning
+0       4     magic        ASCII "WEFT" = bytes 57 45 46 54 (LE u32: 0x54464557)
+4       2     version      1 = triad-1
+6       2     header_size  16  (self-describing; the growth mechanism)
+8       4     seq          frame sequence, u32; 0 = null frame; wraps at 2^32-1
+12      4     payload_len  payload bytes following the header
+                    TOTAL = 16 bytes

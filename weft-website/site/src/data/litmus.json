@@ -1,0 +1,279 @@
+{
+  "version": 3,
+  "defaults": {
+    "payload_max": 256,
+    "seed": 12648430
+  },
+  "orderingMatrix": {
+    "latest": {
+      "op": "exchange_writer_and_reader",
+      "ordering": "acq_rel",
+      "note": "single RMW ownership transfer; publishes payload writes to reader (Release) and acquires the returned buffer's final state (Acquire)"
+    },
+    "revoked": {
+      "writer_load": "relaxed",
+      "releaser_store": "release",
+      "note": "advisory check only; correctness via ACK chain; pairs with epoch.fetch_add(AcqRel) → reclaim.poll(Acquire)"
+    },
+    "epoch": {
+      "writer_ack": "fetch_add_acqrel",
+      "reclaim_poll": "acquire",
+      "note": "the ACK; publishes 'I will never write again'; licenses poison/free"
+    },
+    "telemetry": {
+      "op": "fetch_add",
+      "ordering": "relaxed",
+      "note": "statistics; never synchronization"
+    },
+    "t_publish_reads": {
+      "op": "load",
+      "ordering": "acquire",
+      "note": "L4 freshness protocol; claim's Acquire edge synchronizes with writer's Release-half"
+    }
+  },
+  "tests": [
+    {
+      "id": "L1-tear",
+      "langs": [
+        "c",
+        "rust",
+        "ts"
+      ],
+      "adversary": "reader hold 5/10/50 ms between swap and read; writer 2x display rate",
+      "verdict": "torn == 0 across all holds AND drain_ok AND claims >= min_claims",
+      "params": {
+        "holds_ms": [
+          5,
+          10,
+          50
+        ],
+        "writer_hz": 240,
+        "frames": 600,
+        "payload_max": 1024,
+        "min_claims": {
+          "c": 600,
+          "rust": 600,
+          "ts": 200
+        }
+      }
+    },
+    {
+      "id": "L2-writer-steps",
+      "langs": [
+        "c",
+        "rust",
+        "ts"
+      ],
+      "adversary": "instrumented publish while reader held for swept durations 0/10/25/50/100 ms",
+      "verdict": "max_wsteps <= bound AND publishes == 2000 in every config",
+      "params": {
+        "holds_ms": [
+          0,
+          10,
+          25,
+          50,
+          100
+        ],
+        "publishes": 2000,
+        "writer_hz": 2000,
+        "payload_max": 256,
+        "bound": 2
+      }
+    },
+    {
+      "id": "L3-reader-steps",
+      "langs": [
+        "c",
+        "rust",
+        "ts"
+      ],
+      "adversary": "writer storm at 4x; claims=2000 on reader",
+      "verdict": "max_rsteps <= bound AND claims == 2000 AND zero claim failures",
+      "params": {
+        "writer_hz": 960,
+        "claims": 2000,
+        "payload_max": 256,
+        "bound": 2
+      }
+    },
+    {
+      "id": "L4-freshness",
+      "langs": [
+        "c",
+        "rust",
+        "ts"
+      ],
+      "adversary": "writer at 4x reader rate",
+      "verdict": "freshness_violations == 0 AND future_violations == 0 AND drain_exact",
+      "params": {
+        "writer_hz": 960,
+        "reader_hz": 240,
+        "frames": 2000,
+        "payload_max": 256
+      }
+    },
+    {
+      "id": "L5-progress",
+      "langs": [
+        "c",
+        "rust",
+        "ts"
+      ],
+      "adversary": "reader held 0/10/50/100 ms; plus a config where the reader is suspended entirely",
+      "verdict": "max(rate)/min(rate) <= tolerance across all five configs",
+      "params": {
+        "holds_ms": [
+          0,
+          10,
+          50,
+          100
+        ],
+        "window_s": 1,
+        "writer_hz": 2000,
+        "payload_max": 256,
+        "tolerance": 1.5
+      }
+    },
+    {
+      "id": "L6-ownership",
+      "langs": [
+        "c",
+        "rust",
+        "ts"
+      ],
+      "adversary": "randomized writer/reader delays (xorshift32, catalog seed), 200 trials",
+      "verdict": "violations == 0 across all trials, all languages, same seed → identical schedule",
+      "params": {
+        "trials": 200,
+        "frames": 64,
+        "max_delay_us": 500,
+        "payload_max": 256,
+        "seed": 12648430
+      }
+    },
+    {
+      "id": "L7-revocation",
+      "langs": [
+        "c",
+        "rust",
+        "ts"
+      ],
+      "adversary": "release() while a native writer spins uncapped",
+      "verdict": "reclaim_ok AND post_revoke_revoked == 100 AND poison_intact",
+      "params": {
+        "timeout_ms": 2000,
+        "payload_max": 256
+      }
+    },
+    {
+      "id": "L8-envelope",
+      "langs": [
+        "c",
+        "rust",
+        "ts"
+      ],
+      "adversary": "none — pure functions + one live Weft, no threads, <1s",
+      "verdict": "all four subchecks true (roundtrip, unknown_fields, negotiation, coexist)",
+      "params": {}
+    },
+    {
+      "id": "L9-cross-beam",
+      "langs": [
+        "c"
+      ],
+      "adversary": "B independent Triad kernels (beams) writing/reading concurrently on one machine; per-beam L1-style hold",
+      "verdict": "torn == 0 on every beam AND every beam drains AND no crosstalk",
+      "params": {
+        "beams": 2,
+        "writer_hz": 240,
+        "frames": 600,
+        "payload_max": 256,
+        "holds_ms": [
+          5
+        ]
+      }
+    },
+    {
+      "id": "L10-nested-revocation",
+      "langs": [
+        "c"
+      ],
+      "adversary": "revoke during revoke (nested), plus 2 threads x 500 concurrent revokes racing a reclaim",
+      "verdict": "nested_reclaim_ok AND concurrent_reclaim_ok AND epoch_monotone AND poison_intact",
+      "params": {
+        "timeout_ms": 2000,
+        "payload_max": 256
+      }
+    },
+    {
+      "id": "L11-ffi-stress",
+      "langs": [],
+      "adversary": "cross-language ring boundaries under stress: TS producer -> C consumer and C producer -> TS consumer, N iterations of swept frames/geometry",
+      "verdict": "every iteration's ring validates (geometry, handoff accounting, word patterns) — zero torn accepts across the boundary",
+      "params": {
+        "iterations": 25,
+        "frames_min": 1000,
+        "frames_max": 50000
+      }
+    },
+    {
+      "id": "L12-canary-corruption",
+      "langs": [
+        "c"
+      ],
+      "adversary": "bit flips in envelope-seq / canary / magic / payload of a held frame (fault injection via the live pointer)",
+      "verdict": "env_flip_detected AND canary_flip_detected AND magic_flip_detected AND payload_flip_undetected_boundary (the documented detection matrix)",
+      "params": {
+        "payload_max": 256
+      }
+    },
+    {
+      "id": "L13-claim-retry",
+      "langs": [
+        "c"
+      ],
+      "adversary": "fan-out bounded 4-attempt claim loop under an uncapped storming writer; 10K consecutive claims",
+      "verdict": "all claims resolve (no deadlock) AND torn_accepted == 0 AND future == 0 AND telescoping exact",
+      "params": {
+        "claims": 10000,
+        "bound": 4,
+        "payload_max": 32
+      }
+    },
+    {
+      "id": "L14-mixed-endianness",
+      "langs": [
+        "c"
+      ],
+      "adversary": "none — pure codec: LE wire pinned byte-for-byte; simulated-BE producer crosses an explicit bswap boundary",
+      "verdict": "le_wire_pinned AND be_view_roundtrip AND canary_le_pinned",
+      "params": {}
+    },
+    {
+      "id": "L15-huge-payload",
+      "langs": [
+        "c"
+      ],
+      "adversary": "1 MiB payload frames (3 MiB+ ring) with a 5ms hold tear adversary",
+      "verdict": "torn == 0 AND drain_ok AND buf_size == align64(16+payload_max+8) AND all buffers 64B-aligned",
+      "params": {
+        "payload_max": 1048576,
+        "frames": 200,
+        "writer_hz": 120
+      }
+    },
+    {
+      "id": "L16-rapid-reclaim",
+      "langs": [
+        "c"
+      ],
+      "adversary": "rapid revoke/reclaim lifecycle churn: init -> publish -> revoke -> ACK -> reclaim -> poison -> destroy, N cycles",
+      "verdict": "completed == cycles AND timeouts == 0 AND poison_failures == 0 AND ack_failures == 0",
+      "params": {
+        "cycles": 2000,
+        "timeout_ms": 250,
+        "payload_max": 256
+      }
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "n": 1,
+    "name": "Kotlin/JVM"
+  },
+  {
+    "n": 2,
+    "name": "Swift/iOS"
+  },
+  {
+    "n": 3,
+    "name": "Dart/Flutter"
+  },
+  {
+    "n": 4,
+    "name": "TypeScript Heddles (wraps existing TS kernel — no kernel changes)"
+  },
+  {
+    "n": 5,
+    "name": "Fan-out driver layer (RFC 0004 — `core/c/fanout.{h,c}`, `core/rust/src/fanout.rs`, `core/ts/fanout.ts`, `core/kotlin/Fanout.kt`, JNI/Dart-FFI bridges)"
+  },
+  {
+    "n": 6,
+    "name": "VM-port fan-out rings (RFC 0004 — Series 5: `core/kotlin/Fanout.kt`, `core/swift/Fanout.swift`, `core/dart/fanout.dart`)"
+  },
+  {
+    "n": 7,
+    "name": "Freshness governor (RFC 0009 — `core/c/governor.{h,c}`, `core/rust/src/governor.rs`, `packages/core/src/governor.ts`)"
+  },
+  {
+    "n": 8,
+    "name": "VM-port VerifiedWeft (RFC 0005 — Series 6: `core/kotlin/Verified.kt`, `core/swift/Verified.swift`, `core/dart/verified.dart`)"
+  },
+  {
+    "n": 9,
+    "name": "VM-port governor + cadence policies + 0-GC consumers (RFC 0009 — Series 7: `core/kotlin/Governor.kt`, `core/swift/Governor.swift`, `core/dart/governor.dart`, `core/kotlin/Recycler.kt`, `core/swift/Recycler.swift`, `core/dart/recycler.dart`, `core/{kotlin,swift,dart}/GovernedFanoutConsumer.*`)"
+  }
+]

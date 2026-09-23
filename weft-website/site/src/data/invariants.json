@@ -1,0 +1,32 @@
+[
+  {
+    "id": "I1",
+    "name": "No torn reads",
+    "mechanism": "Payload written before the swap (AcqRel orders it); reader reaches a buffer only via a swap that transferred exclusive ownership"
+  },
+  {
+    "id": "I2",
+    "name": "Wait-free writer",
+    "mechanism": "Single `exchange` — no spin, no retry, no CAS loop"
+  },
+  {
+    "id": "I3",
+    "name": "Wait-free reader",
+    "mechanism": "Single `exchange` — no spin, no retry, cannot fail"
+  },
+  {
+    "id": "I4",
+    "name": "Latest-wins",
+    "mechanism": "`latest` names the freshest publish; claims take `latest`"
+  },
+  {
+    "id": "I5",
+    "name": "No back-pressure",
+    "mechanism": "Writer needs only its private `w_work`, refreshed by its own swap"
+  },
+  {
+    "id": "I6",
+    "name": "No use-after-free across FFI",
+    "mechanism": "`revoked` set (Release) before free; writer checks per publish (one Relaxed load); free deferred until writer quiescence"
+  }
+]

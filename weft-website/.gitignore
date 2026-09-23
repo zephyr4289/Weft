@@ -1,0 +1,10 @@
+(empty)node_modules/
+.next/
+dist/
+build/
+*.log
+weft-repo
+site/dist/
+site/.astro/
+site/node_modules/
+

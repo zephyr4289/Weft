@@ -1,0 +1,131 @@
+---
+import Base from '../../layouts/Base.astro';
+import pillarsData from '../../data/pillars.json';
+import portsData from '../../data/ports.json';
+import { readdirSync, existsSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const base = '/Weft';
+const pillars = pillarsData as { num: number; id: string; name: string; tagline: string }[];
+const ports = portsData as { n: number; name: string }[];
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const docsDir = join(__dirname, '..', '..', 'docs-repo');
+
+let allDocs: string[] = [];
+if (existsSync(docsDir)) {
+  allDocs = readdirSync(docsDir).filter(f => f.endsWith('.md')).map(f => f.replace('.md', ''));
+}
+
+const reports = allDocs.filter(d => d.startsWith('d-') || d.startsWith('d_')).sort();
+const rfcs = allDocs.filter(d => d.startsWith('rfc-')).sort();
+---
+
+<Base title="Documentation Hub — WEFT Systems Architecture" description="Official technical documentation, whitepapers, 8-Pillar specifications, audit reports, RFCs, and multi-language porting guides for Weft.">
+  
+  <section class="container hero-mini">
+    <div class="reveal">
+      <span class="mono-label text-cold">DOCUMENTATION &amp; REPOSITORY AUDITS</span>
+      <h1>Weft Documentation Hub</h1>
+      <p class="sub">
+        Every design decision is documented, every protocol formally specified, and every performance claim backed by empirical audit reports.
+      </p>
+    </div>
+  </section>
+
+  <section class="container section">
+    
+    <!-- CORE SPECIFICATIONS -->
+    <div class="doc-group reveal">
+      <h2 class="group-title">Core Specifications</h2>
+      <div class="card-grid three-col">
+        <a href={`${base}/docs/whitepaper`} class="glass-card doc-card">
+          <span class="badge ok">CANONICAL</span>
+          <h3>The Whitepaper</h3>
+          <p>Complete specification of the Triad Protocol, two-plane model, memory ordering, and invariants.</p>
+        </a>
+        <a href={`${base}/docs/philosophy`} class="glass-card doc-card">
+          <span class="badge ok">MANIFESTO</span>
+          <h3>Philosophy</h3>
+          <p>The engineering principles governing Weft: zero-allocation render loops and honesty as a feature.</p>
+        </a>
+        <a href={`${base}/docs/ports`} class="glass-card doc-card">
+          <span class="badge ok">PORTS</span>
+          <h3>Ports &amp; Parity</h3>
+          <p>Multi-language implementation status across C, Rust, TS, Swift, Dart, Python, Kotlin &amp; WASM.</p>
+        </a>
+      </div>
+    </div>
+
+    <!-- 8 PILLARS master specs -->
+    <div class="doc-group reveal">
+      <h2 class="group-title">The Eight Pillars</h2>
+      <div class="card-grid four-col">
+        {pillars.map((p) => (
+          <a href={`${base}/pillars#${p.id}`} class="glass-card doc-card">
+            <span class="mono-label text-hot">PILLAR {p.num}</span>
+            <h4>{p.name}</h4>
+            <p>{p.tagline}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <!-- AUDIT REPORTS MATRIX (D-REPORTS) -->
+    <div class="doc-group reveal">
+      <h2 class="group-title">Empirical Audit Reports ({reports.length} Reports Ingested)</h2>
+      <div class="doc-list-grid">
+        {reports.map((r) => (
+          <a href={`${base}/docs/${r}`} class="doc-link-item">
+            <span class="doc-icon">📄</span>
+            <span class="doc-name">{r.toUpperCase()}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <!-- RFC CATALOG (RFC-0001 to RFC-0022) -->
+    <div class="doc-group reveal">
+      <h2 class="group-title">Request for Comments ({rfcs.length} RFC Specs Ingested)</h2>
+      <div class="doc-list-grid">
+        {rfcs.map((rfc) => (
+          <a href={`${base}/docs/${rfc}`} class="doc-link-item rfc-item">
+            <span class="doc-icon">📜</span>
+            <span class="doc-name">{rfc.toUpperCase()}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+
+  </section>
+
+</Base>
+
+<style>
+  .hero-mini { padding-top: 7rem; padding-bottom: 3rem; text-align: center; }
+  .hero-mini h1 { font-family: var(--serif); font-size: 3rem; margin-block: 0.6rem; }
+  .hero-mini .sub { max-width: 60ch; margin: 0 auto; color: var(--mute); font-size: 1.1rem; }
+  .text-cold { color: var(--cold); }
+  .text-hot { color: var(--hot); }
+
+  .doc-group { margin-bottom: 4rem; }
+  .group-title { font-family: var(--serif); font-size: 1.8rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem; }
+
+  .three-col { grid-template-columns: repeat(3, 1fr); }
+  .four-col { grid-template-columns: repeat(4, 1fr); }
+
+  .doc-card { text-decoration: none; display: block; transition: border-color 0.3s, transform 0.2s; }
+  .doc-card:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+  .doc-card h3, .doc-card h4 { color: var(--bone); margin-block: 0.5rem; }
+  .doc-card p { font-size: 0.88rem; color: var(--mute); line-height: 1.5; }
+
+  .doc-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.8rem; }
+  .doc-link-item { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 0.8rem 1rem; display: flex; align-items: center; gap: 0.6rem; text-decoration: none; color: var(--bone); font-family: var(--mono); font-size: 0.82rem; transition: background 0.2s, border-color 0.2s; }
+  .doc-link-item:hover { background: rgba(255,255,255,0.04); border-color: var(--cold); }
+  .rfc-item:hover { border-color: var(--hot); }
+
+  @media (max-width: 860px) {
+    .three-col, .four-col { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,162 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  path?: string;
+}
+const { title, description, path = '/' } = Astro.props;
+const base = '/Weft';
+const year = 2026;
+
+const nav = [
+  { href: `${base}/#problem`, label: 'Problem' },
+  { href: `${base}/#triad`, label: 'Triad Protocol' },
+  { href: `${base}/#proof`, label: 'Proof' },
+  { href: `${base}/pillars`, label: 'Pillars', page: true },
+  { href: `${base}/studio`, label: 'Studio', page: true },
+  { href: `${base}/docs`, label: 'Docs', page: true },
+];
+const currentPath = Astro.url.pathname.replace(/\/Weft/, '').replace(/\/$/, '') || '/';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+  </head>
+  <body>
+    <header class="site-head" id="top">
+      <div class="container head-inner">
+        <a class="logo" href={`${base}/`} aria-label="Weft home">
+          <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M4 6 L9 26 L16 12 L23 26 L28 6" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs><linearGradient id="lg" x1="4" y1="6" x2="28" y2="26"><stop stop-color="#f5a524"/><stop offset="1" stop-color="#53d7fb"/></linearGradient></defs>
+          </svg>
+          <span>Weft</span>
+        </a>
+        <nav aria-label="Main">
+          {nav.map(n => (
+            <a href={n.href} class:list={[{ active: n.page && currentPath.startsWith(n.href.replace(base,'')) }]}>{n.label}</a>
+          ))}
+        </nav>
+        <div class="head-cta">
+          <a class="gh-star" href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-foot">
+      <div class="container foot-grid">
+        <div>
+          <p class="foot-brand">WEFT</p>
+          <p class="subtle micro" style="max-width: 34ch;">The continuous-state plane for declarative UI. Wait-free by construction, honest by policy.</p>
+        </div>
+        <div>
+          <p class="mono-label">Product</p>
+          <a href={`${base}/#triad`}>Triad Protocol</a>
+          <a href={`${base}/#proof`}>Evidence &amp; CI</a>
+          <a href={`${base}/studio`}>Weft Studio</a>
+          <a href={`${base}/ports`}>Ports &amp; Heddles</a>
+        </div>
+        <div>
+          <p class="mono-label">Learn</p>
+          <a href={`${base}/docs`}>Documentation</a>
+          <a href={`${base}/docs/whitepaper`}>Whitepaper (canonical)</a>
+          <a href={`${base}/docs/laws`}>The Four Laws</a>
+          <a href={`${base}/docs/rfc-0001`}>RFC-0001 · F1 withdrawal</a>
+        </div>
+        <div>
+          <p class="mono-label">Meta</p>
+          <a href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener">Source repository</a>
+          <a href={`${base}/docs/errata`}>Errata</a>
+          <a href={`${base}/#laws`}>Non-goals</a>
+        </div>
+      </div>
+      <div class="container foot-rule">
+        <span>© {year} Weft project · kernel v1.0.4 (FROZEN)</span>
+        <span class="num">{new Date().toISOString().slice(0,10)} · built from repo @ ingest time</span>
+      </div>
+    </footer>
+
+    <script>
+      // scroll reveal fallback for browsers without view-timeline
+      if (!CSS.supports('animation-timeline: view()')) {
+        const io = new IntersectionObserver((es) => {
+          for (const e of es) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+        }, { rootMargin: '0px 0px -8% 0px' });
+        document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+      }
+      // header condense
+      const head = document.querySelector('.site-head');
+      addEventListener('scroll', () => head?.classList.toggle('scrolled', scrollY > 24), { passive: true });
+    </script>
+
+    <style>
+      .site-head {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        transition: background 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s;
+        border-bottom: 1px solid transparent;
+      }
+      .site-head.scrolled {
+        background: rgba(11, 13, 19, 0.78);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom-color: var(--line);
+      }
+      .head-inner { display: flex; align-items: center; gap: 2rem; height: 4.4rem; }
+      .logo {
+        display: inline-flex; align-items: center; gap: 0.55rem;
+        font-family: var(--serif); font-size: 1.35rem; font-weight: 560; letter-spacing: 0.01em;
+        color: var(--bone); text-decoration: none;
+      }
+      nav { display: flex; gap: 1.6rem; margin-left: auto; }
+      nav a {
+        font-size: 0.86rem; font-weight: 500; color: var(--mute); text-decoration: none;
+        letter-spacing: 0.02em; padding: 0.3rem 0; position: relative; transition: color 0.25s;
+      }
+      nav a:hover, nav a.active { color: var(--bone); }
+      nav a.active::after {
+        content: ''; position: absolute; left: 0; right: 0; bottom: -0.35rem; height: 1px;
+        background: linear-gradient(90deg, var(--hot), var(--cold));
+      }
+      .gh-star {
+        display: inline-flex; align-items: center; gap: 0.45rem;
+        font-size: 0.82rem; font-weight: 600; color: var(--bone); text-decoration: none;
+        border: 1px solid var(--line-strong); border-radius: 999px; padding: 0.45rem 0.95rem;
+        transition: border-color 0.3s, background 0.3s;
+      }
+      .gh-star:hover { border-color: var(--bone-dim); background: rgba(255,255,255,0.04); color: var(--bone); }
+      @media (max-width: 720px) { nav { display: none; } }
+
+      .site-foot { border-top: 1px solid var(--line); background: var(--ink-0); padding-top: 4rem; margin-top: 4rem; }
+      .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 2.5rem; padding-bottom: 3rem; }
+      .foot-brand { font-family: var(--serif); font-size: 1.5rem; letter-spacing: 0.12em; margin-bottom: 0.5rem; }
+      .site-foot a { display: block; color: var(--mute); text-decoration: none; font-size: 0.88rem; padding: 0.28rem 0; }
+      .site-foot a:hover { color: var(--bone); }
+      .site-foot .mono-label { margin-bottom: 0.8rem; }
+      .foot-rule {
+        display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+        border-top: 1px solid var(--line); padding-block: 1.4rem;
+        font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; color: var(--faint);
+      }
+      @media (max-width: 860px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+    </style>
+  </body>
+</html>

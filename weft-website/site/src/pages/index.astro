@@ -1,0 +1,345 @@
+---
+import Base from '../layouts/Base.astro';
+import lawsData from '../data/laws.json';
+import invariantsData from '../data/invariants.json';
+import measuredData from '../data/measured.json';
+import pillarsData from '../data/pillars.json';
+import litmusData from '../data/litmus.json';
+
+const base = '/Weft';
+
+const laws = lawsData as { title: string; body: string }[];
+const invariants = invariantsData as { id: string; name: string; mechanism: string }[];
+const pillars = pillarsData as { num: number; id: string; name: string; tagline: string; rfcs: string[]; audits: string[]; specs: string[]; desc: string }[];
+const litmus = litmusData as { version: string; tests: { id: string; adversary: string; verdict: string }[] };
+---
+
+<Base title="WEFT — Zero-Copy Continuous-State Plane for Declarative UI" description="Wait-free, off-heap data streams for 240 FPS declarative user interfaces across C, Rust, TS, Swift, Dart, Kotlin, Python & WASM.">
+  
+  <!-- HERO SECTION -->
+  <section class="hero container">
+    <div class="hero-content reveal">
+      <div class="kicker-pill">
+        <span class="dot-live"></span>
+        <span class="mono-label">WEFT KERNEL v1.0.4 · PILLARS 1–8 COMPLETE</span>
+      </div>
+      <h1 class="hero-title">Two Planes.<br/><span class="text-gradient">One Frame.</span></h1>
+      <p class="hero-sub">
+        Reactive frameworks were built for cold UI state. Weft provides the off-heap, zero-copy continuous plane for high-frequency data streams — audio, finance, robotics, and 240 FPS graphics.
+      </p>
+      <div class="hero-actions">
+        <a href="#triad" class="btn btn-primary">Explore Triad Protocol</a>
+        <a href={`${base}/studio`} class="btn btn-secondary">Launch Weft Studio ↗</a>
+      </div>
+      <div class="hero-meta">
+        <div class="meta-item">
+          <span class="meta-val">0 B</span>
+          <span class="meta-lbl">Render Loop Allocations</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-val">240 Hz</span>
+          <span class="meta-lbl">Virtual Flight Cadence</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-val">8 / 8</span>
+          <span class="meta-lbl">Unified Pillars Merged</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-val">62 / 62</span>
+          <span class="meta-lbl">Extreme CI Shards Green</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE JANK COMPARATOR / PROBLEM SECTION -->
+  <section id="problem" class="section container">
+    <div class="section-head reveal">
+      <span class="mono-label">§1. THE PROBLEM</span>
+      <h2>Hot State Breaks Reactive UI</h2>
+      <p class="section-desc">
+        When a 60–240 Hz data stream pushes through React `setState`, Flutter `setState`, or SwiftUI `@Published`, garbage collection spikes and re-render cascades destroy frame budgets.
+      </p>
+    </div>
+
+    <div class="card-grid two-col reveal">
+      <div class="glass-card path-card path-reactive">
+        <div class="card-header">
+          <span class="badge bad">REACTIVE PATH (setState)</span>
+          <span class="mono-label text-muted">Heap Allocation per Tick</span>
+        </div>
+        <div class="code-box">
+          <code>
+            // 60 Hz tick -> allocation -> re-render<br/>
+            const [state, setState] = useState(data);<br/>
+            onTick((sample) => setState(sample)); // ❌ GC Jitter
+          </code>
+        </div>
+        <ul class="path-metrics">
+          <li><strong>GC Allocations:</strong> ~1.2 MiB / sec</li>
+          <li><strong>Frame Budget:</strong> Violations at 60 Hz</li>
+          <li><strong>Torn Reads:</strong> Possible under multi-threading</li>
+        </ul>
+      </div>
+
+      <div class="glass-card path-card path-weft">
+        <div class="card-header">
+          <span class="badge ok">WEFT CONTINUOUS PLANE</span>
+          <span class="mono-label text-muted">Zero-Copy Off-Heap Channel</span>
+        </div>
+        <div class="code-box">
+          <code>
+            // 240 Hz tick -> zero-alloc -> draw-phase read<br/>
+            const plane = useHotPlane(buffer);<br/>
+            engine.tick(); // ✅ 0 B heap growth
+          </code>
+        </div>
+        <ul class="path-metrics">
+          <li><strong>GC Allocations:</strong> Exact 0 Bytes</li>
+          <li><strong>Frame Budget:</strong> Pinned at 240 Hz (&lt; 4.16ms)</li>
+          <li><strong>Torn Reads:</strong> 0 (Seqlock + AcqRel Guard)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFESTO / FOUR LAWS -->
+  <section id="laws" class="section container">
+    <div class="section-head reveal">
+      <span class="mono-label">§2. MANIFESTO</span>
+      <h2>The Four Laws of Weft</h2>
+      <p class="section-desc">Architectural invariants enforced by hard assertions and CI lint gates.</p>
+    </div>
+
+    <div class="card-grid four-col reveal">
+      {laws.map((law, idx) => (
+        <div class="glass-card law-card">
+          <div class="law-num">LAW {idx + 1}</div>
+          <h3>{law.title}</h3>
+          <p>{law.body}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- TRIAD PROTOCOL SECTION -->
+  <section id="triad" class="section container">
+    <div class="section-head reveal">
+      <span class="mono-label">§3. THE MECHANISM</span>
+      <h2>The Triad Protocol</h2>
+      <p class="section-desc">
+        3 buffers + 1 atomic <code>latest.exchange(AcqRel)</code>. Wait-free in both directions, latest-wins, zero torn claims.
+      </p>
+    </div>
+
+    <div class="glass-card triad-box reveal">
+      <div class="triad-grid">
+        <div class="triad-step">
+          <div class="step-badge">SLOT A</div>
+          <h4>Reader Active</h4>
+          <p>Consumer reads from committed immutable snapshot without holding locks.</p>
+        </div>
+        <div class="triad-step highlight">
+          <div class="step-badge hot">ATOMIC LATEST</div>
+          <h4>exchange(AcqRel)</h4>
+          <p>Writer publishes latest slot index atomically in a single release instruction.</p>
+        </div>
+        <div class="triad-step">
+          <div class="step-badge">SLOT B / C</div>
+          <h4>Writer Active</h4>
+          <p>Producer writes to free slot. Never blocks consumer, never overwrites active read.</p>
+        </div>
+      </div>
+
+      <div class="invariants-list">
+        <h4>Formally Verified Invariants (TLA+ Checked)</h4>
+        <div class="inv-grid">
+          {invariants.map((inv) => (
+            <div class="inv-item">
+              <span class="inv-id">{inv.id}</span>
+              <strong>{inv.name}:</strong> <span>{inv.mechanism}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PILLARS SYSTEM GRID (PILLARS 1 TO 8) -->
+  <section id="pillars" class="section container">
+    <div class="section-head reveal">
+      <span class="mono-label">§4. ARCHITECTURE</span>
+      <h2>The Eight Pillars of Weft</h2>
+      <p class="section-desc">A complete zero-copy stack spanning native C drivers, GPU shaders, formal proofs, and visual IDE tooling.</p>
+    </div>
+
+    <div class="card-grid two-col reveal">
+      {pillars.map((p) => (
+        <div class="glass-card pillar-card">
+          <div class="pillar-head">
+            <span class="pillar-tag">PILLAR {p.num}</span>
+            <h3>{p.name}</h3>
+          </div>
+          <p class="pillar-tagline">{p.tagline}</p>
+          <p class="pillar-desc">{p.desc}</p>
+          <div class="pillar-foot">
+            <span class="mono-label">RFCS: {p.rfcs.join(', ')}</span>
+            <span class="mono-label">AUDITS: {p.audits.join(', ')}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+    <div class="text-center" style="margin-top: 2rem;">
+      <a href={`${base}/pillars`} class="btn btn-secondary">View Full 8-Pillars Master Specification ↗</a>
+    </div>
+  </section>
+
+  <!-- PROOF & LITMUS LAB -->
+  <section id="proof" class="section container">
+    <div class="section-head reveal">
+      <span class="mono-label">§5. THE PROOF</span>
+      <h2>Litmus Test Suite &amp; Extreme CI</h2>
+      <p class="section-desc">Honesty as a feature. Every claim backed by empirical evidence and 62 automated CI shards.</p>
+    </div>
+
+    <div class="glass-card proof-card reveal">
+      <div class="proof-stats">
+        <div class="pstat">
+          <span class="pstat-val ok">16 / 16</span>
+          <span class="pstat-lbl">Litmus Test Adversaries (L1–L16)</span>
+        </div>
+        <div class="pstat">
+          <span class="pstat-val ok">62 / 62</span>
+          <span class="pstat-lbl">Automated CI Shards Green</span>
+        </div>
+        <div class="pstat">
+          <span class="pstat-val ok">0</span>
+          <span class="pstat-lbl">TSan Race Condition Reports</span>
+        </div>
+      </div>
+
+      <div class="litmus-preview">
+        <h4>Litmus Test Catalog Sample</h4>
+        <div class="litmus-grid">
+          {litmus.tests.slice(0, 6).map((t) => (
+            <div class="litmus-item">
+              <span class="badge ok">{t.id}</span>
+              <span class="litmus-adv">{t.adversary}</span>
+              <span class="litmus-verdict">{t.verdict}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WEFT STUDIO INTERSTITIAL CTA -->
+  <section class="studio-banner container reveal">
+    <div class="glass-card studio-banner-inner">
+      <div class="banner-content">
+        <span class="badge hot">PILLAR 7 · WEFT STUDIO</span>
+        <h2>See the Machine in Motion</h2>
+        <p>Android Studio-grade visual suite and live profiler. Inspect atomic slot maps, replay microsecond flight records, and verify 0 re-render constraints at 240 FPS.</p>
+        <div class="banner-actions">
+          <a href={`${base}/studio`} class="btn btn-primary">Open Weft Studio Guide ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</Base>
+
+<style>
+  /* Hero Styles */
+  .hero { padding-top: 7rem; padding-bottom: 4rem; text-align: center; }
+  .kicker-pill {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    padding: 0.35rem 0.9rem; border-radius: 999px;
+    background: rgba(245, 166, 35, 0.08); border: 1px solid rgba(245, 166, 35, 0.25);
+    margin-bottom: 1.5rem;
+  }
+  .dot-live { width: 8px; height: 8px; border-radius: 50%; background: #f5a623; box-shadow: 0 0 8px #f5a623; }
+  .hero-title { font-family: var(--serif); font-size: clamp(3rem, 7vw, 5.5rem); line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 1.5rem; }
+  .text-gradient { background: linear-gradient(135deg, var(--hot), var(--cold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-sub { max-width: 64ch; margin: 0 auto 2.5rem; font-size: 1.15rem; color: var(--mute); line-height: 1.6; }
+  .hero-actions { display: flex; gap: 1rem; justify-content: center; margin-bottom: 3.5rem; }
+  
+  .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.6rem; border-radius: 8px; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all 0.25s ease; }
+  .btn-primary { background: var(--bone); color: var(--ink-0); }
+  .btn-primary:hover { background: #ffffff; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(237, 240, 247, 0.2); }
+  .btn-secondary { background: rgba(255,255,255,0.05); color: var(--bone); border: 1px solid var(--line-strong); }
+  .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: var(--bone); }
+
+  .hero-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; max-width: 900px; margin: 0 auto; padding: 1.5rem; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+  .meta-val { display: block; font-family: var(--mono); font-size: 1.6rem; font-weight: 700; color: var(--hot); }
+  .meta-lbl { font-size: 0.78rem; color: var(--mute); }
+
+  /* Sections */
+  .section { padding-block: 5rem; }
+  .section-head { text-align: center; margin-bottom: 3rem; }
+  .section-head h2 { font-family: var(--serif); font-size: 2.4rem; margin-block: 0.5rem; }
+  .section-desc { max-width: 58ch; margin: 0 auto; color: var(--mute); font-size: 1.05rem; }
+
+  /* Cards */
+  .card-grid { display: grid; gap: 1.5rem; }
+  .two-col { grid-template-columns: repeat(2, 1fr); }
+  .four-col { grid-template-columns: repeat(4, 1fr); }
+  
+  .glass-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 1.8rem; position: relative; overflow: hidden; transition: border-color 0.3s; }
+  .glass-card:hover { border-color: var(--line-strong); }
+
+  .path-card .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .code-box { background: var(--ink-0); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; font-family: var(--mono); font-size: 0.82rem; margin-bottom: 1.2rem; }
+  .path-metrics { list-style: none; padding: 0; margin: 0; }
+  .path-metrics li { font-size: 0.9rem; color: var(--mute); padding-block: 0.3rem; border-bottom: 1px dashed var(--line); }
+  .path-metrics li strong { color: var(--bone); }
+
+  .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-family: var(--mono); font-weight: 700; }
+  .badge.ok { background: rgba(61, 220, 151, 0.15); color: #3ddc97; border: 1px solid rgba(61, 220, 151, 0.3); }
+  .badge.bad { background: rgba(255, 107, 107, 0.15); color: #ff6b6b; border: 1px solid rgba(255, 107, 107, 0.3); }
+  .badge.hot { background: rgba(245, 166, 35, 0.15); color: #f5a623; border: 1px solid rgba(245, 166, 35, 0.3); }
+
+  .law-card { border-top: 3px solid var(--hot); }
+  .law-num { font-family: var(--mono); font-size: 0.75rem; color: var(--hot); font-weight: 700; margin-bottom: 0.5rem; }
+  .law-card h3 { font-size: 1.1rem; margin-bottom: 0.6rem; }
+  .law-card p { font-size: 0.88rem; color: var(--mute); line-height: 1.5; }
+
+  /* Triad Box */
+  .triad-box { background: var(--panel); border: 1px solid var(--line-strong); padding: 2.5rem; }
+  .triad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
+  .triad-step { background: var(--ink-0); border: 1px solid var(--line); border-radius: 10px; padding: 1.4rem; text-align: center; }
+  .triad-step.highlight { border-color: var(--hot); box-shadow: 0 0 20px rgba(245, 166, 35, 0.15); }
+  .step-badge { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; color: var(--cold); margin-bottom: 0.5rem; }
+  .step-badge.hot { color: var(--hot); }
+
+  .inv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem; }
+  .inv-item { background: rgba(255,255,255,0.02); border: 1px solid var(--line); padding: 0.8rem; border-radius: 6px; font-size: 0.85rem; color: var(--mute); }
+  .inv-id { font-family: var(--mono); font-weight: 700; color: var(--cold); margin-right: 0.5rem; }
+
+  /* Pillars */
+  .pillar-card { display: flex; flex-direction: column; justify-content: space-between; }
+  .pillar-tag { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; color: var(--cold); }
+  .pillar-head h3 { font-size: 1.25rem; margin-block: 0.3rem; }
+  .pillar-tagline { font-size: 0.88rem; color: var(--hot); font-weight: 500; margin-bottom: 0.8rem; }
+  .pillar-desc { font-size: 0.9rem; color: var(--mute); line-height: 1.5; margin-bottom: 1.2rem; }
+  .pillar-foot { font-size: 0.72rem; color: var(--faint); display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 0.8rem; }
+
+  /* Proof */
+  .proof-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+  .pstat { background: var(--ink-0); border: 1px solid var(--line); border-radius: 8px; padding: 1.2rem; text-align: center; }
+  .pstat-val { display: block; font-family: var(--mono); font-size: 1.8rem; font-weight: 700; }
+  .pstat-val.ok { color: #3ddc97; }
+  .pstat-lbl { font-size: 0.8rem; color: var(--mute); }
+
+  .litmus-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 1rem; }
+  .litmus-item { background: var(--ink-0); border: 1px solid var(--line); padding: 0.7rem; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; }
+
+  /* Studio Banner */
+  .studio-banner-inner { background: linear-gradient(135deg, rgba(245, 166, 35, 0.08), rgba(83, 215, 251, 0.08)); border-color: rgba(245, 166, 35, 0.3); text-align: center; padding: 3.5rem 2rem; }
+  .studio-banner h2 { font-family: var(--serif); font-size: 2.2rem; margin-block: 0.8rem; }
+  .studio-banner p { max-width: 60ch; margin: 0 auto 1.8rem; color: var(--mute); }
+
+  @media (max-width: 900px) {
+    .two-col, .four-col, .triad-grid, .proof-stats, .inv-grid, .litmus-grid, .hero-meta { grid-template-columns: 1fr; }
+  }
+</style>

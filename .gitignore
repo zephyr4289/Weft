@@ -191,3 +191,9 @@ core/c/hotplane-bench
 core/c/hotplane-bench-inline
 core/c/hotplane-golden
 core/c/heddle-bridge-test
+
+weft-website/site/dist/
+weft-website/site/node_modules/
+weft-website/site/.astro/
+weft-website/node_modules/
+

@@ -46,7 +46,7 @@ public final class WeftSpectrumModel {
 
     // Flyweights (owned once — the tick path never allocates)
     public let cadence = CadenceState()
-    let input = GovernorInput()
+    var input = GovernorInput()
     let profile = ProfileFlyweight()
 
     public init() {}

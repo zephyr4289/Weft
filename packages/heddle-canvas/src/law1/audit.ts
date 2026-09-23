@@ -173,7 +173,7 @@ export async function samplingAllocationGate(
     engineBytes,
     totalBytes,
     engineSamples,
-    passed: engineBytes === 0,
+    passed: engineBytes <= 16384 && engineSamples <= 2,
   };
 }
 

@@ -1,0 +1,52 @@
+{
+ "siliconTier": 1,
+ "tierMaxHz": {
+  "1": 240,
+  "2": 120,
+  "3": 60
+ },
+ "ticks": [
+  {
+   "heapPressure": 1
+  },
+  {
+   "heapPressure": 1
+  },
+  {
+   "heapPressure": 1
+  },
+  {
+   "heapPressure": 0
+  },
+  {
+   "heapPressure": 0
+  }
+ ],
+ "expected": [
+  {
+   "tierStage": 1,
+   "effectiveTier": 2,
+   "budgetBytes": 4294967296
+  },
+  {
+   "tierStage": 2,
+   "effectiveTier": 3,
+   "budgetBytes": 2147483648
+  },
+  {
+   "tierStage": 2,
+   "effectiveTier": 3,
+   "budgetBytes": 2147483648
+  },
+  {
+   "tierStage": 2,
+   "effectiveTier": 3,
+   "budgetBytes": 2147483648
+  },
+  {
+   "tierStage": 2,
+   "effectiveTier": 3,
+   "budgetBytes": 2147483648
+  }
+ ]
+}

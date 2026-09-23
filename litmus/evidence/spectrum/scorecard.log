@@ -1,0 +1,6 @@
+stdout: warm line (pre-ledger)
+S zigzag       snapshots=2000000 busy=0 torn=0 ledger=0
+S force        snapshots=2000000 busy=0 torn=0 ledger=0
+S probe-storm  100 mock probes ledger=0
+S scorecard    has_feature=2.00 ns/op  active_tier=0.00 ns/op  snapshot=422.00 ns/op (informational)
+S-series: 103349 checks, 0 failures

@@ -1,0 +1,1592 @@
+{
+ "constants": {
+  "CADENCE_LADDER": [
+   240,
+   120,
+   60,
+   30
+  ],
+  "SUSTAINED_TICKS": 10,
+  "RECOVERY_TICKS": 50,
+  "BACKGROUND_CAP": 30,
+  "LOW_BATTERY_PERMILLE": 150,
+  "MAX_TIER_STAGES": 2
+ },
+ "profileMaxHz": 240,
+ "siliconTier": 1,
+ "ticks": [
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 3,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 2,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 120,
+   "batteryCharging": 0,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 120,
+   "batteryCharging": 0,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 120,
+   "batteryCharging": 0,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 120,
+   "batteryCharging": 0,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 120,
+   "batteryCharging": 0,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 1,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 1,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 1,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 1,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 1,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 1,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 1,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 1,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 1,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 1,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  },
+  {
+   "thermal": 0,
+   "batteryPermille": 900,
+   "batteryCharging": 1,
+   "visibility": 0,
+   "heapPressure": 0
+  }
+ ],
+ "expected": [
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 240,
+   "rung": 0,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 2,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 60,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 30,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 30,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 30,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 30,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 30,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 30,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 30,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 30,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 30,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 30,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  },
+  {
+   "cap": 120,
+   "rung": 1,
+   "tierStage": 0
+  }
+ ],
+ "expectedCapTransitions": [
+  240,
+  120,
+  60,
+  120,
+  60,
+  120,
+  30,
+  120
+ ],
+ "tickCount": 130
+}

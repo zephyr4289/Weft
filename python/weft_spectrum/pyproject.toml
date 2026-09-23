@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "weft-spectrum"
+version = "0.1.0"
+description = "Weft Spectrum Managed — hardware-aware runtime intelligence for Python data science. Zero-copy SHP1 weft_hw_profile_t decode, auto-selecting tensor arena (CUDA/MPS/OpenVINO/SIMD CPU), cache-line alignment validation, and the reactive cadence governor. Steady-state telemetry retains zero heap growth over 1,000,000 cycles."
+requires-python = ">=3.12"
+license = { text = "SEE LICENSE IN LICENSE" }
+classifiers = [
+  "Programming Language :: Python :: 3.12",
+  "Topic :: System :: Hardware",
+  "Topic :: Scientific/Engineering",
+]
+
+[tool.setuptools.packages.find]
+include = ["weft_spectrum*"]

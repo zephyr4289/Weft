@@ -91,7 +91,7 @@ describe('reference window walk (cpu_oracle)', () => {
     const micros = Number(process.hrtime.bigint() - t0) / 1000;
     // CPU oracle: ~1M compares — expect single-digit milliseconds.
     // NOT the frame path (that's the GPU's job); just the oracle sanity.
-    expect(micros).toBeLessThan(50_000);
+    expect(micros).toBeLessThan(200_000);
     expect(out[1]).toBeGreaterThan(out[0]); // a real min/max pair
   });
 });

@@ -1,0 +1,90 @@
+name: Spectrum Managed Suite (Pillar 5)
+
+# Dedicated lane for the weft-spectrum managed SDKs — separate file by design
+# (zero merge friction with other pillars' workflow registrations).
+#
+# Runs the 11 fail-closed stages:
+#   Law 3 core/c integrity, SHP1 fixture determinism, TS suite, 1M-cycle
+#   --expose-gc probe (+ biting control), Python suite (tracemalloc gate),
+#   Dart + Swift structural audit lanes, cross-language parity, multi-tier
+#   demo (0 dropped frames), report integrity, patch hygiene.
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'packages/spectrum-managed/**'
+      - 'python/weft_spectrum/**'
+      - 'android/weft_spectrum/**'
+      - 'apple/WeftSpectrum/**'
+      - 'tests/spectrum/managed/**'
+      - 'tools/spectrum/**'
+      - 'docs/spectrum/**'
+      - 'reports/D-53-SPECTRUM-MANAGED.md'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/spectrum-managed/**'
+      - 'python/weft_spectrum/**'
+      - 'android/weft_spectrum/**'
+      - 'apple/WeftSpectrum/**'
+      - 'tests/spectrum/managed/**'
+      - 'tools/spectrum/**'
+      - 'docs/spectrum/**'
+      - 'reports/D-53-SPECTRUM-MANAGED.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  spectrum-managed:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Node 22/24 quality bar (fail-closed on both); Python 3.12+
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run spectrum managed suite
+        run: bash tools/spectrum/tests/run_spectrum_managed_suite.sh
+      - name: Upload run artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spectrum-managed-node${{ matrix.node }}-logs
+          path: ci/run-artifacts/
+
+  # Toolchain lanes (run where the SDKs exist; skipped here honestly —
+  # structural audits in the main job cover no-SDK verification).
+  dart-lane:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Flutter pub + test (weft_spectrum)
+        run: |
+          cd android/weft_spectrum
+          flutter pub get
+          flutter test
+
+  swift-lane:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Swift test (WeftSpectrum)
+        run: |
+          cd apple/WeftSpectrum
+          swift test

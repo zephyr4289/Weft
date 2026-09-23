@@ -1,0 +1,8 @@
+workflow: flutter-packages
+job:      Flutter & Dart FFI (macos-latest)
+status:   success
+sha:      e131ef88bb61edef3d432ebc036acef924ef5619
+event:    push
+run:      198
+date:     Wed Sep 23 13:29:46 UTC 2026
+ref:      refs/heads/main

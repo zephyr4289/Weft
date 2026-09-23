@@ -33,7 +33,7 @@ PKG="$ROOT/packages/heddle-canvas"
 
 step "1/5 unit battery (vitest)"
 cd "$PKG"
-npm run -s test 2>&1 | tee -a "$LOG" | tail -4
+(pnpm test || npx vitest run || npm run test) 2>&1 | tee -a "$LOG" | tail -4
 cd "$ROOT"
 
 step "2/5 Law-1: instrument calibration + 60,000-frame gate"

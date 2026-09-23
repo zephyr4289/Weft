@@ -1,0 +1,44 @@
+{
+  "name": "@weft/heddle-canvas",
+  "version": "0.1.0",
+  "description": "heddle-2.0 direct-to-GPU canvas engine: Hot-Plane SharedArrayBuffer memory bound straight into WebGPU/WebGL2/Canvas2D pipelines \u2014 240 FPS frame budget, zero per-frame heap allocations (Pillar 4 / RFC-0022)",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "shaders",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "bench:frame-budget": "node --expose-gc --experimental-strip-types bench/frame_budget.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.6",
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zephyr4289/Weft.git",
+    "directory": "packages/heddle-canvas"
+  },
+  "type": "module"
+}

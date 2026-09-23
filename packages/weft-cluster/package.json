@@ -1,0 +1,39 @@
+{
+  "name": "@weft/cluster",
+  "version": "0.1.0",
+  "description": "Managed cluster plane for Weft — ClusterClient/ClusterMesh, gossip topology, rendezvous shard routing, lock-free Prometheus/OTel/Perfetto telemetry over the WCR1 distributed memory mesh. Sub-microsecond hop latency, zero hot-path allocation.",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./wire": {
+      "types": "./src/index.d.ts",
+      "default": "./src/wire.js"
+    },
+    "./metrics": {
+      "types": "./src/index.d.ts",
+      "default": "./src/metrics.js"
+    }
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "weft", "cluster", "rdma", "gossip", "shard", "consistent-hashing",
+    "prometheus", "opentelemetry", "perfetto", "zero-allocation", "lock-free"
+  ],
+  "license": "SEE LICENSE IN LICENSE"
+}

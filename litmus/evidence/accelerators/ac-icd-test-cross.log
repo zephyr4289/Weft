@@ -1,0 +1,9 @@
+AC-X2 SIMD == scalar (bit-exact, the contract): PASS
+  (simd-isa=neon)
+  (vk roads refused at setup — host-ext/alias boundaries; see AC-K)
+AC-X3: SKIP (vk setup refused on this ICD)
+AC-X4 ONNX wrap carries the SAME bytes (no copy): PASS
+AC-X5 ggml shape maps the same bytes (ne reversed, nbytes): PASS
+AC-X6 Metal geometry maps the same frame (64-aligned rows): PASS
+AC-X7 Metal MSL and Vulkan SPIR-V share the contract: PASS
+AC-X (cross-domain capstone): 5 passed, 0 failed, 1 skipped

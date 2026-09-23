@@ -1,0 +1,12 @@
+{
+  "name": "@weft/cluster-cli",
+  "version": "0.1.0",
+  "description": "CLI for the weft-cluster managed plane: join gossip meshes, dump membership + routes, run throughput/latency benches.",
+  "type": "module",
+  "bin": {
+    "weft-cluster": "./bin/weft-cluster.mjs"
+  },
+  "files": ["bin", "README.md"],
+  "engines": { "node": ">=18" },
+  "license": "SEE LICENSE IN LICENSE"
+}

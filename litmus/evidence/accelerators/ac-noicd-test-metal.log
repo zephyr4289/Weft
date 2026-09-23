@@ -1,0 +1,15 @@
+AC-M1 RGBA8 camera view maps to 64-aligned geometry: PASS
+AC-M2 odd-width rows pad to the 64-byte law: PASS
+AC-M3 f32 spectrogram view maps (the 128RGBAFloat road): PASS
+AC-M4 i16 view refuses (outside the v1 wrap roads): PASS
+AC-M5 strided view refuses (wraps need contiguous rows): PASS
+AC-M6 sub-16-byte rows refuse (the bytesNoCopy floor): PASS
+AC-M7 non-pixel-multiple u8 rows refuse: PASS
+AC-M8 committed MSL present + frozen ID deterministic: PASS
+AC-M9 MSL is the normalize contract (single float multiply): PASS
+  (probe: UNSUPPORTED (non-Apple weak stub))
+AC-M10 non-Apple probe reports UNSUPPORTED: PASS
+AC-M11 weak stub refuses the MTLBuffer wrap: PASS
+AC-M12 weak stub refuses the CVPixelBuffer wrap: PASS
+AC-M13 weak stub refuses the IOSurface span: PASS
+AC-M (metal adapter core): 13 passed, 0 failed, 0 skipped

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>weft-cluster — distributed feed visualizer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#0b0f14; --card:#111823; --line:#1e2a3a; --fg:#dbe6f4; --dim:#7c8ba1;
+          --green:#3ddc84; --cyan:#4cc3ff; --amber:#ffcf5c; --red:#ff6b6b; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--fg);
+         font: 14px/1.5 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; padding: 24px; }
+  h1 { font-size: 18px; letter-spacing: .04em; }
+  h1 span { color: var(--dim); font-weight: 400; }
+  .meta { color: var(--dim); margin: 6px 0 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .card h2 { font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px; }
+  .node { border-left: 3px solid var(--cyan); }
+  .node.producer { border-left-color: var(--amber); }
+  .node.ok { border-left-color: var(--green); }
+  .row { display: flex; justify-content: space-between; margin: 3px 0; }
+  .row b { font-weight: 600; }
+  .fps { font-size: 26px; font-weight: 700; }
+  .bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--green)); }
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; }
+  .badge.pass { background: rgba(61,220,132,.12); color: var(--green); }
+  .badge.fail { background: rgba(255,107,107,.14); color: var(--red); }
+  .routes { margin-top: 16px; }
+  .route { color: var(--dim); }
+  .route b { color: var(--cyan); }
+  .foot { color: var(--dim); margin-top: 20px; font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>weft-cluster <span>— distributed feed visualizer (4 nodes, WCN1 over UDP)</span></h1>
+<div class="meta" id="meta">connecting…</div>
+<div class="grid" id="nodes"></div>
+<div class="routes card" id="routes" style="max-width:560px;margin-top:14px">
+  <h2>rendezvous routes</h2><div id="routeList" class="route">-</div>
+</div>
+<div class="foot">Zero-copy ingestion over the WCR1 mesh · sequence monotonicity verified per (node, topic) ·
+one-way latency = CLOCK_MONOTONIC cross-process · Prometheus /metrics on every node.</div>
+<script>
+const fmt = (n) => n == null ? '-' : n.toLocaleString('en-US');
+async function tick() {
+  try {
+    const s = await (await fetch('/api/status')).json();
+    document.getElementById('meta').textContent =
+      `run ${s.runId} — ${s.nodes.length} nodes — target ${fmt(s.fps)} fps/topic — ` +
+      (s.convergedMs ? `mesh converged in ${s.convergedMs} ms` : 'discovering peers…');
+    const el = document.getElementById('nodes');
+    el.innerHTML = '';
+    const maxFps = Math.max(1, ...s.nodes.map(n => n.fps));
+    for (const n of s.nodes) {
+      const ok = n.role !== 'consumer' || (n.gaps === 0 && n.stale === 0);
+      const d = document.createElement('div');
+      d.className = `card node ${n.role} ${ok ? 'ok' : ''}`;
+      d.innerHTML = `
+        <h2>n${n.nodeId} · ${n.role} ${n.role === 'consumer'
+          ? `<span class="badge ${ok ? 'pass' : 'fail'}">${ok ? 'monotonic' : 'violations'}</span>` : ''}</h2>
+        <div class="row"><span>fps <b>${fmt(n.fps)}</b></span><span>total <b>${fmt(n.total)}</b></span></div>
+        <div class="bar"><i style="width:${Math.round(n.fps / maxFps * 100)}%"></i></div>
+        <div class="row" style="margin-top:8px"><span>hop p50</span><b>${(n.p50 / 1000).toFixed(1)} µs</b></div>
+        <div class="row"><span>hop p99</span><b>${(n.p99 / 1000).toFixed(1)} µs</b></div>
+        <div class="row"><span>gaps / stale</span><b>${n.gaps} / ${n.stale}</b></div>
+        <div class="row"><span>mesh view</span><b>${n.members} nodes</b></div>
+        ${n.metricsPort ? `<div class="row"><span>metrics</span><b>:${n.metricsPort}</b></div>` : ''}`;
+      el.appendChild(d);
+    }
+    const n0 = s.nodes[0];
+    document.getElementById('routeList').innerHTML = Object.entries(n0.routes ?? {})
+      .map(([t, o]) => `${t} → <b>n${o}</b>`).join('<br>') || '-';
+  } catch { /* node not up yet */ }
+}
+setInterval(tick, 500); tick();
+</script>
+</body>
+</html>

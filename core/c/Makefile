@@ -607,8 +607,38 @@ device-spectrum-test: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_pro
 device-spectrum-test-asan: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
 	$(CC) $(CFLAGS_ASAN) -o device-spectrum-test-asan $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
 
-device-spectrum-test-tsan: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
-	$(CC) $(CFLAGS_DBG) -o device-spectrum-test-tsan $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
+# ---- RFC 0018 weft-cluster: WCR1 protocol engine + consensus (Pillar 3) --
+# cluster/weft_cluster_ring.c + cluster/weft_cluster_consensus.c: the WCR1
+# 128-byte ring header / 64-byte slot header, two-store seqlock commit,
+# zero-roundtrip remote addressing, ring-embedded Raft (elections, leases,
+# fencing, eviction). sim_cluster.c is the multi-node virtual-clock harness
+# (partition link matrix, gated transport). Kernel core untouched.
+CLUSTER_SRC = cluster/weft_cluster_ring.c cluster/weft_cluster_consensus.c
+CLUSTER_SIM = cluster/sim_cluster.c
+
+cluster-ring-test: $(CLUSTER_SRC) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/cluster_ring_test.c
+	$(CC) $(CFLAGS) -o cluster-ring-test $(CLUSTER_SRC) cluster/cluster_ring_test.c
+
+cluster-ring-test-asan: $(CLUSTER_SRC) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/cluster_ring_test.c
+	$(CC) $(CFLAGS_ASAN) -o cluster-ring-test-asan $(CLUSTER_SRC) cluster/cluster_ring_test.c
+
+cluster-ring-test-tsan: $(CLUSTER_SRC) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/cluster_ring_test.c
+	$(CC) $(CFLAGS_DBG) -o cluster-ring-test-tsan $(CLUSTER_SRC) cluster/cluster_ring_test.c
+
+cluster-consensus-test: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/cluster_consensus_test.c
+	$(CC) $(CFLAGS) -o cluster-consensus-test $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/cluster_consensus_test.c
+
+cluster-consensus-test-asan: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/cluster_consensus_test.c
+	$(CC) $(CFLAGS_ASAN) -o cluster-consensus-test-asan $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/cluster_consensus_test.c
+
+split-brain-torture: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/split_brain_torture.c
+	$(CC) $(CFLAGS) -o split-brain-torture $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/split_brain_torture.c
+
+split-brain-torture-asan: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/split_brain_torture.c
+	$(CC) $(CFLAGS_ASAN) -o split-brain-torture-asan $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/split_brain_torture.c
+
+cluster-bench: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/cluster_bench.c
+	$(CC) $(CFLAGS) -o cluster-bench $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/cluster_bench.c
 
 # ---- RFC-0021 weft-tensor fabric (Pillar 2) -------------------------------
 # Self-contained module under core/c/tensor/ (Law 3: additive only, zero
@@ -629,6 +659,46 @@ tensor-fabric-test-tsan:
 tensor-fabric-clean:
 	$(MAKE) -C tensor clean
 
+# ---- heddle-2.0 unified hot-plane engine (Pillar 4, WHP2) ----------------
+# heddle/heddle_hotplane.c: the WHP2 engine — 128-byte plane header +
+# 64-byte lane descriptors/slots, two-store seqlock, signal-driven dirty
+# mask + bounding boxes, dual-mode ring/state lanes, zero allocation.
+# golden_dump.c emits the deterministic cross-language golden image that
+# packages/heddle-hotplane (JS/SAB/Atomics) verifies byte-exactly.
+# ../wasm/heddle_bridge.c is the zero-copy WASM/N-API/FFI bridge.
+HEDDLE_SRC = heddle/heddle_hotplane.c
+HEDDLE_HDR = heddle/heddle_hotplane.h heddle/heddle_hotplane_internal.h
+
+hotplane-test: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/hotplane_unit_test.c
+	$(CC) $(CFLAGS) -o hotplane-test $(HEDDLE_SRC) heddle/hotplane_unit_test.c
+
+hotplane-test-asan: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/hotplane_unit_test.c
+	$(CC) $(CFLAGS_ASAN) -o hotplane-test-asan $(HEDDLE_SRC) heddle/hotplane_unit_test.c
+
+hotplane-test-tsan: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/hotplane_unit_test.c
+	$(CC) $(CFLAGS_DBG) -o hotplane-test-tsan $(HEDDLE_SRC) heddle/hotplane_unit_test.c
+
+hotplane-torture: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/torn_read_torture.c
+	$(CC) $(CFLAGS) -o hotplane-torture $(HEDDLE_SRC) heddle/torn_read_torture.c
+
+hotplane-torture-asan: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/torn_read_torture.c
+	$(CC) $(CFLAGS_ASAN) -o hotplane-torture-asan $(HEDDLE_SRC) heddle/torn_read_torture.c
+
+hotplane-torture-tsan: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/torn_read_torture.c
+	$(CC) $(CFLAGS_DBG) -o hotplane-torture-tsan $(HEDDLE_SRC) heddle/torn_read_torture.c
+
+hotplane-bench: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/hotplane_bench.c
+	$(CC) $(CFLAGS) -o hotplane-bench $(HEDDLE_SRC) heddle/hotplane_bench.c
+
+hotplane-bench-inline: heddle/hotplane_bench.c $(HEDDLE_SRC) $(HEDDLE_HDR)
+	$(CC) $(CFLAGS) -DBENCH_INLINE -o hotplane-bench-inline heddle/hotplane_bench.c
+
+hotplane-golden: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/golden_dump.c
+	$(CC) $(CFLAGS) -o hotplane-golden $(HEDDLE_SRC) heddle/golden_dump.c
+
+heddle-bridge-test: $(HEDDLE_SRC) $(HEDDLE_HDR) ../wasm/heddle_bridge.c ../wasm/heddle_bridge_test.c
+	$(CC) $(CFLAGS) -o heddle-bridge-test $(HEDDLE_SRC) ../wasm/heddle_bridge_test.c -I heddle -I ../wasm
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
@@ -647,7 +717,11 @@ clean:
 	      trace-test trace-test-dbg trace-test-asan replay-test replay-test-asan replay-runner flow-test flow-test-asan sync-test sync-test-asan trend-test trend-test-asan trend-runner flight-runner \
 	      weft-shm-test weft-shm-test-asan weft-ipc-test weft-ipc-test-asan weft-ipc-test-tsan weft-ipc-torture weft-ipc-torture-asan \
 	      device-spectrum-test device-spectrum-test-asan device-spectrum-test-tsan \
-	      dmabuf-test dmabuf-test-asan gpu-extmem-test gpu-extmem-test-asan xdp-test xdp-test-asan xdp-live-gate tensor-test tensor-test-asan camera-test camera-test-asan hetero-probe
+	      dmabuf-test dmabuf-test-asan gpu-extmem-test gpu-extmem-test-asan xdp-test xdp-test-asan xdp-live-gate tensor-test tensor-test-asan camera-test camera-test-asan hetero-probe \
+	      hotplane-test hotplane-test-asan hotplane-test-tsan hotplane-torture hotplane-torture-asan hotplane-torture-tsan hotplane-bench hotplane-bench-inline hotplane-golden heddle-bridge-test \
+	      cluster-ring-test cluster-ring-test-asan cluster-ring-test-tsan \
+	      cluster-consensus-test cluster-consensus-test-asan \
+	      split-brain-torture split-brain-torture-asan cluster-bench
 	if [ -d tensor ]; then $(MAKE) -C tensor clean; fi
 
 .PHONY: all clean

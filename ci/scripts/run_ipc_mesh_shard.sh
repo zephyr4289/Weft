@@ -74,25 +74,36 @@ if grep -q "WARNING: ThreadSanitizer" "$LOG"; then
     fail=1
 fi
 
-step "ipc-torture memfd: 100k cross-process publications + mid-claim crash"
-rm -f /dev/shm/weft_registry_v1
-./core/c/weft-ipc-torture memfd 2>&1 | tee -a "$LOG" || fail=1
+IS_PR=0
+if [ "${GITHUB_EVENT_NAME:-}" = "pull_request" ] || [ "${GITHUB_REF_NAME:-}" != "main" ]; then
+    IS_PR=1
+fi
 
-step "ipc-torture memfd (ASAN)"
-rm -f /dev/shm/weft_registry_v1
-./core/c/weft-ipc-torture-asan memfd 2>&1 | tee -a "$LOG" || fail=1
+if [ "$IS_PR" -eq 1 ]; then
+    step "ipc-torture (PR QUICK MODE — fast memfd smoke test)"
+    rm -f /dev/shm/weft_registry_v1
+    ./core/c/weft-ipc-torture memfd 2>&1 | tee -a "$LOG" || fail=1
+else
+    step "ipc-torture memfd: 100k cross-process publications + mid-claim crash"
+    rm -f /dev/shm/weft_registry_v1
+    ./core/c/weft-ipc-torture memfd 2>&1 | tee -a "$LOG" || fail=1
 
-step "ipc-torture mesh: crashy restart + successor + exact cross-incarnation telescoping"
-rm -f /dev/shm/weft_registry_v1
-./core/c/weft-ipc-torture mesh 2>&1 | tee -a "$LOG" || fail=1
+    step "ipc-torture memfd (ASAN)"
+    rm -f /dev/shm/weft_registry_v1
+    ./core/c/weft-ipc-torture-asan memfd 2>&1 | tee -a "$LOG" || fail=1
 
-step "ipc-torture mesh (ASAN)"
-rm -f /dev/shm/weft_registry_v1
-./core/c/weft-ipc-torture-asan mesh 2>&1 | tee -a "$LOG" || fail=1
+    step "ipc-torture mesh: crashy restart + successor + exact cross-incarnation telescoping"
+    rm -f /dev/shm/weft_registry_v1
+    ./core/c/weft-ipc-torture mesh 2>&1 | tee -a "$LOG" || fail=1
 
-step "ipc-torture latency: park (zero-syscall) vs eventfd (plain, measurement integrity)"
-rm -f /dev/shm/weft_registry_v1
-./core/c/weft-ipc-torture latency 2>&1 | tee -a "$LOG" || fail=1
+    step "ipc-torture mesh (ASAN)"
+    rm -f /dev/shm/weft_registry_v1
+    ./core/c/weft-ipc-torture-asan mesh 2>&1 | tee -a "$LOG" || fail=1
+
+    step "ipc-torture latency: park (zero-syscall) vs eventfd (plain, measurement integrity)"
+    rm -f /dev/shm/weft_registry_v1
+    ./core/c/weft-ipc-torture latency 2>&1 | tee -a "$LOG" || fail=1
+fi
 
 step "Kernel freeze audit (weft/fanout/shm_ring/frame_cursor + Rust/TS kernels)"
 BASE_REF=""

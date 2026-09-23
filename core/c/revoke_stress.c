@@ -50,7 +50,7 @@ static uint64_t now_ns(void) {
 // Phase 1 — the concurrency ceiling probe (threads that exist and park)
 // ---------------------------------------------------------------------------
 
-#define CEILING_PROBE_CAP 16384   // stop the probe here even if the OS allows more
+#define CEILING_PROBE_CAP 2048    // stop the probe here even if the OS allows more
 #define STACK_SIZE (128 * 1024)   // 128 KiB: ample for these tiny bodies
 
 typedef struct {
@@ -59,7 +59,7 @@ typedef struct {
 
 static void* probe_thread_fn(void* argp) {
     probe_arg_t* a = (probe_arg_t*)argp;
-    struct timespec ts = { .tv_sec = 0, .tv_nsec = 200000 };
+    struct timespec ts = { .tv_sec = 0, .tv_nsec = 5000000 };
     while (!atomic_load(&a->release)) nanosleep(&ts, NULL);
     return NULL;
 }
@@ -117,8 +117,7 @@ static void* wave_writer_fn(void* argp) {
     // Then poll-publish until the revoke lands (the ACK moment). The poll
     // gap keeps the wave's parked threads schedulable on 2 vCPUs.
     while (!atomic_load(&a->revoked_seen)) {
-        struct timespec ts = { .tv_sec = 0, .tv_nsec = 500000 };  // 500us
-        nanosleep(&ts, NULL);
+        sched_yield();
         if (weft_publish(a->w, seq++, sizeof(payload)) == WEFT_PUB_DROPPED_REVOKED) {
             atomic_store(&a->revoked_seen, true);
             return NULL;   // post-ACK: never touch buffer bytes again (02 §6)

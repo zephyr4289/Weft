@@ -1,0 +1,1430 @@
+==================================================
+SHARD: fanout-native
+DESCRIPTION: C/Rust fan-out ring: F-series + torture x2 regimes + Loom + xlang
+STATUS: FAILED ❌
+COMMIT: 1798ce4abe448066992946111c09346d5d78e9b7
+RUN: 249
+==================================================
+
+
+=== C build (fenced acq/rel + seq_cst) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o fanout-test fanout.c frame_cursor.c weft.c fanout_simd.c fanout_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_FANOUT_SEQ_CST=1 -o fanout-test-seq fanout.c frame_cursor.c weft.c fanout_simd.c fanout_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o fanout-runner fanout.c frame_cursor.c weft.c fanout_simd.c fanout_runner.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_FANOUT_SEQ_CST=1 -o fanout-runner-seq fanout.c frame_cursor.c weft.c fanout_simd.c fanout_runner.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+
+=== C F-series conformance (default regime) ===
+ok: F1 payload_bytes=0 rejected
+ok: F1 payload_bytes%4!=0 rejected
+ok: F1 slot_count<2 rejected
+ok: F1 slot_count=1 rejected
+ok: F1 slot_count>64 rejected
+ok: F1 ring_bytes formula (TS parity)
+ok: F1 reader geometry mismatch rejected
+ok: F2 init succeeds
+ok: F2 reader init succeeds
+ok: F2 claim before any publish: null frame
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F2 publish returns frame 1
+ok: F2 first publish: fresh, dropped=0
+ok: payload words intact
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F3 three unseen publishes: dropped=2
+ok: payload words intact
+ok: F4 ring init
+ok: F4 reader init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F4 telescoping identity exact
+ok: F4 reader converged to the last frame
+ok: F4 stats agree with the loop
+ok: F5 M=2 ring init
+ok: F5 reader init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F5 reader holds frame 1
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F5 mid-overwrite: keeps last consistent frame
+ok: F5 skip counted, never silent
+ok: F5 converges after the overwrite completes
+ok: F6 ring init
+ok: F6 publish with no begin returns 0
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F6 publish after begin returns 1
+ok: F6 fill len%4!=0 rejected
+ok: F7 producer init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F7 reader attaches to the copy
+ok: F7 handoff: fresh final frame, dropped = N-1
+ok: payload words intact
+ok: F7 writer attach
+ok: F7 second attach on the live broadcaster is refused
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F7 attached writer continues numbering
+ok: F7 second reader attach
+ok: F7 cross-producer accounting telescopes
+ok: F8 debug latest/publishes/slots
+ok: F8 slot stamps populated and in range
+ok: F9 new rejects bad geometry (slots, mod-4)
+ok: F9 new allocates
+ok: F9 ring accessor non-NULL
+ok: F9 new ring publishes frame 1
+ok: F9 raw latestSeq == 1 at offset 0
+ok: F9 raw publishes == 1 at offset 8
+ok: F9 reader_new attaches to the ring pointer
+ok: F9 reader on the new/free ring claims frame 1
+ok: F9 reader_new rejects ring_bytes mismatch
+ok: F9 free pair NULL-safe, no crash
+ok: FC kernel init
+ok: FC1 null frame baseline: first, behind 0
+ok: FC2 first real frame: behind 0, not first
+ok: FC3 gap accounting: behind 2
+ok: FC4 idle claim: recycled hold, reset rule, behind 0
+ok: FC4 idle claim adds no drops
+ok: FC5 kernel init
+ok: FC5 baseline seq 10
+ok: FC5 decreasing seq resets accounting (no burst)
+ok: FC5 reset adds no drops
+ok: FC6 accumulators: totalDropped=2, claims=4
+ok: FC6 reset: next update is first again
+ok: FC6 reset zeroed the counters
+
+PASS: 0 failure(s)
+
+=== C F-series conformance (all-seq_cst regime) ===
+ok: F1 payload_bytes=0 rejected
+ok: F1 payload_bytes%4!=0 rejected
+ok: F1 slot_count<2 rejected
+ok: F1 slot_count=1 rejected
+ok: F1 slot_count>64 rejected
+ok: F1 ring_bytes formula (TS parity)
+ok: F1 reader geometry mismatch rejected
+ok: F2 init succeeds
+ok: F2 reader init succeeds
+ok: F2 claim before any publish: null frame
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F2 publish returns frame 1
+ok: F2 first publish: fresh, dropped=0
+ok: payload words intact
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F3 three unseen publishes: dropped=2
+ok: payload words intact
+ok: F4 ring init
+ok: F4 reader init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F4 telescoping identity exact
+ok: F4 reader converged to the last frame
+ok: F4 stats agree with the loop
+ok: F5 M=2 ring init
+ok: F5 reader init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F5 reader holds frame 1
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F5 mid-overwrite: keeps last consistent frame
+ok: F5 skip counted, never silent
+ok: F5 converges after the overwrite completes
+ok: F6 ring init
+ok: F6 publish with no begin returns 0
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F6 publish after begin returns 1
+ok: F6 fill len%4!=0 rejected
+ok: F7 producer init
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F7 reader attaches to the copy
+ok: F7 handoff: fresh final frame, dropped = N-1
+ok: payload words intact
+ok: F7 writer attach
+ok: F7 second attach on the live broadcaster is refused
+ok: begin returns a cursor
+ok: fill writes every word
+ok: F7 attached writer continues numbering
+ok: F7 second reader attach
+ok: F7 cross-producer accounting telescopes
+ok: F8 debug latest/publishes/slots
+ok: F8 slot stamps populated and in range
+ok: F9 new rejects bad geometry (slots, mod-4)
+ok: F9 new allocates
+ok: F9 ring accessor non-NULL
+ok: F9 new ring publishes frame 1
+ok: F9 raw latestSeq == 1 at offset 0
+ok: F9 raw publishes == 1 at offset 8
+ok: F9 reader_new attaches to the ring pointer
+ok: F9 reader on the new/free ring claims frame 1
+ok: F9 reader_new rejects ring_bytes mismatch
+ok: F9 free pair NULL-safe, no crash
+ok: FC kernel init
+ok: FC1 null frame baseline: first, behind 0
+ok: FC2 first real frame: behind 0, not first
+ok: FC3 gap accounting: behind 2
+ok: FC4 idle claim: recycled hold, reset rule, behind 0
+ok: FC4 idle claim adds no drops
+ok: FC5 kernel init
+ok: FC5 baseline seq 10
+ok: FC5 decreasing seq resets accounting (no burst)
+ok: FC5 reset adds no drops
+ok: FC6 accumulators: totalDropped=2, claims=4
+ok: FC6 reset: next update is first again
+ok: FC6 reset zeroed the counters
+
+PASS: 0 failure(s)
+
+=== C torture (default regime, 200k frames) ===
+reader 0: fresh=185985 dropped=14015 claims=2157929 skipped=0 torn_exhausted=0 last_seq=200000 identity=OK
+reader 1: fresh=97036 dropped=102964 claims=437581 skipped=0 torn_exhausted=0 last_seq=200000 identity=OK
+reader 2: fresh=96110 dropped=103890 claims=541659 skipped=0 torn_exhausted=0 last_seq=200000 identity=OK
+reader 3: fresh=168089 dropped=31911 claims=989486 skipped=0 torn_exhausted=0 last_seq=200000 identity=OK
+torture: frames=200000 slots=4 words=256 readers=4 publishes=200000 elapsed_ms=214.6 rate=931783/s verdict=PASS
+
+=== C torture (all-seq_cst regime, 200k frames) ===
+reader 0: fresh=151630 dropped=48370 claims=2140743 skipped=0 torn_exhausted=0 last_seq=200000 identity=OK
+reader 1: fresh=145939 dropped=54061 claims=1064918 skipped=0 torn_exhausted=0 last_seq=200000 identity=OK
+reader 2: fresh=162612 dropped=37388 claims=960163 skipped=0 torn_exhausted=0 last_seq=200000 identity=OK
+reader 3: fresh=127930 dropped=72070 claims=1230114 skipped=0 torn_exhausted=0 last_seq=200000 identity=OK
+torture: frames=200000 slots=4 words=256 readers=4 publishes=200000 elapsed_ms=235.8 rate=848090/s verdict=PASS
+
+=== FS-series SIMD claim-copy gate (default + seq_cst + legacy + asan) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o fanout-simd-test fanout.c frame_cursor.c weft.c fanout_simd.c fanout_simd_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_FANOUT_SEQ_CST=1 -o fanout-simd-test-seq fanout.c frame_cursor.c weft.c fanout_simd.c fanout_simd_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_FANOUT_SIMD_DISABLE=1 -o fanout-simd-test-legacy fanout.c frame_cursor.c weft.c fanout_simd.c fanout_simd_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o fanout-simd-test-asan fanout.c frame_cursor.c weft.c fanout_simd.c fanout_simd_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+ok: FS1 auto-resolve reports an impl name
+ok: FS1 pinned impl reports its own name
+ok: FS1 pinned impl reports its own name
+ok: FS1 pinned impl reports its own name
+ok: FS1 refused pin leaves a working impl
+ok: FS1 refused pin leaves a working impl
+ok: FS1 unknown impl name refused
+ok: FS1 NULL name refused
+ok: FS1 force_scalar pins scalar
+ok: FS2 byte-identity sweep passed (one line per impl)
+ok: FS2 byte-identity sweep passed (one line per impl)
+ok: FS2 swept every compiled vector impl
+info: FS2 combos verified: 372 across 2 impls
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via scalar
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via sse2
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via avx2
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS4 reader init
+info: FS4 torturing with avx2 pinned, 1.0s
+ok: FS4 writer spawn
+ok: FS4 zero torn frames accepted as fresh
+ok: FS4 every fresh frame byte-exact
+ok: FS4 dropped+fresh telescopes to lastSeq exactly
+ok: FS5 sub-vector and odd-tail sizes identical
+ok: FS5 64 KiB tier identical
+active impl on this host: avx2
+FS-SERIES PASS
+ok: FS1 auto-resolve reports an impl name
+ok: FS1 pinned impl reports its own name
+ok: FS1 pinned impl reports its own name
+ok: FS1 pinned impl reports its own name
+ok: FS1 refused pin leaves a working impl
+ok: FS1 refused pin leaves a working impl
+ok: FS1 unknown impl name refused
+ok: FS1 NULL name refused
+ok: FS1 force_scalar pins scalar
+ok: FS2 byte-identity sweep passed (one line per impl)
+ok: FS2 byte-identity sweep passed (one line per impl)
+ok: FS2 swept every compiled vector impl
+info: FS2 combos verified: 372 across 2 impls
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via scalar
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via sse2
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via avx2
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS4 reader init
+info: FS4 torturing with avx2 pinned, 1.0s
+ok: FS4 writer spawn
+ok: FS4 zero torn frames accepted as fresh
+ok: FS4 every fresh frame byte-exact
+ok: FS4 dropped+fresh telescopes to lastSeq exactly
+ok: FS5 sub-vector and odd-tail sizes identical
+ok: FS5 64 KiB tier identical
+active impl on this host: avx2
+FS-SERIES PASS
+ok: FS1 auto-resolve reports an impl name
+ok: FS1 pinned impl reports its own name
+ok: FS1 pinned impl reports its own name
+ok: FS1 pinned impl reports its own name
+ok: FS1 refused pin leaves a working impl
+ok: FS1 refused pin leaves a working impl
+ok: FS1 unknown impl name refused
+ok: FS1 NULL name refused
+ok: FS1 force_scalar pins scalar
+ok: FS2 byte-identity sweep passed (one line per impl)
+ok: FS2 byte-identity sweep passed (one line per impl)
+ok: FS2 swept every compiled vector impl
+info: FS2 combos verified: 372 across 2 impls
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via scalar
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via sse2
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via avx2
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS4 reader init
+info: FS4 torturing with avx2 pinned, 1.0s
+ok: FS4 writer spawn
+ok: FS4 zero torn frames accepted as fresh
+ok: FS4 every fresh frame byte-exact
+ok: FS4 dropped+fresh telescopes to lastSeq exactly
+ok: FS5 sub-vector and odd-tail sizes identical
+ok: FS5 64 KiB tier identical
+active impl on this host: avx2
+FS-SERIES PASS
+ok: FS1 auto-resolve reports an impl name
+ok: FS1 pinned impl reports its own name
+ok: FS1 pinned impl reports its own name
+ok: FS1 pinned impl reports its own name
+ok: FS1 refused pin leaves a working impl
+ok: FS1 refused pin leaves a working impl
+ok: FS1 unknown impl name refused
+ok: FS1 NULL name refused
+ok: FS1 force_scalar pins scalar
+ok: FS2 byte-identity sweep passed (one line per impl)
+ok: FS2 byte-identity sweep passed (one line per impl)
+ok: FS2 swept every compiled vector impl
+info: FS2 combos verified: 372 across 2 impls
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via scalar
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via sse2
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS3 reader init
+ok: FS3 end-to-end claims intact via avx2
+ok: FS3 back-to-back claims always fresh
+ok: FS3 zero drops in lockstep
+ok: FS4 reader init
+info: FS4 torturing with avx2 pinned, 1.0s
+ok: FS4 writer spawn
+ok: FS4 zero torn frames accepted as fresh
+ok: FS4 every fresh frame byte-exact
+ok: FS4 dropped+fresh telescopes to lastSeq exactly
+ok: FS5 sub-vector and odd-tail sizes identical
+ok: FS5 64 KiB tier identical
+active impl on this host: avx2
+FS-SERIES PASS
+
+=== FL-series cache-aware layout gate (64B + 32B-line legs) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o fanout-layout-test fanout.c frame_cursor.c weft.c fanout_simd.c fanout_layout_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_FANOUT_SLOT_ALIGN_BYTES=32 -o fanout-layout-test-smallline fanout.c frame_cursor.c weft.c fanout_simd.c fanout_layout_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o fanout-layout-test-asan fanout.c frame_cursor.c weft.c fanout_simd.c fanout_layout_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+ok: FL2 closed form == brute force (all geometries, 64B/32B lines)
+ok: FL2 slot-aligned: ZERO split vector loads at every geometry
+ok: FL2 vw==line: base-aligned splits iff payload base unaligned (lucky depth M=6 mod 8)
+ok: FL2 64B alignment implies 32B alignment (small-line CPUs safe)
+{"bench":"fanout-layout","kind":"split-theory","line":64,"slots":4,"payload_bytes":256,"base_aligned_split_loads":4,"base_aligned_loads":4,"slot_aligned_split_loads":0,"slot_aligned_loads":4}
+{"bench":"fanout-layout","kind":"split-theory","line":64,"slots":4,"payload_bytes":1024,"base_aligned_split_loads":16,"base_aligned_loads":16,"slot_aligned_split_loads":0,"slot_aligned_loads":16}
+{"bench":"fanout-layout","kind":"split-theory","line":64,"slots":4,"payload_bytes":4096,"base_aligned_split_loads":64,"base_aligned_loads":64,"slot_aligned_split_loads":0,"slot_aligned_loads":64}
+{"bench":"fanout-layout","kind":"split-theory","line":64,"slots":4,"payload_bytes":16384,"base_aligned_split_loads":256,"base_aligned_loads":256,"slot_aligned_split_loads":0,"slot_aligned_loads":256}
+{"bench":"fanout-layout","kind":"split-theory","line":64,"slots":4,"payload_bytes":65536,"base_aligned_split_loads":1024,"base_aligned_loads":1024,"slot_aligned_split_loads":0,"slot_aligned_loads":1024}
+ok: FL1 slot_line_align reports 64 (0 legacy, 64 default)
+ok: FL1 payload base line-aligned across sweep (line=64)
+ok: FL1 wire-relative offsets unchanged (ctrl@0, payload@16+8M)
+{"bench":"fanout-layout","kind":"latency-ab","line":64,"slots":4,"payload_bytes":1024,"impl":"avx2","base_aligned_p50_ns":50.0,"slot_aligned_p50_ns":50.0,"delta_pct":0.00}
+{"bench":"fanout-layout","kind":"latency-ab","line":64,"slots":4,"payload_bytes":4096,"impl":"avx2","base_aligned_p50_ns":110.0,"slot_aligned_p50_ns":80.0,"delta_pct":-27.27}
+{"bench":"fanout-layout","kind":"latency-ab","line":64,"slots":4,"payload_bytes":16384,"impl":"avx2","base_aligned_p50_ns":271.0,"slot_aligned_p50_ns":251.0,"delta_pct":-7.38}
+{"bench":"fanout-layout","kind":"latency-ab","line":64,"slots":4,"payload_bytes":65536,"impl":"avx2","base_aligned_p50_ns":1492.0,"slot_aligned_p50_ns":1502.0,"delta_pct":0.67}
+ok: FL3 slot-aligned <= base-aligned (within 15%) at every size
+ok: FL4 whole-ring bytes IDENTICAL across layouts (interop/fixtures unbroken)
+ok: FL4 readers across layouts agree (seq + payload bytes)
+ok: FL5 attach on foreign base-aligned ring
+ok: FL5 reader on foreign ring
+ok: FL5 foreign-ring claims stay correct under any producer alignment
+line=64 impl=avx2
+FL-SERIES PASS
+ok: FL2 closed form == brute force (all geometries, 64B/32B lines)
+ok: FL2 slot-aligned: ZERO split vector loads at every geometry
+ok: FL2 vw==line: base-aligned splits iff payload base unaligned (lucky depth M=6 mod 8)
+{"bench":"fanout-layout","kind":"split-theory","line":32,"slots":4,"payload_bytes":256,"base_aligned_split_loads":8,"base_aligned_loads":8,"slot_aligned_split_loads":0,"slot_aligned_loads":8}
+{"bench":"fanout-layout","kind":"split-theory","line":32,"slots":4,"payload_bytes":1024,"base_aligned_split_loads":32,"base_aligned_loads":32,"slot_aligned_split_loads":0,"slot_aligned_loads":32}
+{"bench":"fanout-layout","kind":"split-theory","line":32,"slots":4,"payload_bytes":4096,"base_aligned_split_loads":128,"base_aligned_loads":128,"slot_aligned_split_loads":0,"slot_aligned_loads":128}
+{"bench":"fanout-layout","kind":"split-theory","line":32,"slots":4,"payload_bytes":16384,"base_aligned_split_loads":512,"base_aligned_loads":512,"slot_aligned_split_loads":0,"slot_aligned_loads":512}
+{"bench":"fanout-layout","kind":"split-theory","line":32,"slots":4,"payload_bytes":65536,"base_aligned_split_loads":2048,"base_aligned_loads":2048,"slot_aligned_split_loads":0,"slot_aligned_loads":2048}
+ok: FL1 slot_line_align reports 32 (0 legacy, 32 default)
+ok: FL1 payload base line-aligned across sweep (line=32)
+ok: FL1 wire-relative offsets unchanged (ctrl@0, payload@16+8M)
+{"bench":"fanout-layout","kind":"latency-ab","line":32,"slots":4,"payload_bytes":1024,"impl":"avx2","base_aligned_p50_ns":50.0,"slot_aligned_p50_ns":50.0,"delta_pct":0.00}
+{"bench":"fanout-layout","kind":"latency-ab","line":32,"slots":4,"payload_bytes":4096,"impl":"avx2","base_aligned_p50_ns":80.0,"slot_aligned_p50_ns":80.0,"delta_pct":0.00}
+{"bench":"fanout-layout","kind":"latency-ab","line":32,"slots":4,"payload_bytes":16384,"impl":"avx2","base_aligned_p50_ns":271.0,"slot_aligned_p50_ns":260.0,"delta_pct":-4.06}
+{"bench":"fanout-layout","kind":"latency-ab","line":32,"slots":4,"payload_bytes":65536,"impl":"avx2","base_aligned_p50_ns":1492.0,"slot_aligned_p50_ns":1502.0,"delta_pct":0.67}
+ok: FL3 slot-aligned <= base-aligned (within 15%) at every size
+ok: FL4 whole-ring bytes IDENTICAL across layouts (interop/fixtures unbroken)
+ok: FL4 readers across layouts agree (seq + payload bytes)
+ok: FL5 attach on foreign base-aligned ring
+ok: FL5 reader on foreign ring
+ok: FL5 foreign-ring claims stay correct under any producer alignment
+line=32 impl=avx2
+FL-SERIES PASS
+ok: FL2 closed form == brute force (all geometries, 64B/32B lines)
+ok: FL2 slot-aligned: ZERO split vector loads at every geometry
+ok: FL2 vw==line: base-aligned splits iff payload base unaligned (lucky depth M=6 mod 8)
+ok: FL2 64B alignment implies 32B alignment (small-line CPUs safe)
+{"bench":"fanout-layout","kind":"split-theory","line":64,"slots":4,"payload_bytes":256,"base_aligned_split_loads":4,"base_aligned_loads":4,"slot_aligned_split_loads":0,"slot_aligned_loads":4}
+{"bench":"fanout-layout","kind":"split-theory","line":64,"slots":4,"payload_bytes":1024,"base_aligned_split_loads":16,"base_aligned_loads":16,"slot_aligned_split_loads":0,"slot_aligned_loads":16}
+{"bench":"fanout-layout","kind":"split-theory","line":64,"slots":4,"payload_bytes":4096,"base_aligned_split_loads":64,"base_aligned_loads":64,"slot_aligned_split_loads":0,"slot_aligned_loads":64}
+{"bench":"fanout-layout","kind":"split-theory","line":64,"slots":4,"payload_bytes":16384,"base_aligned_split_loads":256,"base_aligned_loads":256,"slot_aligned_split_loads":0,"slot_aligned_loads":256}
+{"bench":"fanout-layout","kind":"split-theory","line":64,"slots":4,"payload_bytes":65536,"base_aligned_split_loads":1024,"base_aligned_loads":1024,"slot_aligned_split_loads":0,"slot_aligned_loads":1024}
+ok: FL1 slot_line_align reports 64 (0 legacy, 64 default)
+ok: FL1 payload base line-aligned across sweep (line=64)
+ok: FL1 wire-relative offsets unchanged (ctrl@0, payload@16+8M)
+{"bench":"fanout-layout","kind":"latency-ab","line":64,"slots":4,"payload_bytes":1024,"impl":"avx2","base_aligned_p50_ns":140.0,"slot_aligned_p50_ns":140.0,"delta_pct":0.00}
+{"bench":"fanout-layout","kind":"latency-ab","line":64,"slots":4,"payload_bytes":4096,"impl":"avx2","base_aligned_p50_ns":431.0,"slot_aligned_p50_ns":430.0,"delta_pct":-0.23}
+{"bench":"fanout-layout","kind":"latency-ab","line":64,"slots":4,"payload_bytes":16384,"impl":"avx2","base_aligned_p50_ns":1633.0,"slot_aligned_p50_ns":1633.0,"delta_pct":0.00}
+{"bench":"fanout-layout","kind":"latency-ab","line":64,"slots":4,"payload_bytes":65536,"impl":"avx2","base_aligned_p50_ns":6360.0,"slot_aligned_p50_ns":6359.0,"delta_pct":-0.02}
+ok: FL3 slot-aligned <= base-aligned (within 15%) at every size
+ok: FL4 whole-ring bytes IDENTICAL across layouts (interop/fixtures unbroken)
+ok: FL4 readers across layouts agree (seq + payload bytes)
+ok: FL5 attach on foreign base-aligned ring
+ok: FL5 reader on foreign ring
+ok: FL5 foreign-ring claims stay correct under any producer alignment
+line=64 impl=avx2
+FL-SERIES PASS
+
+=== FB-series writer-batching gate (default + seq_cst + asan) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o fanout-batch-test fanout.c frame_cursor.c weft.c fanout_simd.c fanout_batch.c fanout_batch_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+fanout_batch_test.c: In function ‘test_fb3’:
+fanout_batch_test.c:186:14: warning: unused variable ‘buf’ [-Wunused-variable]
+  186 |     uint32_t buf[WORDS];
+      |              ^~~
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_FANOUT_SEQ_CST=1 -o fanout-batch-test-seq fanout.c frame_cursor.c weft.c fanout_simd.c fanout_batch.c fanout_batch_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+fanout_batch_test.c: In function ‘test_fb3’:
+fanout_batch_test.c:186:14: warning: unused variable ‘buf’ [-Wunused-variable]
+  186 |     uint32_t buf[WORDS];
+      |              ^~~
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o fanout-batch-test-asan fanout.c frame_cursor.c weft.c fanout_simd.c fanout_batch.c fanout_batch_test.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+fanout_batch_test.c: In function ‘test_fb3’:
+fanout_batch_test.c:186:14: warning: unused variable ‘buf’ [-Wunused-variable]
+  186 |     uint32_t buf[WORDS];
+      |              ^~~
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+ok: FB1 batch returns the tail seq, w_seq continuity exact
+ok: FB1 freshest claim carries the LAST frame's bytes; dropped == n-1
+ok: FB1 publishes telemetry counts every frame (n per batch)
+ok: FB1 short + begin-only frames accepted
+ok: FB1 begin-only tail frame claims (empty payload valid)
+ok: FB2 single publishes interleave with batches seamlessly
+ok: FB3 100-frame batch returns 100
+ok: FB3 dropped == 99 behind a 100-frame batch (M=4)
+ok: FB3 tail frame bytes exact after windowed stamping
+ok: FB4 writer spawn
+ok: FB4 ZERO torn frames accepted under batch bursts
+ok: FB4 dropped+fresh telescopes to lastSeq exactly under batching
+info: FB4 38903 batches (1244896 frames) vs reader: fresh=38889
+ok: FB5 malformed batch refused (returns 0)
+ok: FB5 refusal is ATOMIC: latestSeq and publishes unchanged
+ok: FB5 refusal leaves w_seq untouched (no half-begun state)
+ok: FB5 NULL src with len refused
+ok: FB5 NULL frames refused
+ok: FB5 n == 0 is a detectable no-op
+ok: FB6 commit publishes the 5 begun frames
+ok: FB6 reader view identical to the batch API
+ok: FB6 tail frame bytes exact
+ok: FB6 commit > w_seq refused
+FB-SERIES PASS
+ok: FB1 batch returns the tail seq, w_seq continuity exact
+ok: FB1 freshest claim carries the LAST frame's bytes; dropped == n-1
+ok: FB1 publishes telemetry counts every frame (n per batch)
+ok: FB1 short + begin-only frames accepted
+ok: FB1 begin-only tail frame claims (empty payload valid)
+ok: FB2 single publishes interleave with batches seamlessly
+ok: FB3 100-frame batch returns 100
+ok: FB3 dropped == 99 behind a 100-frame batch (M=4)
+ok: FB3 tail frame bytes exact after windowed stamping
+ok: FB4 writer spawn
+ok: FB4 ZERO torn frames accepted under batch bursts
+ok: FB4 dropped+fresh telescopes to lastSeq exactly under batching
+info: FB4 43118 batches (1379776 frames) vs reader: fresh=43117
+ok: FB5 malformed batch refused (returns 0)
+ok: FB5 refusal is ATOMIC: latestSeq and publishes unchanged
+ok: FB5 refusal leaves w_seq untouched (no half-begun state)
+ok: FB5 NULL src with len refused
+ok: FB5 NULL frames refused
+ok: FB5 n == 0 is a detectable no-op
+ok: FB6 commit publishes the 5 begun frames
+ok: FB6 reader view identical to the batch API
+ok: FB6 tail frame bytes exact
+ok: FB6 commit > w_seq refused
+FB-SERIES PASS
+ok: FB1 batch returns the tail seq, w_seq continuity exact
+ok: FB1 freshest claim carries the LAST frame's bytes; dropped == n-1
+ok: FB1 publishes telemetry counts every frame (n per batch)
+ok: FB1 short + begin-only frames accepted
+ok: FB1 begin-only tail frame claims (empty payload valid)
+ok: FB2 single publishes interleave with batches seamlessly
+ok: FB3 100-frame batch returns 100
+ok: FB3 dropped == 99 behind a 100-frame batch (M=4)
+ok: FB3 tail frame bytes exact after windowed stamping
+ok: FB4 writer spawn
+ok: FB4 ZERO torn frames accepted under batch bursts
+ok: FB4 dropped+fresh telescopes to lastSeq exactly under batching
+info: FB4 28970 batches (927040 frames) vs reader: fresh=28966
+ok: FB5 malformed batch refused (returns 0)
+ok: FB5 refusal is ATOMIC: latestSeq and publishes unchanged
+ok: FB5 refusal leaves w_seq untouched (no half-begun state)
+ok: FB5 NULL src with len refused
+ok: FB5 NULL frames refused
+ok: FB5 n == 0 is a detectable no-op
+ok: FB6 commit publishes the 5 begun frames
+ok: FB6 reader view identical to the batch API
+ok: FB6 tail frame bytes exact
+ok: FB6 commit > w_seq refused
+FB-SERIES PASS
+
+=== Rust suite (F-series + cursor + torture + Loom model, bound 2) ===
+[1m[92m    Updating[0m crates.io index
+[1m[92m   Compiling[0m rustversion v1.0.23
+[1m[92m   Compiling[0m find-msvc-tools v0.1.12
+[1m[92m   Compiling[0m shlex v2.0.1
+[1m[92m   Compiling[0m once_cell v1.21.4
+[1m[92m   Compiling[0m tracing-core v0.1.36
+[1m[92m   Compiling[0m cc v1.4.5
+[1m[92m   Compiling[0m log v0.4.34
+[1m[92m   Compiling[0m libc v0.2.189
+[1m[92m   Compiling[0m regex-syntax v0.8.11
+[1m[92m   Compiling[0m cfg-if v1.0.4
+[1m[92m   Compiling[0m pin-project-lite v0.2.17
+[1m[92m   Compiling[0m lazy_static v1.5.0
+[1m[92m   Compiling[0m tracing v0.1.44
+[1m[92m   Compiling[0m sharded-slab v0.1.7
+[1m[92m   Compiling[0m thread_local v1.1.10
+[1m[92m   Compiling[0m tracing-log v0.2.0
+[1m[92m   Compiling[0m generator v0.8.9
+[1m[92m   Compiling[0m nu-ansi-term v0.50.3
+[1m[92m   Compiling[0m smallvec v1.16.0
+[1m[92m   Compiling[0m scoped-tls v1.0.1
+[1m[92m   Compiling[0m regex-automata v0.4.18
+[1m[92m   Compiling[0m weft-core v0.1.0 (/home/runner/work/Weft/Weft/core/rust)
+[1m[33mwarning[0m[1m: unused import: `PubResult`[0m
+ [1m[94m--> [0msrc/bin/bench.rs:8:22
+  [1m[94m|[0m
+[1m[94m8[0m [1m[94m|[0m use weft_core::{pat, PubResult, Weft};
+  [1m[94m|[0m                      [1m[33m^^^^^^^^^[0m
+  [1m[94m|[0m
+  [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+  [1m[94m--> [0msrc/bin/bench.rs:89:9
+   [1m[94m|[0m
+[1m[94m89[0m [1m[94m|[0m         unsafe { fill_payload(&w, seq, payload_max as u32, &mut scratch); }
+   [1m[94m|[0m         [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(unused_unsafe)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/bin/bench.rs:244:13
+    [1m[94m|[0m
+[1m[94m244[0m [1m[94m|[0m             unsafe { fill_payload(&w2, seq, payload_max as u32, &mut scratch); }
+    [1m[94m|[0m             [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+
+[1m[33mwarning[0m[1m: unnecessary `unsafe` block[0m
+   [1m[94m--> [0msrc/bin/bench.rs:320:13
+    [1m[94m|[0m
+[1m[94m320[0m [1m[94m|[0m             unsafe { fill_payload(&w2, seq, payload_max as u32, &mut scratch); }
+    [1m[94m|[0m             [1m[33m^^^^^^[0m [1m[33munnecessary `unsafe` block[0m
+
+[1m[33mwarning[0m[1m: function `now_ns` is never used[0m
+  [1m[94m--> [0msrc/bin/bench.rs:10:4
+   [1m[94m|[0m
+[1m[94m10[0m [1m[94m|[0m fn now_ns() -> u64 {
+   [1m[94m|[0m    [1m[33m^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: function `now_ns_abs` is never used[0m
+  [1m[94m--> [0msrc/bin/bench.rs:14:4
+   [1m[94m|[0m
+[1m[94m14[0m [1m[94m|[0m fn now_ns_abs() -> u64 {
+   [1m[94m|[0m    [1m[33m^^^^^^^^^^[0m
+
+[1m[92m   Compiling[0m matchers v0.2.0
+[1m[92m   Compiling[0m tracing-subscriber v0.3.23
+[1m[92m   Compiling[0m loom v0.7.2
+[1m[33mwarning[0m: `weft-core` (bin "bench") generated 6 warnings (run `cargo fix --bin "bench" -p weft-core` to apply 1 suggestion)
+[1m[33mwarning[0m[1m: unused imports: `Duration` and `Instant`[0m
+ [1m[94m--> [0msrc/bin/probe.rs:3:17
+  [1m[94m|[0m
+[1m[94m3[0m [1m[94m|[0m use std::time::{Duration, Instant};
+  [1m[94m|[0m                 [1m[33m^^^^^^^^[0m  [1m[33m^^^^^^^[0m
+  [1m[94m|[0m
+  [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unused import: `PubResult`[0m
+ [1m[94m--> [0msrc/bin/probe.rs:4:22
+  [1m[94m|[0m
+[1m[94m4[0m [1m[94m|[0m use weft_core::{pat, PubResult, Weft, WeftDebugView};
+  [1m[94m|[0m                      [1m[33m^^^^^^^^^[0m
+
+[1m[33mwarning[0m: `weft-core` (bin "probe") generated 2 warnings (run `cargo fix --bin "probe" -p weft-core` to apply 2 suggestions)
+[1m[33mwarning[0m[1m: variable does not need to be mutable[0m
+   [1m[94m--> [0mtests/fanout_test.rs:175:9
+    [1m[94m|[0m
+[1m[94m175[0m [1m[94m|[0m     let mut readers: Vec<_> = (0..4).map(|_| f.create_reader()).collect();
+    [1m[94m|[0m         [1m[94m----[0m[1m[33m^^^^^^^[0m
+    [1m[94m|[0m         [1m[94m|[0m
+    [1m[94m|[0m         [1m[94mhelp: remove this `mut`[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m: `weft-core` (test "fanout_test") generated 1 warning (run `cargo fix --test "fanout_test" -p weft-core` to apply 1 suggestion)
+[1m[33mwarning[0m: `weft-core` (bin "bench" test) generated 6 warnings (6 duplicates)
+[1m[33mwarning[0m: `weft-core` (bin "probe" test) generated 2 warnings (2 duplicates)
+[1m[33mwarning[0m[1m: value assigned to `o` is never read[0m
+  [1m[94m--> [0mtests/trend_test.rs:64:17
+   [1m[94m|[0m
+[1m[94m64[0m [1m[94m|[0m     let mut o = trend_observe(&mut t, 8);
+   [1m[94m|[0m                 [1m[33m^^^^^^^^^^^^^^^^^^^^^^^^[0m [1m[33mthis value is reassigned later and never used[0m
+[1m[94m65[0m [1m[94m|[0m     for b in (1..=7u32).rev() {
+[1m[94m66[0m [1m[94m|[0m         o = trend_observe(&mut t, b);
+   [1m[94m|[0m         [1m[94m----------------------------[0m [1m[94m`o` is overwritten here before the previous value is read[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m: `weft-core` (test "trend_test") generated 1 warning
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 1m 10s
+[1m[92m     Running[0m unittests src/lib.rs (target/release/deps/weft_core-b59d8ec68b487b8f)
+
+running 10 tests
+test verified::tests::v2_derive_key ... ok
+test verified::tests::v1_hmac_vectors ... ok
+test verified::tests::v4_tamper ... ok
+test verified::tests::v10_batch ... ok
+test verified::tests::v5_rejections ... ok
+test verified::tests::v6_ct_eq ... ok
+test verified::tests::v3_record_roundtrip ... ok
+test verified::tests::v8_hw_equivalence ... ok
+test verified::tests::v9_prekeyed_verifier ... ok
+test verified::tests::v7_perf_vs_claims ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+[1m[92m     Running[0m unittests src/bin/bench.rs (target/release/deps/bench-93a5ef9309cde51c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m unittests src/bin/governor_xlang.rs (target/release/deps/governor_xlang-7591375be0d5e5d1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m unittests src/bin/litmus.rs (target/release/deps/litmus-1383df2e07c16058)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m unittests src/bin/probe.rs (target/release/deps/probe-3f066521810cac38)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m unittests src/bin/record.rs (target/release/deps/record-1407ea70ac2cddd5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m unittests src/bin/replay_xlang.rs (target/release/deps/replay_xlang-456768c2b3c7f83a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m unittests src/bin/trend_xlang.rs (target/release/deps/trend_xlang-b7bbedc10f644d91)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/fanout_test.rs (target/release/deps/fanout_test-5272c31d09472ace)
+
+running 9 tests
+test f2_roundtrip ... ok
+test f3_drop_accounting ... ok
+test f5_graceful_skip ... ok
+test f1_geometry_validation ... ok
+test f4_telescoping_identity ... ok
+test f6_publish_without_begin_is_a_noop ... ok
+test f8_debug_stats ... ok
+test f7_ring_handoff_and_bytes ... ok
+test torture_concurrent_readers_zero_torn_claims ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+[1m[92m     Running[0m tests/frame_cursor_test.rs (target/release/deps/frame_cursor_test-40ac019c3713a4a5)
+
+running 5 tests
+test fc1_first_claim_is_the_baseline ... ok
+test fc2_paced_reader_sees_zero_drops ... ok
+test fc3_counts_frames_never_seen ... ok
+test fc4_decreasing_seq_is_a_writer_reset ... ok
+test fc5_reset_then_first_again ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/governor_test.rs (target/release/deps/governor_test-472b1889af84df09)
+
+running 7 tests
+test custom_thresholds_and_reset ... ok
+test g1_ladder ... ok
+test g2_monotone ... ok
+test g3_reseed_flap_bound ... ok
+test g4_zero_allocation_by_construction ... ok
+test g3b_suppressed_reseed_degrades_to_snapshot ... ok
+test law4_decided_drops ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/loom_fanout.rs (target/release/deps/loom_fanout-8de9e3eb62ba0118)
+
+running 5 tests
+test loom_fanout_ring_preemption_bound3_evidence ... ignored, RFC 0011 bound-3 exhaustive sweep — minutes, run by the nightly chaos leg (`cargo test -- --ignored`)
+test loom_fanout_ring_reorder_fill_exhaustive ... ok
+test loom_fanout_ring_three_readers ... ok
+test loom_fanout_reader_rejoin_after_wrap ... ok
+.. ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/loom_fanout.rs (target/release/deps/loom_fanout-8de9e3eb62ba0118)
+
+running 5 tests
+test loom_fanout_ring_preemption_bound3_evidence ... ignored, RFC 0011 bound-3 exhaustive sweep — minutes, run by the nightly chaos leg (`cargo test -- --ignored`)
+test loom_fanout_ring_reorder_fill_exhaustive ... ok
+test loom_fanout_ring_three_readers ... ok
+test loom_fanout_reader_rejoin_after_wrap ... ok

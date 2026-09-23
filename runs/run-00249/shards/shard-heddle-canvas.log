@@ -1,0 +1,32 @@
+==================================================
+SHARD: heddle-canvas
+DESCRIPTION: Project heddle-2.0 Pillar 4: WHP1 plane contract + Law-1 60k-frame zero-alloc gate + 240 FPS budget bench + native Vulkan SSBO probe (lavapipe) + Chromium COOP/COEP rig with cross-tier bit-exact oracle
+STATUS: FAILED ❌
+COMMIT: 1798ce4abe448066992946111c09346d5d78e9b7
+RUN: 249
+==================================================
+
+=== 1/5 unit battery (vitest) ===
+[2m      Tests [22m [1m[32m65 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (66)[39m
+[2m   Start at [22m 13:15:59
+[2m   Duration [22m 1.26s[2m (transform 375ms, setup 0ms, collect 613ms, tests 727ms, environment 2ms, prepare 651ms)[22m
+
+=== 2/5 Law-1: instrument calibration + 60,000-frame gate ===
+calibrate-clean:   PASS — 0 B attributed to engine modules over 4000 frames
+calibrate-planted: FAIL (instrument did NOT catch the allocator!) — 12352 B caught across 1 samples
+law1-instrument:   BROKEN
+m test/dirty_mask.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 72[2mms[22m[39m
+ [32m✓[39m test/shaders.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 63[2mms[22m[39m
+ [32m✓[39m test/oracle.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 95[2mms[22m[39m
+ [32m✓[39m test/law1.test.ts [2m([22m[2m6 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m test/budget.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m65 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (66)[39m
+[2m   Start at [22m 13:15:59
+[2m   Duration [22m 1.26s[2m (transform 375ms, setup 0ms, collect 613ms, tests 727ms, environment 2ms, prepare 651ms)[22m
+
+=== 2/5 Law-1: instrument calibration + 60,000-frame gate ===
+calibrate-clean:   PASS — 0 B attributed to engine modules over 4000 frames
+calibrate-planted: FAIL (instrument did NOT catch the allocator!) — 12352 B caught across 1 samples
+law1-instrument:   BROKEN

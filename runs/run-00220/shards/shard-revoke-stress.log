@@ -1,0 +1,60 @@
+==================================================
+SHARD: revoke-stress
+DESCRIPTION: Issue #16 Tier 1 Task 5 — revocation handshake stress: 100K handshakes + measured ceiling + ASAN + TSAN
+STATUS: PASSED ✅
+COMMIT: 4687925837fbf35d8cca8fd039f7ab77e621798c
+RUN: 220
+==================================================
+
+
+=== Build: revoke-stress, revoke-stress-asan, revoke-stress-tsan ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o revoke-stress revoke_stress.c weft.c
+revoke_stress.c:32: warning: "_GNU_SOURCE" redefined
+   32 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o revoke-stress-asan revoke_stress.c weft.c
+revoke_stress.c:32: warning: "_GNU_SOURCE" redefined
+   32 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O0 -g -fsanitize=thread -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o revoke-stress-tsan revoke_stress.c weft.c
+revoke_stress.c:32: warning: "_GNU_SOURCE" redefined
+   32 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+
+=== 1. plain 100,000 handshakes (concurrency 256) ===
+revoke-stress: concurrency ceiling probe = 512 threads (256KiB stacks, cap 2048) in 17 ms
+revoke-stress: handshakes=100000 waves=391 (concurrency 256) timeouts=0 ack_fail=0 poison_fail=0 spawn_fail=0 elapsed=2246 ms
+{"test":"revocation-stress","lang":"c","pass":true,"metrics":{"handshakes":100000,"waves":391,"concurrency":256,"ceiling_measured":512,"timeouts":0,"ack_failures":0,"poison_failures":0,"spawn_failures":0,"elapsed_ms":2246}}
+
+=== 2. plain 5,000 handshakes at the measured ceiling ===
+revoke-stress: concurrency ceiling probe = 1024 threads (256KiB stacks, cap 2048) in 36 ms
+revoke-stress: handshakes=5000 waves=5 (concurrency 1016) timeouts=0 ack_fail=0 poison_fail=0 spawn_fail=0 elapsed=193 ms
+{"test":"revocation-stress","lang":"c","pass":true,"metrics":{"handshakes":5000,"waves":5,"concurrency":1016,"ceiling_measured":1024,"timeouts":0,"ack_failures":0,"poison_failures":0,"spawn_failures":0,"elapsed_ms":193}}
+
+=== 3. ASAN 10,000 handshakes (memory-safety oracle) ===
+revoke-stress: concurrency ceiling probe = 512 threads (256KiB stacks, cap 2048) in 88 ms
+revoke-stress: handshakes=10000 waves=40 (concurrency 256) timeouts=0 ack_fail=0 poison_fail=0 spawn_fail=0 elapsed=1658 ms
+{"test":"revocation-stress","lang":"c","pass":true,"metrics":{"handshakes":10000,"waves":40,"concurrency":256,"ceiling_measured":512,"timeouts":0,"ack_failures":0,"poison_failures":0,"spawn_failures":0,"elapsed_ms":1658}}
+
+=== 4. TSAN 2,000 handshakes (reduced — declared; data-race oracle) ===
+revoke-stress: concurrency ceiling probe = 512 threads (256KiB stacks, cap 2048) in 104 ms
+revoke-stress: handshakes=2000 waves=32 (concurrency 64) timeouts=0 ack_fail=0 poison_fail=0 spawn_fail=0 elapsed=289 ms
+{"test":"revocation-stress","lang":"c","pass":true,"metrics":{"handshakes":2000,"waves":32,"concurrency":64,"ceiling_measured":512,"timeouts":0,"ack_failures":0,"poison_failures":0,"spawn_failures":0,"elapsed_ms":289}}
+revoke-stress shard: PASS

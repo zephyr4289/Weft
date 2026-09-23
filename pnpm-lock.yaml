@@ -164,7 +164,7 @@ importers:
   packages/react-heddle:
     dependencies:
       '@weft/heddle-core':
-        specifier: 0.1.0
+        specifier: workspace:*
         version: link:../heddle-core
 
   packages/react-native:

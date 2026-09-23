@@ -28,7 +28,7 @@
     "react": ">=18"
   },
   "dependencies": {
-    "@weft/heddle-core": "0.1.0"
+    "@weft/heddle-core": "workspace:*"
   },
   "engines": {
     "node": ">=18"

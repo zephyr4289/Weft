@@ -1,0 +1,66 @@
+{
+  "demo": "trading-terminal-240fps",
+  "date": "2026-09-21T06:11:58.666Z",
+  "node": "v24.21.0",
+  "mandates": {
+    "ticksPerSecond": 4062195,
+    "framesLocked": 24000,
+    "framesSkipped": 0,
+    "heapGrowthOver100kFrames": -16848,
+    "reRendersOver100kTicks": 0
+  },
+  "stages": {
+    "ingestion": {
+      "ticks": 100000,
+      "wallMs": 24.6,
+      "ticksPerSec": 4062195,
+      "endNs": 100000000
+    },
+    "frameLock": {
+      "frames": 24000,
+      "rendered": 24000,
+      "skipped": 0,
+      "frameCostUs": {
+        "p50": 11.9,
+        "p99": 23.1,
+        "max": 338.3
+      },
+      "budgetUs": 4166.7
+    },
+    "gcProbe": {
+      "flight": {
+        "mode": "flight",
+        "frames": 100000,
+        "heapGrowthBytes": -16848,
+        "gateBytes": 32768,
+        "pass": true
+      },
+      "control": {
+        "mode": "control",
+        "frames": 100000,
+        "heapGrowthBytes": 12064208,
+        "gateBytes": 32768,
+        "pass": true
+      }
+    },
+    "rerenderProbe": {
+      "ticks": 100000,
+      "scheduledFrames": 24001,
+      "schedulerRendered": 24001,
+      "skipped": 0,
+      "setStateCalls": 0,
+      "reRenders": 0,
+      "effectMounts": 1,
+      "pass": true
+    },
+    "hud": {
+      "tears": 0,
+      "dirtyBits": 16,
+      "publishLagMs": 0,
+      "globalMin": 0.5653879234655859,
+      "globalMax": 1473.75
+    }
+  },
+  "failures": 0,
+  "pass": true
+}

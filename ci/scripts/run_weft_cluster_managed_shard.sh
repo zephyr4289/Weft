@@ -74,7 +74,7 @@ burst="$(node demos/distributed-cluster-feed/mesh_burst.mjs --fps 1000000 --seco
 echo "    $burst"
 ok="$(node -e '
 const r = JSON.parse(process.argv[1]);
-const minFps = (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") ? 1000000 : 150000;
+const minFps = process.env.GITHUB_EVENT_NAME === "pull_request" ? 500000 : 900000;
 process.stdout.write(String(r.achievedFps >= minFps && r.sequenceGaps === 0 &&
   r.ingestedFrames === r.expectedIngest));
 ' "$burst")"

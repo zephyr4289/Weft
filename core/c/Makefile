@@ -659,6 +659,46 @@ tensor-fabric-test-tsan:
 tensor-fabric-clean:
 	$(MAKE) -C tensor clean
 
+# ---- heddle-2.0 unified hot-plane engine (Pillar 4, WHP2) ----------------
+# heddle/heddle_hotplane.c: the WHP2 engine — 128-byte plane header +
+# 64-byte lane descriptors/slots, two-store seqlock, signal-driven dirty
+# mask + bounding boxes, dual-mode ring/state lanes, zero allocation.
+# golden_dump.c emits the deterministic cross-language golden image that
+# packages/heddle-hotplane (JS/SAB/Atomics) verifies byte-exactly.
+# ../wasm/heddle_bridge.c is the zero-copy WASM/N-API/FFI bridge.
+HEDDLE_SRC = heddle/heddle_hotplane.c
+HEDDLE_HDR = heddle/heddle_hotplane.h heddle/heddle_hotplane_internal.h
+
+hotplane-test: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/hotplane_unit_test.c
+	$(CC) $(CFLAGS) -o hotplane-test $(HEDDLE_SRC) heddle/hotplane_unit_test.c
+
+hotplane-test-asan: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/hotplane_unit_test.c
+	$(CC) $(CFLAGS_ASAN) -o hotplane-test-asan $(HEDDLE_SRC) heddle/hotplane_unit_test.c
+
+hotplane-test-tsan: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/hotplane_unit_test.c
+	$(CC) $(CFLAGS_DBG) -o hotplane-test-tsan $(HEDDLE_SRC) heddle/hotplane_unit_test.c
+
+hotplane-torture: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/torn_read_torture.c
+	$(CC) $(CFLAGS) -o hotplane-torture $(HEDDLE_SRC) heddle/torn_read_torture.c
+
+hotplane-torture-asan: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/torn_read_torture.c
+	$(CC) $(CFLAGS_ASAN) -o hotplane-torture-asan $(HEDDLE_SRC) heddle/torn_read_torture.c
+
+hotplane-torture-tsan: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/torn_read_torture.c
+	$(CC) $(CFLAGS_DBG) -o hotplane-torture-tsan $(HEDDLE_SRC) heddle/torn_read_torture.c
+
+hotplane-bench: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/hotplane_bench.c
+	$(CC) $(CFLAGS) -o hotplane-bench $(HEDDLE_SRC) heddle/hotplane_bench.c
+
+hotplane-bench-inline: heddle/hotplane_bench.c $(HEDDLE_SRC) $(HEDDLE_HDR)
+	$(CC) $(CFLAGS) -DBENCH_INLINE -o hotplane-bench-inline heddle/hotplane_bench.c
+
+hotplane-golden: $(HEDDLE_SRC) $(HEDDLE_HDR) heddle/golden_dump.c
+	$(CC) $(CFLAGS) -o hotplane-golden $(HEDDLE_SRC) heddle/golden_dump.c
+
+heddle-bridge-test: $(HEDDLE_SRC) $(HEDDLE_HDR) ../wasm/heddle_bridge.c ../wasm/heddle_bridge_test.c
+	$(CC) $(CFLAGS) -o heddle-bridge-test $(HEDDLE_SRC) ../wasm/heddle_bridge_test.c -I heddle -I ../wasm
+
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
 	      fanout-test-seq fanout-runner fanout-runner-asan fanout-runner-tsan fanout-runner-seq \
@@ -678,6 +718,7 @@ clean:
 	      weft-shm-test weft-shm-test-asan weft-ipc-test weft-ipc-test-asan weft-ipc-test-tsan weft-ipc-torture weft-ipc-torture-asan \
 	      device-spectrum-test device-spectrum-test-asan device-spectrum-test-tsan \
 	      dmabuf-test dmabuf-test-asan gpu-extmem-test gpu-extmem-test-asan xdp-test xdp-test-asan xdp-live-gate tensor-test tensor-test-asan camera-test camera-test-asan hetero-probe \
+	      hotplane-test hotplane-test-asan hotplane-test-tsan hotplane-torture hotplane-torture-asan hotplane-torture-tsan hotplane-bench hotplane-bench-inline hotplane-golden heddle-bridge-test \
 	      cluster-ring-test cluster-ring-test-asan cluster-ring-test-tsan \
 	      cluster-consensus-test cluster-consensus-test-asan \
 	      split-brain-torture split-brain-torture-asan cluster-bench

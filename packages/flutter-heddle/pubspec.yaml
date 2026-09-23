@@ -1,0 +1,18 @@
+name: weft_flutter
+description: Heddle-2.0 Flutter connectors for the Weft Hot-Plane (HPL1) — WeftHotPlaneNotifier Listenable, zero-GC CustomPainter canvas widget. 240 FPS, 0 GC object churn per frame, 0 rebuild storms.
+version: 0.1.0
+homepage: https://github.com/zephyr4289/Weft
+repository: https://github.com/zephyr4289/Weft
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  ffi: ^1.0.0
+
+dev_dependencies:
+  lints: ^4.0.0
+
+# NOTE: no flutter/test dependency — test/ring_logic_test.dart is a
+# dependency-free pure-Dart harness (dart run) so the geometry, seqlock and
+# corruption logic verify on any Dart SDK. Structural audit runs under Node.

@@ -174,3 +174,15 @@ core/c/camera-test-asan
 core/c/hetero-probe
 tools/weft-tensor/test-*
 tools/weft-tensor/weft-accel-bench
+
+# heddle-2.0 hotplane test binaries
+core/c/hotplane-test
+core/c/hotplane-test-asan
+core/c/hotplane-test-tsan
+core/c/hotplane-torture
+core/c/hotplane-torture-asan
+core/c/hotplane-torture-tsan
+core/c/hotplane-bench
+core/c/hotplane-bench-inline
+core/c/hotplane-golden
+core/c/heddle-bridge-test

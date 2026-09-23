@@ -1,0 +1,3 @@
+=== golden determinism (3 runs + committed image) ===
+46b05b262bb5748904d2bbcde0828a88086949dd0955560471b1ec864adfc60a  core/c/heddle/golden/golden.bin
+3/3 byte-identical

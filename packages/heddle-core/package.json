@@ -1,0 +1,29 @@
+{
+  "name": "@weft/heddle-core",
+  "version": "0.1.0",
+  "description": "Framework-agnostic HPL1 Hot-Plane engine — lock-free seqlock lanes, in-place stats, dirty-mask broadcast, 240 Hz drop-not-queue frame scheduler. Zero allocations on hot paths, explicit little-endian everywhere.",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "probes",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "probe": "node --expose-gc probes/alloc-probe.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "SEE LICENSE IN LICENSE"
+}

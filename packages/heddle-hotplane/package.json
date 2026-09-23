@@ -1,0 +1,35 @@
+{
+  "name": "@weft/heddle-hotplane",
+  "version": "0.1.0",
+  "description": "heddle-2.0 WHP2 unified hot-plane engine for JavaScript: zero-copy SharedArrayBuffer/Atomics mirror of the normative HOTPLANE-LAYOUT-V2 memory layout — lock-free two-store seqlock reads, signal-driven dirty masks, per-lane stats and bounding boxes, with zero allocation on every hot path.",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": "./src/index.js",
+    "./layout.js": "./src/layout.js",
+    "./hotplane.js": "./src/hotplane.js"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node test/golden.test.mjs"
+  },
+  "keywords": [
+    "sharedarraybuffer",
+    "atomics",
+    "lock-free",
+    "seqlock",
+    "zero-copy",
+    "realtime",
+    "telemetry",
+    "weft",
+    "heddle"
+  ],
+  "license": "SEE LICENSE IN ../../LICENSE",
+  "engines": {
+    "node": ">=18"
+  }
+}

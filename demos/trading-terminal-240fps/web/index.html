@@ -1,0 +1,148 @@
+<!doctype html>
+<!-- demos/trading-terminal-240fps/web/index.html — browser twin of the
+     trading-terminal flight demo. Unbundled ESM via importmap; works from a
+     plain static server (no build step). SharedArrayBuffer requires
+     cross-origin isolation — serve with:
+       npx serve --cors
+     or any server sending:
+       Cross-Origin-Opener-Policy: same-origin
+       Cross-Origin-Embedder-Policy: require-corp
+     The demo falls back to a plain ArrayBuffer plane (single-thread) when
+     crossOriginIsolated is false — Law 4: degraded mode is explicit.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>weft heddle-2.0 — trading terminal 240fps</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #020617; color: #e2e8f0; font: 13px/1.4 ui-monospace, monospace; }
+  header { padding: 10px 14px; border-bottom: 1px solid #1e293b; display: flex; gap: 16px; align-items: baseline; }
+  header h1 { font-size: 14px; margin: 0; color: #38e1ff; }
+  header .badge { color: #94a3b8; }
+  #grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+  .panel { border: 1px solid #1e293b; border-radius: 8px; background: #0b1220; overflow: hidden; }
+  .panel h2 { margin: 0; padding: 6px 10px; font-size: 11px; color: #7dd3fc; border-bottom: 1px solid #1e293b; font-weight: 500; }
+  .panel canvas { width: 100%; height: 180px; display: block; }
+  .panel .labels { padding: 4px 10px 8px; color: #94a3b8; font-size: 11px; min-height: 16px; }
+  #hudhost { position: fixed; top: 12px; right: 12px; width: 190px; }
+  footer { padding: 8px 14px; color: #64748b; font-size: 11px; border-top: 1px solid #1e293b; }
+</style>
+</head>
+<body>
+<header>
+  <h1>weft heddle-2.0 · trading-terminal-240fps</h1>
+  <span class="badge" id="mode">mode: …</span>
+  <span class="badge" id="planeinfo"></span>
+</header>
+<div id="grid">
+  <div class="panel"><h2>WeftOscilloscope · lane 0</h2><canvas id="c-osc"></canvas><div class="labels" id="l-osc">—</div></div>
+  <div class="panel"><h2>WeftCandlestickChart · lane 1</h2><canvas id="c-candle"></canvas><div class="labels" id="l-candle">—</div></div>
+  <div class="panel"><h2>WeftOrderBook · lanes 6..11</h2><canvas id="c-book"></canvas><div class="labels" id="l-book">—</div></div>
+  <div class="panel"><h2>WeftAudioMeter · lanes 14/15</h2><canvas id="c-audio"></canvas><div class="labels" id="l-audio">—</div></div>
+</div>
+<div id="hudhost"></div>
+<footer>telemetry path: SharedArrayBuffer → seqlock lanes → engines → canvas · zero setState · zero per-frame allocations · labels via useWeftSignal ≤ 60 Hz</footer>
+
+<script type="importmap">
+{
+  "imports": {
+    "@weft/heddle-core": "../../packages/heddle-core/src/index.js",
+    "#react-heddle-core": "../../packages/react-heddle/src/core.js",
+    "#visualizers": "../../packages/react-heddle/src/visualizers.js",
+    "#hud": "../../packages/react-heddle/src/hud.js"
+  }
+}
+</script>
+<script type="module">
+import { HotPlaneProducer, HotPlaneView, FrameScheduler, makeHeaderOut, HPL1 } from '@weft/heddle-core';
+import { PlaneContext } from '#react-heddle-core';
+import { createOscilloscopeEngine, createCandlestickEngine, createOrderBookEngine, createAudioMeterEngine } from '#visualizers';
+import { createWeftHud } from '#hud';
+
+// ---- mode badge (Law 4: degraded mode is explicit) ----
+const isolated = globalThis.crossOriginIsolated === true;
+const modeEl = document.getElementById('mode');
+modeEl.textContent = isolated ? 'mode: SharedArrayBuffer (cross-origin isolated)' : 'mode: ArrayBuffer fallback (serve with COOP/COEP for SAB)';
+
+// ---- plane + in-page producer (the Worker bridge is Engineer 1's seam) ----
+const producer = HotPlaneProducer.create({ laneCount: 16, samplesPerLane: 256, tickHz: 240 });
+if (!isolated) producer.dv; // plain ArrayBuffer plane — single-thread demo path
+const view = new HotPlaneView(producer.planeBuffer);
+const ctx = new PlaneContext(producer.planeBuffer, { hz: 240, producer });
+document.getElementById('planeinfo').textContent =
+  `plane: ${view.laneCount} lanes × ${view.samplesPerLane} samples · ${(view.geo.totalBytes / 1024).toFixed(1)} KiB`;
+
+// ---- 100k ticks/sec synthetic feed (real time, requestAnimationFrame-free) ----
+const NS_PER_TICK = 1000; // 1e6 ticks/sec ceiling; budget-capped below
+let tick = 0;
+function produce(deadlineNs) {
+  const t0 = performance.now();
+  while (performance.now() - t0 < 2.5) { // ~2.5 ms burst per rAF → ≈100k ticks/s
+    for (let k = 0; k < 40; k++) {
+      const i = tick++;
+      const lane = i % 16;
+      const t = i / 16 | 0;
+      let v;
+      if (lane <= 3) v = 100 + lane * 10 + Math.sin(t / 64) * 8 + (i % 17) / 32;
+      else if (lane <= 5) v = 50 + lane * 4 + Math.sin(t / 32 + lane) * 12;
+      else if (lane <= 8) v = 900 + (8 - lane) * 220 + (i % 64);
+      else if (lane <= 11) v = 950 + (lane - 9) * 240 + (i % 64);
+      else if (lane <= 13) v = 100 + (lane - 12) * 0.5 + Math.cos(t / 90) * 0.8;
+      else v = Math.abs(Math.sin(t / 12 + lane)) * 0.9;
+      producer.publishLane(lane, v, i * NS_PER_TICK);
+    }
+  }
+  void deadlineNs;
+}
+
+// ---- panels: the SAME shipped engines as the terminal twin ----
+function mountPanel(id, engine) {
+  const canvas = document.getElementById(id);
+  const gpu = canvas.getContext('2d');
+  const state = engine.init(canvas, gpu, view);
+  return { engine, state };
+}
+const panels = [
+  { ...mountPanel('c-osc', createOscilloscopeEngine({ lane: 0, window: 128 })), labels: 'l-osc', lane: 0 },
+  { ...mountPanel('c-candle', createCandlestickEngine({ lane: 1, candles: 24, chunkSize: 4 })), labels: 'l-candle', lane: 1 },
+  { ...mountPanel('c-book', createOrderBookEngine({ bidLanes: [6, 7, 8], askLanes: [9, 10, 11] })), labels: 'l-book', lane: 6 },
+  { ...mountPanel('c-audio', createAudioMeterEngine({ lanes: [14, 15] })), labels: 'l-audio', lane: 14 },
+];
+
+// ---- fail-safe HUD (isolated shadow root + own timer) ----
+const { mountWeftHud } = createWeftHud(null, null);
+const hud = mountWeftHud(document.getElementById('hudhost'), ctx, { intervalMs: 250 });
+
+// ---- render loop: 240 FPS target via rAF; drop-not-queue scheduler ----
+const scheduler = new FrameScheduler({ hz: 240 });
+let raf = 0;
+function loop() {
+  produce();
+  scheduler.pump(performance.now() * 1e6);
+  if (scheduler.rendered > 0) {
+    for (const p of panels) p.engine.render(p.state, scheduler.frameCtx, view);
+  }
+  raf = requestAnimationFrame(loop);
+}
+loop();
+
+// ---- DOM signal labels (the sanctioned ≤60 Hz text channel) ----
+const out = { seqLo: 0, seqHi: 0, current: 0, min: 0, max: 0, avg: 0, samplesSeenLo: 0, samplesSeenHi: 0, head: 0, flags: 0, publishNsLo: 0, publishNsHi: 0, drops: 0 };
+setInterval(() => {
+  for (const p of panels) {
+    if (view.readLane(p.lane, out) === HPL1.OK) {
+      const el = document.getElementById(p.labels);
+      el.textContent = `live ${out.current.toFixed(3)} · min ${out.min.toFixed(2)} · max ${out.max.toFixed(2)} · samples ${out.samplesSeenLo}`;
+    }
+  }
+}, 250);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { ctx.scheduler.pause(); hud.tick(); }
+  else ctx.scheduler.resume();
+});
+</script>
+</body>
+</html>

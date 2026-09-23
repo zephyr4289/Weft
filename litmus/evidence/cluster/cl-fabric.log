@@ -1,0 +1,22 @@
+[PASS] CL-F1 preference order (rdma first)
+[PASS] CL-F1 loopback is entry 3
+[PASS] CL-F1 loopback always available
+[PASS] CL-F2 chain names all four engines
+[PASS] CL-F2 chain carries verdicts
+[PASS] CL-F3 rdma refusal is honest on this runner
+[PASS] CL-F4 best() is the first available rung
+[PASS] CL-F5 src region
+[PASS] CL-F5 dst region
+[PASS] CL-F5 loopback init
+[PASS] CL-F5 send OK
+[PASS] CL-F5 recv_batch OK
+[PASS] CL-F5 one frame delivered
+[PASS] CL-F5 dst chunk correct
+[PASS] CL-F5 payload len correct
+[PASS] CL-F5 payload bit-identical
+[PASS] CL-F5 copy label present ([FALLBACK-COPY])
+[PASS] CL-F6 wrong cluster refused
+[PASS] CL-F6 FIFO overflow is a bounded BUSY
+[PASS] CL-F6 overflow counted
+[PASS] CL-F7 uring line carries probe detail
+--- 21 pass / 0 fail / 0 skip

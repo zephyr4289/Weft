@@ -1,0 +1,22 @@
+{
+  "kind": "weft-cluster-mesh-burst",
+  "transport": "loopback-shm (simulated cluster)",
+  "nodes": 4,
+  "consumers": 3,
+  "topics": 1,
+  "payloadBytes": 64,
+  "fpsTarget": 1000000,
+  "seconds": 2,
+  "publishedFrames": 2000000,
+  "ingestedFrames": 6000000,
+  "expectedIngest": 6000000,
+  "achievedFps": 1014723,
+  "fanoutWritesPerSec": 3044168,
+  "elapsedSec": 1.97,
+  "sequenceGaps": 0,
+  "hopLatencyNs": {
+    "p50": 1024,
+    "p99": 3072
+  },
+  "at": "2026-09-20T07:28:49.786Z"
+}

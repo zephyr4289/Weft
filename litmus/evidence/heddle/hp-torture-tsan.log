@@ -1,0 +1,9 @@
+=== heddle-2.0 torn-read torture (T-series), iters=50000 ring=100000 ===
+T1 multi-producer state: 200000 updates, 355946 reads, 58390 torn-refusals, 192513 harvest frames, bbox_empty_bad=0 stats_bad=0
+ACCOUNTING transitions=4438 harvested=4438 final_mask=0
+T2 single-producer batched: 6250 sessions (50000 writes), reader bad=0 torn=9067 reads=36197
+ACCOUNTING transitions=16 harvested=16 final_mask=0
+T3 ring streaming: 100000 pushes, ok=95992 overrun=0 torn=0 bad=0
+ACCOUNTING transitions=2 harvested=2 final_mask=0
+SKIP T4 zero-heap probe (sanitizer or non-glibc build)
+VERDICT: PASS

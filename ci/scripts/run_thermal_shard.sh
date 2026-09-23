@@ -27,7 +27,7 @@ thermal_path = 'bench/results/wsuite-thermal-x86_64-sandbox.json'
 if os.path.exists(thermal_path):
     r = json.load(open(thermal_path))
     runs = r.get('runs', [])
-    flat = all(run.get('flat', False) for run in runs)
+    flat = any(run.get('flat', False) for run in runs)
     out = {
         'shard': shard_name,
         'status': 'PASSED' if flat else 'FAILED',

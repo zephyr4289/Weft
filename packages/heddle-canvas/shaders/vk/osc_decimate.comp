@@ -1,0 +1,59 @@
+#version 450
+// osc_decimate.comp — the NATIVE Vulkan decimation shader (GLSL 450).
+//
+// The native twin of wgsl/oscillo_decimate.wgsl: the SAME reference window
+// walk (RFC-0022 §4.2), expressed against a plain storage buffer bound to
+// a WHP1 plane mirror. The native probe (native/vk_heddle_probe.c) binds a
+// Hot-Plane-shaped host buffer as the SSBO, dispatches one invocation per
+// column, and compares the result against the C CPU oracle — bit-exact —
+// so "Tier 1 native: direct storage-buffer compute" is MEASURED on a real
+// (software) ICD, not declared. The MSL mirror (msl/) carries the same
+// math for the Metal side of the tier matrix.
+//
+// Layout (push constants — the probe's only uniform channel):
+//   offset 0:  uint sampleCount
+//   offset 4:  uint columnCount
+//   offset 8:  uint columnBucket
+//   offset 12: uint windowStart
+//   offset 16: uint capacity
+//   offset 20: uint viewportW
+//   offset 24: uint viewportH
+//   offset 28: uint reserved
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+layout(binding = 0) readonly buffer SamplesBuf { float samples[]; };
+layout(binding = 1) buffer MinMaxBuf { vec2 minmax[]; };
+
+layout(push_constant) uniform Params {
+  uint sampleCount;
+  uint columnCount;
+  uint columnBucket;
+  uint windowStart;
+  uint capacity;
+  uint viewportW;
+  uint viewportH;
+  uint reserved;
+} p;
+
+void main() {
+  uint c = gl_GlobalInvocationID.x;
+  if (c >= p.columnCount) return;
+  uint vis = min(p.sampleCount, p.capacity);
+  uint j0 = c * p.columnBucket;
+  if (j0 >= vis) {
+    minmax[c] = vec2(0.0, 0.0);
+    return;
+  }
+  uint j1 = min(j0 + p.columnBucket, vis);
+  uint base = p.windowStart + p.capacity - vis;
+  float lo = 3.402823466e38;
+  float hi = -3.402823466e38;
+  for (uint j = j0; j < j1; j++) {
+    uint slot = (base + j) % p.capacity;
+    float v = samples[slot];
+    lo = min(lo, v);
+    hi = max(hi, v);
+  }
+  minmax[c] = vec2(lo, hi);
+}

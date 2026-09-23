@@ -1,0 +1,19 @@
+AC-O1 no-runtime refusal is named: PASS
+  (no-libonnxruntime absent — the mock battery carries the logic)
+AC-O2 mock table injects through load_table: PASS
+AC-O3 session opens over in-tree fixture bytes: PASS
+AC-O4 the pooling profile is enforced: PASS
+AC-O5 model bytes reach the runtime verbatim: PASS
+AC-O6 wrap_view passes the view's OWN pointer: PASS
+AC-O7 CreateTensorWithDataAsOrtValue carries (ptr, len, shape): PASS
+AC-O8 GetTensorMutableData returns the SAME pointer (zero-copy): PASS
+AC-O9 strided view refuses the wrap: PASS
+AC-O10 big-endian view refuses the wrap: PASS
+AC-O11 bind_input reaches IoBinding by name: PASS
+AC-O12 bind_output_span wraps Weft memory as the output: PASS
+AC-O13 pooled run: ONE table call, ZERO heap allocations: PASS
+AC-O14 WTS1 -> ONNX dtype map: PASS
+AC-O15: SKIP (no libonnxruntime (real leg declared))
+AC-O16: SKIP (no libonnxruntime)
+AC-O17: SKIP (no libonnxruntime)
+AC-O (onnx bridge): 14 passed, 0 failed, 3 skipped

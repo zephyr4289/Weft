@@ -1,0 +1,10 @@
+{
+  "ticks": 100000,
+  "scheduledFrames": 24001,
+  "schedulerRendered": 24001,
+  "skipped": 0,
+  "setStateCalls": 0,
+  "reRenders": 0,
+  "effectMounts": 1,
+  "pass": true
+}

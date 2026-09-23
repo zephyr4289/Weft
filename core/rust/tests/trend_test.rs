@@ -90,7 +90,7 @@ fn d5_pinned_stream() {
     // packing: verdict << 6 | skip) and FNV-1a the hex bytes — the pinned
     // cross-port parity vector.
     let mut t = WeftTrend::default();
-    let mut state: u32 = 0x00C0_FEEE;
+    let mut state: u32 = 0x00C0_FFEE;
     let mut hex = String::with_capacity(4000);
     for _ in 0..2000 {
         state = xorshift32(state);

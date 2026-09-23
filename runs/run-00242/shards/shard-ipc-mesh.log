@@ -1,0 +1,8 @@
+==================================================
+SHARD: ipc-mesh
+DESCRIPTION: RFC-0016 zero-copy IPC mesh: sealed memfd + SCM_RIGHTS + lock-free registry + crash healing + 100k cross-process torture x sanitizers
+STATUS: FAILED ❌
+COMMIT: a93d68a0965a9ff3b67d8ef4220683a9a5eda18d
+RUN: 242
+==================================================
+

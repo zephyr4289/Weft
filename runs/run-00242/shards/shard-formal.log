@@ -1,0 +1,8 @@
+==================================================
+SHARD: formal
+DESCRIPTION: TLA+ proofs — FanoutSeqlock + ReattachPolicy (TLC, pinned jar)
+STATUS: FAILED ❌
+COMMIT: a93d68a0965a9ff3b67d8ef4220683a9a5eda18d
+RUN: 242
+==================================================
+

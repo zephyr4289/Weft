@@ -1,0 +1,8 @@
+==================================================
+SHARD: weft-cluster-managed
+DESCRIPTION: Project weft-cluster Pillar 3: TS wire/client/topology/router/metrics, Python wire/router/UDP parity, live UDP mesh, 100k zero-alloc probes, 1M fps burst, rendezvous router
+STATUS: FAILED ❌
+COMMIT: a93d68a0965a9ff3b67d8ef4220683a9a5eda18d
+RUN: 242
+==================================================
+

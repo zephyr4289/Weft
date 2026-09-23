@@ -1,0 +1,112 @@
+==================================================
+SHARD: weft-cluster-managed
+DESCRIPTION: Project weft-cluster Pillar 3: TS wire/client/topology/router/metrics, Python wire/router/UDP parity, live UDP mesh, 100k zero-alloc probes, 1M fps burst, rendezvous router
+STATUS: FAILED ❌
+COMMIT: 953ed6cb4d15078ae6c7a078b107ac95a6ac7b2e
+RUN: 237
+==================================================
+
+[1/8] kernel-core integrity (Law 3: core/c/weft.{c,h} byte-frozen)
+    core/c/weft.{c,h} untouched
+[2/8] TS wire vectors + cross-language guard
+✔ crosslang: TS still decodes the frozen WCN1 vectors byte-exactly (1.674753ms)
+✔ crosslang: TS rejects malformed fixtures with the frozen codes (0.264784ms)
+✔ crosslang: FNV/CRC reference vectors match the fixture (0.344119ms)
+✔ crc32 IEEE vectors (parity with Python zlib.crc32) (1.219479ms)
+✔ fnv1a64 topic hash vectors (parity with Python impl) (0.359589ms)
+✔ WCN1 header: little-endian byte layout is normative (0.395929ms)
+✔ WCN1 round-trip: encode -> decode -> same fields (4.172054ms)
+✔ Law 4: malformed datagrams map to the exact error taxonomy (0.307156ms)
+✔ error names are stable (Law 4 contract) (0.332696ms)
+✔ WGS1 gossip: encode + entries + decode round-trip (0.389947ms)
+✔ WGS1: entry_count overrun is WC_E_TRUNCATED, not a crash (0.148428ms)
+✔ Law 1: decodeInto is allocation-free (structural check) (0.329179ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 111.740937
+[3/8] Python wire + router vector parity
+.........                                                                [100%]
+9 passed in 0.33s
+[4/8] TypeScript suite
+✔ shm: publish -> subscribe async iterator, seq monotonic, payload intact (14.214215ms)
+✔ shm: two subscribers fan out independently; unsubscribe stops flow (11.037659ms)
+✔ shm: tryLatest reads newest without advancing the iterator (4.672717ms)
+✔ Law 4: stale seq replays are dropped and counted (datagram path) (1.031628ms)
+✔ udp: two clients, SUB control plane, live datagram pub/sub (36.096485ms)
+✔ udp: publisher with zero subscribers stays silent (no peers dup) (0.821958ms)
+✔ crosslang: TS still decodes the frozen WCN1 vectors byte-exactly (1.782173ms)
+✔ crosslang: TS rejects malformed fixtures with the frozen codes (0.445197ms)
+✔ crosslang: FNV/CRC reference vectors match the fixture (0.51092ms)
+✔ registry: counters, gauges, histogram quantile sanity (2.870727ms)
+✔ histogram bucket bounds follow the 1, 2, 3, 4, 6, 8, 12... sequence (0.296382ms)
+✔ prometheus: exposition format with cumulative histogram buckets (1.225147ms)
+✔ otel: OTLP/JSON document shape (resourceMetrics -> metrics) (1.691014ms)
+✔ perfetto: .pftrace protobuf round-trips packets and track events (2.045133ms)
+✔ prometheus: embedded /metrics server answers 200 over real HTTP (132.22282ms)
+✔ router: deterministic owner across calls and instances (2.298523ms)
+✔ router: cross-language owner vector (node seeds 11,22,33,44 / telemetry) (2.503073ms)
+✔ router: 8-node balance within 3x envelope (8.261699ms)
+✔ router: minimal disruption — adding 1 of 9 nodes moves ~1/9 of topics (6.811443ms)
+✔ router: unrouted topic -> WC_E_TOPIC_UNROUTED (0.411465ms)
+✔ router: removeNode stops routing to it; version bumps (0.211113ms)
+✔ membership: upsert + hash-index lookup round-trip (1.561253ms)
+✔ membership: open addressing survives heavy collisions (1.557626ms)
+✔ gossip: 3 engines converge to a full membership view (socketless) (3.452358ms)
+✔ gossip: stale incarnation ignored, higher incarnation wins (0.558237ms)
+✔ gossip: LEAVING is sticky at equal incarnation, revive needs higher (0.383564ms)
+✔ gossip: SWIM refutation — falsely-leaving node bumps incarnation (1.428746ms)
+✔ gossip: silent nodes suspect then evicted (fake clock) (0.397549ms)
+✔ gossip: graceful leave announces and propagates LEAVING (0.51142ms)
+✔ crc32 IEEE vectors (parity with Python zlib.crc32) (1.244524ms)
+✔ fnv1a64 topic hash vectors (parity with Python impl) (0.344421ms)
+✔ WCN1 header: little-endian byte layout is normative (0.293786ms)
+✔ WCN1 round-trip: encode -> decode -> same fields (4.155315ms)
+✔ Law 4: malformed datagrams map to the exact error taxonomy (1.453853ms)
+✔ error names are stable (Law 4 contract) (0.411605ms)
+✔ WGS1 gossip: encode + entries + decode round-trip (0.537189ms)
+✔ WGS1: entry_count overrun is WC_E_TRUNCATED, not a crash (0.149087ms)
+✔ Law 1: decodeInto is allocation-free (structural check) (0.391819ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2202.991653
+[5/8] Python suite
+.....s.........                                                          [100%]
+14 passed, 1 skipped in 8.67s
+[6/8] live cross-language UDP cluster (both directions)
+..                                                                       [100%]
+2 passed in 8.34s
+[7/8] zero-allocation probes (100k ops each, post-warmup, --expose-gc)
+    {"mode":"publish","iters":100000,"heapBefore":7444688,"heapAfter":7444744,"deltaBytes":56}
+    {"mode":"subscribe","iters":100000,"heapBefore":7522456,"heapAfter":7531144,"deltaBytes":8688}
+    {"mode":"metrics","iters":100000,"heapBefore":7359936,"heapAfter":7359392,"deltaBytes":-544}
+    {"mode":"router","iters":100000,"heapBefore":7395744,"heapAfter":7395704,"deltaBytes":-40}
+[8/8] performance gates
+    [8a] 4-node demo smoke (monotonicity must PASS)
+    demo PASS (monotonic, 0 gaps, 0 stale)
+    [8b] mesh burst >= 1,000,000 fps (mandate D)
+    {"kind":"weft-cluster-mesh-burst","transport":"loopback-shm (simulated cluster)","nodes":4,"consumers":3,"topics":1,"payloadBytes":64,"fpsTarget":1000000,"seconds":2,"publishedFrames":2000000,"ingestedFrames":6000000,"expectedIngest":6000000,"achievedFps":1061674,"fanoutWritesPerSec":3185022,"elapsedSec":1.88,"sequenceGaps":0,"hopLatencyNs":{"p50":1024,"p99":2048},"at":"2026-09-23T12:20:01.433Z"}
+[eval]:3
+process.stdout.write(String(r.achievedFps >= minFps && r.sequenceGaps === 0 &&
+                            ^
+
+ReferenceError: r is not defined
+    at [eval]:3:29
+    at runScriptInThisContext (node:internal/vm:219:10)
+    at node:internal/process/execution:451:12
+    at [eval]-wrapper:6:24
+    at runScriptInContext (node:internal/process/execution:449:60)
+    at evalFunction (node:internal/process/execution:283:30)
+    at evalTypeScript (node:internal/process/execution:295:3)
+    at node:internal/main/eval_string:71:3
+
+Node.js v24.20.0

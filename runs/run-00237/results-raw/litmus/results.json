@@ -1,0 +1,229 @@
+{
+  "catalog": "weft-litmus",
+  "version": 3,
+  "run_utc": "2026-09-23T12:19:11.262958+00:00",
+  "honesty_label": "x86_64-sandbox (runtime-verified)",
+  "langs": [
+    "rust"
+  ],
+  "tests": [
+    "L1-tear",
+    "L2-writer-steps",
+    "L3-reader-steps",
+    "L4-freshness",
+    "L5-progress",
+    "L6-ownership",
+    "L7-revocation",
+    "L8-envelope",
+    "L9-cross-beam",
+    "L10-nested-revocation",
+    "L11-ffi-stress",
+    "L12-canary-corruption",
+    "L13-claim-retry",
+    "L14-mixed-endianness",
+    "L15-huge-payload",
+    "L16-rapid-reclaim"
+  ],
+  "matrix": {
+    "rust/L1-tear": {
+      "test": "L1-tear",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "holds_ms": [
+          5,
+          10,
+          50
+        ],
+        "claims": 795,
+        "claims_per_s": 105.6,
+        "torn": 0,
+        "drain_ok": true
+      }
+    },
+    "rust/L2-writer-steps": {
+      "test": "L2-writer-steps",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "holds_ms": [
+          0,
+          10,
+          25,
+          50,
+          100
+        ],
+        "publishes": 10000,
+        "max_wsteps": 1,
+        "bound": 2
+      }
+    },
+    "rust/L3-reader-steps": {
+      "test": "L3-reader-steps",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "claims": 2000,
+        "max_rsteps": 1,
+        "bound": 2
+      }
+    },
+    "rust/L4-freshness": {
+      "test": "L4-freshness",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "frames": 2000,
+        "freshness_violations": 0,
+        "future_violations": 0,
+        "drain_exact": true,
+        "stale_returns": 1
+      }
+    },
+    "rust/L5-progress": {
+      "test": "L5-progress",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "rates_hz": [
+          2000.0,
+          2000.0,
+          2000.0,
+          2000.0,
+          2000.0
+        ],
+        "ratio": 1.0,
+        "tolerance": 1.5,
+        "configs": 5
+      }
+    },
+    "rust/L6-ownership": {
+      "test": "L6-ownership",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "trials": 200,
+        "frames_per_trial": 64,
+        "violations": 0,
+        "seed": "0x00C0FFEE"
+      }
+    },
+    "rust/L7-revocation": {
+      "test": "L7-revocation",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "reclaim_ok": true,
+        "post_revoke_revoked": 100,
+        "poison_intact": true,
+        "first_revoked_at": 24054
+      }
+    },
+    "rust/L8-envelope": {
+      "test": "L8-envelope",
+      "lang": "rust",
+      "pass": true,
+      "metrics": {
+        "roundtrip": true,
+        "unknown_fields": true,
+        "negotiation": true,
+        "coexist": true
+      }
+    }
+  },
+  "stderr_excerpts": {},
+  "declared_skips": [
+    {
+      "test": "L11-ffi-stress",
+      "reason": "script-orchestrated: litmus/ffi_stress/run.sh (shard leg)"
+    }
+  ]
+},
+        "writer_hz": 240
+      }
+    },
+    "c/L10-nested-revocation": {
+      "test": "L10-nested-revocation",
+      "lang": "c",
+      "pass": true,
+      "metrics": {
+        "nested_reclaim_ok": true,
+        "concurrent_reclaim_ok": true,
+        "epoch_monotone": true,
+        "poison_intact": true,
+        "epoch_after_nested": 1,
+        "epoch_final": 8
+      }
+    },
+    "c/L12-canary-corruption": {
+      "test": "L12-canary-corruption",
+      "lang": "c",
+      "pass": true,
+      "metrics": {
+        "env_flip_detected": true,
+        "canary_flip_detected": true,
+        "magic_flip_detected": true,
+        "payload_flip_undetected_boundary": true,
+        "reverted_clean": true
+      }
+    },
+    "c/L13-claim-retry": {
+      "test": "L13-claim-retry",
+      "lang": "c",
+      "pass": true,
+      "metrics": {
+        "claims": 10000,
+        "fresh": 9392,
+        "not_fresh": 608,
+        "torn_accepted": 0,
+        "future": 0,
+        "skips": 0,
+        "exhausted": 0
+      }
+    },
+    "c/L14-mixed-endianness": {
+      "test": "L14-mixed-endianness",
+      "lang": "c",
+      "pass": true,
+      "metrics": {
+        "le_wire_pinned": true,
+        "be_view_roundtrip": true,
+        "canary_le_pinned": true
+      }
+    },
+    "c/L15-huge-payload": {
+      "test": "L15-huge-payload",
+      "lang": "c",
+      "pass": true,
+      "metrics": {
+        "payload_max": 1048576,
+        "buf_size": 1048640,
+        "frames": 200,
+        "torn": 0,
+        "drain_ok": true,
+        "alignment_ok": true,
+        "rss_delta_kb": 196,
+        "claims": 73
+      }
+    },
+    "c/L16-rapid-reclaim": {
+      "test": "L16-rapid-reclaim",
+      "lang": "c",
+      "pass": true,
+      "metrics": {
+        "cycles": 2000,
+        "completed": 2000,
+        "timeouts": 0,
+        "poison_failures": 0,
+        "ack_failures": 0
+      }
+    }
+  },
+  "stderr_excerpts": {},
+  "declared_skips": [
+    {
+      "test": "L11-ffi-stress",
+      "reason": "script-orchestrated: litmus/ffi_stress/run.sh (shard leg)"
+    }
+  ]
+}

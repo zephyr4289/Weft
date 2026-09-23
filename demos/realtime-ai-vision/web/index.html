@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>weft-tensor — Real-Time AI Vision (browser twin)</title>
+<style>
+  body { background:#0b0f14; color:#cfe3ff; font:14px/1.5 ui-monospace,Menlo,monospace; margin:0; padding:24px; }
+  canvas { image-rendering:pixelated; border:1px solid #1f2c3d; width:640px; height:360px; }
+  #hud { margin-top:12px; white-space:pre; color:#7ee787; }
+  button { background:#16202c; color:#cfe3ff; border:1px solid #2a3b52; padding:6px 14px; margin-right:8px; cursor:pointer; }
+  small { color:#5c718a }
+</style>
+</head>
+<body>
+  <h2>weft-tensor flight — 120 FPS AI canvas, zero re-renders</h2>
+  <p><small>
+    Synthetic camera → WTR1 ring → blob detector → Canvas2D plane + box overlay.
+    React state: none. Per-frame allocations: none (preallocated ImageData + OverlayScratch).
+    Serve this repo root over http (e.g. <code>python3 -m http.server</code>) and open this file.
+  </small></p>
+  <div>
+    <button id="start">start flight</button>
+    <button id="cam" disabled>use webcam</button>
+    <span id="sab"></span>
+  </div>
+  <canvas id="stage" width="160" height="90"></canvas>
+  <div id="hud">idle</div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

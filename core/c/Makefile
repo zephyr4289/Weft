@@ -207,18 +207,18 @@ SPV_RASTER = ../../probes/compute/rasterize_frame.spv
 
 $(SPV): ../../probes/compute/validate_frame.comp
 	if command -v glslangValidator >/dev/null 2>&1; then \
-	glslangValidator -V $$< -o $$@; \
-	else echo "glslangValidator not found — using committed $$@"; touch $$@; fi
+	glslangValidator -V $< -o $@; \
+	else echo "glslangValidator not found — using committed $@"; touch $@; fi
 
 $(SPV_STREAM): ../../probes/compute/stream_frames.comp
 	if command -v glslangValidator >/dev/null 2>&1; then \
-	glslangValidator -V $$< -o $$@; \
-	else echo "glslangValidator not found — using committed $$@"; touch $$@; fi
+	glslangValidator -V $< -o $@; \
+	else echo "glslangValidator not found — using committed $@"; touch $@; fi
 
 $(SPV_RASTER): ../../probes/compute/rasterize_frame.comp
 	if command -v glslangValidator >/dev/null 2>&1; then \
-	glslangValidator -V $$< -o $$@; \
-	else echo "glslangValidator not found — using committed $$@"; touch $$@; fi
+	glslangValidator -V $< -o $@; \
+	else echo "glslangValidator not found — using committed $@"; touch $@; fi
 
 gpu-probe: gpu_ring.c gpu_ring.h vk_min.h gpu_probe.c $(GPU_SRC) fanout.h weft.h $(SPV)
 	$(CC) $(CFLAGS) -o gpu-probe $(GPU_SRC) gpu_probe.c -lrt -lpthread -ldl
@@ -508,24 +508,95 @@ recovery-test: recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c fano
 recovery-test-asan: recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c fanout.h weft.h
 	$(CC) $(CFLAGS_ASAN) -o recovery-test-asan recovery_test.c fanout.c frame_cursor.c fanout_simd.c weft.c
 
-# ---- RFC-0021 weft-tensor fabric (Pillar 2) -------------------------------
-# Self-contained module under core/c/tensor/ (Law 3: additive only, zero
-# kernel surface). WT-series: view geometry + golden bit-exactness gate,
-# paged arenas (measured ns/alloc), lock-free DMA tensor rings (MPSC/SPMC/
-# MPMC tearing stress, fork torture, throughput fixture). The heavy
-# evidence legs run the -O2 binaries with --bench.
+# ---- flight recorder (RFC 0016) — core/c/weft_trace_* ---------------------
 
-tensor-test:
-	$(MAKE) -C tensor test
+trace-test: weft_trace.c weft_trace.h trace_rec.c trace_rec.h weft_trace_test.c
+	$(CC) $(CFLAGS) -o trace-test weft_trace_test.c weft_trace.c trace_rec.c
 
-tensor-test-asan:
-	$(MAKE) -C tensor test-asan
+trace-test-dbg: weft_trace.c weft_trace.h trace_rec.c trace_rec.h weft_trace_test.c
+	$(CC) $(CFLAGS) -DWEFT_TRACE_DEBUG -o trace-test-dbg weft_trace_test.c weft_trace.c trace_rec.c
 
-tensor-test-tsan:
-	$(MAKE) -C tensor test-tsan
+trace-test-asan: weft_trace.c weft_trace.h trace_rec.c trace_rec.h weft_trace_test.c
+	$(CC) $(CFLAGS_ASAN) -o trace-test-asan weft_trace_test.c weft_trace.c trace_rec.c
 
-tensor-clean:
-	$(MAKE) -C tensor clean
+# ---- time-travel replay (RFC 0019) — core/c/weft_replay_* -----------------
+
+replay-test: weft_replay.c weft_replay.h trace_rec.c trace_rec.h weft_replay_test.c
+	$(CC) $(CFLAGS) -o replay-test weft_replay_test.c weft_replay.c trace_rec.c
+
+replay-test-asan: weft_replay.c weft_replay.h trace_rec.c trace_rec.h weft_replay_test.c
+	$(CC) $(CFLAGS_ASAN) -o replay-test-asan weft_replay_test.c weft_replay.c trace_rec.c
+
+replay-runner: replay_runner.c weft_replay.c weft_replay.h trace_rec.c trace_rec.h
+	$(CC) $(CFLAGS) -o replay-runner replay_runner.c weft_replay.c trace_rec.c
+
+# ---- stream operators (RFC 0017) — core/c/weft_flow_* ----------------------
+
+flow-test: weft_flow.c weft_flow.h weft.c weft.h weft_flow_test.c
+	$(CC) $(CFLAGS) -o flow-test weft_flow_test.c weft_flow.c weft.c
+
+flow-test-asan: weft_flow.c weft_flow.h weft.c weft.h weft_flow_test.c
+	$(CC) $(CFLAGS_ASAN) -o flow-test-asan weft_flow_test.c weft_flow.c weft.c
+
+# ---- sensor fusion (RFC 0018) — core/c/weft_sync_* -------------------------
+
+sync-test: weft_sync.c weft_sync.h weft_flow.c weft_flow.h weft.c weft.h weft_sync_test.c
+	$(CC) $(CFLAGS) -o sync-test weft_sync_test.c weft_sync.c weft_flow.c weft.c
+
+sync-test-asan: weft_sync.c weft_sync.h weft_flow.c weft_flow.h weft.c weft.h weft_sync_test.c
+	$(CC) $(CFLAGS_ASAN) -o sync-test-asan weft_sync_test.c weft_sync.c weft_flow.c weft.c
+
+# ---- predictive trend (RFC 0020) — core/c/weft_trend_* ---------------------
+
+trend-test: weft_trend.c weft_trend.h weft_trend_test.c
+	$(CC) $(CFLAGS) -o trend-test weft_trend_test.c weft_trend.c
+
+trend-test-asan: weft_trend.c weft_trend.h weft_trend_test.c
+	$(CC) $(CFLAGS_ASAN) -o trend-test-asan weft_trend_test.c weft_trend.c
+
+trend-runner: trend_runner.c weft_trend.c weft_trend.h
+	$(CC) $(CFLAGS) -o trend-runner trend_runner.c weft_trend.c
+
+# ---- Series 10 full-fabric integration demo (RFC 0016 §8 evidence) ---------
+
+FLIGHT_SRC = flight_runner.c weft.c trace_rec.c weft_trace.c governor.c weft_trend.c
+
+flight-runner: $(FLIGHT_SRC) weft.h trace_rec.h weft_trace.h governor.h weft_trend.h
+	$(CC) $(CFLAGS) -o flight-runner $(FLIGHT_SRC)
+
+# ---- RFC-0016: Zero-Copy IPC Mesh (weft_shm + weft_ipc) --------------------
+# weft_shm.{h,c}: sealed memfd sessions + kernel-enforced RO views + SCM_RIGHTS
+#                 exchange + the HELLO/GRANT handshake (mechanism).
+# weft_ipc.{h,c}: lock-free registry (/dev/shm/weft_registry_v1) + heartbeats
+#                 + crash healing + successor handoff + HMAC capability
+#                 tokens over the in-tree sha256/hmac (policy).
+# weft-shm-test / weft-ipc-test: M-series / R-series conformance.
+# weft-ipc-torture: memfd | mesh | latency modes (100k+ cross-process
+#                   publications, crashy producer restart, park-vs-eventfd).
+#                   ASAN legs fork heavily — set ASAN_OPTIONS=abort_on_error=1.
+
+IPC_MESH_SRC = weft_shm.c weft_ipc.c shm_ring.c fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+
+weft-shm-test: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_shm_test.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS) -o weft-shm-test $(IPC_MESH_SRC) weft_shm_test.c -lrt -lpthread
+
+weft-shm-test-asan: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_shm_test.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS_ASAN) -o weft-shm-test-asan $(IPC_MESH_SRC) weft_shm_test.c -lrt -lpthread
+
+weft-ipc-test: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_ipc_test.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS) -o weft-ipc-test $(IPC_MESH_SRC) weft_ipc_test.c -lrt -lpthread
+
+weft-ipc-test-asan: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_ipc_test.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS_ASAN) -o weft-ipc-test-asan $(IPC_MESH_SRC) weft_ipc_test.c -lrt -lpthread
+
+weft-ipc-test-tsan: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_ipc_test.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS_DBG) -o weft-ipc-test-tsan $(IPC_MESH_SRC) weft_ipc_test.c -lrt -lpthread
+
+weft-ipc-torture: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_ipc_torture.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS) -o weft-ipc-torture $(IPC_MESH_SRC) weft_ipc_torture.c -lrt -lpthread
+
+weft-ipc-torture-asan: weft_shm.c weft_shm.h weft_ipc.c weft_ipc.h weft_ipc_torture.c shm_ring.c shm_ring.h fanout.c fanout_simd.c frame_cursor.c weft.c sha256.c sha256_hw.c hmac.c
+	$(CC) $(CFLAGS_ASAN) -o weft-ipc-torture-asan $(IPC_MESH_SRC) weft_ipc_torture.c -lrt -lpthread
 
 # ---- Device Spectrum Driver Optimizations (doc-007) ----------------------
 DEV_SPECTRUM_SRC = weft_device_profile.c weft_f16_codec.c weft_render_bridge.c fanout.c frame_cursor.c fanout_simd.c weft.c
@@ -536,8 +607,57 @@ device-spectrum-test: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_pro
 device-spectrum-test-asan: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
 	$(CC) $(CFLAGS_ASAN) -o device-spectrum-test-asan $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
 
-device-spectrum-test-tsan: $(DEV_SPECTRUM_SRC) device_spectrum_test.c weft_device_profile.h weft_f16_codec.h weft_render_bridge.h fanout.h weft.h
-	$(CC) $(CFLAGS_DBG) -o device-spectrum-test-tsan $(DEV_SPECTRUM_SRC) device_spectrum_test.c -lm
+# ---- RFC 0018 weft-cluster: WCR1 protocol engine + consensus (Pillar 3) --
+# cluster/weft_cluster_ring.c + cluster/weft_cluster_consensus.c: the WCR1
+# 128-byte ring header / 64-byte slot header, two-store seqlock commit,
+# zero-roundtrip remote addressing, ring-embedded Raft (elections, leases,
+# fencing, eviction). sim_cluster.c is the multi-node virtual-clock harness
+# (partition link matrix, gated transport). Kernel core untouched.
+CLUSTER_SRC = cluster/weft_cluster_ring.c cluster/weft_cluster_consensus.c
+CLUSTER_SIM = cluster/sim_cluster.c
+
+cluster-ring-test: $(CLUSTER_SRC) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/cluster_ring_test.c
+	$(CC) $(CFLAGS) -o cluster-ring-test $(CLUSTER_SRC) cluster/cluster_ring_test.c
+
+cluster-ring-test-asan: $(CLUSTER_SRC) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/cluster_ring_test.c
+	$(CC) $(CFLAGS_ASAN) -o cluster-ring-test-asan $(CLUSTER_SRC) cluster/cluster_ring_test.c
+
+cluster-ring-test-tsan: $(CLUSTER_SRC) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/cluster_ring_test.c
+	$(CC) $(CFLAGS_DBG) -o cluster-ring-test-tsan $(CLUSTER_SRC) cluster/cluster_ring_test.c
+
+cluster-consensus-test: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/cluster_consensus_test.c
+	$(CC) $(CFLAGS) -o cluster-consensus-test $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/cluster_consensus_test.c
+
+cluster-consensus-test-asan: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/cluster_consensus_test.c
+	$(CC) $(CFLAGS_ASAN) -o cluster-consensus-test-asan $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/cluster_consensus_test.c
+
+split-brain-torture: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/split_brain_torture.c
+	$(CC) $(CFLAGS) -o split-brain-torture $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/split_brain_torture.c
+
+split-brain-torture-asan: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/split_brain_torture.c
+	$(CC) $(CFLAGS_ASAN) -o split-brain-torture-asan $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/split_brain_torture.c
+
+cluster-bench: $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/weft_cluster.h cluster/weft_cluster_internal.h cluster/sim_cluster.h cluster/cluster_bench.c
+	$(CC) $(CFLAGS) -o cluster-bench $(CLUSTER_SRC) $(CLUSTER_SIM) cluster/cluster_bench.c
+
+# ---- RFC-0021 weft-tensor fabric (Pillar 2) -------------------------------
+# Self-contained module under core/c/tensor/ (Law 3: additive only, zero
+# kernel surface). WT-series: view geometry + golden bit-exactness gate,
+# paged arenas (measured ns/alloc), lock-free DMA tensor rings (MPSC/SPMC/
+# MPMC tearing stress, fork torture, throughput fixture). The heavy
+# evidence legs run the -O2 binaries with --bench.
+
+tensor-fabric-test:
+	$(MAKE) -C tensor test
+
+tensor-fabric-test-asan:
+	$(MAKE) -C tensor test-asan
+
+tensor-fabric-test-tsan:
+	$(MAKE) -C tensor test-tsan
+
+tensor-fabric-clean:
+	$(MAKE) -C tensor clean
 
 clean:
 	rm -f $(TARGET) $(TARGET_TSAN) governor-test governor-test-asan fanout-test fanout-test-asan fanout-test-tsan \
@@ -554,8 +674,14 @@ clean:
 	      turbo-runner turbo-runner-sys bench \
 	      blend-test blend-test-asan blend-runner \
 	      worklet-test qos-test reclaim-test reclaim-test-asan ffi_host-test ffi_host-test-asan trace_rec-test trace-dump metrics-dump p99-bench recovery-test recovery-test-asan \
-	      device-spectrum-test device-spectrum-test-asan device-spectrum-test-tsan
-	$(MAKE) -C tensor clean
+	      trace-test trace-test-dbg trace-test-asan replay-test replay-test-asan replay-runner flow-test flow-test-asan sync-test sync-test-asan trend-test trend-test-asan trend-runner flight-runner \
+	      weft-shm-test weft-shm-test-asan weft-ipc-test weft-ipc-test-asan weft-ipc-test-tsan weft-ipc-torture weft-ipc-torture-asan \
+	      device-spectrum-test device-spectrum-test-asan device-spectrum-test-tsan \
+	      dmabuf-test dmabuf-test-asan gpu-extmem-test gpu-extmem-test-asan xdp-test xdp-test-asan xdp-live-gate tensor-test tensor-test-asan camera-test camera-test-asan hetero-probe \
+	      cluster-ring-test cluster-ring-test-asan cluster-ring-test-tsan \
+	      cluster-consensus-test cluster-consensus-test-asan \
+	      split-brain-torture split-brain-torture-asan cluster-bench
+	if [ -d tensor ]; then $(MAKE) -C tensor clean; fi
 
 .PHONY: all clean
 

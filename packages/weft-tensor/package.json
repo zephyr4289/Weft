@@ -1,0 +1,35 @@
+{
+  "name": "@weft/tensor",
+  "version": "0.1.0",
+  "description": "Zero-allocation managed tensor plane for Weft — WebCodecs video ingestion, PCM audio feeder, seqlock tensor rings, Canvas2D/WebGL2 render planes. 120/240 FPS, 0 GC spikes.",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./layout": {
+      "types": "./src/index.d.ts",
+      "default": "./src/layout.js"
+    }
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "weft", "tensor", "zero-copy", "dlpack", "webcodecs", "sharedarraybuffer",
+    "zero-allocation", "realtime", "120fps"
+  ],
+  "license": "SEE LICENSE IN LICENSE"
+}

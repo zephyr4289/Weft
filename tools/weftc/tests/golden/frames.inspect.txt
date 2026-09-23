@@ -1,0 +1,68 @@
+tests/golden/frames.weft — weft-schema-v1 (endianness: little)
+schema_id 0x5b31c5b9f9f7b3eb  abi_hash 0x0e7280ce8f313931  fnv1a64 0x94a2f711e9ad2f16
+7 decls
+
+enum Kind : u8 — 1 B, align 1  abi_hash 0xf7714909a63a66ad
+  Render = 0
+  Present = 1
+  Telemetry = 2
+
+bitflags Caps : u32 — 4 B, align 4  abi_hash 0x70dfc168b7e518cc
+  None = 0x00000000
+  FloatMath = 0x00000001
+  SimdBlend = 0x00000002
+  GpuUpload = 0x00000004
+
+struct Vec3 — 12 B, align 4  abi_hash 0x61ddb568acf95b0f
+    #    offset   size  align  type        field
+    0         0      4      4  f32         x
+    1         4      4      4  f32         y
+    2         8      4      4  f32         z
+  bytes (1 char = 1 B, '.' = padding, words of 8):
+  0x0000  xxxxyyyy  zzzz                        
+
+struct Header — 24 B, align 8  abi_hash 0x8427797a68caa357
+    #    offset   size  align  type        field
+    0         0      8      8  u64         seq
+    1         8      1      1  Kind        kind
+    2        16      8      8  u64         stamp
+  internal padding: 7 B in 1 hole
+    [9, 16)  7 B
+  bytes (1 char = 1 B, '.' = padding, words of 8):
+  0x0000  ssssssss  k.......  tttttttt          
+
+struct TelemetryMsg — 16 B, align 8  [reordered @optimize(packing)]  abi_hash 0x5f12f453dd569495
+    #    offset   size  align  type        field
+    1         0      8      8  f64         temperature
+    2         8      4      4  f32         pressure
+    0        12      1      1  u8          flags
+    3        13      1      1  u8          humidity
+  trailing padding: 2 B
+  bytes (1 char = 1 B, '.' = padding, words of 8):
+  0x0000  tttttttt  ppppfh..                    
+
+struct CachelineFrame — 64 B, align 64  [@align(64)]  abi_hash 0x79f04e9440822e70
+    #    offset   size  align  type        field
+    0         0      4      4  u32         ctrl
+    1         4     60      1  [u8; 60]    payload
+  bytes (1 char = 1 B, '.' = padding, words of 8):
+  0x0000  ccccpppp  pppppppp  pppppppp  pppppppp
+  0x0020  pppppppp  pppppppp  pppppppp  pppppppp
+
+struct BigFrame — 136 B, align 8  abi_hash 0x94c196087085eef4
+    #    offset   size  align  type        field
+    0         0     24      8  Header      hdr
+    1        24     12      4  Vec3        pos
+    2        36     12      4  Vec3        vel
+    3        48      4      4  Caps        caps
+    4        52     32      1  str[32]     name
+    5        84     32      4  [f32; 8]    samples
+    6       120     16      8  span<u8>    blob
+  internal padding: 4 B in 1 hole
+    [116, 120)  4 B
+  bytes (1 char = 1 B, '.' = padding, words of 8):
+  0x0000  hhhhhhhh  hhhhhhhh  hhhhhhhh  pppppppp
+  0x0020  ppppvvvv  vvvvvvvv  ccccnnnn  nnnnnnnn
+  0x0040  nnnnnnnn  nnnnnnnn  nnnnssss  ssssssss  ; cacheline 1
+  0x0060  ssssssss  ssssssss  ssss....  bbbbbbbb
+  0x0080  bbbbbbbb                                ; cacheline 2

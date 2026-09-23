@@ -1,0 +1,258 @@
+==================================================
+SHARD: weftc-codegen
+DESCRIPTION: Project weftc Pillar 1: Native (C11/Rust/WGSL/GLSL) & Managed (TS/Python/Swift/Dart/React/Flutter) codegen suites + parity matrix + E2E kernel roundtrip
+STATUS: PASSED ✅
+COMMIT: d84aacf20fdc1109511bb110642523c12d91338f
+RUN: 221
+==================================================
+
+
+=== Part A: Native Systems & GPU Codegen (C11, Rust, WGSL, GLSL) ===
+make: Entering directory '/home/runner/work/Weft/Weft/tools/weftc/codegen'
+cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -o weftc-codegen main.c weftc_codegen.c weft_ir.c c/emit_c.c rust/emit_rust.c gpu/gpu_layout.c gpu/emit_wgsl.c gpu/emit_glsl.c
+./tests/run_tests.sh
+
+=== build weftc-codegen (pure C11, -Werror -pedantic) ===
+[weftc-codegen] generator built
+
+=== generate all targets for all fixtures ===
+[weftc-codegen] initial generation done
+
+=== determinism: regenerate and byte-compare ===
+[weftc-codegen] PASS: two runs are byte-identical (deterministic codegen)
+
+=== golden files: committed goldens == fresh output ===
+[weftc-codegen] PASS: golden identity (generator output has not drifted)
+
+=== Law 4: exact set of GPU refusals ===
+[weftc-codegen] PASS: expected refusal present: \[wgsl\] mcu_status: storage variant withheld
+[weftc-codegen] PASS: expected refusal present: \[glsl\] mcu_status: std430 variant withheld
+[weftc-codegen] PASS: expected refusal present: \[wgsl\] axis_sample: storage variant withheld
+[weftc-codegen] PASS: expected refusal present: \[wgsl\] sensor_event: storage variant withheld
+[weftc-codegen] PASS: expected refusal present: \[glsl\] axis_sample: std430 variant withheld
+[weftc-codegen] PASS: expected refusal present: \[glsl\] sensor_event: std430 variant withheld
+[weftc-codegen] PASS: expected refusal present: \[glsl\] audio_peak: std430 variant withheld
+[weftc-codegen] PASS: telemetry_frame is warning-free
+[weftc-codegen] PASS: camera_exposure is warning-free
+
+=== C roundtrip: build + selftest (default / AVX2 / ASAN+UBSAN) ===
+[c-roundtrip] ALL PASS (65 gates)
+[c-roundtrip] ALL PASS (65 gates)
+[c-roundtrip] ALL PASS (65 gates)
+[c-roundtrip] ALL PASS (65 gates)
+
+=== AVX2 vs scalar: stage-1 bins byte-identical (SIMD and scalar agree) ===
+[weftc-codegen] PASS: AVX2 and scalar builds produce byte-identical stage-1 bins
+
+=== Rust: no_std lib compile (Law 2) + cross-language roundtrip ===
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 8 tests
+test batch_scan_helper ... ok
+test stage1_audio_peak_bit_exact ... ok
+test f16_exhaustive_identity ... ok
+test stage1_mcu_status_bit_exact ... ok
+test stage1_camera_exposure_bit_exact ... ok
+test stage1_sensor_event_bit_exact ... ok
+test stage1_telemetry_frame_bit_exact ... ok
+test stage2_write_mutations ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[weftc-codegen] PASS: cargo test (no_std lib + roundtrip protocol)
+
+=== C verify-stage2 (Rust-written bins re-read bit-exact) ===
+[c-roundtrip] ALL PASS (70 gates)
+
+=== GPU layout double-entry (emitted WGSL/GLSL vs C offsetof) ===
+[gpu-check] ALL PASS (49 checks — WGSL+GLSL independently recomputed vs C offsetof)
+
+=== glslangValidator: .comp proof shaders compile (optional) ===
+[weftc-codegen] PASS: telemetry_frame_validate.comp -> SPIR-V
+[weftc-codegen] PASS: camera_exposure_validate.comp -> SPIR-V
+
+[weftc-codegen] SHARD PASSED: determinism + goldens + Law-4 matrix + C x3 flavors +
+[weftc-codegen]                Rust no_std/bit-exact + stage2 verify + GPU double-entry
+make: Leaving directory '/home/runner/work/Weft/Weft/tools/weftc/codegen'
+Native codegen gate green
+
+=== Part B: Managed Runtimes & Reactive UI (TS, Python, Swift, Dart, React, Flutter) ===
+=== [1/8] IR loader + codegen lib ===
+✔ loads weft_envelope fixture with resolved consts (3.605748ms)
+✔ loads telemetry fixture with u64 schemaId as BigInt (0.944279ms)
+✔ header-less imu fixture: no consts, bounds-only validate path (0.738428ms)
+✔ rejects big-endian layouts (Law 2 is structural) (0.978291ms)
+✔ rejects unknown keys, bad version, overlapping and misaligned fields (0.811278ms)
+✔ rejects malformed consts (0.975667ms)
+✔ parseIrJson surfaces JSON syntax errors as IrError (0.34979ms)
+✔ names: casing pipeline + reserved-word avoidance (0.923098ms)
+✔ TYPES: sizes and alignments match the ABI table (0.286764ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 85.19364
+=== [2/8] TS backend suite (Law 1 heap probe via --expose-gc) ===
+✔ TelemetryFrameView reads every golden field bit-exactly (4.659915ms)
+✔ WeftEnvelopeView reads every golden field (0.272172ms)
+✔ ImuSampleView (header-less) reads every golden field (0.615292ms)
+✔ envelope validation matrix mirrors kernel decision table (0.712388ms)
+✔ telemetry validateHeader asserts schemaId handshake (Law 4) (0.147413ms)
+✔ imu validateHeader is bounds-only (header-less path) (0.255176ms)
+✔ full frame stack read: bind payload at env.headerSize (0.892872ms)
+✔ setters and with* mutators write through and chain (0.609002ms)
+✔ const fields are read-only (no setters emitted for handshake fields) (0.573038ms)
+✔ bind resolves TypedArray windows (Node Buffer pool correctness) (0.484464ms)
+✔ bind accepts SharedArrayBuffer (3.944311ms)
+✔ bind throws RangeError on out-of-bounds windows (cold path only) (0.662984ms)
+✔ flyweight rebind: one instance, many windows, zero garbage (0.410791ms)
+✔ Law 1 static scan: hot-path bodies contain zero allocation sites (3.843018ms)
+✔ Law 1 runtime: 1M-read steady-state loop keeps heap flat (106.932935ms)
+✔ Law 1 runtime: BigInt u64 path stays within primitive-boxing ceiling (13.12484ms)
+✔ Law 2 static scan: every multi-byte access passes explicit little-endian true (0.731798ms)
+✔ Law 3 static scan: generated runtime is environment-agnostic (0.494518ms)
+✔ d.ts artifacts exist and annotate byte offsets in JSDoc (0.387106ms)
+✔ codegen determinism: same IR generates byte-identical output (2.20003ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 230.813803
+=== [3/8] Python backend suite ===
+test_envelope_every_field (__main__.GoldenParity.test_envelope_every_field) ... ok
+test_imu_every_field (__main__.GoldenParity.test_imu_every_field) ... ok
+test_telemetry_every_field (__main__.GoldenParity.test_telemetry_every_field) ... ok
+test_u64_exactness_beyond_double_mantissa (__main__.GoldenParity.test_u64_exactness_beyond_double_mantissa) ... ok
+test_aliasing_both_directions (__main__.Law1NumpyZeroCopy.test_aliasing_both_directions) ... skipped 'numpy not installed'
+test_dtype_layout_exactness (__main__.Law1NumpyZeroCopy.test_dtype_layout_exactness) ... skipped 'numpy not installed'
+test_dtype_offsets_match_ir (__main__.Law1NumpyZeroCopy.test_dtype_offsets_match_ir) ... skipped 'numpy not installed'
+test_gap_integrity (__main__.Law1NumpyZeroCopy.test_gap_integrity) ... skipped 'numpy not installed'
+test_bind_out_of_bounds (__main__.Law1ZeroCopy.test_bind_out_of_bounds) ... ok
+test_flyweight_rebind (__main__.Law1ZeroCopy.test_flyweight_rebind) ... ok
+test_mutation_visibility (__main__.Law1ZeroCopy.test_mutation_visibility) ... ok
+test_readonly_bind_getters_only (__main__.Law1ZeroCopy.test_readonly_bind_getters_only) ... ok
+test_write_path_and_chain (__main__.Law1ZeroCopy.test_write_path_and_chain) ... ok
+test_all_formats_explicit_le (__main__.Law2LittleEndian.test_all_formats_explicit_le) ... /home/runner/work/Weft/Weft/tools/weftc/codegen/python/test/views_test.py:239: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/runner/work/Weft/Weft/tools/weftc/codegen/python/test/../golden/weft_envelope.py' mode='r' encoding='utf-8'>
+  src = open(mod.__file__, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/runner/work/Weft/Weft/tools/weftc/codegen/python/test/views_test.py:239: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/runner/work/Weft/Weft/tools/weftc/codegen/python/test/../golden/telemetry_frame.py' mode='r' encoding='utf-8'>
+  src = open(mod.__file__, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/runner/work/Weft/Weft/tools/weftc/codegen/python/test/views_test.py:239: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/runner/work/Weft/Weft/tools/weftc/codegen/python/test/../golden/imu_sample.py' mode='r' encoding='utf-8'>
+  src = open(mod.__file__, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_golden_bytes_are_le (__main__.Law2LittleEndian.test_golden_bytes_are_le) ... ok
+test_memoryview_and_bytearray_and_bytes (__main__.Law3Runtime.test_memoryview_and_bytearray_and_bytes) ... ok
+test_pure_stdlib_imports (__main__.Law3Runtime.test_pure_stdlib_imports) ... /home/runner/work/Weft/Weft/tools/weftc/codegen/python/test/views_test.py:255: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/runner/work/Weft/Weft/tools/weftc/codegen/python/test/../golden/weft_envelope.py' mode='r' encoding='utf-8'>
+  src = open(weft_envelope.__file__, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_envelope_kernel_decision_table (__main__.Law4ValidationMatrix.test_envelope_kernel_decision_table) ... ok
+test_imu_bounds_only (__main__.Law4ValidationMatrix.test_imu_bounds_only) ... ok
+test_telemetry_schema_id_handshake (__main__.Law4ValidationMatrix.test_telemetry_schema_id_handshake) ... ok
+test_stack_envelope_then_payload (__main__.VerticalSlice.test_stack_envelope_then_payload) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 0.015s
+
+OK (skipped=4)
+=== [4/8] Swift + Dart static audits ===
+✔ swift: class surface — final class, byteLength, offset constants match IR (1.718842ms)
+✔ swift: every multi-byte load/store carries explicit littleEndian (1.379228ms)
+✔ swift: Law 4 validateHeader(avail:) present; envelope has kernel semantics (0.31001ms)
+✔ swift: SIMD3<Float> mapping emitted for f32[3] with LE element decode (0.196187ms)
+✔ swift: u64 lo/hi split accessors emitted (0.140963ms)
+✔ swift: reserved fields have no accessors (0.166963ms)
+✔ swift: bind is UnsafeRawBufferPointer-based (zero copy, rebindable) (0.180162ms)
+✔ swift: determinism — regeneration byte-identical to committed golden (1.157482ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.069355
+✔ dart: dual-layer surface — ffi.Struct projection + ByteData flyweight (1.686102ms)
+✔ dart: ffi field declarations appear in offset order with arrays (0.266984ms)
+✔ dart: every multi-byte ByteData access passes Endian.little (1.779684ms)
+✔ dart: offset constants match IR (0.345132ms)
+✔ dart: Law 4 validateHeader present; envelope kernel semantics (0.227545ms)
+✔ dart: u64 schemaId literal wraps to exact bit pattern; u64 lo/hi split (0.117688ms)
+✔ dart: fluent with* chainers return the view (zero alloc) (0.115365ms)
+✔ dart: reserved fields have no accessors (0.227855ms)
+✔ dart: determinism — regeneration byte-identical to committed golden (1.309012ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.056578
+=== [5/8] Cross-backend parity audit (3 fixtures x 4 backends) ===
+cross-backend parity matrix (static audit)
+========================================================================
+weft_envelope  OK
+  ts     weft-envelope-view.ts        green  byteLength,schemaId,offsets,accessors,validateHeader,le
+  swift  WeftEnvelope.swift           green  byteLength,schemaId,offsets,accessors,validateHeader,le
+  dart   weft_envelope.dart           green  byteLength,schemaId,offsets,accessors,validateHeader,le
+  py     weft_envelope.py             green  byteLength,schemaId,offsets,accessors,validateHeader,le
+telemetry_frame  OK
+  ts     telemetry-frame-view.ts      green  byteLength,schemaId,offsets,accessors,validateHeader,le
+  swift  TelemetryFrame.swift         green  byteLength,schemaId,offsets,accessors,validateHeader,le
+  dart   telemetry_frame.dart         green  byteLength,schemaId,offsets,accessors,validateHeader,le
+  py     telemetry_frame.py           green  byteLength,schemaId,offsets,accessors,validateHeader,le
+imu_sample  OK
+  ts     imu-sample-view.ts           green  byteLength,schemaId,offsets,accessors,validateHeader,le
+  swift  ImuSample.swift              green  byteLength,schemaId,offsets,accessors,validateHeader,le
+  dart   imu_sample.dart              green  byteLength,schemaId,offsets,accessors,validateHeader,le
+  py     imu_sample.py                green  byteLength,schemaId,offsets,accessors,validateHeader,le
+parity audit: all backends agree with the IR
+=== [6/8] Codegen determinism gate (--check) ===
+weftc --check: 3 schema(s) x ts, swift, dart, py byte-identical to committed outputs
+=== [7/8] C kernel harness (frozen kernel linked, never modified) ===
+verify_golden: all C-side golden assertions hold
+emit_frame_stack: wrote 88 bytes to /tmp/tmp.B1Rz2h4ZU7/kernel_stack.bin
+=== [8/8] E2E: managed views read the kernel-produced buffer ===
+✔ kernel-produced buffer reads back through the TS views (3.675524ms)
+✔ golden stack is byte-identical to what the kernel emitter produces (2.375847ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50.321026
+test_golden_stack_byte_identical_to_kernel_emitter (__main__.KernelBufferRoundTrip.test_golden_stack_byte_identical_to_kernel_emitter) ... emit_frame_stack: wrote 88 bytes to /tmp/weftc-z3hhmp4g/kernel_stack.bin
+ok
+test_kernel_buffer_reads_back_through_python_views (__main__.KernelBufferRoundTrip.test_kernel_buffer_reads_back_through_python_views) ... emit_frame_stack: wrote 88 bytes to /tmp/weftc-3ebmyi_e/kernel_stack.bin
+ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.002s
+
+OK
+=== weftc Pillar 1: ALL PIPELINES GREEN ===
+Managed codegen gate green
+✅ weftc-codegen shard ALL PASS
+ Pillar 1: ALL PIPELINES GREEN ===
+Managed codegen gate green
+✅ weftc-codegen shard ALL PASS

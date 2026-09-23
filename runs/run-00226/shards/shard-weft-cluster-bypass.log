@@ -1,0 +1,45 @@
+==================================================
+SHARD: weft-cluster-bypass
+DESCRIPTION: RFC-0019 Pillar 3: kernel-bypass cluster mesh — RoCEv2/IB one-sided RDMA (dlopen'd verbs + WRH1 golden handshake + deadline poll), eBPF/XDP line-rate steering (assembled bytecode + UMEM over WCR1), io_uring batched fallback (registered buffers + sticky ZC downgrade + kernel-UDP ping-pong), fabric refusal cascade, latency bench
+STATUS: PASSED ✅
+COMMIT: 1ca80ea9333166e6769b5f43531532c085627c62
+RUN: 226
+==================================================
+
+
+=== environment ===
+Linux runnervmtr4k5 6.17.0-1022-azure #22-Ubuntu SMP Mon Jul 27 17:24:03 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+CapEff:	0000000000000000
+
+=== build (O2 + audit interposer + asan legs) ===
+$ make -C tools/weft-cluster clean
+  ok
+$ make -C tools/weft-cluster all
+  ok
+$ make -C tools/weft-cluster test-rdma-asan
+  ok
+$ make -C tools/weft-cluster test-uring-asan
+  ok
+$ make -C tools/weft-cluster test-fabric-asan
+  ok
+
+=== CL-series gates ===
+test-rdma: ok (45 gates)
+test-xdp: ok (36 gates)
+test-uring: ok (41 gates)
+test-fabric: ok (21 gates)
+
+=== ASAN + UBSAN legs ===
+test-rdma-asan: ok
+test-uring-asan: ok
+test-fabric-asan: ok
+
+=== weft-cluster-bench (audit-strict) ===
+bench: PASS (verdict: PASS)
+
+=== kernel freeze: core/c/weft.{c,h} byte-identical to the branch base ===
+core/c/weft.{c,h}: zero diffs (kernel freeze holds)
+
+=== verdict ===
+shard-weft-cluster-bypass: GREEN

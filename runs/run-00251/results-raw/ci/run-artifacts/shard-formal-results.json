@@ -1,0 +1,1 @@
+{"shard":"formal","status":"PASSED","gates":"FanoutSeqlock PROVEN + ReattachPolicy PROVEN + TriadAcqRel PROVEN + TriadRelaxed/TriadPremature counterexamples reproduced (TLC, pinned jar)"}

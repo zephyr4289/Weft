@@ -68,9 +68,17 @@ cd ci/browser-tmp
 if [ ! -f package.json ]; then npm init -y >/dev/null 2>&1; fi
 npm install playwright-core@latest --no-fund --no-audit 2>&1 | tail -1 | tee -a "$LOG" >/dev/null || true
 npx playwright-core install chromium 2>&1 | tail -2 | tee -a "$LOG" >/dev/null || true
-# the rig bundle is rebuilt from source (the drift gate owns shader text)
 cd "$PKG"
-"$PKG/node_modules/.bin/esbuild" rig/heddle_rig_main.ts --bundle --format=esm \
+if [ -f "$PKG/node_modules/.bin/esbuild" ]; then
+  ESBUILD="$PKG/node_modules/.bin/esbuild"
+elif [ -f "$ROOT/node_modules/.bin/esbuild" ]; then
+  ESBUILD="$ROOT/node_modules/.bin/esbuild"
+elif command -v esbuild >/dev/null 2>&1; then
+  ESBUILD="esbuild"
+else
+  ESBUILD="npx --yes esbuild"
+fi
+$ESBUILD rig/heddle_rig_main.ts --bundle --format=esm \
   --outfile=rig/heddle_rig_bundle.mjs --platform=browser --external:node:inspector \
   --log-level=error 2>&1 | tee -a "$LOG" || { echo "rig bundle FAILED" | tee -a "$LOG"; exit 1; }
 node rig/serve.mjs &

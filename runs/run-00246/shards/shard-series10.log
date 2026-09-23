@@ -1,0 +1,128 @@
+==================================================
+SHARD: series10
+DESCRIPTION: Series 10 Observability Fabric: RFC 0016 flight recorder, RFC 0017 flow operators, RFC 0018 sensor fusion, RFC 0019 replay, RFC 0020 trend
+STATUS: FAILED ❌
+COMMIT: 7d8ca0a6670fc923ff2e4ebde491f9da2cdb3640
+RUN: 246
+==================================================
+
+== Series 10 shard: observability fabric + zero-alloc flow ==
+-- [1/5] C series suites (release + ASan)
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o trace-test weft_trace_test.c weft_trace.c trace_rec.c
+weft_trace_test.c:16: warning: "_GNU_SOURCE" redefined
+   16 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_TRACE_DEBUG -o trace-test-dbg weft_trace_test.c weft_trace.c trace_rec.c
+weft_trace_test.c:16: warning: "_GNU_SOURCE" redefined
+   16 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o trace-test-asan weft_trace_test.c weft_trace.c trace_rec.c
+weft_trace_test.c:16: warning: "_GNU_SOURCE" redefined
+   16 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+== weft_trace_test — RFC 0016 T-series ==
+== T-series: 42 checks, 0 failed ==
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o replay-test weft_replay_test.c weft_replay.c trace_rec.c
+weft_replay_test.c:13: warning: "_GNU_SOURCE" redefined
+   13 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o replay-test-asan weft_replay_test.c weft_replay.c trace_rec.c
+weft_replay_test.c:13: warning: "_GNU_SOURCE" redefined
+   13 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o flow-test weft_flow_test.c weft_flow.c weft.c
+weft_flow_test.c:12: warning: "_GNU_SOURCE" redefined
+   12 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft_flow_test.c: In function ‘t_o1_map’:
+weft_flow_test.c:66:24: warning: suggest parentheses around comparison in operand of ‘^’ [-Wparentheses]
+   66 |         if (out.ptr[i] != ((const uint8_t*)"hello")[i] ^ 0) { /* placeholder */ }
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o flow-test-asan weft_flow_test.c weft_flow.c weft.c
+weft_flow_test.c:12: warning: "_GNU_SOURCE" redefined
+   12 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft_flow_test.c: In function ‘t_o1_map’:
+weft_flow_test.c:66:24: warning: suggest parentheses around comparison in operand of ‘^’ [-Wparentheses]
+   66 |         if (out.ptr[i] != ((const uint8_t*)"hello")[i] ^ 0) { /* placeholder */ }
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o sync-test weft_sync_test.c weft_sync.c weft_flow.c weft.c
+weft_sync_test.c:12: warning: "_GNU_SOURCE" redefined
+   12 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o sync-test-asan weft_sync_test.c weft_sync.c weft_flow.c weft.c
+weft_sync_test.c:12: warning: "_GNU_SOURCE" redefined
+   12 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o trend-test weft_trend_test.c weft_trend.c
+weft_trend_test.c:12: warning: "_GNU_SOURCE" redefined
+   12 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o trend-test-asan weft_trend_test.c weft_trend.c
+weft_trend_test.c:12: warning: "_GNU_SOURCE" redefined
+   12 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o replay-runner replay_runner.c weft_replay.c trace_rec.c
+replay_runner.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o trend-runner trend_runner.c weft_trend.c
+trend_runner.c:10: warning: "_GNU_SOURCE" redefined
+   10 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+== weft_replay_test — RFC 0019 R-series ==
+== R-series: 28 checks, 0 failed ==
+== weft_flow_test — RFC 0017 O-series ==
+== O-series: 37 checks, 0 failed ==
+== weft_sync_test — RFC 0018 Y-series ==
+== Y-series: 36 checks, 0 failed ==
+== weft_trend_test — RFC 0020 D-series ==
+== D-series: 23 checks, 0 failed ==
+-- [2/5] TS port suite (@weft/core)
+[2m   Duration [22m 3.87s[2m (transform 399ms, setup 0ms, collect 947ms, tests 5.75s, environment 3ms, prepare 998ms)[22m
+
+-- [3/5] Perfetto bridge (golden + cross-process determinism)
+  PASS selftest invariants (8/8)
+  PASS byte-identical to golden/trace.json
+  PASS sha256 agreement
+  PASS pinned digest (cross-process determinism)
+== perfetto golden gate: 4/4 ==
+-- [4/5] xlang parity fixtures (replay + trend)
+== RFC 0019 replay parity: env x86_64/Linux, node v24.21.0, steps=10000 seed=0x00C0FFEE ==
+  C     leg: 160001 bytes
+  TS    leg: 160001 bytes
+  Rust  leg: 160001 bytes
+  Kotlin leg: SKIPPED (declared — kotlinc build failed)

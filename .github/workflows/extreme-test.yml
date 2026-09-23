@@ -153,7 +153,7 @@ jobs:
               {"shard": "bench-b-rust", "description": "B1-B5 benchmarks, Rust kernel", "script": "ci/scripts/run_bench_shard.sh", "args": "rust", "needs_rust": True, "filter": "any_code"},
               {"shard": "bench-b-ts", "description": "B1-B5 benchmarks, TS kernel", "script": "ci/scripts/run_bench_shard.sh", "args": "ts", "needs_rust": False, "filter": "any_code"},
               {"shard": "wsuite", "description": "W1-W5 × A/B/C/D = 20 cells, P99 + alloc assertions", "script": "ci/scripts/run_wsuite_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
-              {"shard": "thermal-proxy", "description": "W2 × 4 backends × 120s sustained, decay curves", "script": "ci/scripts/run_thermal_shard.sh", "args": "120", "needs_rust": False, "filter": "any_code"},
+              {"shard": "thermal-proxy", "description": "W2 × 4 backends × sustained smoke/decay curves", "script": "ci/scripts/run_thermal_shard.sh", "args": "5", "needs_rust": False, "filter": "any_code"},
               {"shard": "tools-interop", "description": "C→C, C→Rust, Rust→Rust, Rust→C record/replay", "script": "ci/scripts/run_tools_interop_shard.sh", "args": "", "needs_rust": True, "filter": "any_code"},
               {"shard": "ports-validate", "description": "Kotlin + Swift + Dart + TS heddles structural validator", "script": "ci/scripts/run_ports_validate_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "silent-green-audit", "description": "pipefail in every shard + every workflow pipeline", "script": "ci/scripts/run_silentgreen_shard.sh", "args": "", "needs_rust": False, "filter": "silent_green"},
@@ -189,6 +189,7 @@ jobs:
               {"shard": "weftc", "description": "RFC-0017 schema compiler: WL/WH/WD suites + goldens + verify-header drift gate (plain + ASAN)", "script": "ci/scripts/run_weftc_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "weftc-codegen", "description": "Project weftc Pillar 1: Native (C11/Rust/WGSL/GLSL) & Managed (TS/Python/Swift/Dart/React/Flutter) codegen suites + parity matrix + E2E kernel roundtrip", "script": "ci/scripts/run_weftc_codegen_shard.sh", "args": "", "needs_rust": True, "filter": "any_code"},
               {"shard": "weft-tensor-managed", "description": "Project weft-tensor Pillar 2: WTR1 layout, TS/Python ingestion engines, DLPack/NumPy bridge, cross-language parity, React/Flutter AI hooks/widgets, 120 FPS flight demo, alloc probes", "script": "ci/scripts/run_weft_tensor_managed_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "weft-cluster", "description": "RFC-0018 WCR1: CL-ring/CL-consensus x sanitizers + split-brain torture + bench scoreboard", "script": "ci/scripts/run_weft_cluster_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)

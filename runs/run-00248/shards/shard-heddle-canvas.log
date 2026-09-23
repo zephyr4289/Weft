@@ -1,0 +1,31 @@
+==================================================
+SHARD: heddle-canvas
+DESCRIPTION: Project heddle-2.0 Pillar 4: WHP1 plane contract + Law-1 60k-frame zero-alloc gate + 240 FPS budget bench + native Vulkan SSBO probe (lavapipe) + Chromium COOP/COEP rig with cross-tier bit-exact oracle
+STATUS: FAILED ❌
+COMMIT: 5f05330d55943008550b018fe9b31ce79e83f262
+RUN: 248
+==================================================
+
+=== 1/5 unit battery (vitest) ===
+[2m      Tests [22m [1m[32m65 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (66)[39m
+[2m   Start at [22m 13:10:11
+[2m   Duration [22m 1.55s[2m (transform 303ms, setup 0ms, collect 526ms, tests 1.56s, environment 2ms, prepare 556ms)[22m
+
+=== 2/5 Law-1: instrument calibration + 60,000-frame gate ===
+calibrate-clean:   PASS — 0 B attributed to engine modules over 4000 frames
+calibrate-planted: PASS — 32960 B caught across 1 samples
+law1-instrument:   CALIBRATED
+law1-gate:      FAIL — sampling heap profiler: 8744 B attributed to engine modules over 60000 frames (1 samples; total window incl. V8 internals 23368 B)
+law1-secondary: heapUsed delta 1235824 B over the same window — REPORTED, not gated (V8 bookkeeping moves this while the code allocates nothing; the profiler decides the claim)
+frame-budget:   PASS — p50 0.41 µs, p95 0.44 µs, p99 0.46 µs, worst 927.79 µs vs 4166.67 µs budget (0 violations)
+engine-stats:   draws 520000, uploads 520000 (19486.3 MiB), clean-lane skips 0, presents 130000
+tier3-decimate: 1,048,576-point window -> 1280 columns on CPU: 15750 µs (MEASURED, oracle road; GPU tiers do this in-shader)
+{"bench":"heddle-canvas-frame-budget","backend":"null","tick_hz":240,"load_samples_per_sec":100000,"frames":60000,"warmup":5000,"law1_engine_alloc_bytes":8744,"law1_engine_alloc_samples":1,"law1_window_total_bytes":23368,"law1_heapused_delta_reported":1235824,"law1_pass":false,"p50_micros":0.41,"p95_micros":0.44,"p99_micros":0.46,"worst_micros":927.79,"budget_violations":0,"draws":520000,"upload_calls":520000,"uploaded_mib":19486.29,"clean_lane_skips":0,"tier3_decimate_1m_micros":15750,"label":"ENGINE path on NullHAL (no GPU in CI); tier frame costs in the browser leg"}
+w1-instrument:   CALIBRATED
+heddle-canvas frame-budget bench: frames=60000 (warmup 5000), load=100000 samples/sec @ 240 Hz, backend=null (engine path)
+law1-gate:      FAIL — sampling heap profiler: 8744 B attributed to engine modules over 60000 frames (1 samples; total window incl. V8 internals 23368 B)
+law1-secondary: heapUsed delta 1235824 B over the same window — REPORTED, not gated (V8 bookkeeping moves this while the code allocates nothing; the profiler decides the claim)
+frame-budget:   PASS — p50 0.41 µs, p95 0.44 µs, p99 0.46 µs, worst 927.79 µs vs 4166.67 µs budget (0 violations)
+engine-stats:   draws 520000, uploads 520000 (19486.3 MiB), clean-lane skips 0, presents 130000
+tier3-decimate: 1,048,576-point window -> 1280 columns on CPU: 15750 µs (MEASURED, oracle road; GPU tiers do this in-shader)
+{"bench":"heddle-canvas-frame-budget","backend":"null","tick_hz":240,"load_samples_per_sec":100000,"frames":60000,"warmup":5000,"law1_engine_alloc_bytes":8744,"law1_engine_alloc_samples":1,"law1_window_total_bytes":23368,"law1_heapused_delta_reported":1235824,"law1_pass":false,"p50_micros":0.41,"p95_micros":0.44,"p99_micros":0.46,"worst_micros":927.79,"budget_violations":0,"draws":520000,"upload_calls":520000,"uploaded_mib":19486.29,"clean_lane_skips":0,"tier3_decimate_1m_micros":15750,"label":"ENGINE path on NullHAL (no GPU in CI); tier frame costs in the browser leg"}

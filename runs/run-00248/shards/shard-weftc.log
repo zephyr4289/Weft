@@ -1,0 +1,154 @@
+==================================================
+SHARD: weftc
+DESCRIPTION: RFC-0017 schema compiler: WL/WH/WD suites + goldens + verify-header drift gate (plain + ASAN)
+STATUS: PASSED ✅
+COMMIT: 5f05330d55943008550b018fe9b31ce79e83f262
+RUN: 248
+==================================================
+
+
+=== weftc full gate (plain: WL + WH + WD + CLI + goldens) ===
+make: Entering directory '/home/runner/work/Weft/Weft/tools/weftc'
+rm -f weftc tests/test_layout tests/test_hash tests/test_dump
+make: Leaving directory '/home/runner/work/Weft/Weft/tools/weftc'
+make: Entering directory '/home/runner/work/Weft/Weft/tools/weftc'
+cc -O2 -std=c11 -Wall -Wextra -o weftc src/lex.c src/parse.c src/diag.c src/layout.c src/hash.c src/dump.c src/main.c
+cc -O2 -std=c11 -Wall -Wextra -Isrc -o tests/test_layout tests/test_layout.c src/lex.c src/parse.c src/diag.c src/layout.c src/hash.c src/dump.c
+cc -O2 -std=c11 -Wall -Wextra -Isrc -o tests/test_hash tests/test_hash.c src/lex.c src/parse.c src/diag.c src/layout.c src/hash.c src/dump.c
+cc -O2 -std=c11 -Wall -Wextra -Isrc -o tests/test_dump tests/test_dump.c src/lex.c src/parse.c src/diag.c src/layout.c src/hash.c src/dump.c
+bash tests/run.sh
+
+=== WL-series: layout conformance ===
+WL  WL1 primitive geometry        [24 checks]
+WL  WL2 natural alignment + holes  [9 checks]
+WL  WL3 nested struct cascade     [7 checks]
+WL  WL4 arrays, str, span         [8 checks]
+WL  WL5 @packed                   [8 checks]
+WL  WL6 @align(N) cacheline floor  [7 checks]
+WL  WL7 @simd(N) lane alignment   [6 checks]
+WL  WL8 @optimize(packing)        [11 checks]
+WL  WL9 empty structs             [4 checks]
+WL  WL10 semantic error battery   [62 checks]
+WL  WL11 endianness               [2 checks]
+WL  WL12 malformed-input armor (L2)  [63 checks]
+WL  WL13 forward references       [2 checks]
+WL  WL14 span is a reference, not a value  [2 checks]
+WL  WL15 containment depth bound  [2 checks]
+WL-series: 0 failures
+
+=== WH-series: hash quality (avalanche, mutations, collisions) ===
+WH  WH1 WH64 reference vectors    [16 checks]
+WH  WH2 FNV-1a-64 external anchors  [3 checks]
+WH  WH3 avalanche (bit-flip spread)  [64 checks]
+WH  WH4 order/length sensitivity  [4 checks]
+WH  WH5 collision freedom (1M corpus)  [2 checks]
+WH  WH6 schema mutation sensitivity  [20 checks]
+WH  WH7 determinism + trivia immunity  [5 checks]
+WH  WH8 fingerprint independence  [4 checks]
+WH-series: 0 failures
+
+=== WD-series: emitters + golden pinning ===
+WD  WD1 emitter byte-determinism  [5 checks]
+WD  WD2 binary IR structure       [4 checks]
+WD  WD3 verify header content     [10 checks]
+WD  WD4 inspect map sanity        [8 checks]
+WD  WD5 golden byte-compare       [4 checks]
+WD  WD6 manifest invariants       [5 checks]
+WD-series: 0 failures
+
+=== CLI gates: exit codes + artifact determinism ===
+PASS: clean check exits 0
+PASS: missing file rejected (exit 1)
+PASS: unknown command rejected (exit 2)
+PASS: bare invocation prints usage (exit 2)
+PASS: CLI JSON artifact byte-identical to golden
+PASS: CLI binary IR byte-identical to golden
+PASS: CLI verify header byte-identical to golden
+
+=== JSON IR validated by an external parser ===
+python3 json.load: VALID — 7 decls, schema_id 0x5b31c5b9f9f7b3eb
+
+=== verify-header handshake demo — consumer side (positive) ===
+PASS: hand-written C structs match every pin (compile clean)
+
+=== verify-header drift detection (negative — MUST fail to compile) ===
+PASS: layout drift rejected AT COMPILE TIME:
+tests/golden/frames.verify.h:27:41: error: static assertion failed: "weftc: `Header.kind` offset drifted (expected 8)"
+
+weftc gate: ALL PASS
+make: Leaving directory '/home/runner/work/Weft/Weft/tools/weftc'
+
+=== weftc full gate (ASAN leg — Law 2 memory-safety audit) ===
+make: Entering directory '/home/runner/work/Weft/Weft/tools/weftc'
+rm -f weftc tests/test_layout tests/test_hash tests/test_dump
+make: Leaving directory '/home/runner/work/Weft/Weft/tools/weftc'
+make: Entering directory '/home/runner/work/Weft/Weft/tools/weftc'
+rm -f weftc tests/test_layout tests/test_hash tests/test_dump
+cc -O1 -g -std=c11 -Wall -Wextra -fsanitize=address -Isrc -o tests/test_layout tests/test_layout.c src/lex.c src/parse.c src/diag.c src/layout.c src/hash.c src/dump.c
+cc -O1 -g -std=c11 -Wall -Wextra -fsanitize=address -Isrc -o tests/test_hash tests/test_hash.c src/lex.c src/parse.c src/diag.c src/layout.c src/hash.c src/dump.c
+cc -O1 -g -std=c11 -Wall -Wextra -fsanitize=address -Isrc -o tests/test_dump tests/test_dump.c src/lex.c src/parse.c src/diag.c src/layout.c src/hash.c src/dump.c
+cc -O1 -g -std=c11 -Wall -Wextra -fsanitize=address -o weftc src/lex.c src/parse.c src/diag.c src/layout.c src/hash.c src/dump.c src/main.c
+bash tests/run.sh
+
+=== WL-series: layout conformance ===
+WL  WL1 primitive geometry        [24 checks]
+WL  WL2 natural alignment + holes  [9 checks]
+WL  WL3 nested struct cascade     [7 checks]
+WL  WL4 arrays, str, span         [8 checks]
+WL  WL5 @packed                   [8 checks]
+WL  WL6 @align(N) cacheline floor  [7 checks]
+WL  WL7 @simd(N) lane alignment   [6 checks]
+WL  WL8 @optimize(packing)        [11 checks]
+WL  WL9 empty structs             [4 checks]
+WL  WL10 semantic error battery   [62 checks]
+WL  WL11 endianness               [2 checks]
+WL  WL12 malformed-input armor (L2)  [63 checks]
+WL  WL13 forward references       [2 checks]
+WL  WL14 span is a reference, not a value  [2 checks]
+WL  WL15 containment depth bound  [2 checks]
+WL-series: 0 failures
+
+=== WH-series: hash quality (avalanche, mutations, collisions) ===
+WH  WH1 WH64 reference vectors    [16 checks]
+WH  WH2 FNV-1a-64 external anchors  [3 checks]
+WH  WH3 avalanche (bit-flip spread)  [64 checks]
+WH  WH4 order/length sensitivity  [4 checks]
+WH  WH5 collision freedom (1M corpus)  [2 checks]
+WH  WH6 schema mutation sensitivity  [20 checks]
+WH  WH7 determinism + trivia immunity  [5 checks]
+WH  WH8 fingerprint independence  [4 checks]
+WH-series: 0 failures
+
+=== WD-series: emitters + golden pinning ===
+WD  WD1 emitter byte-determinism  [5 checks]
+WD  WD2 binary IR structure       [4 checks]
+WD  WD3 verify header content     [10 checks]
+WD  WD4 inspect map sanity        [8 checks]
+WD  WD5 golden byte-compare       [4 checks]
+WD  WD6 manifest invariants       [5 checks]
+WD-series: 0 failures
+
+=== CLI gates: exit codes + artifact determinism ===
+PASS: clean check exits 0
+PASS: missing file rejected (exit 1)
+PASS: unknown command rejected (exit 2)
+PASS: bare invocation prints usage (exit 2)
+PASS: CLI JSON artifact byte-identical to golden
+PASS: CLI binary IR byte-identical to golden
+PASS: CLI verify header byte-identical to golden
+
+=== JSON IR validated by an external parser ===
+python3 json.load: VALID — 7 decls, schema_id 0x5b31c5b9f9f7b3eb
+
+=== verify-header handshake demo — consumer side (positive) ===
+PASS: hand-written C structs match every pin (compile clean)
+
+=== verify-header drift detection (negative — MUST fail to compile) ===
+PASS: layout drift rejected AT COMPILE TIME:
+tests/golden/frames.verify.h:27:41: error: static assertion failed: "weftc: `Header.kind` offset drifted (expected 8)"
+
+weftc gate: ALL PASS
+make: Leaving directory '/home/runner/work/Weft/Weft/tools/weftc'
+
+=== summary ===
+weftc shard: ALL PASS (both legs)

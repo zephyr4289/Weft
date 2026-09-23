@@ -1,0 +1,50 @@
+==================================================
+SHARD: ffi-fuzz
+DESCRIPTION: Issue #16 Tier 1 Task 4 — FFI-boundary structured fuzz: C kernel API 200K ops + ASAN + C<->TS boundary
+STATUS: PASSED ✅
+COMMIT: 5f05330d55943008550b018fe9b31ce79e83f262
+RUN: 248
+==================================================
+
+
+=== Build: ffi-fuzz, ffi-fuzz-asan, fanout-runner ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c'
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o ffi-fuzz ffi_fuzz.c weft.c
+ffi_fuzz.c:34: warning: "_GNU_SOURCE" redefined
+   34 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o ffi-fuzz-asan ffi_fuzz.c weft.c
+ffi_fuzz.c:34: warning: "_GNU_SOURCE" redefined
+   34 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o fanout-runner fanout.c frame_cursor.c weft.c fanout_simd.c fanout_runner.c
+weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c'
+
+=== 1. C kernel API fuzz (plain, 200K ops) ===
+ffi-fuzz: ops=200000 publish=50058 claim=39818 slice=39818 env_enc=39866 env_dec=50171 corrupt=75459 negotiate=14137 lifecycle=5950 violations=0
+{"test":"ffi-fuzz","lang":"c","pass":true,"metrics":{"ops":200000,"publish":50058,"claim":39818,"env_decode":50171,"corrupted_bytes":75459,"negotiate":14137,"lifecycle_churns":5950,"violations":0}}
+
+=== 2. C kernel API fuzz (ASAN oracle, 100K ops) ===
+ffi-fuzz: ops=100000 publish=25158 claim=19827 slice=19827 env_enc=19784 env_dec=25150 corrupt=37733 negotiate=7072 lifecycle=3009 violations=0
+{"test":"ffi-fuzz","lang":"c","pass":true,"metrics":{"ops":100000,"publish":25158,"claim":19827,"env_decode":25150,"corrupted_bytes":37733,"negotiate":7072,"lifecycle_churns":3009,"violations":0}}
+
+=== 3. C<->TS boundary fuzz with random corruption (both directions) ===
+boundary fuzz: C->TS ok=8 graceful_fail=22 crash=0 | TS->C ok=8 graceful_fail=22 crash=0 (iterations=30)
+
+=== Declarations (LAW 4 — never silent) ===
+24h zero-crash soak: nightly-tier budget — this shard's committed cycle counts are the evidence (never inflated)
+ffi-fuzz shard: PASS

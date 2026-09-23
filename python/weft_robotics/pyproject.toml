@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "weft-robotics"
+version = "0.1.0"
+description = "Weft robotics/vision managed connectors — RNG1 ring reader, rmw_weft subscribe_zerocopy shim, zero-copy DLPack camera frames (Pillar 6 deliverable B, Python side)"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+torch = ["torch>=2.1"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+addopts = "-q"

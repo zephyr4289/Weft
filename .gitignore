@@ -175,6 +175,7 @@ core/c/hetero-probe
 
 # weft-spectrum (Pillar 5) test build artifacts
 tests/spectrum/build/
+.pytest_cache/
 tools/weft-tensor/test-*
 tools/weft-tensor/weft-accel-bench
 

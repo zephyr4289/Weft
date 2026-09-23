@@ -1,0 +1,40 @@
+{
+  "name": "@weft/robotics",
+  "version": "0.1.0",
+  "description": "Weft robotics/vision managed connectors — RNG1 ring reader, rmw_weft managed shim, zero-copy point cloud / IMU6DOF decoders, zero-re-render WebGL2 point cloud viewer and attitude indicator UI",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "test",
+    "probes",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "keywords": [
+    "weft",
+    "ros2",
+    "rmw",
+    "lidar",
+    "pointcloud",
+    "zero-copy",
+    "robotics",
+    "machine-vision"
+  ],
+  "license": "Apache-2.0"
+}

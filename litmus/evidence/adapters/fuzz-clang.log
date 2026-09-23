@@ -1,0 +1,8 @@
+FUZZ cycles=50000 targets=6
+FUZZ itch-fixed     ok=2375         err=5972         hist[OK=2375 EBADMSG=3751 ETRUNC=2221]
+FUZZ itch-lenprefix ok=2191         err=6152         hist[OK=2191 EBADMSG=3998 ETRUNC=2154]
+FUZZ ouch50         ok=2360         err=6147         hist[OK=2360 EBADMSG=750 ETRUNC=5397]
+FUZZ sbe-md         ok=2512         err=5772         hist[OK=2512 EBADMSG=56 ETRUNC=2422 ESCHEMA=3294]
+FUZZ waf-frame      ok=1377         err=6922         hist[OK=1377 EBADMSG=2828 ETRUNC=2822 ECRC=1272]
+FUZZ mold64         ok=3846         err=4374         hist[OK=3846 ETRUNC=4374]
+TEST fuzz_torture: PASS checks=133795 failures=0

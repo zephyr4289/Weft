@@ -1,0 +1,8 @@
+PROBE itch-fixed       cycles=200000 alloc-events=0 free-events=0 PASS
+PROBE itch-lenprefix   cycles=200000 alloc-events=0 free-events=0 PASS
+PROBE ouch50           cycles=200000 alloc-events=0 free-events=0 PASS
+PROBE sbe-md+proj      cycles=200000 alloc-events=0 free-events=0 PASS
+PROBE waf-scan+emit    cycles=200000 alloc-events=0 free-events=0 PASS
+PROBE mold64-walker    cycles=200000 alloc-events=0 free-events=0 PASS
+PROBE checksum-kernels cycles=200000 alloc-events=0 free-events=0 PASS
+TEST alloc_probe: PASS checks=200132 failures=0

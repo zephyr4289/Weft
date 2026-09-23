@@ -1,0 +1,82 @@
+
+[2m════════════════════════════════════════════════════════════[0m
+STAGE 1: Subsystem integrity & manifest parity (managed scope only)
+[2m════════════════════════════════════════════════════════════[0m
+  [0;32m✔[0m all 8 managed subsystem directories present (Rule 1 scope)
+  [0;32m✔[0m P2 golden fixtures present
+  [0;32m✔[0m stream + 4 checkpoints + parity chain bit-identical
+  [0;32m✔[0m scope: managed paths only — core/c not asserted (Eng 1/2 unified branch)
+
+[2m════════════════════════════════════════════════════════════[0m
+STAGE 2: Node --expose-gc 1,000,000-message heap probes (gate ≤ 64 KiB)
+[2m════════════════════════════════════════════════════════════[0m
+  {"mode":"ingest","ok":true,"growthKiB":17.88,"gateKiB":64,"messages":1000000,"liveOrders":32767,"rejects":0,"skipped":0}
+  [0;32m✔[0m fintech ITCH ingest: 1,000,000 messages within gate
+  {"mode":"control","ok":true,"growthKiB":712.38,"gateKiB":64,"retained":10000,"messages":1000000}
+  [0;32m✔[0m fintech negative control bites
+  {"mode":"ingest","ok":true,"growthKiB":0.1,"gateKiB":64,"cycles":1000000,"retained":0,"lastSeq":1000000}
+  [0;32m✔[0m robotics RNG1 ingest: 1,000,000 acquisitions within gate
+  {"mode":"control","ok":true,"growthKiB":747.1,"gateKiB":64,"cycles":1000000,"retained":9500,"lastSeq":1000000}
+  [0;32m✔[0m robotics negative control bites
+
+[2m════════════════════════════════════════════════════════════[0m
+STAGE 3: Python tracemalloc 1,000,000-message ingestion gate (EXACT 0)
+[2m════════════════════════════════════════════════════════════[0m
+  managed ingestion of 1000000 messages:
+    permanent heap growth : 0 byte(s)  (mandate: 0)
+    transient peak        : 1296 B
+    msgs_applied          : 1000000
+    rejects               : 0
+    live_orders           : 32767
+  negative control: retained 10000 objects -> +2232864 B
+  PROOF: managed market ingestion retains EXACTLY 0 bytes over 1,000,000 messages; control bites. Stage 3 PASS.
+  [0;32m✔[0m EXACT-0 permanent heap growth over 1,000,000 messages + control bites
+
+[2m════════════════════════════════════════════════════════════[0m
+STAGE 4: 240 FPS order book render loop — 0 dropped frames
+[2m════════════════════════════════════════════════════════════[0m
+  ℹ tests 7
+  ℹ pass 7
+  ℹ fail 0
+  [0;32m✔[0m 240 FPS virtual clock: 4,800 frames, 0 dropped + drop-counter control bites
+  [0;32m✔[0m zero-re-render proof: 10,000 frames, component never re-invoked
+
+[2m════════════════════════════════════════════════════════════[0m
+STAGE 5: Cross-language parity — TS == Python == Swift == Dart
+[2m════════════════════════════════════════════════════════════[0m
+  [0;32m✔[0m TS fintech core suite green (ITCH + book + MDP1 + SBE + engine)
+  [0;32m✔[0m TS robotics suite green (RNG1 reader incl. frozen fixture parity)
+  10 passed in 0.79s
+  [0;32m✔[0m Python fintech parity green (TS-frozen fixtures decoded identically)
+  .......                                                                  [100%]
+  [0;32m✔[0m Python robotics parity green (frozen rng1-ring.bin decoded identically)
+  STATIC AUDIT: ALL GREEN (29 checks)
+  [0;32m✔[0m Dart lane: 29-check structural audit (constants + zlib CRC KATs)
+  STATIC AUDIT: ALL GREEN (27 checks)
+  [0;32m✔[0m Swift lane: 27-check structural audit (constants + zlib CRC KATs)
+
+[2m════════════════════════════════════════════════════════════[0m
+STAGE 6: Zero-copy DLPack / NumPy interop — POINTER IDENTITY (Stage 6)
+[2m════════════════════════════════════════════════════════════[0m
+  ......                                                                   [100%]
+  [0;32m✔[0m np.from_dlpack(camera) data pointer == arena slot address (0 copies)
+  [0;32m✔[0m np.frombuffer(slot window) pointer identity + cross-view mutation
+  [0;32m✔[0m torch lane: torch absent — CI workflow carries the torch gate (numpy lane proven)
+
+[2m════════════════════════════════════════════════════════════[0m
+STAGE 7: Full managed suites (fintech + robotics, both languages)
+[2m════════════════════════════════════════════════════════════[0m
+  ℹ tests 39
+  ℹ pass 39
+  ℹ fail 0
+  [0;32m✔[0m fintech TS suite green
+  ℹ tests 12
+  ℹ pass 12
+  ℹ fail 0
+  [0;32m✔[0m robotics TS suite green
+30 passed in 63.58s (0:01:03)
+  [0;32m✔[0m weft_fintech pytest green (incl. 64 KiB tracemalloc twin + control)
+......................                                                   [100%]
+  [0;32m✔[0m weft_robotics pytest green (incl. 200k tracemalloc gates + control)
+
+[0;32mALL 7 STAGES GREEN — managed adapters suite PASS (exit 0)[0m

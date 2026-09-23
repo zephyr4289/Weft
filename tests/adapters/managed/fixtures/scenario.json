@@ -1,0 +1,32 @@
+{
+  "stream_bytes": 72077,
+  "message_count": 2048,
+  "counts": {
+    "S": 2,
+    "A": 1023,
+    "E": 205,
+    "X": 205,
+    "D": 205,
+    "U": 204,
+    "P": 204
+  },
+  "adds": 1227,
+  "big_ref_hi": 12648430,
+  "checkpoints": [
+    512,
+    1024,
+    1536,
+    2048
+  ],
+  "locate": 7777,
+  "tracking": 42,
+  "stock": "WEFTUSD",
+  "mid_ticks": 1000000,
+  "seed": 1592594996,
+  "sha256": {
+    "fintech-stream.bin": "a47da69747c1d1f11ea4c0f4b377662d919b9562427e50dfa72893d155982811",
+    "sbe-stream.bin": "e74bd6c0d36358f3eed90436898d68b593338a97a917d2363ef1a42fc6a1637b",
+    "sbe-schema.json": "9dcd0fad3778f96d31a3835a1816abc1477d769a2597a3c0111ac3201fe8b489",
+    "rng1-ring.bin": "ebeb31a163b67bccf200a920f3cfa84c946b5604581b0c06571e325556083980"
+  }
+}

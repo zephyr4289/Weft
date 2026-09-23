@@ -1,0 +1,28 @@
+{
+  "schema": "weft-adapters-parity-v1",
+  "stream_sha256": "a47da69747c1d1f11ea4c0f4b377662d919b9562427e50dfa72893d155982811",
+  "checkpoints": [
+    512,
+    1024,
+    1536,
+    2048
+  ],
+  "parity_hash": "2ead0456390239965816973fe893f8ab18efc731e32900aad717be67dcd0b613",
+  "final": {
+    "msgsApplied": 2048,
+    "skipped": 0,
+    "liveOrders": 815,
+    "tradeCount": 409,
+    "lastMatch": 410,
+    "lastTs": 2047000000,
+    "bestBid": 999900,
+    "bestAsk": 1000100,
+    "rejectsTotal": 0
+  },
+  "hashes": {
+    "mdp1-ckpt-512.bin": "b3dbe89476813e0fbdbb8a07785afb78100eb8f9cf492e2ebe77bd90087227c6",
+    "mdp1-ckpt-1024.bin": "7e5a530c9d261258ba86e63ac34a440fc126b0f470ef5dbe67d91d1a46c2a164",
+    "mdp1-ckpt-1536.bin": "36b0419aff4001ea4dbf556f03bb2d1af9fadde8632fdb8b4cc8246d8f64699f",
+    "mdp1-ckpt-2048.bin": "6c969630d5e5484a3943f856ad9398f29f0641678f5ff3ac1c35509750cd7ee7"
+  }
+}

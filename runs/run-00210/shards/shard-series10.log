@@ -1,0 +1,8 @@
+==================================================
+SHARD: series10
+DESCRIPTION: Series 10 Observability Fabric: RFC 0016 flight recorder, RFC 0017 flow operators, RFC 0018 sensor fusion, RFC 0019 replay, RFC 0020 trend
+STATUS: FAILED ❌
+COMMIT: ecd6fa5e427bdbde58f9722c461b73814402c818
+RUN: 210
+==================================================
+

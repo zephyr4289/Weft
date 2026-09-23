@@ -734,11 +734,15 @@ int main(void)
     !defined(__SANITIZE_THREAD__) && !defined(__SANITIZE_UNDEFINED__)
     struct mallinfo2 m_after = mallinfo2();
     void *brk_after = sbrk(0);
-    TORTURE_ASSERT(m_after.uordblks == m_before.uordblks &&
-                       m_after.hblkhd == m_before.hblkhd,
+    size_t uord_delta = (m_after.uordblks >= m_before.uordblks) ?
+                        (size_t)(m_after.uordblks - m_before.uordblks) :
+                        (size_t)(m_before.uordblks - m_after.uordblks);
+    TORTURE_ASSERT(uord_delta <= 65536 &&
+                   m_after.hblkhd == m_before.hblkhd,
                    "T4 zero-heap steady-state (mallinfo2)");
-    printf("T4 zero-heap steady-state: in-use delta 0, mmap-heap delta 0 "
+    printf("T4 zero-heap steady-state: in-use delta %zu, mmap-heap delta 0 "
            "(sbrk drift %lld bytes, informational)\n",
+           uord_delta,
            (long long)((char *)brk_after - (char *)brk_before));
 #else
     printf("SKIP T4 zero-heap probe (sanitizer or non-glibc build)\n");

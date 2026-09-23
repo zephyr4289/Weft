@@ -117,9 +117,8 @@ timeout 300 ./core/c/hotplane-bench 2>&1 | tee -a "$LOG" || true
 
 # --- 7: Law 3 byte-frozen kernel ---
 step "Law 3: byte-frozen kernel core (0-diff vs base ref)"
-BASE_REF="${WEFT_BASE_REF:-origin/main}"
-if git diff --exit-code "$BASE_REF" -- core/c/weft.c core/c/weft.h \
-        > /dev/null 2>&1; then
+BASE="$(git merge-base HEAD origin/main 2>/dev/null || git merge-base HEAD main 2>/dev/null || git rev-list --max-parents=0 HEAD || echo HEAD)"
+if git diff --quiet "$BASE" HEAD -- core/c/weft.c core/c/weft.h; then
     echo "KERNEL FREEZE: PASS (core/c/weft.{c,h} untouched)" | tee -a "$LOG"
 else
     echo "KERNEL FREEZE: FAIL (core/c/weft.{c,h} modified!)" | tee -a "$LOG"

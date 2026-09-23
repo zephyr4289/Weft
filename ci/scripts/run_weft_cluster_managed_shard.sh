@@ -34,6 +34,9 @@ node --test "$PKG/test/wire.test.mjs" "$PKG/test/crosslang.test.mjs" --test-repo
   || node --test "$PKG/test/wire.test.mjs" "$PKG/test/crosslang.test.mjs"
 
 echo "[3/8] Python wire + router vector parity"
+if ! python3 -c "import pytest" >/dev/null 2>&1; then
+  python3 -m pip install --quiet pytest numpy
+fi
 python3 -m pytest python/tests/test_cluster_wire.py python/tests/test_cluster_router.py -q
 
 echo "[4/8] TypeScript suite"

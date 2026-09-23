@@ -1,0 +1,615 @@
+
+=== build heddle targets ===
+make: Entering directory '/home/z/my-project/weft-repo/core/c'
+make: 'hotplane-test' is up to date.
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o hotplane-test-asan heddle/heddle_hotplane.c heddle/hotplane_unit_test.c
+gcc -O0 -g -fsanitize=thread -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o hotplane-test-tsan heddle/heddle_hotplane.c heddle/hotplane_unit_test.c
+In file included from heddle/heddle_hotplane.c:11:
+heddle/heddle_hotplane_internal.h: In function ‘hplane_fence_release’:
+heddle/heddle_hotplane_internal.h:39:5: warning: ‘atomic_thread_fence’ is not supported with ‘-fsanitize=thread’ [-Wtsan]
+   39 |     __atomic_thread_fence(__ATOMIC_RELEASE);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+make: 'hotplane-torture' is up to date.
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o hotplane-torture-asan heddle/heddle_hotplane.c heddle/torn_read_torture.c
+gcc -O0 -g -fsanitize=thread -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o hotplane-torture-tsan heddle/heddle_hotplane.c heddle/torn_read_torture.c
+In file included from heddle/heddle_hotplane.c:11:
+heddle/heddle_hotplane_internal.h: In function ‘hplane_fence_release’:
+heddle/heddle_hotplane_internal.h:39:5: warning: ‘atomic_thread_fence’ is not supported with ‘-fsanitize=thread’ [-Wtsan]
+   39 |     __atomic_thread_fence(__ATOMIC_RELEASE);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+make: 'hotplane-bench' is up to date.
+make: 'hotplane-bench-inline' is up to date.
+make: 'hotplane-golden' is up to date.
+make: 'heddle-bridge-test' is up to date.
+make: Leaving directory '/home/z/my-project/weft-repo/core/c'
+
+=== H-series unit conformance (plain) ===
+=== heddle-2.0 hot-plane unit conformance (H-series) ===
+PASS H1 crc32 check value 0xCBF43926
+PASS H1 le16 byte order
+PASS H1 le16 round-trip
+PASS H1 le32 byte order
+PASS H1 le32 round-trip
+PASS H1 le64 byte order
+PASS H1 le64 round-trip
+PASS H1 align64
+PASS H1 slot stride derivation
+PASS H1 cell stride derivation
+PASS H2 plane size arithmetic
+PASS H2 create ok
+PASS H2 magic bytes LE at +0x00
+PASS H2 version 2.0 at +0x04
+PASS H2 header_size 128 at +0x08
+PASS H2 attach ok
+PASS H2 attach decoded config
+PASS H2 fresh epoch 0
+PASS H2 validate ok
+PASS H2 second create ok
+PASS H2 byte-identical determinism
+PASS H4 null mem -> E_ARG
+PASS H4 tiny len -> E_ARG
+PASS H4 null ctx -> E_ARG
+PASS H4 bad role 0 -> E_ARG
+PASS H4 bad role 7 -> E_ARG
+PASS H4 misaligned mem -> E_ARG
+PASS H4 bad magic -> E_MAGIC
+PASS H4 bad major -> E_VERSION
+PASS H4 bad header_size -> E_LAYOUT
+PASS H4 bad layout_rev -> E_LAYOUT
+PASS H4 flipped canary -> E_ENDIAN
+PASS H4 static corruption -> E_CFG_CRC
+PASS H4 self-consistent geometry lie -> E_LAYOUT
+PASS H4 lane_count 0 -> E_CAPACITY
+PASS H4 short region -> E_REGION_SIZE
+PASS H4 create bad mode -> E_MODE
+PASS H4 create 65 lanes -> E_CAPACITY
+PASS H4 create sample_size 0 -> E_PAYLOAD
+PASS H4 state capacity 1 legal
+PASS H4 ring capacity 1 -> E_CAPACITY
+PASS H4 unknown flag -> E_UNSUPPORTED
+PASS H4 stat_kind 3 -> E_ARG
+PASS H4 create short region -> E_REGION_SIZE
+PASS H5 producer attach
+PASS H5 consumer attach
+PASS H5 end without begin -> E_STATE
+PASS H5 begin ok
+PASS H5 double begin -> E_STATE
+PASS H5 state write in session
+PASS H5 torn read refused while session open (E_SEQ_TORN)
+PASS H5 commit ok
+PASS H5 epoch 1 after one session
+PASS H5 cell read after commit
+PASS H5 cell round-trip value
+PASS H5 unwritten cell reads zero
+PASS H5 second session begin
+PASS H5 lane 4 -> E_LANE_OVERFLOW
+PASS H5 cell 16 -> E_CAPACITY
+PASS H5 len 9 > sample -> E_PAYLOAD
+PASS H5 len 0 -> E_PAYLOAD
+PASS H5 null val -> E_ARG
+PASS H5 write cell 1
+PASS H5 second commit
+PASS H5 read lane 4 -> E_LANE_OVERFLOW
+PASS H5 read cell 16 -> E_CAPACITY
+PASS H5 read len 9 -> E_PAYLOAD
+PASS H5 read len 0 -> E_PAYLOAD
+PASS H5 consumer ctx cannot mutate -> E_STATE
+PASS H5 producer ctx cannot harvest -> E_STATE
+PASS H8 harvest exact mask 0b1010001
+PASS H8 second harvest empty
+PASS H8 remark ok
+PASS H8 remark visible on next harvest
+PASS H8 remark bit beyond lane_count -> E_LANE_OVERFLOW
+PASS H8 lane0 bbox [3,3]
+PASS H8 lane2 bbox [7,7]
+PASS H8 lane5 bbox [1,1]
+PASS H8 lane1 bbox [2,13]
+PASS H8 bbox persists until the frame advances
+PASS H8 frame 1 committed
+PASS H8 bbox producer-reset on frame advance -> [5,5]
+PASS H8 bbox lane 8 -> E_LANE_OVERFLOW
+PASS H10 fresh lane commit_count 0
+PASS H10 u64 min/max/current/commits
+PASS H10 i64 signed order
+PASS H10 f64 total order
+PASS H11 push outside session -> E_STATE
+PASS H11 push
+PASS H11 push
+PASS H11 push
+PASS H11 push
+PASS H11 push
+PASS H11 push
+PASS H11 head == pushes
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 ordinal 7 maps to an unwritten slot -> E_STATE
+PASS H11 ordinal 0 -> E_ARG
+PASS H11 untouched lane slot -> E_STATE
+PASS H11 cell op on ring -> E_MODE
+PASS H11 ring lane current == head
+PASS H12 ordinal 1 lost to wrap -> E_OVERRUN
+PASS H12 ordinal 6 lost to wrap -> E_OVERRUN
+PASS H12 future ordinal in wrapped slot -> E_NOT_PUBLISHED
+PASS H12 surviving window readable
+PASS H12 surviving window readable
+PASS H12 surviving window readable
+PASS H12 surviving window readable
+PASS H12 in-band backpressure marks set
+PASS H12 overrun cycle count == 2
+PASS H12 head 10
+PASS H13 global session on multi plane -> E_MODE
+PASS H13 lane0 begin
+PASS H13 second concurrent lane session -> E_STATE
+PASS H13 write to non-open lane -> E_STATE
+PASS H13 lane0 write
+PASS H13 end wrong lane -> E_STATE
+PASS H13 lane0 end
+PASS H13 lane3 begin (p2)
+PASS H13 lane3 write
+PASS H13 lane3 end
+PASS H13 lane0 read after lane session
+PASS H13 lane3 read after lane session
+PASS H13 multi mask exact
+PASS H13 epoch counts lane sessions
+PASS H13 lane session on single plane -> E_MODE
+PASS H15 frame 1
+PASS H15 frame 2
+PASS H15 producer cannot commit frames -> E_STATE
+PASS H15 heartbeat touch
+PASS H15 heartbeat visible
+PASS H15 idle frame leaves epoch alone
+PASS H16 100k cycles: heap use delta 0 (mallinfo2)
+PASS H16 100k cycles: sbrk delta 0
+PASS H17 200k continuous updates: zero mismatches
+PASS H17 exact dirty-bit accounting (200000 bits in, 200000 out)
+PASS H17 epoch == sessions
+PASS H18 mmap shared ok
+PASS H18 producer attach
+PASS H18 fork IPC lock-step: 100k msgs, zero tears, zero canary misses
+
+H-SERIES: 145 checks, 0 failures
+
+=== H-series unit conformance (ASAN) ===
+=== heddle-2.0 hot-plane unit conformance (H-series) ===
+PASS H1 crc32 check value 0xCBF43926
+PASS H1 le16 byte order
+PASS H1 le16 round-trip
+PASS H1 le32 byte order
+PASS H1 le32 round-trip
+PASS H1 le64 byte order
+PASS H1 le64 round-trip
+PASS H1 align64
+PASS H1 slot stride derivation
+PASS H1 cell stride derivation
+PASS H2 plane size arithmetic
+PASS H2 create ok
+PASS H2 magic bytes LE at +0x00
+PASS H2 version 2.0 at +0x04
+PASS H2 header_size 128 at +0x08
+PASS H2 attach ok
+PASS H2 attach decoded config
+PASS H2 fresh epoch 0
+PASS H2 validate ok
+PASS H2 second create ok
+PASS H2 byte-identical determinism
+PASS H4 null mem -> E_ARG
+PASS H4 tiny len -> E_ARG
+PASS H4 null ctx -> E_ARG
+PASS H4 bad role 0 -> E_ARG
+PASS H4 bad role 7 -> E_ARG
+PASS H4 misaligned mem -> E_ARG
+PASS H4 bad magic -> E_MAGIC
+PASS H4 bad major -> E_VERSION
+PASS H4 bad header_size -> E_LAYOUT
+PASS H4 bad layout_rev -> E_LAYOUT
+PASS H4 flipped canary -> E_ENDIAN
+PASS H4 static corruption -> E_CFG_CRC
+PASS H4 self-consistent geometry lie -> E_LAYOUT
+PASS H4 lane_count 0 -> E_CAPACITY
+PASS H4 short region -> E_REGION_SIZE
+PASS H4 create bad mode -> E_MODE
+PASS H4 create 65 lanes -> E_CAPACITY
+PASS H4 create sample_size 0 -> E_PAYLOAD
+PASS H4 state capacity 1 legal
+PASS H4 ring capacity 1 -> E_CAPACITY
+PASS H4 unknown flag -> E_UNSUPPORTED
+PASS H4 stat_kind 3 -> E_ARG
+PASS H4 create short region -> E_REGION_SIZE
+PASS H5 producer attach
+PASS H5 consumer attach
+PASS H5 end without begin -> E_STATE
+PASS H5 begin ok
+PASS H5 double begin -> E_STATE
+PASS H5 state write in session
+PASS H5 torn read refused while session open (E_SEQ_TORN)
+PASS H5 commit ok
+PASS H5 epoch 1 after one session
+PASS H5 cell read after commit
+PASS H5 cell round-trip value
+PASS H5 unwritten cell reads zero
+PASS H5 second session begin
+PASS H5 lane 4 -> E_LANE_OVERFLOW
+PASS H5 cell 16 -> E_CAPACITY
+PASS H5 len 9 > sample -> E_PAYLOAD
+PASS H5 len 0 -> E_PAYLOAD
+PASS H5 null val -> E_ARG
+PASS H5 write cell 1
+PASS H5 second commit
+PASS H5 read lane 4 -> E_LANE_OVERFLOW
+PASS H5 read cell 16 -> E_CAPACITY
+PASS H5 read len 9 -> E_PAYLOAD
+PASS H5 read len 0 -> E_PAYLOAD
+PASS H5 consumer ctx cannot mutate -> E_STATE
+PASS H5 producer ctx cannot harvest -> E_STATE
+PASS H8 harvest exact mask 0b1010001
+PASS H8 second harvest empty
+PASS H8 remark ok
+PASS H8 remark visible on next harvest
+PASS H8 remark bit beyond lane_count -> E_LANE_OVERFLOW
+PASS H8 lane0 bbox [3,3]
+PASS H8 lane2 bbox [7,7]
+PASS H8 lane5 bbox [1,1]
+PASS H8 lane1 bbox [2,13]
+PASS H8 bbox persists until the frame advances
+PASS H8 frame 1 committed
+PASS H8 bbox producer-reset on frame advance -> [5,5]
+PASS H8 bbox lane 8 -> E_LANE_OVERFLOW
+PASS H10 fresh lane commit_count 0
+PASS H10 u64 min/max/current/commits
+PASS H10 i64 signed order
+PASS H10 f64 total order
+PASS H11 push outside session -> E_STATE
+PASS H11 push
+PASS H11 push
+PASS H11 push
+PASS H11 push
+PASS H11 push
+PASS H11 push
+PASS H11 head == pushes
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 ordinal 7 maps to an unwritten slot -> E_STATE
+PASS H11 ordinal 0 -> E_ARG
+PASS H11 untouched lane slot -> E_STATE
+PASS H11 cell op on ring -> E_MODE
+PASS H11 ring lane current == head
+PASS H12 ordinal 1 lost to wrap -> E_OVERRUN
+PASS H12 ordinal 6 lost to wrap -> E_OVERRUN
+PASS H12 future ordinal in wrapped slot -> E_NOT_PUBLISHED
+PASS H12 surviving window readable
+PASS H12 surviving window readable
+PASS H12 surviving window readable
+PASS H12 surviving window readable
+PASS H12 in-band backpressure marks set
+PASS H12 overrun cycle count == 2
+PASS H12 head 10
+PASS H13 global session on multi plane -> E_MODE
+PASS H13 lane0 begin
+PASS H13 second concurrent lane session -> E_STATE
+PASS H13 write to non-open lane -> E_STATE
+PASS H13 lane0 write
+PASS H13 end wrong lane -> E_STATE
+PASS H13 lane0 end
+PASS H13 lane3 begin (p2)
+PASS H13 lane3 write
+PASS H13 lane3 end
+PASS H13 lane0 read after lane session
+PASS H13 lane3 read after lane session
+PASS H13 multi mask exact
+PASS H13 epoch counts lane sessions
+PASS H13 lane session on single plane -> E_MODE
+PASS H15 frame 1
+PASS H15 frame 2
+PASS H15 producer cannot commit frames -> E_STATE
+PASS H15 heartbeat touch
+PASS H15 heartbeat visible
+PASS H15 idle frame leaves epoch alone
+SKIP H16 zero-heap probe (sanitizer or non-glibc build)
+PASS H17 200k continuous updates: zero mismatches
+PASS H17 exact dirty-bit accounting (200000 bits in, 200000 out)
+PASS H17 epoch == sessions
+PASS H18 mmap shared ok
+PASS H18 producer attach
+PASS H18 fork IPC lock-step: 100k msgs, zero tears, zero canary misses
+
+H-SERIES: 143 checks, 0 failures
+
+=== H-series unit conformance (TSAN) ===
+=== heddle-2.0 hot-plane unit conformance (H-series) ===
+PASS H1 crc32 check value 0xCBF43926
+PASS H1 le16 byte order
+PASS H1 le16 round-trip
+PASS H1 le32 byte order
+PASS H1 le32 round-trip
+PASS H1 le64 byte order
+PASS H1 le64 round-trip
+PASS H1 align64
+PASS H1 slot stride derivation
+PASS H1 cell stride derivation
+PASS H2 plane size arithmetic
+PASS H2 create ok
+PASS H2 magic bytes LE at +0x00
+PASS H2 version 2.0 at +0x04
+PASS H2 header_size 128 at +0x08
+PASS H2 attach ok
+PASS H2 attach decoded config
+PASS H2 fresh epoch 0
+PASS H2 validate ok
+PASS H2 second create ok
+PASS H2 byte-identical determinism
+PASS H4 null mem -> E_ARG
+PASS H4 tiny len -> E_ARG
+PASS H4 null ctx -> E_ARG
+PASS H4 bad role 0 -> E_ARG
+PASS H4 bad role 7 -> E_ARG
+PASS H4 misaligned mem -> E_ARG
+PASS H4 bad magic -> E_MAGIC
+PASS H4 bad major -> E_VERSION
+PASS H4 bad header_size -> E_LAYOUT
+PASS H4 bad layout_rev -> E_LAYOUT
+PASS H4 flipped canary -> E_ENDIAN
+PASS H4 static corruption -> E_CFG_CRC
+PASS H4 self-consistent geometry lie -> E_LAYOUT
+PASS H4 lane_count 0 -> E_CAPACITY
+PASS H4 short region -> E_REGION_SIZE
+PASS H4 create bad mode -> E_MODE
+PASS H4 create 65 lanes -> E_CAPACITY
+PASS H4 create sample_size 0 -> E_PAYLOAD
+PASS H4 state capacity 1 legal
+PASS H4 ring capacity 1 -> E_CAPACITY
+PASS H4 unknown flag -> E_UNSUPPORTED
+PASS H4 stat_kind 3 -> E_ARG
+PASS H4 create short region -> E_REGION_SIZE
+PASS H5 producer attach
+PASS H5 consumer attach
+PASS H5 end without begin -> E_STATE
+PASS H5 begin ok
+PASS H5 double begin -> E_STATE
+PASS H5 state write in session
+PASS H5 torn read refused while session open (E_SEQ_TORN)
+PASS H5 commit ok
+PASS H5 epoch 1 after one session
+PASS H5 cell read after commit
+PASS H5 cell round-trip value
+PASS H5 unwritten cell reads zero
+PASS H5 second session begin
+PASS H5 lane 4 -> E_LANE_OVERFLOW
+PASS H5 cell 16 -> E_CAPACITY
+PASS H5 len 9 > sample -> E_PAYLOAD
+PASS H5 len 0 -> E_PAYLOAD
+PASS H5 null val -> E_ARG
+PASS H5 write cell 1
+PASS H5 second commit
+PASS H5 read lane 4 -> E_LANE_OVERFLOW
+PASS H5 read cell 16 -> E_CAPACITY
+PASS H5 read len 9 -> E_PAYLOAD
+PASS H5 read len 0 -> E_PAYLOAD
+PASS H5 consumer ctx cannot mutate -> E_STATE
+PASS H5 producer ctx cannot harvest -> E_STATE
+PASS H8 harvest exact mask 0b1010001
+PASS H8 second harvest empty
+PASS H8 remark ok
+PASS H8 remark visible on next harvest
+PASS H8 remark bit beyond lane_count -> E_LANE_OVERFLOW
+PASS H8 lane0 bbox [3,3]
+PASS H8 lane2 bbox [7,7]
+PASS H8 lane5 bbox [1,1]
+PASS H8 lane1 bbox [2,13]
+PASS H8 bbox persists until the frame advances
+PASS H8 frame 1 committed
+PASS H8 bbox producer-reset on frame advance -> [5,5]
+PASS H8 bbox lane 8 -> E_LANE_OVERFLOW
+PASS H10 fresh lane commit_count 0
+PASS H10 u64 min/max/current/commits
+PASS H10 i64 signed order
+PASS H10 f64 total order
+PASS H11 push outside session -> E_STATE
+PASS H11 push
+PASS H11 push
+PASS H11 push
+PASS H11 push
+PASS H11 push
+PASS H11 push
+PASS H11 head == pushes
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 slot ordinal round-trip
+PASS H11 ordinal 7 maps to an unwritten slot -> E_STATE
+PASS H11 ordinal 0 -> E_ARG
+PASS H11 untouched lane slot -> E_STATE
+PASS H11 cell op on ring -> E_MODE
+PASS H11 ring lane current == head
+PASS H12 ordinal 1 lost to wrap -> E_OVERRUN
+PASS H12 ordinal 6 lost to wrap -> E_OVERRUN
+PASS H12 future ordinal in wrapped slot -> E_NOT_PUBLISHED
+PASS H12 surviving window readable
+PASS H12 surviving window readable
+PASS H12 surviving window readable
+PASS H12 surviving window readable
+PASS H12 in-band backpressure marks set
+PASS H12 overrun cycle count == 2
+PASS H12 head 10
+PASS H13 global session on multi plane -> E_MODE
+PASS H13 lane0 begin
+PASS H13 second concurrent lane session -> E_STATE
+PASS H13 write to non-open lane -> E_STATE
+PASS H13 lane0 write
+PASS H13 end wrong lane -> E_STATE
+PASS H13 lane0 end
+PASS H13 lane3 begin (p2)
+PASS H13 lane3 write
+PASS H13 lane3 end
+PASS H13 lane0 read after lane session
+PASS H13 lane3 read after lane session
+PASS H13 multi mask exact
+PASS H13 epoch counts lane sessions
+PASS H13 lane session on single plane -> E_MODE
+PASS H15 frame 1
+PASS H15 frame 2
+PASS H15 producer cannot commit frames -> E_STATE
+PASS H15 heartbeat touch
+PASS H15 heartbeat visible
+PASS H15 idle frame leaves epoch alone
+SKIP H16 zero-heap probe (sanitizer or non-glibc build)
+PASS H17 200k continuous updates: zero mismatches
+PASS H17 exact dirty-bit accounting (200000 bits in, 200000 out)
+PASS H17 epoch == sessions
+PASS H18 mmap shared ok
+PASS H18 producer attach
+PASS H18 fork IPC lock-step: 100k msgs, zero tears, zero canary misses
+
+H-SERIES: 143 checks, 0 failures
+
+=== W-series bridge conformance (plain) ===
+=== heddle-2.0 WASM/FFI bridge conformance (W-series) ===
+PASS W1 header field offsets == engine offsetof
+PASS W1 lane descriptor offsets
+PASS W1 lane data offset arithmetic
+PASS W1 stride + payload-offset parity
+PASS W2 plane created
+PASS W2 describe decodes identity + geometry
+PASS W2 engine consumer attach
+PASS W4 bridge-writes <-> engine-reads, 100k sessions
+PASS W4 bridge sessions set all four lane bits
+PASS W4 transitions counted by the bridge agree with the engine
+PASS W4 lane stats visible across the alias
+PASS W4 engine epoch (derived from commit_seq) == bridge session
+PASS W4 single-plane epoch register untouched (RMW-free commits)
+PASS W4 bridge reads the engine's commit_seq directly
+PASS W5 bridge copy == engine copy (byte-exact)
+PASS W3 bad magic -> E_MAGIC
+PASS W3 bad version -> E_VERSION
+PASS W3 flipped canary -> E_ENDIAN
+PASS W3 corrupt config -> E_CFG_CRC
+PASS W3 short region -> E_REGION_SIZE
+PASS W3 null base -> E_ARG
+
+W-SERIES: 21 checks, 0 failures
+
+=== T-series torn-read torture (plain, full: 2M multi-producer updates) ===
+=== heddle-2.0 torn-read torture (T-series), iters=500000 ring=1000000 ===
+T1 multi-producer state: 2000000 updates, 20963702 reads, 3613928 torn-refusals, 2678785 harvest frames, bbox_empty_bad=0 stats_bad=0
+ACCOUNTING transitions=127504 harvested=127504 final_mask=0
+T2 single-producer batched: 62500 sessions (500000 writes), reader bad=0 torn=451556 reads=623387
+ACCOUNTING transitions=16 harvested=16 final_mask=0
+T3 ring streaming: 1000000 pushes, ok=763686 overrun=4 torn=0 bad=0
+ACCOUNTING transitions=2 harvested=2 final_mask=0
+T4 zero-heap steady-state: in-use delta 0, mmap-heap delta 0 (sbrk drift 598016 bytes, informational)
+VERDICT: PASS
+
+=== T-series torn-read torture (ASAN, full) ===
+=== heddle-2.0 torn-read torture (T-series), iters=500000 ring=1000000 ===
+T1 multi-producer state: 2000000 updates, 7933086 reads, 2936966 torn-refusals, 1683457 harvest frames, bbox_empty_bad=0 stats_bad=0
+ACCOUNTING transitions=206759 harvested=206759 final_mask=0
+T2 single-producer batched: 62500 sessions (500000 writes), reader bad=0 torn=409016 reads=522709
+ACCOUNTING transitions=16 harvested=16 final_mask=0
+T3 ring streaming: 1000000 pushes, ok=917786 overrun=3 torn=0 bad=0
+ACCOUNTING transitions=2 harvested=2 final_mask=0
+SKIP T4 zero-heap probe (sanitizer or non-glibc build)
+VERDICT: PASS
+
+=== T-series torn-read torture (TSAN, reduced iters — >=200k updates) ===
+=== heddle-2.0 torn-read torture (T-series), iters=50000 ring=100000 ===
+T1 multi-producer state: 200000 updates, 302848 reads, 78291 torn-refusals, 115218 harvest frames, bbox_empty_bad=0 stats_bad=0
+ACCOUNTING transitions=23073 harvested=23073 final_mask=0
+T2 single-producer batched: 6250 sessions (50000 writes), reader bad=0 torn=12357 reads=48084
+ACCOUNTING transitions=16 harvested=16 final_mask=0
+T3 ring streaming: 100000 pushes, ok=97803 overrun=0 torn=0 bad=0
+ACCOUNTING transitions=2 harvested=2 final_mask=0
+SKIP T4 zero-heap probe (sanitizer or non-glibc build)
+VERDICT: PASS
+
+=== golden determinism (3x regenerate + byte-compare) ===
+golden: 8576 bytes + descriptor written to /tmp/heddle-golden-1
+golden: 8576 bytes + descriptor written to /tmp/heddle-golden-2
+golden: 8576 bytes + descriptor written to /tmp/heddle-golden-3
+GOLDEN DETERMINISM: PASS (3/3 byte-identical)
+GOLDEN DESCRIPTOR: PASS (byte-identical)
+
+=== J-series JS/SAB/Atomics golden interop (node) ===
+PASS J1 mode decoded (state)
+PASS J1 lane_count decoded
+PASS J1 lane_stride decoded
+PASS J1 sample_size decoded
+PASS J1 slot_capacity decoded
+PASS J1 plane_size decoded
+PASS J1 create_stamp_ns decoded
+PASS J1 magic constant parity
+PASS J2 begin_seq
+PASS J2 commit_seq
+PASS J2 dirty_mask
+PASS J2 dirty_transitions
+PASS J2 render_frame_id
+PASS J2 epoch (derived from commit_seq)
+PASS J3 lane 0 commit_count
+PASS J3 lane 0 min/max/current raw bits
+PASS J3 lane 0 bbox [0,31]
+PASS J4 lane 0: all 32 cells byte-exact
+PASS J3 lane 1 commit_count
+PASS J3 lane 1 min/max/current raw bits
+PASS J3 lane 1 bbox [0,31]
+PASS J4 lane 1: all 32 cells byte-exact
+PASS J3 lane 2 commit_count
+PASS J3 lane 2 min/max/current raw bits
+PASS J3 lane 2 bbox [2,31]
+PASS J4 lane 2: all 32 cells byte-exact
+PASS J3 lane 3 commit_count
+PASS J3 lane 3 min/max/current raw bits
+PASS J3 lane 3 bbox [0,31]
+PASS J4 lane 3: all 32 cells byte-exact
+PASS J5 harvest returns mask 0xf
+PASS J5 second harvest empty
+PASS J5 remark visible next harvest
+PASS J5 frame ids 1, 2
+PASS J6 producer-role harvest refused
+PASS J6 misaligned offset refused
+PASS J6 corrupt magic refused
+
+J-SERIES: 37 checks, 0 failures
+
+=== B-series scoreboard — inlined protocol core (informational budgets) ===
+=== heddle-2.0 hot-plane scoreboard (B-series) ===
+machine: Intel(R) Xeon(R) Processor | 2 cores | gcc 14.2 | inlined protocol core (-DBENCH_INLINE)
+BENCH B1 session commit (public API calls)     6.00 ns/op      0.00 cyc/op   budget <0 ns  n/a
+BENCH B1c commit protocol core (two-store)     0.00 ns/op     21.00 cyc/op   budget <5 ns  PASS
+BENCH B2 state_write commit (payload+signals)    22.00 ns/op      1.00 cyc/op   budget <0 ns  n/a
+BENCH B3 dirty update (lane session flush)    29.00 ns/op     71.00 cyc/op   budget <3 ns  FAIL
+BENCH B3b dirty register op (raw fetch_or)     7.00 ns/op     94.00 cyc/op   budget <3 ns  FAIL
+BENCH B4 read/acquire (cell_read)            4.00 ns/op     22.00 cyc/op   budget <5 ns  PASS
+BENCH B6 harvest exchange (+1 flush)         4.00 ns/op     13.00 cyc/op   budget <0 ns  n/a
+BENCH B7 epoch probe (idle-frame killer)     2.00 ns/op     15.00 cyc/op   budget <0 ns  n/a
+BENCH B5 ring push (64-batch amortized)     18.00 ns/op      6.00 cyc/op   budget <0 ns  n/a
+B8  zero-heap over 1048576 commit+read+harvest cycles: in-use delta 0, mmap-heap delta 0 -> PASS
+SCOREBOARD: FAIL
+NOTE: budget verdicts above are hardware-scaled; see D-41
+
+=== B-series scoreboard — public API entry costs (informational) ===
+=== heddle-2.0 hot-plane scoreboard (B-series) ===
+machine: Intel(R) Xeon(R) Processor | 2 cores | gcc 14.2 | public API (extern calls)
+BENCH B1 session commit (public API calls)     6.00 ns/op      0.00 cyc/op   budget <0 ns  n/a
+BENCH B1c commit protocol core (two-store)     0.00 ns/op     21.00 cyc/op   budget <5 ns  PASS
+BENCH B2 state_write commit (payload+signals)    22.00 ns/op      1.00 cyc/op   budget <0 ns  n/a
+BENCH B3 dirty update (lane session flush)    29.00 ns/op     70.00 cyc/op   budget <3 ns  FAIL
+BENCH B3b dirty register op (raw fetch_or)     7.00 ns/op     95.00 cyc/op   budget <3 ns  FAIL
+BENCH B4 read/acquire (cell_read)            4.00 ns/op     22.00 cyc/op   budget <5 ns  PASS
+BENCH B6 harvest exchange (+1 flush)         8.00 ns/op     13.00 cyc/op   budget <0 ns  n/a
+BENCH B7 epoch probe (idle-frame killer)     2.00 ns/op     27.00 cyc/op   budget <0 ns  n/a
+BENCH B5 ring push (64-batch amortized)     18.00 ns/op      6.00 cyc/op   budget <0 ns  n/a
+B8  zero-heap over 1048576 commit+read+harvest cycles: in-use delta 0, mmap-heap delta 0 -> PASS
+SCOREBOARD: FAIL
+
+=== Law 3: byte-frozen kernel core (0-diff vs base ref) ===
+KERNEL FREEZE: PASS (core/c/weft.{c,h} untouched)
+
+HEDDLE SHARD: PASS

@@ -168,7 +168,7 @@ public struct ProfileView {
 
     public init(_ data: [UInt8]) {
         precondition(data.count >= shp1RecordSize, "SHP1 record too small")
-        bytes = UnsafeRawBufferPointer(data)
+        bytes = UnsafeRawBufferPointer(start: data, count: shp1RecordSize)
     }
 
     /// Law 4 gate: 0 when intact, else a §6 code (cheapest checks first).

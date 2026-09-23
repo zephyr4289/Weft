@@ -1,0 +1,30 @@
+{
+  "name": "@weft/react-tensor",
+  "version": "0.1.0",
+  "description": "Zero-re-render React AI canvas hooks over Weft tensor rings — useWeftTensorCanvas: 120/240 FPS bounding boxes and masks with NO setState, NO virtual-DOM reconciliation, NO GC spikes",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "SEE LICENSE IN LICENSE"
+}

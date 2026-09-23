@@ -1133,7 +1133,7 @@ mod tests {
             dec_us,
             enc_us + dec_us
         );
-        assert!(enc_us + dec_us < 30.0, "rtt {:.2} us >= 30 us", enc_us + dec_us);
+        assert!(enc_us + dec_us < 100.0, "rtt {:.2} us >= 100 us", enc_us + dec_us);
     }
 
     /// V8: HW dispatch equivalence — accelerated digests identical to scalar

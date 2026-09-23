@@ -1,0 +1,5 @@
+# generated / local artifacts (the shard rebuilds both)
+rig/heddle_rig_bundle.mjs
+native/vk-heddle-probe
+dist/
+packages/heddle-canvas/package-lock.json

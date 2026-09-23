@@ -1,0 +1,17 @@
+// Canonical Weft Studio demo schema — pinned by golden fixtures.
+// Deliberately exhibits: nested struct (Level), a 64B false-sharing hazard
+// (writer 0 vs writer 1 sharing cache line 0), and an explicit @align(64).
+struct Level {
+  price: i64;    // fixed-point 1e-9
+  qty: u32;
+  flags: u8;
+}
+
+struct MarketTick {
+  @writer(0) ts_ns: u64;
+  @writer(0) bid: Level;
+  @writer(1) ask: Level;      // HAZARD: writer 1 shares line 0 with writer 0
+  @writer(1) last_px: i64;
+  venue: u16;
+  @align(64) seq: u64;
+}

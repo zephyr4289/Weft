@@ -1,0 +1,2 @@
+  C7 compile+2x codegen: 29121 ns/cycle (budget 1000000)
+test_weftc_inmem (C-series): 203 checks, 0 failures -> PASS

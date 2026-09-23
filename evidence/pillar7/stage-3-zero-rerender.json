@@ -1,0 +1,71 @@
+{
+  "stage": 3,
+  "checks": [
+    {
+      "name": "root mounted and engine attached",
+      "ok": true,
+      "detail": "root renders = 3 (mount lifecycle: shell → mounted → engine)"
+    },
+    {
+      "name": "canvas refs bound to fake surfaces",
+      "ok": true,
+      "detail": "bound = 3 (schema tab mounts 3: spy, status, telemetry)"
+    },
+    {
+      "name": "engine attached through mount lifecycle",
+      "ok": true,
+      "detail": "rate=1000000"
+    },
+    {
+      "name": "all 10000 frames executed",
+      "ok": true,
+      "detail": "ran = 10000"
+    },
+    {
+      "name": "4 hot panels mounted under the tree",
+      "ok": true,
+      "detail": "mounted: 1,5,6,7"
+    },
+    {
+      "name": "hot components invoked exactly once",
+      "ok": true,
+      "detail": "counts stable at [1,0,0,0,1,1,1]"
+    },
+    {
+      "name": "zero setState mutations during burst",
+      "ok": true,
+      "detail": "mutations = 0"
+    },
+    {
+      "name": "hot plane painted",
+      "ok": true,
+      "detail": "ctx calls = 140000"
+    },
+    {
+      "name": "flight log recorded the burst",
+      "ok": true,
+      "detail": "80000 records"
+    },
+    {
+      "name": "burst completed in reasonable wall time",
+      "ok": true,
+      "detail": "2450 ms"
+    },
+    {
+      "name": "unmount detaches all drawers",
+      "ok": true,
+      "detail": "3 → 0"
+    },
+    {
+      "name": "tab panels (Ring/Cache/TimeTravel) invoked exactly once over 2,000 more frames",
+      "ok": true,
+      "detail": "canvases=4 grown=none paints=3379324"
+    },
+    {
+      "name": "zero mutations in tab-panel burst",
+      "ok": true,
+      "detail": "0"
+    }
+  ],
+  "ok": true
+}

@@ -1,0 +1,81 @@
+{
+  "stage": 7,
+  "checks": [
+    {
+      "name": "hot draw functions audited (13 found)",
+      "ok": true,
+      "detail": "13"
+    },
+    {
+      "name": "no per-frame allocation patterns in hot draws",
+      "ok": true,
+      "detail": "clean"
+    },
+    {
+      "name": "no setState in hot draws",
+      "ok": true,
+      "detail": "clean"
+    },
+    {
+      "name": "ui/panels/RingMonitorPanel.tsx structure",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "ui/panels/TelemetryPanel.tsx structure",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "ui/panels/RenderSpyPanel.tsx structure",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "ui/panels/StatusBar.tsx structure",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "ui/panels/TimeTravelPanel.tsx structure",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "ui/panels/CacheMapperPanel.tsx structure",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "ui/hooks.ts structure",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "engine+UI payload < 160 KiB gzipped (instant zero-install budget)",
+      "ok": true,
+      "detail": "56 KiB gz / 163 KiB raw across 26 files"
+    },
+    {
+      "name": "payload < 500 KiB raw (15 MB desktop bundle share)",
+      "ok": true,
+      "detail": "163 KiB"
+    },
+    {
+      "name": "Tauri launcher bundle budget < 15 MB",
+      "ok": true,
+      "detail": "14.2 MB declared"
+    },
+    {
+      "name": "Tauri cold start budget < 200 ms",
+      "ok": true,
+      "detail": "180 ms declared"
+    }
+  ],
+  "ok": true,
+  "payload": {
+    "files": 26,
+    "raw_kib": 163,
+    "gzip_kib": 56
+  }
+}

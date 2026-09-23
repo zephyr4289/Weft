@@ -1,0 +1,14 @@
+Weft Studio — E2E demo (trading 10M msg/s + robotics 120 FPS)
+=============================================================
+  ✓ schema parsed + laid out — hash 06bfa14666db8191
+  ✓ 7-language codegen generated — total 1.33 ms
+  ✓ 1,000,000-slot memory map attached — 31 MiB
+  ✓ 5 s governed burst executed at 240 Hz — 1200 frames
+  ✓ trading stream ~10,000,000 msg/s ingested — 10000240 msg/s avg (100.0% of nominal), 20.5M/s wall throughput
+  ✓ robotics stream at 120 FPS — 600 IMU samples in 5 s
+  ✓ zero torn reads under full load — torn delta = 0
+  ✓ frame work inside 4.166 ms budget — stalls = 0
+  frame work — p50 2.033 ms · p99 2.148 ms · max 2.921 ms
+  ✓ time-travel scrub deterministic — 32640 records, scrub @ 16320
+  ✓ one-click crash export — 1305664 bytes .srecburst (SREC magic verified)
+DEMO: PASS

@@ -1,0 +1,58 @@
+{
+  "stage": 4,
+  "checks": [
+    {
+      "name": "4800 consecutive frames executed",
+      "ok": true,
+      "detail": "ran = 4800"
+    },
+    {
+      "name": "0 dropped/skipped frames (all attempts)",
+      "ok": true,
+      "detail": "skipped = [0,0,0]"
+    },
+    {
+      "name": "0 timing stalls (work > budget)",
+      "ok": true,
+      "detail": "stalls = 0 (budget 4166666 ns)"
+    },
+    {
+      "name": "p99 frame work inside budget",
+      "ok": true,
+      "detail": "p99 = 0.870 ms of 4.167 ms"
+    },
+    {
+      "name": "max frame work inside budget",
+      "ok": true,
+      "detail": "max = 3.807 ms"
+    },
+    {
+      "name": "stream ingested across the run",
+      "ok": true,
+      "detail": "published = 61010471"
+    },
+    {
+      "name": "zero torn reads under the governor",
+      "ok": true,
+      "detail": "torn = 0"
+    },
+    {
+      "name": "run completed well under real-time",
+      "ok": true,
+      "detail": "2932 ms wall for 4800 frames"
+    }
+  ],
+  "ok": true,
+  "metrics": {
+    "frames": 4800,
+    "skipped": 0,
+    "stalls": 0,
+    "p50_ns": 550469,
+    "p99_ns": 870157,
+    "max_ns": 3806771,
+    "budget_ns": 4166666,
+    "wall_ms": 2932,
+    "published": 61010471,
+    "torn": 0
+  }
+}

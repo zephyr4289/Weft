@@ -1,0 +1,61 @@
+{
+  "stage": 5,
+  "checks": [
+    {
+      "name": "50000 records captured",
+      "ok": true,
+      "detail": "50000"
+    },
+    {
+      "name": "scrub determinism across two passes (1,000 indices)",
+      "ok": true,
+      "detail": "0 mismatches"
+    },
+    {
+      "name": "state is non-trivial (distinct hashes)",
+      "ok": true,
+      "detail": "991 distinct states over 1,000 indices"
+    },
+    {
+      "name": "checkpoint jump equals full replay",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "serialize fills the stream buffer",
+      "ok": true,
+      "detail": "2000032 vs 2000032"
+    },
+    {
+      "name": "parse succeeds",
+      "ok": true,
+      "detail": "50000"
+    },
+    {
+      "name": "serialize(parse(serialize)) byte-identical",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "crash bundle serialized",
+      "ok": true,
+      "detail": "2000064 bytes"
+    },
+    {
+      "name": "bundle trailer CRC verifies",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "corrupted stream rejected (fail-closed)",
+      "ok": true,
+      "detail": "E_EXPORT: header crc mismatch"
+    }
+  ],
+  "ok": true,
+  "metrics": {
+    "records": 50000,
+    "distinct_states": 991,
+    "bundle_bytes": 2000064
+  }
+}

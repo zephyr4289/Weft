@@ -204,6 +204,13 @@ importers:
         specifier: '>=18'
         version: 18.3.1
 
+  packages/studio:
+    dependencies:
+      react:
+        specifier: '>=18'
+        version: 18.3.1
+
+
   packages/vue:
     dependencies:
       '@weft/core':

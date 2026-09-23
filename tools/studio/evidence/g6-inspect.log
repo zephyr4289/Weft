@@ -1,0 +1,17 @@
+WEFTREC1 trace: /tmp/p7build/roundtrip.weftrec
+  frames:        12
+  first_ts_ns:   1000
+  last_ts_ns:    3750
+  streams:       2
+  index_offset:  1600
+  crc32c kernel: slicing-by-8
+  frames (first 8):
+    #0 ts=1000 stream=0 payload=48 stored=48 codec=raw crc=ok
+    #1 ts=1250 stream=1 payload=48 stored=48 codec=raw crc=ok
+    #2 ts=1500 stream=0 payload=48 stored=48 codec=raw crc=ok
+    #3 ts=1750 stream=1 payload=48 stored=48 codec=raw crc=ok
+    #4 ts=2000 stream=0 payload=48 stored=48 codec=raw crc=ok
+    #5 ts=2250 stream=1 payload=48 stored=48 codec=raw crc=ok
+    #6 ts=2500 stream=0 payload=48 stored=48 codec=raw crc=ok
+    #7 ts=2750 stream=1 payload=48 stored=48 codec=raw crc=ok
+  walked 12 frames; end: ETRUNC: truncated stream / end of trace

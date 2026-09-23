@@ -91,6 +91,7 @@ jobs:
               - 'packages/**'
               - 'fixtures/**'
               - 'heddles/**'
+              - 'python/**'
               - 'android/**'
               - 'apple/**'
               - 'demos/**'
@@ -187,6 +188,7 @@ jobs:
               {"shard": "series10", "description": "Series 10 Observability Fabric: RFC 0016 flight recorder, RFC 0017 flow operators, RFC 0018 sensor fusion, RFC 0019 replay, RFC 0020 trend", "script": "ci/scripts/run_series10_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "weftc", "description": "RFC-0017 schema compiler: WL/WH/WD suites + goldens + verify-header drift gate (plain + ASAN)", "script": "ci/scripts/run_weftc_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "weftc-codegen", "description": "Project weftc Pillar 1: Native (C11/Rust/WGSL/GLSL) & Managed (TS/Python/Swift/Dart/React/Flutter) codegen suites + parity matrix + E2E kernel roundtrip", "script": "ci/scripts/run_weftc_codegen_shard.sh", "args": "", "needs_rust": True, "filter": "any_code"},
+              {"shard": "weft-tensor-managed", "description": "Project weft-tensor Pillar 2: WTR1 layout, TS/Python ingestion engines, DLPack/NumPy bridge, cross-language parity, React/Flutter AI hooks/widgets, 120 FPS flight demo, alloc probes", "script": "ci/scripts/run_weft_tensor_managed_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)

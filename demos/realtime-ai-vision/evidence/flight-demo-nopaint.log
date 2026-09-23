@@ -1,0 +1,29 @@
+
+{
+  "demo": "weft-tensor realtime-ai-vision (terminal, --no-paint Law-1 flight)",
+  "geometry": "160x90 RGBA",
+  "targetFps": 120,
+  "produced": 479,
+  "rendered": 467,
+  "stalls": 25,
+  "producerBehind": 0,
+  "detection": {
+    "runs": 467,
+    "p50_us": 11.8,
+    "p99_us": 167.6,
+    "max_us": 559.2,
+    "under_1ms_p99": true
+  },
+  "gc": {
+    "pauses": 4,
+    "totalMs": 1.87
+  },
+  "heapDeltaBytes": 730392,
+  "allocationNote": "no-paint flight: tensor ring + detector only — GC pauses here are the Law-1 verdict",
+  "laws": {
+    "Law1 zero-alloc loop": "grid/labels/stack/scratch/frame preallocated; no per-frame objects",
+    "Law2 LE/IEEE": "ring layer enforces LE (WTR1_BAD_CRC-guarded header, DataView explicit true)",
+    "Law3 runtime": "node v24.21.0 (browser twin: web/)",
+    "Law4 boundary": "ring attach validates header; detector reads only committed slots"
+  }
+}

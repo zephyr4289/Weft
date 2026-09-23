@@ -1,0 +1,1 @@
+{"bench":"weft-tensor 120Hz paint loop","node":"v24.21.0","wallSeconds":2,"ticks":242,"framesRendered":242,"stalls":0,"fps":121,"draw_us":{"p50":10.663,"p99":28.13,"max":128.471},"note":"fake ctx: measures our zero-alloc path cost only (putImageData is external)"}

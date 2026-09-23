@@ -1,0 +1,19 @@
+name: weft_flutter_tensor_example
+description: Minimal synthetic-WTR1-ring sketch for the weft_flutter_tensor zero-GC AI overlay.
+publish_to: none
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  weft_flutter_tensor:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

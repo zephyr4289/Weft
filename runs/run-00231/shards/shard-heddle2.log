@@ -1,0 +1,43 @@
+==================================================
+SHARD: heddle2
+DESCRIPTION: Pillar 4 heddle-2.0: HPL1 fixtures + core/react suites + zero-alloc probes (<32KiB) + Dart/Swift audits + 240fps flight mandates (0 re-render, GC<32KiB/100k frames)
+STATUS: PASSED ✅
+COMMIT: d554df4f0da7fdbf448cc63d508ccc0120985280
+RUN: 231
+==================================================
+
+[1/8] kernel-core integrity (Law 3: core/c byte-frozen)
+    core/c/ untouched
+[2/8] HPL1 fixture determinism (double-run byte-identical)
+    fixtures byte-identical
+[3/8] heddle-core suite
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 177.674139
+[4/8] react-heddle suite (zero-re-render binding layer)
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 143.849209
+[5/8] native-source structural audits (Dart + Swift, no-SDK lanes)
+  ok  pubspec sdk constraint
+static_audit: 35 passed, 0 failed
+  ok  XCTest covers torn-seqlock Law-4 behavior
+swift_audit: 22 passed, 0 failed
+[6/8] zero-allocation probes (--expose-gc, 100k ops, < 32 KiB gate)
+    {"mode":"producer","iters":100000,"heapGrowthBytes":-3832,"gateBytes":32768,"pass":true}
+    {"mode":"consumer","iters":100000,"heapGrowthBytes":-5864,"gateBytes":32768,"pass":true}
+    {"mode":"scheduler","iters":100000,"heapGrowthBytes":-3368,"gateBytes":32768,"pass":true}
+    {"mode":"control","iters":100000,"heapGrowthBytes":206632,"gateBytes":32768,"pass":true}
+[7/8] flight demo — trading-terminal-240fps mandates
+[A ingestion burst — 100,000 ticks x 16 lanes]
+[B 240 Hz frame lock — 24,000 frames, 4 panels + HUD poll]
+[C GC allocation probe — < 32 KiB over 100,000 frames + control]
+[D re-render probe — 0 setState over 100,000 ticks]
+[E HUD snapshot — tears / dirty / latency]
+FLIGHT PASS — all mandates verified
+[8/8] report integrity
+    D-43 report + laws map + scorecard present
+
+heddle2 shard: ALL 8 STAGES GREEN

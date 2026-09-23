@@ -1,0 +1,71 @@
+==================================================
+SHARD: tensor-fabric
+DESCRIPTION: RFC-0021 weft-tensor: WT view/arena/ring suites + golden bit-exactness + MPSC/SPMC/MMPC tearing stress + fork torture (plain + ASAN + TSAN)
+STATUS: PASSED ✅
+COMMIT: f4666e1fa7636d26828212274a19147280bdac8e
+RUN: 223
+==================================================
+
+
+=== weft-tensor full gate (plain + ASAN + TSAN + golden freshness) ===
+make: Entering directory '/home/runner/work/Weft/Weft/core/c/tensor'
+rm -f tensor-view-test tensor-view-test-asan tensor-arena-test \
+              tensor-arena-test-asan tensor-ring-test tensor-ring-test-asan \
+              tensor-ring-test-tsan
+make: Leaving directory '/home/runner/work/Weft/Weft/core/c/tensor'
+
+=== WT gate 0: golden fixture freshness (Python oracle regen) ===
+fixture byte-identical to the oracle output
+
+=== WT gate 1: plain leg (view + arena + ring) ===
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -I. -o tensor-view-test weft_tensor_view.c weft_tensor_arena.c weft_tensor_ring.c tests/test_tensor_view.c
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -I. -o tensor-arena-test weft_tensor_view.c weft_tensor_arena.c weft_tensor_ring.c tests/test_tensor_arena.c
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -I. -o tensor-ring-test weft_tensor_view.c weft_tensor_arena.c weft_tensor_ring.c tests/test_tensor_ring.c
+WT4 fixture: 23 golden offsets reproduced bit-exact
+tensor-view: 329 checks, 0 failures
+WT18 placement report: mlock=1 hugepage_hint=1 (refusals are honest, not fatal)
+{"test":"WT23","variant":"100k","allocs":100000,"ns_per_alloc":1.4,"bytes":25600000}
+tensor-arena: 91 checks, 0 failures
+WT25 placement report: mlock=1 hugepage_hint=1
+WT36 measured: full-ring claim ETIMEOUT after 60.1 ms budget
+WT32 MPSC stress: 50000 messages, 25600000 word checks, 0 tears, 0 FIFO violations
+WT33 SPMC stress: 50000 messages, 4 racing consumers, 0 tears, exactly-once proven
+WT39 MPMC stress: 20000 messages, 2x2 sides, 0 tears
+WT34 fork torture: 10000 cross-process tensors, 0 tears
+{"test":"WT40","variant":"smoke-4k","producers":4,"slots":64,"payload":4096,"msgs":10000,"secs":0.0099,"msgs_s":1012438,"gb_s":4.15,"verified_words":5120000}
+tensor-ring: 512 checks, 0 failures
+
+=== WT gate 2: ASAN leg ===
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -I. -o tensor-view-test-asan weft_tensor_view.c weft_tensor_arena.c weft_tensor_ring.c tests/test_tensor_view.c
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -I. -o tensor-arena-test-asan weft_tensor_view.c weft_tensor_arena.c weft_tensor_ring.c tests/test_tensor_arena.c
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -I. -o tensor-ring-test-asan weft_tensor_view.c weft_tensor_arena.c weft_tensor_ring.c tests/test_tensor_ring.c
+WT4 fixture: 23 golden offsets reproduced bit-exact
+tensor-view: 329 checks, 0 failures
+WT18 placement report: mlock=1 hugepage_hint=1 (refusals are honest, not fatal)
+{"test":"WT23","variant":"100k","allocs":100000,"ns_per_alloc":4.8,"bytes":25600000}
+tensor-arena: 91 checks, 0 failures
+WT25 placement report: mlock=1 hugepage_hint=1
+WT36 measured: full-ring claim ETIMEOUT after 60.1 ms budget
+WT32 MPSC stress: 50000 messages, 25600000 word checks, 0 tears, 0 FIFO violations
+WT33 SPMC stress: 50000 messages, 4 racing consumers, 0 tears, exactly-once proven
+WT39 MPMC stress: 20000 messages, 2x2 sides, 0 tears
+WT34 fork torture: 10000 cross-process tensors, 0 tears
+{"test":"WT40","variant":"smoke-4k","producers":4,"slots":64,"payload":4096,"msgs":10000,"secs":0.0132,"msgs_s":755481,"gb_s":3.09,"verified_words":5120000}
+tensor-ring: 512 checks, 0 failures
+
+=== WT gate 3: TSAN leg (fork torture declared-skip) ===
+gcc -O1 -g -fsanitize=thread -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -I. -o tensor-ring-test-tsan weft_tensor_view.c weft_tensor_arena.c weft_tensor_ring.c tests/test_tensor_ring.c
+WT25 placement report: mlock=1 hugepage_hint=1
+WT36 measured: full-ring claim ETIMEOUT after 60.0 ms budget
+WT32 MPSC stress: 50000 messages, 25600000 word checks, 0 tears, 0 FIFO violations
+WT33 SPMC stress: 50000 messages, 4 racing consumers, 0 tears, exactly-once proven
+WT39 MPMC stress: 20000 messages, 2x2 sides, 0 tears
+WT34 fork torture: SKIPPED (declared: WT_SKIP_FORK=1 — TSAN leg)
+{"test":"WT40","variant":"smoke-4k","producers":4,"slots":64,"payload":4096,"msgs":10000,"secs":0.0713,"msgs_s":140329,"gb_s":0.57,"verified_words":5120000}
+tensor-ring: 503 checks, 0 failures
+
+=== summary ===
+weft-tensor gate: ALL PASS (plain + ASAN + TSAN legs, 7/7 batteries green)
+
+=== summary ===
+weft-tensor shard: ALL PASS (plain + ASAN + TSAN legs)

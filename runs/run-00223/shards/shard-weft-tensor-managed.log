@@ -1,0 +1,142 @@
+==================================================
+SHARD: weft-tensor-managed
+DESCRIPTION: Project weft-tensor Pillar 2: WTR1 layout, TS/Python ingestion engines, DLPack/NumPy bridge, cross-language parity, React/Flutter AI hooks/widgets, 120 FPS flight demo, alloc probes
+STATUS: FAILED ❌
+COMMIT: f4666e1fa7636d26828212274a19147280bdac8e
+RUN: 223
+==================================================
+
+[1/8] fixture determinism
+OK /home/runner/work/Weft/Weft/fixtures/weft-tensor/ring-v1-f32.bin (640 B) byte-identical
+OK /home/runner/work/Weft/Weft/fixtures/weft-tensor/ring-v1-u8.bin (640 B) byte-identical
+[2/8] TypeScript suite
+✔ zero-alloc probe [ring] — 100k steady-state ops stay flat (204.069335ms)
+✔ zero-alloc probe [ingest] — 100k steady-state ops stay flat (118.37464ms)
+✔ zero-alloc probe [audio] — 100k steady-state ops stay flat (122.608947ms)
+✔ zero-alloc probe [render] — 100k steady-state ops stay flat (1534.051459ms)
+✔ zero-alloc probe [overlay] — 100k steady-state ops stay flat (66.761162ms)
+✔ negative control: a deliberately-allocating loop IS caught (64.270693ms)
+✔ f32 fixture: header fields, 10 frames, dyadic payload parity (3.296886ms)
+✔ u8 fixture: header fields, 6 frames, byte payload parity (1.178982ms)
+✔ WebCodecs sync fast path: bytes land in ring, no intermediate (6.434943ms)
+✔ WebCodecs async fast path resolves after the GPU readback lands (0.484709ms)
+✔ copyTo failure is a DROP, never a throw into the frame loop (0.387117ms)
+✔ legacy sync copyTo returning void still commits the full slot (2.20108ms)
+✔ ImageData + raw paths (0.569068ms)
+✔ ingestor dtype gate: f32 ring rejected (Law 4) (0.780794ms)
+✔ AudioPcmFeeder: exact-fit chunks roll one slot per chunk (1.447255ms)
+✔ AudioPcmFeeder: chunk spanning slot boundaries carries with zero gaps (0.769704ms)
+✔ AudioPcmFeeder: tiny chunks accumulate then roll (worklet cadence) (1.04491ms)
+✔ AudioPcmFeeder dtype gate + chunk size gate (Law 4) (0.921079ms)
+✔ crc32 matches node:zlib over the static header region (4.431875ms)
+✔ f16FromBits matches numpy float16 decode exactly (0.615174ms)
+✔ f16ToBits matches numpy round-to-nearest-even (0.633859ms)
+✔ fourcc round-trips as LE ASCII (0.335018ms)
+✔ validateRingHeader accepts both golden fixtures (2.134294ms)
+✔ fail-closed corruption matrix — every mutation gets a machine-readable code (1.99319ms)
+✔ dtype validity table (0.386215ms)
+✔ create() writes a self-validating header (round trip through attach) (1.447937ms)
+✔ Canvas2DPlane: ONE ImageData reused, pixel-accurate blit per frame (4.671946ms)
+✔ Canvas2DPlane dtype gate (Law 4) (0.809329ms)
+✔ OverlayScratch + drawBoxes2D: bounded, reused, pixel records (1.379068ms)
+✔ drawSkeleton2D honours confidence gating (0.422202ms)
+✔ WebGL2Plane: zero-alloc texSubImage2D from the slot view + fullscreen tri (2.85677ms)
+✔ create + typed commit + acquireLatest returns exact values, zero surprises (6.386145ms)
+✔ byte commit path (Uint8Array) with short payload (bounded loop, no throw) (0.507833ms)
+✔ acquireLatest(lastSeq) returns null when nothing new; acquireFrame bounds (1.753479ms)
+✔ overrun: slotCount=2, 5 commits -> old seq gone, latest correct (0.627858ms)
+✔ torn read: uncommitted slot is invisible, then visible after commit marker (0.491933ms)
+✔ zero-copy begin/finish path matches convenience commit (0.450365ms)
+✔ commit rejects wrong dtype / oversized payloads (fail-closed) (1.101566ms)
+✔ create() input validation is fail-closed (0.521849ms)
+✔ waitForNewFrame resolves via injected scheduler; timeout path returns null (32.441045ms)
+✔ SharedArrayBuffer smoke: create(shared) + atomics publish + acquire (3.738725ms)
+✔ ring stats counters are sealed and monotonic (0.281348ms)
+✔ detectRuntime identifies node (this process) (1.704348ms)
+✔ detectRuntime: browser / deno / bun / worker / electron fakes (0.398498ms)
+✔ runtimeMatrix feature list stays sorted/deterministic (1.168091ms)
+✔ assertShareable accepts SAB, rejects plain ArrayBuffer (0.789562ms)
+ℹ tests 46
+ℹ suites 0
+ℹ pass 46
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2192.54722
+[3/8] Python suite
+
+==================================== ERRORS ====================================
+_____________________ ERROR collecting tests/test_alloc.py _____________________
+ImportError while importing test module '/home/runner/work/Weft/Weft/python/tests/test_alloc.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+python/tests/test_alloc.py:6: in <module>
+    import numpy as np
+E   ModuleNotFoundError: No module named 'numpy'
+__________________ ERROR collecting tests/test_cluster_shm.py __________________
+ImportError while importing test module '/home/runner/work/Weft/Weft/python/tests/test_cluster_shm.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+python/tests/test_cluster_shm.py:12: in <module>
+    import numpy as np
+E   ModuleNotFoundError: No module named 'numpy'
+____________________ ERROR collecting tests/test_dlpack.py _____________________
+ImportError while importing test module '/home/runner/work/Weft/Weft/python/tests/test_dlpack.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+python/tests/test_dlpack.py:6: in <module>
+    import numpy as np
+E   ModuleNotFoundError: No module named 'numpy'
+____________________ ERROR collecting tests/test_fixture.py ____________________
+ImportError while importing test module '/home/runner/work/Weft/Weft/python/tests/test_fixture.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+python/tests/test_fixture.py:6: in <module>
+    import numpy as np
+E   ModuleNotFoundError: No module named 'numpy'
+____________________ ERROR collecting tests/test_layout.py _____________________
+ImportError while importing test module '/home/runner/work/Weft/Weft/python/tests/test_layout.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+python/tests/test_layout.py:8: in <module>
+    from weft_tensor import (
+python/weft_tensor/__init__.py:44: in <module>
+    from .ingest import AudioPcmFeeder
+python/weft_tensor/ingest.py:13: in <module>
+    import numpy as np
+E   ModuleNotFoundError: No module named 'numpy'
+_____________________ ERROR collecting tests/test_ring.py ______________________
+ImportError while importing test module '/home/runner/work/Weft/Weft/python/tests/test_ring.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+python/tests/test_ring.py:6: in <module>
+    import numpy as np
+E   ModuleNotFoundError: No module named 'numpy'
+=========================== short test summary info ============================
+ERROR python/tests/test_alloc.py
+ERROR python/tests/test_cluster_shm.py
+ERROR python/tests/test_dlpack.py
+ERROR python/tests/test_fixture.py
+ERROR python/tests/test_layout.py
+ERROR python/tests/test_ring.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 6 errors during collection !!!!!!!!!!!!!!!!!!!!
+6 errors in 0.43s

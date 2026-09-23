@@ -1,0 +1,157 @@
+==================================================
+SHARD: weft-cluster-managed
+DESCRIPTION: Project weft-cluster Pillar 3: TS wire/client/topology/router/metrics, Python wire/router/UDP parity, live UDP mesh, 100k zero-alloc probes, 1M fps burst, rendezvous router
+STATUS: FAILED ❌
+COMMIT: f4666e1fa7636d26828212274a19147280bdac8e
+RUN: 223
+==================================================
+
+[1/8] kernel-core integrity (Law 3: core/c/weft.{c,h} byte-frozen)
+    core/c/weft.{c,h} untouched
+[2/8] TS wire vectors + cross-language guard
+✔ crosslang: TS still decodes the frozen WCN1 vectors byte-exactly (1.278515ms)
+✔ crosslang: TS rejects malformed fixtures with the frozen codes (0.19548ms)
+✔ crosslang: FNV/CRC reference vectors match the fixture (0.282028ms)
+✔ crc32 IEEE vectors (parity with Python zlib.crc32) (0.905502ms)
+✔ fnv1a64 topic hash vectors (parity with Python impl) (0.318021ms)
+✔ WCN1 header: little-endian byte layout is normative (0.43222ms)
+✔ WCN1 round-trip: encode -> decode -> same fields (4.326821ms)
+✔ Law 4: malformed datagrams map to the exact error taxonomy (0.248087ms)
+✔ error names are stable (Law 4 contract) (0.248428ms)
+✔ WGS1 gossip: encode + entries + decode round-trip (0.40516ms)
+✔ WGS1: entry_count overrun is WC_E_TRUNCATED, not a crash (0.149281ms)
+✔ Law 1: decodeInto is allocation-free (structural check) (0.26992ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66.474463
+[3/8] Python wire + router vector parity
+.........                                                                [100%]
+9 passed in 0.25s
+[4/8] TypeScript suite
+✔ shm: publish -> subscribe async iterator, seq monotonic, payload intact (10.535479ms)
+✔ shm: two subscribers fan out independently; unsubscribe stops flow (11.182599ms)
+✔ shm: tryLatest reads newest without advancing the iterator (4.513147ms)
+✔ Law 4: stale seq replays are dropped and counted (datagram path) (0.582733ms)
+✔ udp: two clients, SUB control plane, live datagram pub/sub (36.523855ms)
+✔ udp: publisher with zero subscribers stays silent (no peers dup) (0.681019ms)
+✔ crosslang: TS still decodes the frozen WCN1 vectors byte-exactly (0.918101ms)
+✔ crosslang: TS rejects malformed fixtures with the frozen codes (0.19544ms)
+✔ crosslang: FNV/CRC reference vectors match the fixture (0.277752ms)
+✔ registry: counters, gauges, histogram quantile sanity (1.782892ms)
+✔ histogram bucket bounds follow the 1, 2, 3, 4, 6, 8, 12... sequence (0.228799ms)
+✔ prometheus: exposition format with cumulative histogram buckets (0.965961ms)
+✔ otel: OTLP/JSON document shape (resourceMetrics -> metrics) (1.36388ms)
+✔ perfetto: .pftrace protobuf round-trips packets and track events (1.246988ms)
+✔ prometheus: embedded /metrics server answers 200 over real HTTP (47.975624ms)
+✔ router: deterministic owner across calls and instances (1.830682ms)
+✔ router: cross-language owner vector (node seeds 11,22,33,44 / telemetry) (1.718656ms)
+✔ router: 8-node balance within 3x envelope (7.388237ms)
+✔ router: minimal disruption — adding 1 of 9 nodes moves ~1/9 of topics (7.370691ms)
+✔ router: unrouted topic -> WC_E_TOPIC_UNROUTED (0.306514ms)
+✔ router: removeNode stops routing to it; version bumps (0.217452ms)
+✔ membership: upsert + hash-index lookup round-trip (1.105478ms)
+✔ membership: open addressing survives heavy collisions (1.017327ms)
+✔ gossip: 3 engines converge to a full membership view (socketless) (1.957661ms)
+✔ gossip: stale incarnation ignored, higher incarnation wins (0.335267ms)
+✔ gossip: LEAVING is sticky at equal incarnation, revive needs higher (0.221268ms)
+✔ gossip: SWIM refutation — falsely-leaving node bumps incarnation (0.899754ms)
+✔ gossip: silent nodes suspect then evicted (fake clock) (0.284442ms)
+✔ gossip: graceful leave announces and propagates LEAVING (0.24976ms)
+✔ crc32 IEEE vectors (parity with Python zlib.crc32) (0.840346ms)
+✔ fnv1a64 topic hash vectors (parity with Python impl) (0.245123ms)
+✔ WCN1 header: little-endian byte layout is normative (0.210692ms)
+✔ WCN1 round-trip: encode -> decode -> same fields (3.314811ms)
+✔ Law 4: malformed datagrams map to the exact error taxonomy (0.214338ms)
+✔ error names are stable (Law 4 contract) (0.229159ms)
+✔ WGS1 gossip: encode + entries + decode round-trip (0.281977ms)
+✔ WGS1: entry_count overrun is WC_E_TRUNCATED, not a crash (0.09434ms)
+✔ Law 1: decodeInto is allocation-free (structural check) (0.252174ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2156.042682
+[5/8] Python suite
+
+==================================== ERRORS ====================================
+_____________________ ERROR collecting tests/test_alloc.py _____________________
+ImportError while importing test module '/home/runner/work/Weft/Weft/python/tests/test_alloc.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+python/tests/test_alloc.py:6: in <module>
+    import numpy as np
+E   ModuleNotFoundError: No module named 'numpy'
+__________________ ERROR collecting tests/test_cluster_shm.py __________________
+ImportError while importing test module '/home/runner/work/Weft/Weft/python/tests/test_cluster_shm.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+python/tests/test_cluster_shm.py:12: in <module>
+    import numpy as np
+E   ModuleNotFoundError: No module named 'numpy'
+____________________ ERROR collecting tests/test_dlpack.py _____________________
+ImportError while importing test module '/home/runner/work/Weft/Weft/python/tests/test_dlpack.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+python/tests/test_dlpack.py:6: in <module>
+    import numpy as np
+E   ModuleNotFoundError: No module named 'numpy'
+____________________ ERROR collecting tests/test_fixture.py ____________________
+ImportError while importing test module '/home/runner/work/Weft/Weft/python/tests/test_fixture.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+python/tests/test_fixture.py:6: in <module>
+    import numpy as np
+E   ModuleNotFoundError: No module named 'numpy'
+____________________ ERROR collecting tests/test_layout.py _____________________
+ImportError while importing test module '/home/runner/work/Weft/Weft/python/tests/test_layout.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+python/tests/test_layout.py:8: in <module>
+    from weft_tensor import (
+python/weft_tensor/__init__.py:44: in <module>
+    from .ingest import AudioPcmFeeder
+python/weft_tensor/ingest.py:13: in <module>
+    import numpy as np
+E   ModuleNotFoundError: No module named 'numpy'
+_____________________ ERROR collecting tests/test_ring.py ______________________
+ImportError while importing test module '/home/runner/work/Weft/Weft/python/tests/test_ring.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+python/tests/test_ring.py:6: in <module>
+    import numpy as np
+E   ModuleNotFoundError: No module named 'numpy'
+=========================== short test summary info ============================
+ERROR python/tests/test_alloc.py
+ERROR python/tests/test_cluster_shm.py
+ERROR python/tests/test_dlpack.py
+ERROR python/tests/test_fixture.py
+ERROR python/tests/test_layout.py
+ERROR python/tests/test_ring.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 6 errors during collection !!!!!!!!!!!!!!!!!!!!
+6 errors in 0.22s

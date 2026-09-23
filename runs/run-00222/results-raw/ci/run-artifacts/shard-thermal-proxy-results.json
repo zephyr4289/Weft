@@ -1,0 +1,35 @@
+{
+  "shard": "thermal-proxy",
+  "status": "PASSED",
+  "duration_s": 5,
+  "backends": [
+    {
+      "backend": "A",
+      "flat": true,
+      "first_q_fps": 418.0,
+      "last_q_fps": 428.1,
+      "decay_pct": -2.42
+    },
+    {
+      "backend": "B",
+      "flat": true,
+      "first_q_fps": 551.1,
+      "last_q_fps": 559.1,
+      "decay_pct": -1.45
+    },
+    {
+      "backend": "C",
+      "flat": true,
+      "first_q_fps": 542.0,
+      "last_q_fps": 554.0,
+      "decay_pct": -2.21
+    },
+    {
+      "backend": "D",
+      "flat": true,
+      "first_q_fps": 328.4,
+      "last_q_fps": 328.1,
+      "decay_pct": 0.09
+    }
+  ]
+}

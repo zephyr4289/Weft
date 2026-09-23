@@ -1,0 +1,86 @@
+==================================================
+SHARD: weft-tensor-managed
+DESCRIPTION: Project weft-tensor Pillar 2: WTR1 layout, TS/Python ingestion engines, DLPack/NumPy bridge, cross-language parity, React/Flutter AI hooks/widgets, 120 FPS flight demo, alloc probes
+STATUS: PASSED ✅
+COMMIT: e8a2d4060c5b3aaf2da17ed640ae2a423632a98c
+RUN: 222
+==================================================
+
+[1/8] fixture determinism
+OK /home/runner/work/Weft/Weft/fixtures/weft-tensor/ring-v1-f32.bin (640 B) byte-identical
+OK /home/runner/work/Weft/Weft/fixtures/weft-tensor/ring-v1-u8.bin (640 B) byte-identical
+[2/8] TypeScript suite
+✔ zero-alloc probe [ring] — 100k steady-state ops stay flat (215.797837ms)
+✔ zero-alloc probe [ingest] — 100k steady-state ops stay flat (105.177601ms)
+✔ zero-alloc probe [audio] — 100k steady-state ops stay flat (116.365666ms)
+✔ zero-alloc probe [render] — 100k steady-state ops stay flat (1648.657201ms)
+✔ zero-alloc probe [overlay] — 100k steady-state ops stay flat (70.128889ms)
+✔ negative control: a deliberately-allocating loop IS caught (164.158044ms)
+✔ f32 fixture: header fields, 10 frames, dyadic payload parity (3.46629ms)
+✔ u8 fixture: header fields, 6 frames, byte payload parity (1.506299ms)
+✔ WebCodecs sync fast path: bytes land in ring, no intermediate (3.155663ms)
+✔ WebCodecs async fast path resolves after the GPU readback lands (0.372322ms)
+✔ copyTo failure is a DROP, never a throw into the frame loop (1.149385ms)
+✔ legacy sync copyTo returning void still commits the full slot (0.315586ms)
+✔ ImageData + raw paths (0.588624ms)
+✔ ingestor dtype gate: f32 ring rejected (Law 4) (0.580919ms)
+✔ AudioPcmFeeder: exact-fit chunks roll one slot per chunk (0.819242ms)
+✔ AudioPcmFeeder: chunk spanning slot boundaries carries with zero gaps (0.541967ms)
+✔ AudioPcmFeeder: tiny chunks accumulate then roll (worklet cadence) (0.501442ms)
+✔ AudioPcmFeeder dtype gate + chunk size gate (Law 4) (0.742019ms)
+✔ crc32 matches node:zlib over the static header region (1.989977ms)
+✔ f16FromBits matches numpy float16 decode exactly (0.481204ms)
+✔ f16ToBits matches numpy round-to-nearest-even (0.424819ms)
+✔ fourcc round-trips as LE ASCII (0.301009ms)
+✔ validateRingHeader accepts both golden fixtures (1.852912ms)
+✔ fail-closed corruption matrix — every mutation gets a machine-readable code (2.230113ms)
+✔ dtype validity table (0.277265ms)
+✔ create() writes a self-validating header (round trip through attach) (1.390484ms)
+✔ Canvas2DPlane: ONE ImageData reused, pixel-accurate blit per frame (3.959686ms)
+✔ Canvas2DPlane dtype gate (Law 4) (0.777424ms)
+✔ OverlayScratch + drawBoxes2D: bounded, reused, pixel records (1.366849ms)
+✔ drawSkeleton2D honours confidence gating (0.416663ms)
+✔ WebGL2Plane: zero-alloc texSubImage2D from the slot view + fullscreen tri (2.283261ms)
+✔ create + typed commit + acquireLatest returns exact values, zero surprises (5.781911ms)
+✔ byte commit path (Uint8Array) with short payload (bounded loop, no throw) (0.32817ms)
+✔ acquireLatest(lastSeq) returns null when nothing new; acquireFrame bounds (0.408528ms)
+✔ overrun: slotCount=2, 5 commits -> old seq gone, latest correct (0.461487ms)
+✔ torn read: uncommitted slot is invisible, then visible after commit marker (0.389433ms)
+✔ zero-copy begin/finish path matches convenience commit (0.273047ms)
+✔ commit rejects wrong dtype / oversized payloads (fail-closed) (0.967487ms)
+✔ create() input validation is fail-closed (0.326768ms)
+✔ waitForNewFrame resolves via injected scheduler; timeout path returns null (36.02785ms)
+✔ SharedArrayBuffer smoke: create(shared) + atomics publish + acquire (0.568096ms)
+✔ ring stats counters are sealed and monotonic (0.198649ms)
+✔ detectRuntime identifies node (this process) (1.515866ms)
+✔ detectRuntime: browser / deno / bun / worker / electron fakes (0.415802ms)
+✔ runtimeMatrix feature list stays sorted/deterministic (1.180824ms)
+✔ assertShareable accepts SAB, rejects plain ArrayBuffer (0.772355ms)
+ℹ tests 46
+ℹ suites 0
+ℹ pass 46
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2396.985897
+[3/8] Python suite
+.......s.............s................                                   [100%]
+36 passed, 2 skipped in 9.26s
+[4/8] TS producer -> Python consumer
+{"producer":"typescript","path":"/tmp/tmp.DWt1WjqERy/ts_ring.bin","byteLength":640,"producerSeq":10,"slotStride":128,"schemaId":"fe77000000000000"}
+{"consumer": "python", "path": "/tmp/tmp.DWt1WjqERy/ts_ring.bin", "framesValidated": [7, 8, 9, 10], "dlpackAlias": true, "ok": true}
+[5/8] Python producer -> TS consumer
+{"producer": "python", "path": "/tmp/tmp.DWt1WjqERy/py_ring.bin", "byteLength": 640, "producerSeq": 10, "slotStride": 128, "schemaId": "fe77000000000001"}
+{"consumer":"typescript","path":"/tmp/tmp.DWt1WjqERy/py_ring.bin","framesValidated":[7,8,9,10],"ok":true}
+[6/8] DLPack alias proof (consumed the TS-produced ring, pointer-checked)
+    dlpack alias OK (slot ptr 0x55c07a3bcf30 inside ring 0x55c07a3bcdf0..0x55c07a3bd070)
+[7/8] zero-allocation probes (100k ops each, post-warmup, --expose-gc)
+    {"mode":"ring","iters":100000,"heapBefore":4407640,"heapAfter":4402608,"deltaBytes":-5032}
+    {"mode":"ingest","iters":100000,"heapBefore":4398080,"heapAfter":4411328,"deltaBytes":13248}
+    {"mode":"audio","iters":100000,"heapBefore":4392536,"heapAfter":4405840,"deltaBytes":13304}
+    {"mode":"render","iters":100000,"heapBefore":4404960,"heapAfter":4406560,"deltaBytes":1600}
+    {"mode":"overlay","iters":100000,"heapBefore":4284936,"heapAfter":4285648,"deltaBytes":712}
+[8/8] latency gates (directive: commit < 50us)
+    {"bench":"weft-tensor commit/acquire","node":"v24.20.0","video":{"geometry":"320x180 RGBA","slotCapBytes":230400,"commit":{"n":50000,"p50_us":0.171,"p99_us":1.072,"max_us":186.697},"acquire":{"n":50000,"p50_us":0.12,"p99_us":0.541,"max_us":55.082},"commit_under_50us":true},"audio":{"geometry":"2ch x 128 f32 (interleaved quanta 256)","slotCapBytes":1024,"commit":{"n":50000,"p50_us":0.481,"p99_us":0.551,"max_us":26.459},"acquire":{"n":50000,"p50_us":0.12,"p99_us":0.942,"max_us":112.269},"commit_under_50us":true}}
+weft-tensor managed shard: ALL 8 STAGES GREEN

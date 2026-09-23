@@ -1,0 +1,33 @@
+==================================================
+SHARD: weft-cluster-managed
+DESCRIPTION: Project weft-cluster Pillar 3: TS wire/client/topology/router/metrics, Python wire/router/UDP parity, live UDP mesh, 100k zero-alloc probes, 1M fps burst, rendezvous router
+STATUS: FAILED ❌
+COMMIT: e8a2d4060c5b3aaf2da17ed640ae2a423632a98c
+RUN: 222
+==================================================
+
+[1/8] kernel-core integrity (Law 3: core/c/weft.{c,h} byte-frozen)
+    core/c/weft.{c,h} untouched
+[2/8] TS wire vectors + cross-language guard
+✔ crosslang: TS still decodes the frozen WCN1 vectors byte-exactly (1.085914ms)
+✔ crosslang: TS rejects malformed fixtures with the frozen codes (0.197225ms)
+✔ crosslang: FNV/CRC reference vectors match the fixture (0.255552ms)
+✔ crc32 IEEE vectors (parity with Python zlib.crc32) (1.180356ms)
+✔ fnv1a64 topic hash vectors (parity with Python impl) (0.315121ms)
+✔ WCN1 header: little-endian byte layout is normative (0.356263ms)
+✔ WCN1 round-trip: encode -> decode -> same fields (5.020148ms)
+✔ Law 4: malformed datagrams map to the exact error taxonomy (0.4209ms)
+✔ error names are stable (Law 4 contract) (0.316433ms)
+✔ WGS1 gossip: encode + entries + decode round-trip (0.472086ms)
+✔ WGS1: entry_count overrun is WC_E_TRUNCATED, not a crash (0.170205ms)
+✔ Law 1: decodeInto is allocation-free (structural check) (0.505306ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.771115
+[3/8] Python wire + router vector parity
+/opt/hostedtoolcache/Python/3.12.14/x64/bin/python3: No module named pytest

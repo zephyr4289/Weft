@@ -1,0 +1,185 @@
+==================================================
+SHARD: litmus-c
+DESCRIPTION: L1-L8 litmus suite, C kernel (8 tests, 2 build modes)
+STATUS: PASSED ✅
+COMMIT: da5e45a51f2d2520b61ea45524b7e18edb4fc957
+RUN: 241
+==================================================
+
+# Loaded catalog: weft-litmus v3
+  running c L1-tear...
+    -> exit=0 elapsed=7.6s pass=True
+  running c L2-writer-steps...
+    -> exit=0 elapsed=5.0s pass=True
+  running c L3-reader-steps...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L4-freshness...
+    -> exit=0 elapsed=2.1s pass=True
+  running c L5-progress...
+    -> exit=0 elapsed=5.0s pass=True
+  running c L6-ownership...
+    -> exit=0 elapsed=4.0s pass=True
+  running c L7-revocation...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L8-envelope...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L9-cross-beam...
+    -> exit=0 elapsed=2.5s pass=True
+  running c L10-nested-revocation...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L12-canary-corruption...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L13-claim-retry...
+    -> exit=0 elapsed=1.2s pass=True
+  running c L14-mixed-endianness...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L15-huge-payload...
+    -> exit=0 elapsed=1.7s pass=True
+  running c L16-rapid-reclaim...
+    -> exit=0 elapsed=0.8s pass=True
+Wrote /home/runner/work/Weft/Weft/litmus/REPORT.md
+Wrote /home/runner/work/Weft/Weft/litmus/results.json
+..
+    -> exit=0 elapsed=0.0s pass=True
+  running c L9-cross-beam...
+    -> exit=0 elapsed=2.5s pass=True
+  running c L10-nested-revocation...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L12-canary-corruption...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L13-claim-retry...
+    -> exit=0 elapsed=1.2s pass=True
+  running c L14-mixed-endianness...
+    -> exit=0 elapsed=0.0s pass=True
+  running c L15-huge-payload...
+    -> exit=0 elapsed=1.7s pass=True
+  running c L16-rapid-reclaim...
+    -> exit=0 elapsed=0.8s pass=True
+Wrote /home/runner/work/Weft/Weft/litmus/REPORT.md
+Wrote /home/runner/work/Weft/Weft/litmus/results.json
+=== L11-ffi-stress (script leg) ===
+{"test":"L11-ffi-stress","lang":"c","pass":true,"metrics":{"iterations":25,"dir1_ok":25,"dir1_fail":0,"dir2_ok":25,"dir2_fail":0,"total_frames":592509,"rust_leg":"available-not-wired"}}
+L11-ffi-stress: PASS
+{
+  "shard": "litmus-c",
+  "status": "PASSED",
+  "cells_pass": 15,
+  "cells_total": 15,
+  "cells": {
+    "c/L1-tear": true,
+    "c/L2-writer-steps": true,
+    "c/L3-reader-steps": true,
+    "c/L4-freshness": true,
+    "c/L5-progress": true,
+    "c/L6-ownership": true,
+    "c/L7-revocation": true,
+    "c/L8-envelope": true,
+    "c/L9-cross-beam": true,
+    "c/L10-nested-revocation": true,
+    "c/L12-canary-corruption": true,
+    "c/L13-claim-retry": true,
+    "c/L14-mixed-endianness": true,
+    "c/L15-huge-payload": true,
+    "c/L16-rapid-reclaim": true
+  }
+}
+1 dropped=18160 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (1576 bytes) + ring-l11-c.meta — frames=18161 slots=6 words=63
+reader: fresh seq=18161 dropped=18160 words=63 bits=OK verdict=PASS
+writer: frames=48837 slots=4 floats=64 bytes=1072 latest=48837 publishes=48837
+validate-ring: ring-l11-ts.bin — fresh seq=48837 dropped=48836 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (112 bytes) + ring-l11-c.meta — frames=48837 slots=8 words=1
+reader: fresh seq=48837 dropped=48836 words=1 bits=OK verdict=PASS
+writer: frames=32463 slots=4 floats=64 bytes=1072 latest=32463 publishes=32463
+validate-ring: ring-l11-ts.bin — fresh seq=32463 dropped=32462 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (288 bytes) + ring-l11-c.meta — frames=32463 slots=2 words=32
+reader: fresh seq=32463 dropped=32462 words=32 bits=OK verdict=PASS
+writer: frames=21652 slots=4 floats=64 bytes=1072 latest=21652 publishes=21652
+validate-ring: ring-l11-ts.bin — fresh seq=21652 dropped=21651 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (1056 bytes) + ring-l11-c.meta — frames=21652 slots=4 words=63
+reader: fresh seq=21652 dropped=21651 words=63 bits=OK verdict=PASS
+writer: frames=32351 slots=4 floats=64 bytes=1072 latest=32351 publishes=32351
+validate-ring: ring-l11-ts.bin — fresh seq=32351 dropped=32350 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (88 bytes) + ring-l11-c.meta — frames=32351 slots=6 words=1
+reader: fresh seq=32351 dropped=32350 words=1 bits=OK verdict=PASS
+writer: frames=22575 slots=4 floats=64 bytes=1072 latest=22575 publishes=22575
+validate-ring: ring-l11-ts.bin — fresh seq=22575 dropped=22574 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (1104 bytes) + ring-l11-c.meta — frames=22575 slots=8 words=32
+reader: fresh seq=22575 dropped=22574 words=32 bits=OK verdict=PASS
+writer: frames=41024 slots=4 floats=64 bytes=1072 latest=41024 publishes=41024
+validate-ring: ring-l11-ts.bin — fresh seq=41024 dropped=41023 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (536 bytes) + ring-l11-c.meta — frames=41024 slots=2 words=63
+reader: fresh seq=41024 dropped=41023 words=63 bits=OK verdict=PASS
+writer: frames=16413 slots=4 floats=64 bytes=1072 latest=16413 publishes=16413
+validate-ring: ring-l11-ts.bin — fresh seq=16413 dropped=16412 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (64 bytes) + ring-l11-c.meta — frames=16413 slots=4 words=1
+reader: fresh seq=16413 dropped=16412 words=1 bits=OK verdict=PASS
+writer: frames=44393 slots=4 floats=64 bytes=1072 latest=44393 publishes=44393
+validate-ring: ring-l11-ts.bin — fresh seq=44393 dropped=44392 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (832 bytes) + ring-l11-c.meta — frames=44393 slots=6 words=32
+reader: fresh seq=44393 dropped=44392 words=32 bits=OK verdict=PASS
+writer: frames=35821 slots=4 floats=64 bytes=1072 latest=35821 publishes=35821
+validate-ring: ring-l11-ts.bin — fresh seq=35821 dropped=35820 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (2096 bytes) + ring-l11-c.meta — frames=35821 slots=8 words=63
+reader: fresh seq=35821 dropped=35820 words=63 bits=OK verdict=PASS
+writer: frames=13668 slots=4 floats=64 bytes=1072 latest=13668 publishes=13668
+validate-ring: ring-l11-ts.bin — fresh seq=13668 dropped=13667 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (40 bytes) + ring-l11-c.meta — frames=13668 slots=2 words=1
+reader: fresh seq=13668 dropped=13667 words=1 bits=OK verdict=PASS
+writer: frames=17632 slots=4 floats=64 bytes=1072 latest=17632 publishes=17632
+validate-ring: ring-l11-ts.bin — fresh seq=17632 dropped=17631 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (560 bytes) + ring-l11-c.meta — frames=17632 slots=4 words=32
+reader: fresh seq=17632 dropped=17631 words=32 bits=OK verdict=PASS
+writer: frames=20409 slots=4 floats=64 bytes=1072 latest=20409 publishes=20409
+validate-ring: ring-l11-ts.bin — fresh seq=20409 dropped=20408 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (1576 bytes) + ring-l11-c.meta — frames=20409 slots=6 words=63
+reader: fresh seq=20409 dropped=20408 words=63 bits=OK verdict=PASS
+writer: frames=21534 slots=4 floats=64 bytes=1072 latest=21534 publishes=21534
+validate-ring: ring-l11-ts.bin — fresh seq=21534 dropped=21533 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (112 bytes) + ring-l11-c.meta — frames=21534 slots=8 words=1
+reader: fresh seq=21534 dropped=21533 words=1 bits=OK verdict=PASS
+writer: frames=1643 slots=4 floats=64 bytes=1072 latest=1643 publishes=1643
+validate-ring: ring-l11-ts.bin — fresh seq=1643 dropped=1642 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (288 bytes) + ring-l11-c.meta — frames=1643 slots=2 words=32
+reader: fresh seq=1643 dropped=1642 words=32 bits=OK verdict=PASS
+writer: frames=42980 slots=4 floats=64 bytes=1072 latest=42980 publishes=42980
+validate-ring: ring-l11-ts.bin — fresh seq=42980 dropped=42979 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (1056 bytes) + ring-l11-c.meta — frames=42980 slots=4 words=63
+reader: fresh seq=42980 dropped=42979 words=63 bits=OK verdict=PASS
+writer: frames=8844 slots=4 floats=64 bytes=1072 latest=8844 publishes=8844
+validate-ring: ring-l11-ts.bin — fresh seq=8844 dropped=8843 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (88 bytes) + ring-l11-c.meta — frames=8844 slots=6 words=1
+reader: fresh seq=8844 dropped=8843 words=1 bits=OK verdict=PASS
+writer: frames=4091 slots=4 floats=64 bytes=1072 latest=4091 publishes=4091
+validate-ring: ring-l11-ts.bin — fresh seq=4091 dropped=4090 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (1104 bytes) + ring-l11-c.meta — frames=4091 slots=8 words=32
+reader: fresh seq=4091 dropped=4090 words=32 bits=OK verdict=PASS
+writer: frames=17541 slots=4 floats=64 bytes=1072 latest=17541 publishes=17541
+validate-ring: ring-l11-ts.bin — fresh seq=17541 dropped=17540 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (536 bytes) + ring-l11-c.meta — frames=17541 slots=2 words=63
+reader: fresh seq=17541 dropped=17540 words=63 bits=OK verdict=PASS
+writer: frames=23926 slots=4 floats=64 bytes=1072 latest=23926 publishes=23926
+validate-ring: ring-l11-ts.bin — fresh seq=23926 dropped=23925 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (64 bytes) + ring-l11-c.meta — frames=23926 slots=4 words=1
+reader: fresh seq=23926 dropped=23925 words=1 bits=OK verdict=PASS
+writer: frames=8402 slots=4 floats=64 bytes=1072 latest=8402 publishes=8402
+validate-ring: ring-l11-ts.bin — fresh seq=8402 dropped=8401 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (832 bytes) + ring-l11-c.meta — frames=8402 slots=6 words=32
+reader: fresh seq=8402 dropped=8401 words=32 bits=OK verdict=PASS
+writer: frames=40405 slots=4 floats=64 bytes=1072 latest=40405 publishes=40405
+validate-ring: ring-l11-ts.bin — fresh seq=40405 dropped=40404 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (2096 bytes) + ring-l11-c.meta — frames=40405 slots=8 words=63
+reader: fresh seq=40405 dropped=40404 words=63 bits=OK verdict=PASS
+writer: frames=30198 slots=4 floats=64 bytes=1072 latest=30198 publishes=30198
+validate-ring: ring-l11-ts.bin — fresh seq=30198 dropped=30197 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (40 bytes) + ring-l11-c.meta — frames=30198 slots=2 words=1
+reader: fresh seq=30198 dropped=30197 words=1 bits=OK verdict=PASS
+writer: frames=15324 slots=4 floats=64 bytes=1072 latest=15324 publishes=15324
+validate-ring: ring-l11-ts.bin — fresh seq=15324 dropped=15323 payload_words=64 verdict=PASS
+dump-ring: wrote ring-l11-c.bin (560 bytes) + ring-l11-c.meta — frames=15324 slots=4 words=32
+reader: fresh seq=15324 dropped=15323 words=32 bits=OK verdict=PASS
+L11: cargo present — the C<->Rust boundary leg is a declared follow-up (rust litmus shard owns it)
+L11: JVM/Dart/Swift boundary legs are CI-gated (toolchains absent here — declared, not silent)
+L11 iterations=25 dir1_ok=25 dir1_fail=0 dir2_ok=25 dir2_fail=0 total_frames=592509 rust_leg=available-not-wired pass=1
+{"test":"L11-ffi-stress","lang":"c","pass":true,"metrics":{"iterations":25,"dir1_ok":25,"dir1_fail":0,"dir2_ok":25,"dir2_fail":0,"total_frames":592509,"rust_leg":"available-not-wired"}}
+L11-ffi-stress: PASS

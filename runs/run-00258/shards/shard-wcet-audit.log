@@ -1,0 +1,26 @@
+==================================================
+SHARD: wcet-audit
+DESCRIPTION: Axis 2: Static instruction disassembly audit + WCET certificates + SCHED_DEADLINE TLA+ model
+STATUS: PASSED ✅
+COMMIT: a617075086d0283c1e3d576400e76e0747f89800
+RUN: 258
+==================================================
+
+=== Compile C Kernel for Static Disassembly Audit ===
+  PASS compilation
+=== Static Disassembly & WCET Instruction Sequence Audit ===
+  PASS disassembly audit
+=== Validate WCET Certificates JSON ===
+  PASS certificates json
+=== Verify SCHED_DEADLINE TLA+ Model (TLC / Formal State Exploration) ===
+  PASS SCHED_DEADLINE model
+{
+  "shard": "wcet-audit",
+  "status": "PASSED",
+  "inspected_functions": [
+    "weft_publish",
+    "weft_r_claim"
+  ],
+  "wcet_certificate": "bench/wcet-certificates.json",
+  "sched_deadline_model": "formal/sched/SchedDeadlineComposition.tla"
+}

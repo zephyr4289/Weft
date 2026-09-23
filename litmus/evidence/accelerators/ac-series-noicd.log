@@ -1,0 +1,143 @@
+# AC-series (RFC-0017) — NO-ICD leg (refusal honesty as a gate)
+# host: x86_64 sandbox, 2026-09-20T00:13:45Z
+
+=== test-view (no ICD) ===
+AC-V1 sizeof/align ABI v1: PASS
+AC-V2 init builds a PACKED view: PASS
+AC-V3 canonical strides are row-major: PASS
+AC-V4 bad magic refuses: PASS
+AC-V5 future ABI refuses: PASS
+AC-V6 dtype outside the dialect refuses: PASS
+AC-V7 rank 0 refuses: PASS
+AC-V8 elem_count != prod(dims) refuses: PASS
+AC-V9 NULL data refuses: PASS
+AC-V10 unknown flag bits refuse: PASS
+AC-V11 big-endian refuses gpu_ready: PASS
+AC-V12 geometry beyond byte_len refuses: PASS
+AC-V13 capacity gate refuses over-run: PASS
+AC-V14 full capacity passes: PASS
+AC-V15 PACKED flag with non-canonical strides refuses: PASS
+AC-V16 honest strided view passes (byte_len = strided reach): PASS
+AC-V17 rank-4 canonical strides: PASS
+AC-V18 offset math (strided multiply-add): PASS
+AC-V19 byte stride derivation: PASS
+AC-V20 misaligned f32 pointer refuses gpu_ready: PASS
+AC-V21 16-byte-aligned f32 passes gpu_ready: PASS
+AC-V22 u8 rides the raw-byte road (alignment floor only): PASS
+AC-V23 dialect codes are the frozen WTS1 space: PASS
+AC-V24 WTS1 frame -> view (zero transforms): PASS
+AC-V25 corrupt WTS1 refuses (never a guess): PASS
+AC-V26 stats percentiles (p50/p95/p99): PASS
+AC-V27 frozen id is deterministic FNV-1a 64: PASS
+AC-V28 SIMD normalize bit-exact vs scalar oracle: PASS
+AC-V29 SIMD copy round-trips: PASS
+  (simd-isa=avx2)
+AC-V (tensor view ABI): 29 passed, 0 failed, 0 skipped
+
+=== test-vk (no ICD) ===
+AC-K1 committed SPIR-V present + frozen ID self-consistent: PASS
+AC-K2 NULL dev refuses BAD_ARG: PASS
+  (ctx refused: no-vulkan-loader — the no-ICD leg)
+AC-K3 no-ICD ctx refusal is named and honest: PASS
+AC-K4..AC-K9: SKIP (no Vulkan ICD on this host (declared))
+AC-K10 non-session memory refuses Road A: PASS
+AC-K (vulkan bridge): 4 passed, 0 failed, 1 skipped
+
+=== test-metal (no ICD) ===
+AC-M1 RGBA8 camera view maps to 64-aligned geometry: PASS
+AC-M2 odd-width rows pad to the 64-byte law: PASS
+AC-M3 f32 spectrogram view maps (the 128RGBAFloat road): PASS
+AC-M4 i16 view refuses (outside the v1 wrap roads): PASS
+AC-M5 strided view refuses (wraps need contiguous rows): PASS
+AC-M6 sub-16-byte rows refuse (the bytesNoCopy floor): PASS
+AC-M7 non-pixel-multiple u8 rows refuse: PASS
+AC-M8 committed MSL present + frozen ID deterministic: PASS
+AC-M9 MSL is the normalize contract (single float multiply): PASS
+  (probe: UNSUPPORTED (non-Apple weak stub))
+AC-M10 non-Apple probe reports UNSUPPORTED: PASS
+AC-M11 weak stub refuses the MTLBuffer wrap: PASS
+AC-M12 weak stub refuses the CVPixelBuffer wrap: PASS
+AC-M13 weak stub refuses the IOSurface span: PASS
+AC-M (metal adapter core): 13 passed, 0 failed, 0 skipped
+
+=== test-ort (no ICD) ===
+AC-O1 no-runtime refusal is named: PASS
+  (no-libonnxruntime absent — the mock battery carries the logic)
+AC-O2 mock table injects through load_table: PASS
+AC-O3 session opens over in-tree fixture bytes: PASS
+AC-O4 the pooling profile is enforced: PASS
+AC-O5 model bytes reach the runtime verbatim: PASS
+AC-O6 wrap_view passes the view's OWN pointer: PASS
+AC-O7 CreateTensorWithDataAsOrtValue carries (ptr, len, shape): PASS
+AC-O8 GetTensorMutableData returns the SAME pointer (zero-copy): PASS
+AC-O9 strided view refuses the wrap: PASS
+AC-O10 big-endian view refuses the wrap: PASS
+AC-O11 bind_input reaches IoBinding by name: PASS
+AC-O12 bind_output_span wraps Weft memory as the output: PASS
+AC-O13 pooled run: ONE table call, ZERO heap allocations: PASS
+AC-O14 WTS1 -> ONNX dtype map: PASS
+AC-O15: SKIP (no libonnxruntime (real leg declared))
+AC-O16: SKIP (no libonnxruntime)
+AC-O17: SKIP (no libonnxruntime)
+AC-O (onnx bridge): 14 passed, 0 failed, 3 skipped
+
+=== test-ggml (no ICD) ===
+AC-G1 WTS1 -> ggml dtype map: PASS
+AC-G2 unsigned dtypes refuse (ggml has none): PASS
+AC-G3 view dims map to ggml ne[] REVERSED: PASS
+AC-G4 nb strides follow the ggml recurrence: PASS
+AC-G5 nbytes == nb[3] * ne[3] == view byte_len: PASS
+AC-G6 f16 audio bank maps (ne[0]=1024, ne[1]=2): PASS
+AC-G7 strided view refuses (the caller's view road): PASS
+AC-G8 planner alignment is the 64-byte law: PASS
+AC-G9 span registration: PASS
+AC-G10 misaligned span registration refuses: PASS
+AC-G11 first placement lands at offset 0: PASS
+AC-G12 second placement 64-aligns: PASS
+AC-G13 explicit placement enforces the alignment law: PASS
+AC-G14 out-of-bounds placement refuses: PASS
+AC-G15 full-span refusal is counted, never silent: PASS
+AC-G16 epoch reset rewinds the cursor: PASS
+AC-G17 windowing drops the partial tail by policy: PASS
+AC-G18 allow_partial keeps the tail, labeled: PASS
+AC-G19 hop > window refuses: PASS
+AC-G20 exact multiples produce clean windows: PASS
+AC-G21 no-libggml refusal is named: PASS
+  (no-libggml — the plan layer is the gated contract)
+AC-G22: SKIP (no libggml (runtime leg declared))
+AC-G (ggml bridge): 21 passed, 0 failed, 1 skipped
+
+=== test-cross (no ICD) ===
+AC-X2 SIMD == scalar (bit-exact, the contract): PASS
+  (simd-isa=avx2)
+AC-X3: SKIP (no Vulkan ICD (the AC-K series carries the refusal legs))
+AC-X4 ONNX wrap carries the SAME bytes (no copy): PASS
+AC-X5 ggml shape maps the same bytes (ne reversed, nbytes): PASS
+AC-X6 Metal geometry maps the same frame (64-aligned rows): PASS
+AC-X7 Metal MSL and Vulkan SPIR-V share the contract: PASS
+AC-X (cross-domain capstone): 5 passed, 0 failed, 1 skipped
+
+=== weft-accel-bench (no ICD) ===
+=== weft-tensor accelerator bench (RFC-0017 §7) ===
+simd-isa=avx2  audit=malloc(3) interposed (gate active)
+preprocess-road: [FALLBACK-COPY] SIMD normalize (no usable ICD road)
+onnx-road: [SIM-EP] no libonnxruntime (the deterministic software EP runs, labeled)
+ggml-road: absent (plan layer still gates in AC-G)
+
+--- latency (n=512) ---
+stage                 p50        p95        p99  road
+produce              5.9us       9.0us       9.7us  [SIM-DMA]
+preprocess          33.3us      38.0us      43.3us  [FALLBACK-COPY]
+execute              1.6us       1.8us       5.1us  [SIM-EP]
+write-back           0.1us       0.2us       0.3us  [WTS1]
+TOTAL               41.1us      46.1us      54.0us  (a->d wall clock)
+dispatch             0.0us          -          -  (minimal dispatch)
+
+--- gates ---
+G1 total-p50 < 1.0 ms        : PASS (measured: 41.1 us)
+G2 dispatch-p50 < 500 us     : PASS (0.0 us)
+G3 bit-exact prep+exec       : PASS (prep=1 exec=1)
+G4 zero-alloc hot loop       : PASS (0 allocs across 512 iterations)
+
+JSON {"total_p50_us":41.1,"total_p99_us":54.0,"dispatch_p50_us":0.0,"prep_road":"fallback-copy","exec_road":"sim-ep","simd":"avx2","allocs_per_iter":0,"gpu_prep_p50_us":33.3,"simd_prep_p50_us":0.0,"floor_total_p50_us":41.1,"gpu_is_software_icd":0,"g1":1,"g2":1,"g3":1,"g4":1}
+bench: PASSED

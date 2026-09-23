@@ -1,0 +1,37 @@
+[PASS] CL-X1 unprivileged probe -> named PERMS/caps refusal
+[PASS] CL-X2 caps report names net_admin/bpf
+[PASS] CL-X3 accept
+[PASS] CL-X3 payload pointer law
+[PASS] CL-X3 cluster mismatch refused
+[PASS] CL-X3 schema mismatch refused
+[PASS] CL-X3 schema-any accepts foreign schema
+[PASS] CL-X3 magic refused
+[PASS] CL-X3 oversize payload refused
+[PASS] CL-X3 mid-chunk placement refused
+[PASS] CL-X3 reserved-nonzero refused
+[PASS] CL-X3 short buffer refused
+[PASS] CL-X4 WCF1 schema hash double-entry
+[PASS] CL-X5 assembly succeeded
+[PASS] CL-X5 schema block adds exactly 2 insns
+[PASS] CL-X5 program length sane
+[PASS] CL-X6 all jump targets in range
+[PASS] CL-X6 tail is MOV r0, PASS + EXIT
+[PASS] CL-X6 helper ids within {1,44,51}
+[PASS] CL-X7 dport LE immediate present
+[PASS] CL-X7 magic immediate present
+[PASS] CL-X7 cluster id immediate present
+[PASS] CL-X7 schema id immediate present (block emitted)
+[PASS] CL-X7 schema-any omits the schema immediate
+[PASS] CL-X7 version immediate present
+[PASS] CL-X7 IHL immediate present
+[PASS] CL-X7 frag mask immediate present
+[PASS] CL-X7 udp proto immediate present
+[PASS] CL-X7 head-strip constant present
+[PASS] CL-X8 two patched map-fd pseudo loads
+[PASS] CL-X9 oversize cluster id refused
+[PASS] CL-X9 oversize schema id refused
+[PASS] CL-X10 init refused with a named reason
+[PASS] CL-X10 reason text is populated
+[PASS] CL-X11 non-page chunk refused
+[PASS] CL-X12 non-pow2 depth refused
+--- 36 pass / 0 fail / 0 skip

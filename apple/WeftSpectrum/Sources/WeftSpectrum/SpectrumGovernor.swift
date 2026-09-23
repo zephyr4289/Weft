@@ -31,7 +31,7 @@ public final class CadenceState {
     public init() {}
 }
 
-public struct GovernorInput {
+public final class GovernorInput {
     public var thermalState: UInt32 = thermalNominal
     public var batteryPermille: Int = 900
     public var batteryCharging: UInt32 = chargingYes

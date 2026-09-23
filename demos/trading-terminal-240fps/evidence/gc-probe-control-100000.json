@@ -1,0 +1,7 @@
+{
+  "mode": "control",
+  "frames": 100000,
+  "heapGrowthBytes": 12064208,
+  "gateBytes": 32768,
+  "pass": true
+}

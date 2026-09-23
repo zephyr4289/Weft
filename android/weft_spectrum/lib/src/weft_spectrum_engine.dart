@@ -19,6 +19,7 @@ import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'spectrum_wire.dart';
+import 'spectrum_governor.dart';
 
 /// Resolvable native symbols (E1 seam). Absent entries are null — the seam
 /// is contract-first and tolerates a partially-landed native layer.

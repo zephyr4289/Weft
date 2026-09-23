@@ -159,6 +159,7 @@ final class SpectrumGovernorTests: XCTestCase {
         let st = CadenceState()
         let inp = GovernorInput()
         inp.profileBudgetBytes = 8_589_934_592
+        inp.heapPressure = 1
         tierTick(st, inp) // stage 1
         tierTick(st, inp) // stage 2
         XCTAssertEqual(st.tierStage, 2)

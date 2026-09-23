@@ -92,6 +92,9 @@ fi
 
 # ---------------------------------------------------------------------------
 stage "5/11" "python/weft_spectrum suite (incl. tracemalloc 1M-cycle gate)"
+if ! python3 -c "import numpy" >/dev/null 2>&1; then
+  python3 -m pip install --quiet numpy || true
+fi
 if (cd python/weft_spectrum && python3 -m unittest discover -s tests) > "$TMP/py-suite.log" 2>&1; then
   tail -3 "$TMP/py-suite.log" | sed 's/^/    /'
   pass "Python suite"

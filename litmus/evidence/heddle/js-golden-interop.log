@@ -1,0 +1,39 @@
+PASS J1 mode decoded (state)
+PASS J1 lane_count decoded
+PASS J1 lane_stride decoded
+PASS J1 sample_size decoded
+PASS J1 slot_capacity decoded
+PASS J1 plane_size decoded
+PASS J1 create_stamp_ns decoded
+PASS J1 magic constant parity
+PASS J2 begin_seq
+PASS J2 commit_seq
+PASS J2 dirty_mask
+PASS J2 dirty_transitions
+PASS J2 render_frame_id
+PASS J2 epoch (derived from commit_seq)
+PASS J3 lane 0 commit_count
+PASS J3 lane 0 min/max/current raw bits
+PASS J3 lane 0 bbox [0,31]
+PASS J4 lane 0: all 32 cells byte-exact
+PASS J3 lane 1 commit_count
+PASS J3 lane 1 min/max/current raw bits
+PASS J3 lane 1 bbox [0,31]
+PASS J4 lane 1: all 32 cells byte-exact
+PASS J3 lane 2 commit_count
+PASS J3 lane 2 min/max/current raw bits
+PASS J3 lane 2 bbox [2,31]
+PASS J4 lane 2: all 32 cells byte-exact
+PASS J3 lane 3 commit_count
+PASS J3 lane 3 min/max/current raw bits
+PASS J3 lane 3 bbox [0,31]
+PASS J4 lane 3: all 32 cells byte-exact
+PASS J5 harvest returns mask 0xf
+PASS J5 second harvest empty
+PASS J5 remark visible next harvest
+PASS J5 frame ids 1, 2
+PASS J6 producer-role harvest refused
+PASS J6 misaligned offset refused
+PASS J6 corrupt magic refused
+
+J-SERIES: 37 checks, 0 failures

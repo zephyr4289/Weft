@@ -1,0 +1,13 @@
+=== heddle-2.0 hot-plane scoreboard (B-series) ===
+machine: Intel(R) Xeon(R) Processor | 2 cores | gcc 14.2 | inlined protocol core (-DBENCH_INLINE)
+BENCH B1 session commit (public API calls)     6.00 ns/op      0.00 cyc/op   budget <0 ns  n/a
+BENCH B1c commit protocol core (two-store)     0.00 ns/op     21.00 cyc/op   budget <5 ns  PASS
+BENCH B2 state_write commit (payload+signals)    22.00 ns/op      1.00 cyc/op   budget <0 ns  n/a
+BENCH B3 dirty update (lane session flush)    29.00 ns/op     71.00 cyc/op   budget <3 ns  FAIL
+BENCH B3b dirty register op (raw fetch_or)     7.00 ns/op     94.00 cyc/op   budget <3 ns  FAIL
+BENCH B4 read/acquire (cell_read)            4.00 ns/op     22.00 cyc/op   budget <5 ns  PASS
+BENCH B6 harvest exchange (+1 flush)         5.00 ns/op     13.00 cyc/op   budget <0 ns  n/a
+BENCH B7 epoch probe (idle-frame killer)     2.00 ns/op     16.00 cyc/op   budget <0 ns  n/a
+BENCH B5 ring push (64-batch amortized)     19.00 ns/op      6.00 cyc/op   budget <0 ns  n/a
+B8  zero-heap over 1048576 commit+read+harvest cycles: in-use delta 0, mmap-heap delta 0 -> PASS
+SCOREBOARD: FAIL

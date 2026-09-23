@@ -1,0 +1,9 @@
+workflow: npm-packages
+job:      Node 20 Matrix
+node:     20
+status:   success
+sha:      e131ef88bb61edef3d432ebc036acef924ef5619
+event:    push
+run:      208
+date:     Wed Sep 23 13:29:02 UTC 2026
+ref:      refs/heads/main

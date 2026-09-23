@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "weft-tensor"
+version = "0.1.0"
+description = "Zero-copy Weft tensor rings with DLPack / PyTorch / NumPy interop — real-time AI ingestion bridge (WTR1)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.22"]
+license = { file = "../LICENSE" }
+
+[tool.setuptools]
+packages = ["weft_tensor"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

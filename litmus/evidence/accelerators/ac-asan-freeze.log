@@ -1,0 +1,59 @@
+# ASAN legs + kernel freeze — 2026-09-20T00:13:51Z
+=== test-view-asan ===
+AC-V1 sizeof/align ABI v1: PASS
+AC-V2 init builds a PACKED view: PASS
+AC-V3 canonical strides are row-major: PASS
+AC-V4 bad magic refuses: PASS
+AC-V5 future ABI refuses: PASS
+AC-V6 dtype outside the dialect refuses: PASS
+AC-V7 rank 0 refuses: PASS
+AC-V8 elem_count != prod(dims) refuses: PASS
+AC-V9 NULL data refuses: PASS
+AC-V10 unknown flag bits refuse: PASS
+AC-V11 big-endian refuses gpu_ready: PASS
+AC-V12 geometry beyond byte_len refuses: PASS
+AC-V13 capacity gate refuses over-run: PASS
+AC-V14 full capacity passes: PASS
+AC-V15 PACKED flag with non-canonical strides refuses: PASS
+AC-V16 honest strided view passes (byte_len = strided reach): PASS
+AC-V17 rank-4 canonical strides: PASS
+AC-V18 offset math (strided multiply-add): PASS
+AC-V19 byte stride derivation: PASS
+AC-V20 misaligned f32 pointer refuses gpu_ready: PASS
+AC-V21 16-byte-aligned f32 passes gpu_ready: PASS
+AC-V22 u8 rides the raw-byte road (alignment floor only): PASS
+AC-V23 dialect codes are the frozen WTS1 space: PASS
+AC-V24 WTS1 frame -> view (zero transforms): PASS
+AC-V25 corrupt WTS1 refuses (never a guess): PASS
+AC-V26 stats percentiles (p50/p95/p99): PASS
+AC-V27 frozen id is deterministic FNV-1a 64: PASS
+AC-V28 SIMD normalize bit-exact vs scalar oracle: PASS
+AC-V29 SIMD copy round-trips: PASS
+  (simd-isa=avx2)
+AC-V (tensor view ABI): 29 passed, 0 failed, 0 skipped
+=== test-cross-asan ===
+AC-X2 SIMD == scalar (bit-exact, the contract): PASS
+  (simd-isa=avx2)
+AC-X3: SKIP (no Vulkan ICD (the AC-K series carries the refusal legs))
+AC-X4 ONNX wrap carries the SAME bytes (no copy): PASS
+AC-X5 ggml shape maps the same bytes (ne reversed, nbytes): PASS
+AC-X6 Metal geometry maps the same frame (64-aligned rows): PASS
+AC-X7 Metal MSL and Vulkan SPIR-V share the contract: PASS
+AC-X (cross-domain capstone): 5 passed, 0 failed, 1 skipped
+=== spv kernel freeze (glslang 15.1 rebuild) ===
+/home/z/mesa-debs/root/usr/bin/glslangValidator -V --target-env vulkan1.1 \
+  -o /tmp/weft_preprocess.rebuild.spv \
+  backends/vulkan/shaders/weft_preprocess.comp
+backends/vulkan/shaders/weft_preprocess.comp
+cmp /tmp/weft_preprocess.rebuild.spv \
+  backends/vulkan/shaders/weft_preprocess.spv
+spv: byte-identical rebuild (kernel freeze holds)
+=== shard (runner-default environment) ===
+=== spv determinism (kernel freeze) ===
+  SKIP: glslangValidator absent on this runner
+
+=== kernel freeze: core/c zero diffs vs branch base ===
+  core/c/weft.{c,h}: zero diffs (Law 3 holds)
+
+=== verdict ===
+SHARD: GREEN

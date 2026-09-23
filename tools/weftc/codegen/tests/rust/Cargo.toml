@@ -1,0 +1,20 @@
+[package]
+name = "weftc-codegen-tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Zero dependencies by design (Law 2). The bytemuck/zerocopy features exist so
+# the FEATURE-GATED impls in generated modules can be compiled by consumers
+# that bring their own dependency; this test crate never enables them.
+[features]
+bytemuck = []
+zerocopy = []
+
+[lib]
+name = "weftc_codegen_tests"
+path = "src/lib.rs"
+
+[[test]]
+name = "roundtrip"
+path = "tests/roundtrip.rs"

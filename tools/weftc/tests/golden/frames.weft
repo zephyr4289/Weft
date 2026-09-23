@@ -1,0 +1,52 @@
+// frames.weft — engine frame schema (smoke test)
+endianness little;
+
+enum Kind : u8 {
+    Render = 0,
+    Present = 1,
+    Telemetry = 2,
+}
+
+bitflags Caps : u32 {
+    None       = 0,
+    FloatMath  = 0x0000_0001,
+    SimdBlend  = 0x0000_0002,
+    GpuUpload  = 0x0000_0004,
+}
+
+struct Vec3 {
+    x: f32,
+    y: f32,
+    z: f32,
+}
+
+struct Header {
+    seq: u64,
+    kind: Kind,
+    // natural alignment: hole 1..8 below
+    stamp: u64,
+}
+
+@optimize(packing)
+struct TelemetryMsg {
+    flags: u8,
+    temperature: f64,   // 7-byte hole without the reorder
+    pressure: f32,
+    humidity: u8,
+}
+
+@align(64)
+struct CachelineFrame {
+    ctrl: u32,
+    payload: [u8; 60],
+}
+
+struct BigFrame {
+    hdr: Header,
+    pos: Vec3,
+    vel: Vec3,
+    caps: Caps,
+    name: str[32],
+    samples: [f32; 8],
+    blob: span<u8>,
+}

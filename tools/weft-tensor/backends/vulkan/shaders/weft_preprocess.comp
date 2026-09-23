@@ -1,0 +1,49 @@
+#version 450
+// weft_preprocess.comp — RFC-0017 §3: the frozen camera-preprocess kernel.
+//
+// THE CONTRACT (bit-exact by construction — weft_accel_common.h): each
+// output element is (f32)src_byte * scale — one exact u8->f32 conversion
+// plus ONE rounded multiply. No bias term exists in v1 precisely so the
+// GPU result is bit-identical to the scalar/SIMD oracle (nothing for a
+// shader compiler to fuse into an FMA). When a bias is ever added, the
+// cross-domain gate becomes a documented 1-ulp tolerance instead of ==.
+//
+// BINDINGS (the compute kit's geometry):
+//   binding 0 — std430 readonly SSBO, u32 words: the RGBA8 frame, at a
+//               push-constant word offset (a ring SLOT's payload, a
+//               foreign dma-buf span — the producer's own bytes).
+//   binding 1 — std430 writeonly SSBO, f32 elements: the normalized
+//               tensor (NHWC f32, 4 elements per pixel).
+//
+// KERNEL FREEZE: this source + the committed weft_preprocess.spv are the
+// frozen pair; CI rebuilds the .spv (glslangValidator) and diffs bytes;
+// the runtime frozen-ID check (FNV-1a over the words handed to the kit)
+// guards any OTHER kernel a consumer binds. Local size 64: one pixel per
+// invocation, no cross-lane interaction (deterministic — Law 3).
+
+layout(local_size_x = 64) in;
+
+layout(std430, binding = 0) readonly buffer Src {
+    uint src_words[];
+};
+layout(std430, binding = 1) writeonly buffer Dst {
+    float dst_elems[];
+};
+layout(push_constant) uniform Push {
+    uint src_word_off;
+    uint dst_elem_off;
+    uint n_pixels;
+    float scale;
+} p;
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= p.n_pixels) return;
+
+    uint w = src_words[p.src_word_off + id];
+    uint o = p.dst_elem_off + id * 4u;
+    dst_elems[o + 0u] = float(w & 0xFFu)        * p.scale;
+    dst_elems[o + 1u] = float((w >> 8u) & 0xFFu)  * p.scale;
+    dst_elems[o + 2u] = float((w >> 16u) & 0xFFu) * p.scale;
+    dst_elems[o + 3u] = float((w >> 24u) & 0xFFu) * p.scale;
+}

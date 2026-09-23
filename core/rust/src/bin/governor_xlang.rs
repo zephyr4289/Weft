@@ -34,7 +34,7 @@ fn main() {
     let seed: u32 = args
         .get(2)
         .and_then(|s| u32::from_str_radix(s.trim_start_matches("0x"), 16).ok())
-        .unwrap_or(0x00C0_FEEE);
+        .unwrap_or(0x00C0_FFEE);
 
     let mut gov = Governor::default();
     let mut state = seed;

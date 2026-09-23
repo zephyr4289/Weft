@@ -32,7 +32,7 @@
 use crate::fanout::{WeftFanout, WeftFanoutReader};
 use std::fs::File;
 use std::io;
-use std::os::unix::io::{AsRawFd, FromRawFd};
+use std::os::unix::io::FromRawFd;
 
 /// Session header size in bytes (the ring starts at this offset).
 pub const HEADER_BYTES: usize = 64;
@@ -262,7 +262,7 @@ pub fn create_named(name: &str, payload_bytes: usize, slot_count: usize)
         // Own the fd through File: metadata() gives the size via std's
         // correctly-laid-out stat — no hand-rolled struct stat (the layout
         // differs by platform and a wrong offset reads garbage st_size).
-        let file = unsafe { File::from_raw_fd(fd) };
+        let file = File::from_raw_fd(fd);
         if sys::ftruncate(fd, mapping_bytes as i64) != 0 {
             return Err(io::Error::last_os_error());
         }
@@ -291,7 +291,7 @@ pub fn attach_named(name: &str, read_only: bool) -> io::Result<ShmMap> {
         if fd < 0 {
             return Err(io::Error::last_os_error());
         }
-        let file = unsafe { File::from_raw_fd(fd) };
+        let file = File::from_raw_fd(fd);
         // Object size via std metadata (correct stat layout on every platform).
         let mapping_bytes = file.metadata()?.len() as usize;
         if mapping_bytes < HEADER_BYTES {
@@ -303,7 +303,7 @@ pub fn attach_named(name: &str, read_only: bool) -> io::Result<ShmMap> {
             return Err(io::Error::last_os_error());
         }
         if let Err(e) = header_validate(p as *const u8, mapping_bytes) {
-            unsafe { sys::munmap(p, mapping_bytes) };
+            sys::munmap(p, mapping_bytes);
             return Err(e);
         }
         Ok(ShmMap { base: p as *mut u8, ring: (p as *mut u8).add(HEADER_BYTES),

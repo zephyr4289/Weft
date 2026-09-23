@@ -1,0 +1,18 @@
+{
+  "weft_ir": 1,
+  "module": "audio",
+  "types": [
+    {
+      "kind": "struct",
+      "name": "audio_peak",
+      "schema_id": "auto",
+      "align": 8,
+      "size": 16,
+      "doc": "F16 peak-level bank: WGSL storage-exact via enable f16; uniform/GLSL variants refused (Law 4 fixture).",
+      "fields": [
+        { "name": "schema_id", "type": "u64", "offset": 0 },
+        { "name": "levels_db", "type": "[f16; 4]", "offset": 8, "doc": "peak hold, dBFS, per channel band" }
+      ]
+    }
+  ]
+}

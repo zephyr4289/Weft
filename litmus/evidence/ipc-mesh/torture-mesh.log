@@ -1,0 +1,13 @@
+=== ipc-torture mesh: registry + crashy producer restart + successor (120,000 publications across 2 incarnations) ===
+  [PASS] producer P1 crashed (SIGKILL, no cleanup)
+  [PASS] successor producer P2: takeover (epoch 2), 60k frames, clean detach
+  [PASS] 3 consumers survived the crash + re-attached
+  [PASS] payload bit-exact ACROSS incarnations (pattern keyed by continued frame seq)
+  [PASS] telescoping spans the outage EXACTLY: fresh+drops == 120,000 per consumer
+  [PASS] every consumer observed the epoch 1 -> 2 transition
+  [PASS] mesh entry gone after successor clean detach + heal
+    [INFO] mesh consumer 0: fresh=7 drops=119993 exhausted=0 epoch=2
+    [INFO] mesh consumer 1: fresh=66245 drops=53755 exhausted=0 epoch=2
+    [INFO] mesh consumer 2: fresh=26425 drops=93575 exhausted=0 epoch=2
+    [INFO] the drops count IS the outage gap + any claim-cadence losses — accounted, never phantom
+=== ipc-torture (mesh): 0 failures ===

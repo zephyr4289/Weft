@@ -22,8 +22,17 @@ JDK_HOME="${JAVA_HOME:-}"
 if [ -z "$JDK_HOME" ] || [ ! -f "$JDK_HOME/include/jni.h" ]; then
   JAVAC_BIN="$(command -v javac || true)"
   if [ -n "$JAVAC_BIN" ]; then
-    JDK_HOME="$(cd "$(dirname "$JAVAC_BIN")/.." && pwd)"
+    JAVAC_REAL="$(readlink -f "$JAVAC_BIN" 2>/dev/null || realpath "$JAVAC_BIN" 2>/dev/null || echo "$JAVAC_BIN")"
+    JDK_HOME="$(cd "$(dirname "$JAVAC_REAL")/.." && pwd)"
   fi
+fi
+if [ ! -f "$JDK_HOME/include/jni.h" ]; then
+  for cand in /usr/lib/jvm/* /usr/lib/jvm/java-*-openjdk* /usr/lib/jvm/default-java "${JAVA_HOME_21_X64:-}" "${JAVA_HOME_17_X64:-}" "${JAVA_HOME_11_X64:-}"; do
+    if [ -n "$cand" ] && [ -f "$cand/include/jni.h" ]; then
+      JDK_HOME="$cand"
+      break
+    fi
+  done
 fi
 if [ ! -f "$JDK_HOME/include/jni.h" ]; then
   echo "jni-fanout: no JDK with include/jni.h found (set JAVA_HOME) — SKIPPING (loud)." >&2

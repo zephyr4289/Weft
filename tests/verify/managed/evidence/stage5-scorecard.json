@@ -1,0 +1,327 @@
+{
+  "schema": "weft-verify-scorecard/1",
+  "tool": {
+    "name": "@weft/verify",
+    "version": "1.0.0"
+  },
+  "node": "v22.23.2",
+  "platform": "linux arm64",
+  "verdict": "PASS",
+  "formal": {
+    "schema": "weft-verify-formal/1",
+    "small": [
+      {
+        "model": "triad-handoff",
+        "states": 6336,
+        "transitions": 17280,
+        "maxDepth": 44,
+        "deadlocks": 0,
+        "tornRetriesObserved": 3,
+        "invariants": [
+          {
+            "id": "A-I1",
+            "name": "writer-holds-WRITING-slot",
+            "verdict": "PROVED",
+            "evidence": "0 violations across 6336 reachable states"
+          },
+          {
+            "id": "A-I2",
+            "name": "writer-reader-slot-exclusion",
+            "verdict": "PROVED",
+            "evidence": "0 violations across 6336 reachable states"
+          },
+          {
+            "id": "A-I3",
+            "name": "single-writer-exclusivity",
+            "verdict": "PROVED",
+            "evidence": "0 violations across 6336 reachable states"
+          },
+          {
+            "id": "A-I4",
+            "name": "single-reader-slot-ownership",
+            "verdict": "PROVED",
+            "evidence": "0 violations across 6336 reachable states"
+          },
+          {
+            "id": "A-I5",
+            "name": "type-integrity",
+            "verdict": "PROVED",
+            "evidence": "0 violations across 6336 reachable states"
+          }
+        ],
+        "progress": [
+          {
+            "name": "commit-progress",
+            "bound": 10,
+            "proved": true,
+            "maxSteps": 3
+          },
+          {
+            "name": "read-progress",
+            "bound": 10,
+            "proved": true,
+            "maxSteps": 3
+          }
+        ],
+        "verdict": "PROVED"
+      },
+      {
+        "model": "seqlock-parity",
+        "states": 5760,
+        "transitions": 11520,
+        "maxDepth": 62,
+        "deadlocks": 0,
+        "tornRetriesObserved": 3,
+        "invariants": [
+          {
+            "id": "B-J1",
+            "name": "parity-gated-publication",
+            "verdict": "PROVED",
+            "evidence": "0 violations across 5760 reachable states"
+          },
+          {
+            "id": "B-J2",
+            "name": "cursor-range-integrity",
+            "verdict": "PROVED",
+            "evidence": "0 violations across 5760 reachable states"
+          }
+        ],
+        "progress": [
+          {
+            "name": "clean-read-progress",
+            "bound": 8,
+            "proved": true,
+            "maxSteps": 6
+          },
+          {
+            "name": "writer-progress",
+            "bound": 3,
+            "proved": true,
+            "maxSteps": 0
+          }
+        ],
+        "verdict": "PROVED"
+      }
+    ],
+    "wide": {
+      "target": 10000000,
+      "explored": 10000000,
+      "transitions": 29915138,
+      "truncated": true,
+      "deadlineHit": false,
+      "exhaustive": false,
+      "capacity": 16777216,
+      "loadFactor": 0.596
+    },
+    "theorems": [
+      {
+        "id": "TH-01",
+        "name": "single-writer-exclusivity",
+        "verdict": "PROVED",
+        "basis": "exhaustive triad-handoff BFS, 6336 states"
+      },
+      {
+        "id": "TH-02",
+        "name": "writer-reader-slot-exclusion",
+        "verdict": "PROVED",
+        "basis": "exhaustive triad-handoff BFS, 6336 states"
+      },
+      {
+        "id": "TH-03",
+        "name": "no-deadlock",
+        "verdict": "PROVED",
+        "basis": "0 deadlock states across 6336+5760 exhaustive states"
+      },
+      {
+        "id": "TH-04",
+        "name": "bounded-commit-progress<=10",
+        "verdict": "PROVED",
+        "basis": "existential bounded liveness, max 3 steps"
+      },
+      {
+        "id": "TH-05",
+        "name": "bounded-read-progress<=10",
+        "verdict": "PROVED",
+        "basis": "existential bounded liveness, max 3 steps"
+      },
+      {
+        "id": "TH-06",
+        "name": "parity-gated-publication",
+        "verdict": "PROVED",
+        "basis": "exhaustive seqlock-parity BFS, 5760 states"
+      },
+      {
+        "id": "TH-07",
+        "name": "bounded-clean-read<=8-fair",
+        "verdict": "PROVED",
+        "basis": "existential bounded liveness (worst case: torn latch + writer lap + relatch = 7), max 6 steps"
+      },
+      {
+        "id": "TH-08",
+        "name": "bounded-writer-progress<=3",
+        "verdict": "PROVED",
+        "basis": "existential bounded liveness, max 0 steps"
+      },
+      {
+        "id": "TH-09",
+        "name": "state-space-tally>=1e7",
+        "verdict": "PROVED",
+        "basis": "10000000 distinct states explored (stop-at-target)"
+      }
+    ],
+    "statesTotal": 10012096,
+    "verdict": "PASS"
+  },
+  "allocation": {
+    "scanned": [],
+    "summary": {
+      "files": 0,
+      "hotFunctions": 0,
+      "findings": 0,
+      "compliant": true
+    }
+  },
+  "chaos": {
+    "thermal": {
+      "profile": "thermal",
+      "cyclesPerOp": 42,
+      "curve": [
+        {
+          "mhz": 3200,
+          "nsPerOp": 13.13
+        },
+        {
+          "mhz": 2800,
+          "nsPerOp": 15
+        },
+        {
+          "mhz": 2400,
+          "nsPerOp": 17.5
+        },
+        {
+          "mhz": 2000,
+          "nsPerOp": 21
+        },
+        {
+          "mhz": 1600,
+          "nsPerOp": 26.25
+        },
+        {
+          "mhz": 1200,
+          "nsPerOp": 35
+        },
+        {
+          "mhz": 800,
+          "nsPerOp": 52.5
+        }
+      ],
+      "deterministic": true,
+      "pass": true
+    },
+    "bus": {
+      "profile": "bus",
+      "baseNsPerOp": 13.13,
+      "curve": [
+        {
+          "utilization": 0,
+          "nsPerOp": 13.23
+        },
+        {
+          "utilization": 0.25,
+          "nsPerOp": 17.32
+        },
+        {
+          "utilization": 0.5,
+          "nsPerOp": 23.83
+        },
+        {
+          "utilization": 0.6,
+          "nsPerOp": 28.94
+        },
+        {
+          "utilization": 0.7,
+          "nsPerOp": 37.1
+        },
+        {
+          "utilization": 0.8,
+          "nsPerOp": 49.29
+        },
+        {
+          "utilization": 0.9,
+          "nsPerOp": 77.54
+        },
+        {
+          "utilization": 0.95,
+          "nsPerOp": 106.01
+        }
+      ],
+      "deterministic": true,
+      "pass": true
+    },
+    "network": {
+      "profile": "network",
+      "ticks": 12000,
+      "nodes": 3,
+      "rates": [
+        {
+          "dropRate": 0.001,
+          "sent": 24000,
+          "delivered": 24000,
+          "dropped": 22,
+          "deliveredRatio": 1,
+          "avgRecoveryTicks": 2003,
+          "maxQueue": 4000
+        },
+        {
+          "dropRate": 0.005,
+          "sent": 24000,
+          "delivered": 24000,
+          "dropped": 104,
+          "deliveredRatio": 1,
+          "avgRecoveryTicks": 2010,
+          "maxQueue": 4000
+        },
+        {
+          "dropRate": 0.01,
+          "sent": 24000,
+          "delivered": 24000,
+          "dropped": 196,
+          "deliveredRatio": 1,
+          "avgRecoveryTicks": 2016,
+          "maxQueue": 4000
+        },
+        {
+          "dropRate": 0.02,
+          "sent": 24000,
+          "delivered": 24000,
+          "dropped": 427,
+          "deliveredRatio": 1,
+          "avgRecoveryTicks": 2046,
+          "maxQueue": 4000
+        },
+        {
+          "dropRate": 0.05,
+          "sent": 24000,
+          "delivered": 24000,
+          "dropped": 1005,
+          "deliveredRatio": 1,
+          "avgRecoveryTicks": 2102,
+          "maxQueue": 4000
+        }
+      ],
+      "resilienceScore": 90,
+      "deterministic": true,
+      "pass": true
+    },
+    "seed": 1475330270
+  },
+  "resilience": {
+    "score": 90,
+    "breakdown": {
+      "delivery1pct": 100,
+      "delivery5pct": 100,
+      "recovery": 0
+    }
+  },
+  "package": null
+}

@@ -1,0 +1,4 @@
+ABI-CPP17: sizeof(diag)=444 sizeof(node)=24 sizeof(func)=32 verify_abi=0x0100 lint_abi=0x0100
+ABI-CPP17 PASS (0 failures)
+ABI-CPP17: sizeof(diag)=444 sizeof(node)=24 sizeof(func)=32 verify_abi=0x0100 lint_abi=0x0100
+ABI-CPP17 PASS (0 failures)

@@ -1,0 +1,15 @@
+#!/bin/sh
+# tools/verify/weft-verify — repo-root wrapper for the @weft/verify CLI.
+# Usage: tools/verify/weft-verify --lint-alloc [paths...]  (see --help)
+set -u
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
+
+NODE_BIN=$(command -v node || true)
+[ -z "$NODE_BIN" ] && NODE_BIN=/usr/bin/node
+if [ ! -x "$NODE_BIN" ]; then
+  echo "weft-verify: node not found on PATH or /usr/bin/node" >&2
+  exit 2
+fi
+
+exec "$NODE_BIN" "$ROOT/packages/verify/bin/weft-verify.mjs" "$@"

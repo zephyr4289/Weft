@@ -1,0 +1,359 @@
+{
+  "schema": "weft-verify-lint/1",
+  "files": [
+    {
+      "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
+      "lang": "c",
+      "hotFunctions": 1,
+      "findings": [
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
+          "line": 7,
+          "col": 15,
+          "ruleId": "WV-C-001",
+          "ruleName": "malloc",
+          "message": "malloc in weft_hot function (hot path must be allocation-free)",
+          "hint": "use caller-provided storage or a preallocated arena slab",
+          "snippet": "    void *p = malloc(64);                        /* expect: WV-C-001 */"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
+          "line": 8,
+          "col": 21,
+          "ruleId": "WV-C-002",
+          "ruleName": "calloc",
+          "message": "calloc in weft_hot function",
+          "hint": "zero once during init, not per tick",
+          "snippet": "    struct hdr *q = calloc(1, 128);              /* expect: WV-C-002 */"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
+          "line": 9,
+          "col": 20,
+          "ruleId": "WV-C-003",
+          "ruleName": "realloc",
+          "message": "realloc in weft_hot function",
+          "hint": "bound capacity up front; grow is a cold-path operation",
+          "snippet": "    ctx->scratch = realloc(ctx->scratch, 256);   /* expect: WV-C-003 */"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
+          "line": 10,
+          "col": 17,
+          "ruleId": "WV-C-005",
+          "ruleName": "strdup",
+          "message": "strdup/strndup copies onto the heap in weft_hot function",
+          "hint": "store offsets into the ring payload instead of copies",
+          "snippet": "    char *dup = strdup(\"tick\");                  /* expect: WV-C-005 */"
+        }
+      ]
+    },
+    {
+      "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.cpp",
+      "lang": "cpp",
+      "hotFunctions": 1,
+      "findings": [
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.cpp",
+          "line": 7,
+          "col": 18,
+          "ruleId": "WV-CPP-001",
+          "ruleName": "new-expr",
+          "message": "'new' in weft_hot function",
+          "hint": "use placement into a preallocated slab or a value on the stack",
+          "snippet": "    auto *sink = new Sink(o);                    // expect: WV-CPP-001"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.cpp",
+          "line": 8,
+          "col": 20,
+          "ruleId": "WV-CPP-002",
+          "ruleName": "make-shared",
+          "message": "make_shared control-block + object allocation in weft_hot function",
+          "hint": "share via the zero-copy ring; ownership belongs to the buffer",
+          "snippet": "    auto sp = std::make_shared<Legs>(o.legs);    // expect: WV-CPP-002"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.cpp",
+          "line": 9,
+          "col": 20,
+          "ruleId": "WV-CPP-003",
+          "ruleName": "make-unique",
+          "message": "make_unique heap allocation in weft_hot function",
+          "hint": "preallocate a pool and hand out indices",
+          "snippet": "    auto up = std::make_unique<Tick>();          // expect: WV-CPP-003"
+        }
+      ]
+    },
+    {
+      "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+      "lang": "dart",
+      "hotFunctions": 1,
+      "findings": [
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+          "line": 5,
+          "col": 19,
+          "ruleId": "WV-DT-002",
+          "ruleName": "list-ctor",
+          "message": "List construction allocates in @weftHot function",
+          "hint": "use a preallocated Float64List/Uint8List field",
+          "snippet": "  final scratch = List<double>.filled(64, 0.0); // expect: WV-DT-002"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+          "line": 6,
+          "col": 15,
+          "ruleId": "WV-DT-003",
+          "ruleName": "map-ctor",
+          "message": "Map construction allocates in @weftHot function",
+          "hint": "index into parallel preallocated lists instead",
+          "snippet": "  final box = Map<String, double>();            // expect: WV-DT-003"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+          "line": 7,
+          "col": 13,
+          "ruleId": "WV-DT-006",
+          "ruleName": "ffi-alloc",
+          "message": "native heap allocation in @weftHot function",
+          "hint": "carve from an arena created at engine init",
+          "snippet": "  final p = calloc<Float>(64);                  // expect: WV-DT-006"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+          "line": 8,
+          "col": 14,
+          "ruleId": "WV-DT-005",
+          "ruleName": "stringbuffer",
+          "message": "StringBuffer allocates in @weftHot function",
+          "hint": "format on the UI/cold side only",
+          "snippet": "  final sb = StringBuffer();                    // expect: WV-DT-005"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+          "line": 9,
+          "col": 15,
+          "ruleId": "WV-DT-008",
+          "ruleName": "dart-arrow",
+          "message": "arrow closure allocated in @weftHot function",
+          "hint": "use static dispatch or hoisted top-level functions",
+          "snippet": "  final cb = () => out[0] + x;                  // expect: WV-DT-008"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+          "line": 10,
+          "col": 13,
+          "ruleId": "WV-DT-004",
+          "ruleName": "dart-literal",
+          "message": "collection literal allocates in @weftHot function",
+          "hint": "fill preallocated typed lists",
+          "snippet": "  final row = [x, x];                           // expect: WV-DT-004"
+        }
+      ]
+    },
+    {
+      "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+      "lang": "rust",
+      "hotFunctions": 1,
+      "findings": [
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+          "line": 5,
+          "col": 17,
+          "ruleId": "WV-RS-001",
+          "ruleName": "box-new",
+          "message": "Box::new heap allocation in #[weft_hot] function",
+          "hint": "store by value in a preallocated slot array",
+          "snippet": "    let boxed = Box::new(q.px);              // expect: WV-RS-001"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+          "line": 6,
+          "col": 22,
+          "ruleId": "WV-RS-003",
+          "ruleName": "vec-macro",
+          "message": "vec![] allocates in #[weft_hot] function",
+          "hint": "use a preallocated [T; N] or with_capacity buffer created at init",
+          "snippet": "    let v: Vec<u8> = vec![0u8; 64];          // expect: WV-RS-003"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+          "line": 7,
+          "col": 13,
+          "ruleId": "WV-RS-009",
+          "ruleName": "format-macro",
+          "message": "formatting macro allocates in #[weft_hot] function",
+          "hint": "emit structured binary records; format at the consumer",
+          "snippet": "    let s = format!(\"{:?}\", q.px);           // expect: WV-RS-009"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+          "line": 8,
+          "col": 25,
+          "ruleId": "WV-RS-006",
+          "ruleName": "to-string",
+          "message": "to_string() allocates in #[weft_hot] function",
+          "hint": "defer formatting to the cold path",
+          "snippet": "    let owned = q.symbol.to_string();        // expect: WV-RS-006"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+          "line": 9,
+          "col": 29,
+          "ruleId": "WV-RS-008",
+          "ruleName": "clone",
+          "message": ".clone() may deep-copy in #[weft_hot] function",
+          "hint": "pass references or indices; clone nothing per tick",
+          "snippet": "    let cloned = out.scratch.clone();        // expect: WV-RS-008"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+          "line": 10,
+          "col": 27,
+          "ruleId": "WV-RS-010",
+          "ruleName": "collect",
+          "message": ".collect() materializes a heap container in #[weft_hot] function",
+          "hint": "fold into preallocated storage",
+          "snippet": "    let acc: Vec<f64> = it.collect();        // expect: WV-RS-010"
+        }
+      ]
+    },
+    {
+      "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
+      "lang": "swift",
+      "hotFunctions": 1,
+      "findings": [
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
+          "line": 7,
+          "col": 42,
+          "ruleId": "WV-SW-001",
+          "ruleName": "pointer-allocate",
+          "message": "heap allocation in @weft_hot function",
+          "hint": "allocate capacity once at init; hand out preallocated buffers",
+          "snippet": "    let scratch = UnsafeMutableRawPointer.allocate(byteCount: 64, alignment: 16) // expect: WV-SW-001"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
+          "line": 8,
+          "col": 17,
+          "ruleId": "WV-SW-002",
+          "ruleName": "collection-init",
+          "message": "collection/string construction allocates in @weft_hot function",
+          "hint": "reuse preallocated storage created outside the hot scope",
+          "snippet": "    let label = String(pkt.count)            // expect: WV-SW-002"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
+          "line": 9,
+          "col": 16,
+          "ruleId": "WV-SW-002",
+          "ruleName": "collection-init",
+          "message": "collection/string construction allocates in @weft_hot function",
+          "hint": "reuse preallocated storage created outside the hot scope",
+          "snippet": "    let copy = Array(pkt)                    // expect: WV-SW-002"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
+          "line": 10,
+          "col": 14,
+          "ruleId": "WV-SW-003",
+          "ruleName": "swift-closure",
+          "message": "closure literal allocated in @weft_hot function",
+          "hint": "hoist closures to scope level or use plain indexed loops",
+          "snippet": "    let cb = { (n: Int) in n + 1 }           // expect: WV-SW-003"
+        }
+      ]
+    },
+    {
+      "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+      "lang": "ts",
+      "hotFunctions": 1,
+      "findings": [
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "line": 10,
+          "col": 19,
+          "ruleId": "WV-TS-001",
+          "ruleName": "new-expr",
+          "message": "heap allocation via 'new' in @hot function",
+          "hint": "preallocate outside the hot scope or write into preallocated slot views",
+          "snippet": "  const scratch = new Float64Array(64); // expect: WV-TS-001"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "line": 11,
+          "col": 31,
+          "ruleId": "WV-TS-005",
+          "ruleName": "arrow-closure",
+          "message": "dynamic closure allocated in @hot function",
+          "hint": "hoist the closure to module scope or use static dispatch",
+          "snippet": "  const closure = (x: number) => x + tick; // expect: WV-TS-005"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "line": 12,
+          "col": 18,
+          "ruleId": "WV-TS-002",
+          "ruleName": "object-literal",
+          "message": "heap boxing via object literal in @hot function",
+          "hint": "reuse a preallocated state object or encode into an existing buffer",
+          "snippet": "  const snapshot = { bid: tick, ask: tick }; // expect: WV-TS-002"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "line": 13,
+          "col": 13,
+          "ruleId": "WV-TS-003",
+          "ruleName": "array-literal",
+          "message": "heap allocation via array literal in @hot function",
+          "hint": "write into a preallocated typed array instead",
+          "snippet": "  const row = [tick, tick, tick]; // expect: WV-TS-003"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "line": 14,
+          "col": 16,
+          "ruleId": "WV-TS-002",
+          "ruleName": "object-literal",
+          "message": "heap boxing via object literal in @hot function",
+          "hint": "reuse a preallocated state object or encode into an existing buffer",
+          "snippet": "  const merged = { ...snapshot }; // expect: WV-TS-002 + WV-TS-004"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "line": 14,
+          "col": 20,
+          "ruleId": "WV-TS-004",
+          "ruleName": "spread",
+          "message": "rest/spread materializes an array or object in @hot function",
+          "hint": "use explicit indexing over preallocated storage",
+          "snippet": "  const merged = { ...snapshot }; // expect: WV-TS-002 + WV-TS-004"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "line": 15,
+          "col": 18,
+          "ruleId": "WV-TS-007",
+          "ruleName": "json-api",
+          "message": "JSON.parse/stringify allocates in @hot function",
+          "hint": "decode binary wire formats directly over the buffer",
+          "snippet": "  const parsed = JSON.parse(RAW); // expect: WV-TS-007"
+        },
+        {
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "line": 16,
+          "col": 20,
+          "ruleId": "WV-TS-009",
+          "ruleName": "array-alloc-api",
+          "message": "allocating array method in @hot function",
+          "hint": "iterate manually into preallocated output",
+          "snippet": "  const copy = ROWS.map(normalize); // expect: WV-TS-009"
+        }
+      ]
+    }
+  ],
+  "totalFindings": 31,
+  "totalHotFunctions": 6
+}

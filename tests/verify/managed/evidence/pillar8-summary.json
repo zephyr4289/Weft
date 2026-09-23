@@ -1,0 +1,37 @@
+{
+  "schema": "weft-verify-suite-summary/1",
+  "verdict": "PASS",
+  "stages": 7,
+  "wallClockSeconds": 41,
+  "stage2": {
+    "stage": 2,
+    "poisonedFixtures": 31,
+    "flagged": 31,
+    "missed": 0,
+    "unexpected": 0,
+    "cleanFindings": 0,
+    "precision": 1,
+    "recall": 1,
+    "ok": true
+  },
+  "stage3": {
+    "iterations": 1000000,
+    "rounds": 3,
+    "growthKiB": 0,
+    "perRoundKiB": [
+      0,
+      7.3,
+      0
+    ],
+    "commits": 3200000,
+    "reads": 3200000,
+    "gateKiB": 64,
+    "pass": true
+  },
+  "stage5Wide": {
+    "explored": 10000000,
+    "seconds": 7.3,
+    "verdict": "PASS"
+  },
+  "hookLatencyMsBestOf3": 135
+}

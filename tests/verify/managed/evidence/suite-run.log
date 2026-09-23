@@ -1,0 +1,88 @@
+weft-verify managed suite — start 2026-09-22T14:24:43Z host=Linux aarch64
+
+────────────────────────────────────────────────────────────
+[STAGE 1/7] subsystem integrity, file manifest, boundary law
+────────────────────────────────────────────────────────────
+  node v22.23.2 | git 2.47.3 | flags: --experimental-strip-types --no-warnings
+  [ok] manifest: 41/41 required files present
+  [ok] boundary law: zero core/c/ references, zero core/ payload paths
+  [ok] charset integrity: payload free of the filtered byte pair
+  [ok] CLI runs with zero warnings
+  [ok] hook scripts are executable
+[STAGE 1] PASS
+
+────────────────────────────────────────────────────────────
+[STAGE 2/7] AST allocation linter — cross-language precision & recall
+────────────────────────────────────────────────────────────
+  [ok] lint flags the poisoned fixture set (exit 1 required) (exit 1 as required)
+  [ok] lint passes the clean fixture set
+  [ok] precision 1.0 / recall 1.0 — 31 flagged == 31 expected, 0 clean findings
+[STAGE 2] PASS
+
+────────────────────────────────────────────────────────────
+[STAGE 3/7] zero-allocation runtime execution probe (1,000,000 iterations)
+────────────────────────────────────────────────────────────
+  [ok] probe: 1e6 hot-loop iterations, heap growth <= 64 KiB
+  [ok] heap growth 0 KiB <= 64 KiB gate (min-of-3 GC rounds)
+  [ok] negative control: allocating loop blows the gate (exit 1) (exit 1 as required)
+  [ok] dogfood: the engine's own @hot probe source lints clean
+[STAGE 3] PASS
+
+────────────────────────────────────────────────────────────
+[STAGE 4/7] CLI command suite & flag parser verification
+────────────────────────────────────────────────────────────
+  [ok] --help prints usage
+  [ok] --version format
+  [ok] unknown flag rejected with exit 2 (exit 2 as required)
+  [ok] missing path rejected with exit 2 (exit 2 as required)
+  [ok] invalid chaos profile rejected with exit 2 (exit 2 as required)
+  [ok] missing command rejected with exit 2 (exit 2 as required)
+  [ok] poisoned file lint exits 1 (exit 1 as required)
+  [ok] diagnostics carry the rule id
+  [ok] clean file lint exits 0
+  [ok] --chaos thermal --json shape
+  [ok] --chaos network --json shape
+  [ok] --formal --json (bounded 50k) verdict PASS
+  [ok] --report json from formal artifact
+  [ok] report pipeline: formal artifact -> scorecard.json (PASS, 9+ theorems)
+  [ok] --all (bounded 200k) end-to-end
+  [ok] --all wrote scorecard.json + scorecard.html + formal.json
+[STAGE 4] PASS
+
+────────────────────────────────────────────────────────────
+[STAGE 5/7] scorecard determinism + schema + >= 1e7 state-space tally
+────────────────────────────────────────────────────────────
+  running full formal pass (default target 10,000,000 states)...
+  [ok] full formal pass
+  [ok] state-space tally: 10000000 distinct states (>= 1e7) in 7.3s
+  [ok] report json (run 1)
+  [ok] report json (run 2)
+  [ok] report html (run 1)
+  [ok] report html (run 2)
+  [ok] determinism: JSON + HTML byte-identical across runs (sha256 9acc4ff571d11522d87a56365bd9977e353a3c49f3b05b81a7182769f2f7fbfc)
+  [ok] network chaos determinism (seeded)
+  [ok] scorecard schema + tally validation
+[STAGE 5] PASS
+
+────────────────────────────────────────────────────────────
+[STAGE 6/7] git hook integration (poisoned rejection + clean pass + <50ms)
+────────────────────────────────────────────────────────────
+  [ok] poisoned commit REJECTED with diagnostic pointer
+  [ok] clean commit PASSED
+  [ok] hook latency best-of-3: 135ms < 200ms budget
+  [ok] non-source staged files pass instantly
+[STAGE 6] PASS
+
+────────────────────────────────────────────────────────────
+[STAGE 7/7] package payload & zero-runtime-dependency audit (< 100 KiB)
+────────────────────────────────────────────────────────────
+  [ok] dependencies {} / peerDependencies {} / devDependencies {}
+  [ok] payload: 101578 bytes (99 KiB) < 100 KiB
+  [ok] import audit: only node: builtins and relative .ts modules
+  [ok] bin launcher is executable
+[STAGE 7] PASS
+
+════════════════════════════════════════════════════════════
+  ALL 7 STAGES GREEN — weft-verify managed suite (exit 0)
+  wall clock: 41s | evidence: /data/data/com.termux/files/home/Weft/tests/verify/managed/evidence
+════════════════════════════════════════════════════════════

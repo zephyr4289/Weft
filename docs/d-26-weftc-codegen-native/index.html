@@ -1,0 +1,161 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-5hce7sga> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>D-26-WEFTC-CODEGEN-NATIVE — Docs</title><meta name="description" content="Verbatim document d-26-weftc-codegen-native.md ingested from Weft repository source of truth"><link rel="icon" type="image/svg+xml" href="/Weft/favicon.svg"><meta property="og:title" content="D-26-WEFTC-CODEGEN-NATIVE — Docs"><meta property="og:description" content="Verbatim document d-26-weftc-codegen-native.md ingested from Weft repository source of truth"><meta property="og:type" content="website"><script>document.documentElement.classList.add('js');</script><link rel="stylesheet" href="/Weft/_astro/_doc_.CaZGbq_x.css">
+<style>.docs-shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:clamp(2rem,5vw,4rem);padding-top:8.5rem;padding-bottom:5rem}.docs-nav{position:sticky;top:6.5rem;align-self:start;max-height:calc(100svh - 8rem);overflow:auto}.docs-nav nav{display:grid;gap:.15rem;margin-top:.6rem}.docs-nav a{color:var(--mute);font-size:.88rem;padding:.4rem .6rem;border-radius:7px;border-left:2px solid transparent;text-decoration:none}.docs-nav a:hover{color:var(--bone);background:var(--ink-2)}.docs-nav a[aria-current=page]{color:var(--hot);border-left-color:var(--hot);background:var(--hot-glow)}@media (max-width: 900px){.docs-shell{grid-template-columns:1fr}.docs-nav{position:static}}.docs-head{border-bottom:1px solid var(--line-strong);padding-bottom:1.6rem;margin-bottom:2.4rem}.docs-head h1{font-size:clamp(2rem,4.5vw,3.2rem);margin:.6rem 0;letter-spacing:-.02em}.docs-head a{color:var(--cold)}.prose{max-width:76ch}.prose h2{font-size:1.5rem;margin:2.6rem 0 .9rem;letter-spacing:-.01em}.prose h3{font-size:1.15rem;margin:2rem 0 .6rem}.prose h4{font-size:1rem;margin:1.6rem 0 .5rem;color:var(--bone-dim)}.prose p{margin:0 0 1.1rem;color:var(--bone-dim)}.prose a{color:var(--cold)}.prose ul,.prose ol{margin:0 0 1.2rem;padding-left:1.3rem;color:var(--bone-dim)}.prose li{margin:.35rem 0}.prose code{font-family:var(--mono);font-size:.82em;background:var(--ink-3);border:1px solid var(--line);border-radius:5px;padding:.08em .35em;color:#e8ebf5}.doc-pre{background:#0a0c11;border:1px solid var(--line);border-radius:10px;padding:1.2rem 1.4rem;overflow-x:auto;margin:0 0 1.6rem}.doc-pre code{background:none;border:0;padding:0;font-size:.78rem;line-height:1.65}.doc-table{width:100%;border-collapse:collapse;margin:0 0 1.8rem;font-size:.86rem}.doc-table th{text-align:left;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:.55rem .6rem;border-bottom:1px solid var(--line-strong)}.doc-table td{padding:.55rem .6rem;border-bottom:1px solid var(--line);vertical-align:top;color:var(--bone-dim)}
+</style><script type="module" src="/Weft/_astro/hoisted.DkFPNy5-.js"></script></head> <body data-astro-cid-5hce7sga> <header class="site-head" id="top" data-astro-cid-5hce7sga> <div class="container head-inner" data-astro-cid-5hce7sga> <a class="logo" href="/Weft/" aria-label="Weft home" data-astro-cid-5hce7sga> <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true" data-astro-cid-5hce7sga> <path d="M4 6 L9 26 L16 12 L23 26 L28 6" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-5hce7sga></path> <defs data-astro-cid-5hce7sga><linearGradient id="lg" x1="4" y1="6" x2="28" y2="26" data-astro-cid-5hce7sga><stop stop-color="#f5a524" data-astro-cid-5hce7sga></stop><stop offset="1" stop-color="#53d7fb" data-astro-cid-5hce7sga></stop></linearGradient></defs> </svg> <span data-astro-cid-5hce7sga>Weft</span> </a> <nav aria-label="Main" data-astro-cid-5hce7sga> <a href="/Weft/#problem" data-astro-cid-5hce7sga>Problem</a><a href="/Weft/#triad" data-astro-cid-5hce7sga>Triad Protocol</a><a href="/Weft/#proof" data-astro-cid-5hce7sga>Proof</a><a href="/Weft/pillars" data-astro-cid-5hce7sga>Pillars</a><a href="/Weft/studio" data-astro-cid-5hce7sga>Studio</a><a href="/Weft/docs" class="active" data-astro-cid-5hce7sga>Docs</a> </nav> <div class="head-cta" data-astro-cid-5hce7sga> <a class="gh-star" href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener" data-astro-cid-5hce7sga> <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" data-astro-cid-5hce7sga><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" data-astro-cid-5hce7sga></path></svg>
+GitHub
+</a> </div> </div> </header> <main data-astro-cid-5hce7sga>  <div class="docs-shell container"> <aside class="docs-nav" aria-label="Documentation"> <p class="mono-label">DOCUMENTATION</p> <nav> <a href="/Weft/docs/whitepaper">Whitepaper</a><a href="/Weft/docs/triad">Triad protocol</a><a href="/Weft/docs/envelope">Frame envelope</a><a href="/Weft/docs/revocation">Writer revocation</a><a href="/Weft/docs/results">Measured results</a><a href="/Weft/docs/laws">Four Laws</a><a href="/Weft/docs/litmus">Litmus catalog</a><a href="/Weft/docs/philosophy">Philosophy</a><a href="/Weft/docs/glossary">Glossary</a><a href="/Weft/docs/ports">Ports</a><a href="/Weft/docs/studio-seams-v1">Studio seams</a><a href="/Weft/docs/rfc-0001">RFC-0001</a><a href="/Weft/docs/rfcs">RFC index</a><a href="/Weft/docs/errata">Errata</a> </nav> <p class="mono-label" style="margin-top:1.6rem">SOURCE OF TRUTH</p> <p class="micro subtle">Repo pages are rendered verbatim from <span class="mono">zephyr4289/Weft@main</span>. Site digests quote mechanisms verbatim and link back.</p> </aside> <main class="docs-main"> <header class="docs-head"> <p class="eyebrow">VERBATIM FROM THE REPOSITORY</p> <h1>D-26-WEFTC-CODEGEN-NATIVE</h1> <p class="subtle">Verbatim document d-26-weftc-codegen-native.md ingested from Weft repository source of truth</p> <a class="micro mono" href="https://github.com/zephyr4289/Weft/blob/main/d-26-weftc-codegen-native.md" target="_blank" rel="noopener">view source on GitHub ↗</a> </header> <article class="prose"><h1 id="weftc-codegen-pillar-1-native-code-generators">weftc-codegen — Pillar 1 Native Code Generators</h1>
+<p><strong>Project weftc, Pillar 1</strong> (native systems &amp; GPU compute code generators): turn Engineer 1's verified <code>weft-ir</code> layout schemas into production-grade native code where data reads are <strong>0-cost pointer projections</strong>, verified at compile time with static assertions, and mapped <strong>byte-for-byte into GPU buffers without host-side repacking</strong>.</p>
+<p>Four backends, one verified IR, zero dependencies in the output:</p>
+<pre class="doc-pre"><code>weft-ir JSON v1 (Eng 1: AST + Static Layout Engine)
+        |
+        v
+  ┌─────────────┬──────────────┬──────────────┬───────────────┐
+  │ --target=c  │ --target=rust│ --target=wgsl│ --target=glsl │
+  │ C11 headers │ no_std mods  │ std430/140   │ std430/140    │
+  └─────────────┴──────────────┴──────────────┴───────────────┘</code></pre>
+<pre class="doc-pre"><code>make                                        # build the generator (pure C11)
+./weftc-codegen --ir tests/fixtures/telemetry_frame.weft.json --verify-only
+./weftc-codegen --ir schema.weft.json --target all --out gen/
+make test                                   # the full verification gate</code></pre>
+<hr/>
+<h2 id="the-four-laws-enforced-by-construction">The four Laws, enforced by construction</h2>
+<table class="doc-table"><thead><tr><th>Law</th><th>Requirement (briefing)</th><th>Where it is enforced</th></tr></thead><tbody><tr><td>1</td><td>zero dynamic allocation on the read path</td><td>generated code contains no <code>malloc</code>/<code>free</code>/<code>Box</code>/<code>Vec</code> — casts borrow, packed IO is by-value through caller storage; the IR loader rejects before emission</td></tr><tr><td>2</td><td>strict no_std / pure C11</td><td>generated C includes ONLY <code>&lt;stdint.h&gt; &lt;stdbool.h&gt; &lt;stddef.h&gt; &lt;stdalign.h&gt; &lt;assert.h&gt;</code> (SIMD paths live behind <code>__AVX2__</code>/<code>__ARM_NEON</code> capability macros and pull nothing on plain targets); generated Rust compiles as <code>#![no_std]</code> (<code>core</code> only) — proven by the test crate's lib</td></tr><tr><td>3</td><td>unaligned access safety</td><td>cast helpers validate alignment before projecting; <code><em>_read_packed</code>/<code></em>_write_packed</code> are byte assembly (C) / <code>read_unaligned</code>+<code>write_unaligned</code> (Rust) — no UB on any architecture, including trap-on-unaligned targets</td></tr><tr><td>4</td><td>deterministic GPU layouts</td><td>WGSL/GLSL emitters emit explicit padding and <strong>refuse totally</strong> (with a precise, machine-checkable reason) any layout they cannot reproduce byte-for-byte; <code>std140</code>/<code>std430</code> alignment is computed, never guessed</td></tr></tbody></table>
+<h2 id="deliverable-a-c11-target-c">Deliverable A — C11 (<code>--target=c</code>)</h2>
+<ul>
+<li>Standalone single-header <code>.h</code> per struct: the shared projection core (error</li>
+<p>taxonomy, endian guard, LE readers/writers, IEEE 754 binary16 codec) is embedded behind its own include guard, so any subset of headers compiles alone and all of them compile together.</p>
+<li>Compile-time ABI guards, exactly the briefing's pattern:</li>
+</ul>
+<pre class="doc-pre"><code>  static_assert(sizeof(weft_telemetry_frame_t) == 64, "weft ABI layout violation: telemetry_frame size");
+  static_assert(offsetof(weft_telemetry_frame_t, velocity) == 8, "weft ABI: telemetry_frame.velocity offset mismatch");</code></pre>
+<ul>
+<li>Zero-copy cast helper — the briefing's signature:</li>
+</ul>
+<pre class="doc-pre"><code>  static inline const weft_telemetry_frame_t*
+  weft_cast_telemetry_frame(const void* buffer, size_t len, weft_error_t* err);</code></pre>
+<p>validates byte length, buffer alignment and the schema hash header (three compares + one load; the suite reports sandbox-timed ns/op, informational).</p>
+<ul>
+<li><code>weft_cast_*_mut</code> (writer side), <code><em>_read_packed</code> / <code></em>_write_packed</code></li>
+<p>(alignment-free, for DMA/UMEM-packed sources and destinations).</p>
+<li>Bitfield accessors (<code>weft_mcu_status_get_mode</code> / <code>_set_mode</code>), fixed-array</li>
+<p><code>LEN</code> macros, offset macros (<code>WEFT_*_OFF_*</code>).</p>
+<li><strong>SIMD batch validation</strong> (<code>weft_validate_batch_&lt;name&gt;</code>): AVX2 4×u64 /</li>
+<p>8×u32 lanes, NEON on aarch64, scalar fallback everywhere — all paths alignment-safe; the test suite runs <code>-mavx2</code> and scalar builds and requires byte-identical verdicts.</p>
+<li>Explicit struct alignment is portable C11: <code>_Alignas(N)</code> on the first</li>
+<p>member raises the struct alignment without perturbing any offset (<code>#[repr(align(N))]</code> on the Rust side).</p>
+</ul>
+<h2 id="deliverable-b-rust-target-rust">Deliverable B — Rust (<code>--target=rust</code>)</h2>
+<ul>
+<li><code>#[repr(C)]</code> (+ <code>#[repr(align(N))]</code> when the IR demands it) with</li>
+<p><strong>synthesized pad members</strong> so <code>repr(C)</code>'s computed offsets match the normative weft-ir offsets exactly (the <code>mcu_status</code> 18..20 gap is the fixture that catches drift).</p>
+<li>Zero-allocation projection API:</li>
+</ul>
+<pre class="doc-pre"><code>  impl TelemetryFrame {
+      pub const SCHEMA_ID: u64 = 0x8F4C_1120_A9B3_0012;
+      pub fn from_bytes(bytes: &amp;[u8]) -&gt; Result&lt;&amp;Self, WeftError&gt;;        // zero-copy
+      pub fn from_bytes_mut(bytes: &amp;mut [u8]) -&gt; Result&lt;&amp;mut Self, WeftError&gt;;
+      pub fn read_packed(bytes: &amp;[u8]) -&gt; Result&lt;Self, WeftError&gt;;        // alignment-free
+      pub fn write_packed(&amp;self, dst: &amp;mut [u8]) -&gt; Result&lt;(), WeftError&gt;;
+      pub fn as_bytes(&amp;self) -&gt; &amp;[u8; Self::SIZE];                        // direct upload source
+      pub const fn with_velocity(mut self, v: f32) -&gt; Self { ... }        // zero-overhead builders
+  }</code></pre>
+<ul>
+<li><code>no_std</code>, <code>core</code> only. <code>WeftF16</code> is a dependency-free binary16 newtype —</li>
+<p>round-to-nearest-even, bit-identical with the C codec (both sides prove the exhaustive 65536-pattern identity).</p>
+<li>Optional <code>bytemuck</code> (<code>Pod</code>/<code>Zeroable</code>) and <code>zerocopy</code> 0.8</li>
+<p>(<code>Immutable</code>/<code>TryFromBytes</code>/<code>IntoBytes</code>) impls behind cargo features — never compiled unless the consumer opts in and brings the dependency.</p>
+</ul>
+<h2 id="deliverable-c-gpu-target-wgsl-target-glsl">Deliverable C — GPU (<code>--target=wgsl</code>, <code>--target=glsl</code>)</h2>
+<ul>
+<li>WGSL storage (std430-equivalent) and uniform (std140-equivalent) struct</li>
+<p>variants <strong>byte-exact with the host layout</strong>: explicit pad members (<code>weft_padN</code>) are computed so the CPU buffer uploads via <code>queue.writeBuffer()</code> / <code>vkMapMemory</code> / an SSBO upload <strong>without any host-side reformatting</strong>.</p>
+<li><code>vec3</code> → 16-byte alignment, uniform array strides rounded to 16, u64/i64</li>
+<p>and f16 exclusions — all computed by <code>gpu/gpu_layout.c</code> and <strong>independently re-derived by <code>tests/gpu_layout_check.c</code> from the emitted text</strong> (double entry: the emitter and the checker are separate implementations that must agree with the C headers' <code>offsetof</code> ground truth).</p>
+<li>Law 4 in action — a layout that cannot be reproduced is <strong>refused totally</strong>:</li>
+</ul>
+<pre class="doc-pre"><code>  // WEFT-GPU-NOT-EXACT: mcu_status — storage variant WITHHELD (Law 4)
+  // reason: field vbus_mv (scalar): WGSL and GLSL expose no 16-bit integer
+  //   buffer types; widen to u32 (or keep this struct CPU-side)</code></pre>
+<p>The refusal set is part of the gate: the runner asserts the exact expected warnings fire — an emitter that silently starts emitting a broken struct (or silently stops emitting a good one) fails CI.</p>
+<ul>
+<li><code>&lt;name&gt;_validate.wgsl</code> / <code>&lt;name&gt;_validate.comp</code> — generated proof shaders</li>
+<p>that consume an array of host-written frames straight from a storage buffer and validate every schema hash GPU-side. The <code>.comp</code> files compile to SPIR-V under glslangValidator (CI leg; declared-skip when the tool is absent).</p>
+</ul>
+<h2 id="deliverable-d-end-to-end-native-abi-consistency">Deliverable D — end-to-end native ABI consistency</h2>
+<p><code>tests/run_tests.sh</code> is the single gate. It proves, in order:</p>
+<ol>
+<li><strong>Determinism</strong> — two generator runs over the same IR are byte-identical.</li>
+<li><strong>Golden identity</strong> — committed goldens (<code>tests/golden/</code>) match fresh</li>
+<p>output; reviewing a PR means reviewing the generated code diff directly.</p>
+<li><strong>Law-4 matrix</strong> — the exact expected refusal set fires (and no more).</li>
+<li><strong>C roundtrip × 3 flavors</strong> (default / <code>-mavx2</code> / ASAN+UBSAN): 65 gates —</li>
+<p>compile-time ABI asserts, cast happy path + all three refusal modes, packed read/write through deliberately misaligned buffers, bitfield roundtrips, the exhaustive f16 identity, SIMD batch validation. The AVX2 and scalar builds must produce <strong>byte-identical stage-1 bins</strong>.</p>
+<li><strong>Rust</strong> — the <code>#![no_std]</code> lib compiles (bare-metal proof) and the</li>
+<p>integration tests read the C-written bins <strong>bit-exact</strong>, then mutate via const-fn builders and write stage-2 bins.</p>
+<li><strong>C re-reads Rust's bins</strong> — three execution domains, one buffer, zero</li>
+<p>copies, every field asserted on both sides independently.</p>
+<li><strong>GPU double-entry</strong> — WGSL+GLSL offsets independently recomputed from the</li>
+<p>emitted text vs the C headers' <code>offsetof</code>.</p>
+<li><strong>glslang (optional)</strong> — proof shaders compile to SPIR-V.</li>
+</ol>
+<p>Five fixtures cover the feature matrix:</p>
+<table class="doc-table"><thead><tr><th>fixture</th><th>exercises</th></tr></thead><tbody><tr><td><code>telemetry_frame</code></td><td>the briefing's example ABI (sizeof 64, <code>velocity@8</code>, schema <code>0x8F4C1120A9B30012</code>); vec3/vec4; WGSL+GLSL storage-exact, uniform refused (u64 header)</td></tr><tr><td><code>mcu_status</code></td><td>bitfields, f16 sensors, u16 arrays, a 2-byte IR gap (pad synthesis!); GPU-refused both languages</td></tr><tr><td><code>camera_exposure</code></td><td>u32 schema header, explicit align-16, <code>mat4x4&lt;f32&gt;</code> over <code>[f32;16]</code>, <code>[vec4&lt;f32&gt;;2]</code> arrays; <strong>uniform/std140-exact in both languages</strong></td></tr><tr><td><code>sensor_event</code></td><td>embedded struct (<code>axis_sample</code>), nested packed IO, batch validation star; GPU-refused (i16)</td></tr><tr><td><code>audio_peak</code></td><td><code>[f16;4]</code> bank; WGSL storage-exact via <code>enable f16</code>; uniform + GLSL refused</td></tr></tbody></table>
+<hr/>
+<h2 id="the-weft-ir-json-v1-contract-engineer-1-handoff">The weft-ir JSON v1 contract (Engineer 1 handoff)</h2>
+<p>The compiler core emits this per module; the generator verifies every layout law <strong>before</strong> emitting anything (a violating IR is rejected with a file:line-level message, never partially emitted):</p>
+<pre class="doc-pre"><code>{
+  "weft_ir": 1,                      // required, exactly 1
+  "module": "telemetry",             // lower_snake, reserved words rejected
+  "types": [
+    {
+      "kind": "struct",              // v1: structs only
+      "name": "telemetry_frame",     // lower_snake, unique, not a type token
+      "root": true,                  // default true; root = schema-headered, castable
+      "schema_id": "0x8F4C1120A9B30012",  // or "auto" (FNV-1a-64 of the signature — see below)
+      "schema_id_width": 64,         // 64 (u64 header) or 32 (u32 header), default 64
+      "align": 8,                    // declared struct alignment (&gt;= natural; &gt; natural = repr(align))
+      "size": 64,                    // must equal roundUp(align, last field end) exactly
+      "fields": [
+        { "name": "velocity",        // valid in C+Rust+WGSL+GLSL namespaces (checked)
+          "type": "f32",             // u8..u64, i8..i64, f16, f32, f64, bool,
+                                     // vec2/3/4&lt;f32|f16&gt;, "[T; N]", struct name
+          "offset": 8,               // normative; verified: aligned, ordered, in-bounds
+          "doc": "m/s",              // optional
+          "gpu_type": "mat4x4&lt;f32&gt;", // optional; v1 whitelist, host type [f32;16]
+          "bits": [                  // optional; integer scalars only
+            { "name": "mode", "lo": 0, "hi": 1 }
+          ] }
+      ]
+    }
+  ]
+}</code></pre>
+<p><strong>Layout laws the loader enforces</strong> (all violations = hard error): offsets ascending and non-overlapping; every field C-aligned at its offset; field end within <code>size</code>; declared <code>align</code> is a power of two ≥ the natural member alignment; <code>size == roundUp(align, end)</code> — tail padding must be exact; root structs lead with <code>schema_id</code> (u64 or u32 per <code>schema_id_width</code>) at offset 0; array counts in <code>[1, 65536]</code>; bitfields within field width with struct-unique accessor names; no struct cycles; names reserved in any of the four target languages are rejected up front.</p>
+<p><strong>Schema ids.</strong> <code>auto</code> computes FNV-1a-64 over the canonical layout signature (<code>weft/v1|struct=...|field=name:type@off[+bits][+gpu]...</code>). FNV is a deterministic <em>layout fingerprint</em>, not a cryptographic hash — for the cryptographic 64-bit schema hash the trust chain requires, Eng 1's core passes an explicit <code>schema_id</code> (the generator consumes but never invents cryptographic claims). Banner comments always state which mode produced the id.</p>
+<p><strong>Emission contract.</strong> Files are named <code>&lt;struct&gt;.h</code> / <code>&lt;struct&gt;.rs</code> / <code>&lt;struct&gt;.wgsl</code> / <code>&lt;struct&gt;.glsl</code> (+ <code>&lt;struct&gt;_validate.wgsl</code> / <code>.comp</code> for byte-exact roots) plus the shared core (<code>weft_projection_core.h</code> / <code>.rs</code>, overridable via <code>--core-name</code>). Structs that embed other structs include their dependencies (C: <code>#include</code>; Rust: <code>use super::</code>; WGSL/GLSL: dependency closure inlined into the same file — WGSL has no include system).</p>
+<h2 id="repository-layout">Repository layout</h2>
+<pre class="doc-pre"><code>tools/weftc/codegen/
+  weftc_codegen.h/.c   shared core: arena, strbuf, strict JSON, naming, signature
+  weft_ir.c            IR loader — every layout law, refusal with context
+  main.c               CLI (--ir --target --out --core-name --rust-traits --verify-only)
+  c/emit_c.c           C11 backend
+  rust/emit_rust.c     Rust backend
+  gpu/gpu_layout.*     WGSL/GLSL alignment engine (Law 4 machinery)
+  gpu/emit_wgsl.c      WGSL backend (+ proof shaders)
+  gpu/emit_glsl.c      GLSL backend (+ .comp proof shaders)
+  tests/fixtures/      the five weft-ir schemas (the reference corpus)
+  tests/golden/        committed generator output (review generated code directly)
+  tests/c_roundtrip.c  C-side ABI ground truth + cross-language stage bins
+  tests/gpu_layout_check.c  INDEPENDENT WGSL/GLSL layout verifier (double entry)
+  tests/rust/          no_std lib + bit-exact roundtrip suite (cargo, zero deps)
+  tests/run_tests.sh   the gate (also run by ci/scripts/run_weftc_codegen_shard.sh)</code></pre>
+<h2 id="honesty">Honesty</h2>
+<ul>
+<li>Cast-helper ns/op figures are <code>[SANDBOX-TIMED]</code> and informational, never a</li>
+<p>gate; the structural claim is "three compares + one load", auditable by reading the emitted function.</p>
+<li>The glslang SPIR-V leg is <code>DECLARED-SKIP</code> where the tool is absent; CI</li>
+<p>runners install <code>glslang-tools</code>.</p>
+<li><code>auto</code> schema ids are non-cryptographic fingerprints (stated in every</li>
+<p>banner that uses one).</p>
+<li>WGSL/GLSL validity is verified by an independent parser in this suite</li>
+<p>(layout double-entry) and by glslang for GLSL; a live WebGPU/Vulkan execution leg is future work (Pillar 2+ hardware matrix).</p>
+</ul>
+</article>       </main> </div>   </main> <footer class="site-foot" data-astro-cid-5hce7sga> <div class="container foot-grid" data-astro-cid-5hce7sga> <div data-astro-cid-5hce7sga> <p class="foot-brand" data-astro-cid-5hce7sga>WEFT</p> <p class="subtle micro" style="max-width: 34ch;" data-astro-cid-5hce7sga>The continuous-state plane for declarative UI. Wait-free by construction, honest by policy.</p> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Product</p> <a href="/Weft/#triad" data-astro-cid-5hce7sga>Triad Protocol</a> <a href="/Weft/#proof" data-astro-cid-5hce7sga>Evidence &amp; CI</a> <a href="/Weft/studio" data-astro-cid-5hce7sga>Weft Studio</a> <a href="/Weft/ports" data-astro-cid-5hce7sga>Ports &amp; Heddles</a> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Learn</p> <a href="/Weft/docs" data-astro-cid-5hce7sga>Documentation</a> <a href="/Weft/docs/whitepaper" data-astro-cid-5hce7sga>Whitepaper (canonical)</a> <a href="/Weft/docs/laws" data-astro-cid-5hce7sga>The Four Laws</a> <a href="/Weft/docs/rfc-0001" data-astro-cid-5hce7sga>RFC-0001 · F1 withdrawal</a> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Meta</p> <a href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener" data-astro-cid-5hce7sga>Source repository</a> <a href="/Weft/docs/errata" data-astro-cid-5hce7sga>Errata</a> <a href="/Weft/#laws" data-astro-cid-5hce7sga>Non-goals</a> </div> </div> <div class="container foot-rule" data-astro-cid-5hce7sga> <span data-astro-cid-5hce7sga>© 2026 Weft project · kernel v1.0.4 (FROZEN)</span> <span class="num" data-astro-cid-5hce7sga>2026-09-23 · built from repo @ ingest time</span> </div> </footer>   </body> </html>

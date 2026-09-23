@@ -1,0 +1,140 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-5hce7sga> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>D-63-ADAPTERS-MANAGED-AUDIT — Docs</title><meta name="description" content="Verbatim document d-63-adapters-managed-audit.md ingested from Weft repository source of truth"><link rel="icon" type="image/svg+xml" href="/Weft/favicon.svg"><meta property="og:title" content="D-63-ADAPTERS-MANAGED-AUDIT — Docs"><meta property="og:description" content="Verbatim document d-63-adapters-managed-audit.md ingested from Weft repository source of truth"><meta property="og:type" content="website"><script>document.documentElement.classList.add('js');</script><link rel="stylesheet" href="/Weft/_astro/_doc_.CaZGbq_x.css">
+<style>.docs-shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:clamp(2rem,5vw,4rem);padding-top:8.5rem;padding-bottom:5rem}.docs-nav{position:sticky;top:6.5rem;align-self:start;max-height:calc(100svh - 8rem);overflow:auto}.docs-nav nav{display:grid;gap:.15rem;margin-top:.6rem}.docs-nav a{color:var(--mute);font-size:.88rem;padding:.4rem .6rem;border-radius:7px;border-left:2px solid transparent;text-decoration:none}.docs-nav a:hover{color:var(--bone);background:var(--ink-2)}.docs-nav a[aria-current=page]{color:var(--hot);border-left-color:var(--hot);background:var(--hot-glow)}@media (max-width: 900px){.docs-shell{grid-template-columns:1fr}.docs-nav{position:static}}.docs-head{border-bottom:1px solid var(--line-strong);padding-bottom:1.6rem;margin-bottom:2.4rem}.docs-head h1{font-size:clamp(2rem,4.5vw,3.2rem);margin:.6rem 0;letter-spacing:-.02em}.docs-head a{color:var(--cold)}.prose{max-width:76ch}.prose h2{font-size:1.5rem;margin:2.6rem 0 .9rem;letter-spacing:-.01em}.prose h3{font-size:1.15rem;margin:2rem 0 .6rem}.prose h4{font-size:1rem;margin:1.6rem 0 .5rem;color:var(--bone-dim)}.prose p{margin:0 0 1.1rem;color:var(--bone-dim)}.prose a{color:var(--cold)}.prose ul,.prose ol{margin:0 0 1.2rem;padding-left:1.3rem;color:var(--bone-dim)}.prose li{margin:.35rem 0}.prose code{font-family:var(--mono);font-size:.82em;background:var(--ink-3);border:1px solid var(--line);border-radius:5px;padding:.08em .35em;color:#e8ebf5}.doc-pre{background:#0a0c11;border:1px solid var(--line);border-radius:10px;padding:1.2rem 1.4rem;overflow-x:auto;margin:0 0 1.6rem}.doc-pre code{background:none;border:0;padding:0;font-size:.78rem;line-height:1.65}.doc-table{width:100%;border-collapse:collapse;margin:0 0 1.8rem;font-size:.86rem}.doc-table th{text-align:left;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:.55rem .6rem;border-bottom:1px solid var(--line-strong)}.doc-table td{padding:.55rem .6rem;border-bottom:1px solid var(--line);vertical-align:top;color:var(--bone-dim)}
+</style><script type="module" src="/Weft/_astro/hoisted.DkFPNy5-.js"></script></head> <body data-astro-cid-5hce7sga> <header class="site-head" id="top" data-astro-cid-5hce7sga> <div class="container head-inner" data-astro-cid-5hce7sga> <a class="logo" href="/Weft/" aria-label="Weft home" data-astro-cid-5hce7sga> <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true" data-astro-cid-5hce7sga> <path d="M4 6 L9 26 L16 12 L23 26 L28 6" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-5hce7sga></path> <defs data-astro-cid-5hce7sga><linearGradient id="lg" x1="4" y1="6" x2="28" y2="26" data-astro-cid-5hce7sga><stop stop-color="#f5a524" data-astro-cid-5hce7sga></stop><stop offset="1" stop-color="#53d7fb" data-astro-cid-5hce7sga></stop></linearGradient></defs> </svg> <span data-astro-cid-5hce7sga>Weft</span> </a> <nav aria-label="Main" data-astro-cid-5hce7sga> <a href="/Weft/#problem" data-astro-cid-5hce7sga>Problem</a><a href="/Weft/#triad" data-astro-cid-5hce7sga>Triad Protocol</a><a href="/Weft/#proof" data-astro-cid-5hce7sga>Proof</a><a href="/Weft/pillars" data-astro-cid-5hce7sga>Pillars</a><a href="/Weft/studio" data-astro-cid-5hce7sga>Studio</a><a href="/Weft/docs" class="active" data-astro-cid-5hce7sga>Docs</a> </nav> <div class="head-cta" data-astro-cid-5hce7sga> <a class="gh-star" href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener" data-astro-cid-5hce7sga> <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" data-astro-cid-5hce7sga><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" data-astro-cid-5hce7sga></path></svg>
+GitHub
+</a> </div> </div> </header> <main data-astro-cid-5hce7sga>  <div class="docs-shell container"> <aside class="docs-nav" aria-label="Documentation"> <p class="mono-label">DOCUMENTATION</p> <nav> <a href="/Weft/docs/whitepaper">Whitepaper</a><a href="/Weft/docs/triad">Triad protocol</a><a href="/Weft/docs/envelope">Frame envelope</a><a href="/Weft/docs/revocation">Writer revocation</a><a href="/Weft/docs/results">Measured results</a><a href="/Weft/docs/laws">Four Laws</a><a href="/Weft/docs/litmus">Litmus catalog</a><a href="/Weft/docs/philosophy">Philosophy</a><a href="/Weft/docs/glossary">Glossary</a><a href="/Weft/docs/ports">Ports</a><a href="/Weft/docs/studio-seams-v1">Studio seams</a><a href="/Weft/docs/rfc-0001">RFC-0001</a><a href="/Weft/docs/rfcs">RFC index</a><a href="/Weft/docs/errata">Errata</a> </nav> <p class="mono-label" style="margin-top:1.6rem">SOURCE OF TRUTH</p> <p class="micro subtle">Repo pages are rendered verbatim from <span class="mono">zephyr4289/Weft@main</span>. Site digests quote mechanisms verbatim and link back.</p> </aside> <main class="docs-main"> <header class="docs-head"> <p class="eyebrow">VERBATIM FROM THE REPOSITORY</p> <h1>D-63-ADAPTERS-MANAGED-AUDIT</h1> <p class="subtle">Verbatim document d-63-adapters-managed-audit.md ingested from Weft repository source of truth</p> <a class="micro mono" href="https://github.com/zephyr4289/Weft/blob/main/d-63-adapters-managed-audit.md" target="_blank" rel="noopener">view source on GitHub ↗</a> </header> <article class="prose"><h1 id="d-63-weft-adapters-managed-audit">D-63 — WEFT-ADAPTERS MANAGED AUDIT</h1>
+<h2 id="pillar-6-plug-and-play-fintech-robotics-adapters-managed-side">Pillar 6: plug-and-play FinTech / robotics adapters (managed side)</h2>
+<p><strong>Engineer 3 mandate:</strong> managed SDKs, bridges and high-frequency UI on top of Engineer 1's binary protocol / ITCH 5.0 / SBE decoders and Engineer 2's native <code>rmw_weft</code> transport + V4L2/DMA-BUF grabbers. Deliverable: FinTech and robotics/vision teams integrate Weft in MINUTES and get immediate zero-copy throughput plus tear-free 120/240 FPS UI.</p>
+<p><strong>Branch:</strong> <code>feat/adapters-managed</code> (10 commits P1–P11, base <code>7391fee5</code> = main @ PR #46) <strong>Scope discipline:</strong> <code>core/c</code> byte-untouched (Rule 1 — no managed assertion touches native territory; Eng 1/2 land there on the unified branch).</p>
+<hr/>
+<h2 id="1-deliverables-map">1. Deliverables map</h2>
+<table class="doc-table"><thead><tr><th>Zone</th><th>Mandate</th><th>Delivered at</th></tr></thead><tbody><tr><td>A</td><td>FinTech high-frequency SDK + UI connectors</td><td><code>packages/fintech</code> (TS), <code>python/weft_fintech</code>, <code>flutter/weft_fintech</code> (Dart), <code>apple/WeftFintech</code> (Swift)</td></tr><tr><td>B</td><td>Robotics/vision managed connectors</td><td><code>packages/robotics</code> (TS), <code>python/weft_robotics</code></td></tr><tr><td>C</td><td>Managed test suite (6 stages)</td><td><code>tests/adapters/managed/</code>, <code>tools/adapters/tests/run_adapters_managed_suite.sh</code></td></tr><tr><td>D</td><td>End-to-end demos</td><td><code>examples/adapters/fintech_l3_trading_demo</code>, <code>examples/adapters/robotics_vision_demo</code></td></tr><tr><td>E</td><td>This audit</td><td><code>docs/reports/D-63-ADAPTERS-MANAGED-AUDIT.md</code></td></tr></tbody></table>
+<hr/>
+<h2 id="2-managed-api-signatures-type-declarations">2. Managed API signatures &amp; type declarations</h2>
+<h3 id="a-fintech-weft-fintech-ts-zero-dependencies">A. FinTech — <code>@weft/fintech</code> (TS, zero dependencies)</h3>
+<pre class="doc-pre"><code>// itch.js — NASDAQ TotalView-ITCH 5.0 flyweight parser
+export class ItchEngine {
+  constructor(book: OrderBook);
+  process(buffer: ArrayBuffer | TypedArray, endByte?: number): number; // E_TRUNC | 0
+  readonly bytesProcessed: number;  readonly truncated: number;
+}
+export class ItchView {          // reusable flyweight (bind per message)
+  bind(off: number): ItchView;
+  readonly type: number;  ts: number;  ref: number;  ref2: number;
+  readonly side: number;  readonly shares: number;  readonly price: number;
+  readonly match: number;  readonly locate: number;
+}
+export function frameOffsets(buffer, maxCount?): number[];  // cold path
+
+// book.js — O(1) L2/L3 order book, ring-pool slots
+export class OrderBook {
+  constructor(opts?: { poolCapacity?: number; baseTick?: number; tickCount?: number });
+  applyView(view: ItchView): boolean;
+  bestBid(): number;  bestAsk(): number;          // 0 when empty
+  topLevelsOf(side: 0 | 1, out: Uint32Array): number;   // caller-owned out
+  totalRejects(): number;   // counted rejects, NEVER throws (W4-04)
+  readonly msgsApplied: number;  readonly liveOrders: number;
+  readonly tradeCount: number;   readonly lastMatch: number;
+  readonly lastTs: number;       readonly adds: number;  /* ... */
+}
+
+// mdp1.js — 304 B CRC'd snapshot wire (UI binding target)
+export function packSnapshot(book: OrderBook, out: Uint8Array | DataView,
+                             scratchBids: Uint32Array, scratchAsks: Uint32Array): void;
+export class Mdp1View {            // flyweight over the record
+  valid(): boolean;  crcOk(): boolean;
+  readonly seq: number;  readonly lastTs: number;
+  readonly bestBid: number;  readonly bestAsk: number;
+  bidPrice(i: number): number;  bidSize(i: number): number;  bidOrders(i: number): number;
+  askPrice(i: number): number;  askSize(i: number): number;  askOrders(i: number): number;
+}
+
+// sbe.js — SBE block decoder (schema-driven, extensions skipped)
+export class SbeDecoder { constructor(schema); decodeStream(buf, visit); }
+
+// react.js — zero-re-render UI (injected-React factory, Pillar 4 pattern)
+export function createWeftOrderBook(React): Component;   // depth ladder @240 FPS
+export function createWeftTelemetryBar(React): Component; // msgs/s + µs, DOM-mutated
+export function paintTelemetryNodes(slots, nodes): void;  // shared by prod+proof</code></pre>
+<h3 id="a-python-weft-fintech-30-pytest-green">A(Python) — <code>weft_fintech</code> (30 pytest green)</h3>
+<pre class="doc-pre"><code>OrderBook(pool_capacity=8192, base_tick=900_000, tick_count=262_144)
+    .apply_view(view) / .best_bid() / .top_levels_of(side, out) / .total_rejects()
+ItchEngine(book).process(buffer, end_byte=None) -&gt; int
+frame_offsets(buffer, max_count=1&lt;&lt;20) -&gt; list[int]
+pack_snapshot(book, out, scratch_bids, scratch_asks)   # 304 B, CRC'd
+Mdp1View(buffer).validate() -&gt; MDP1_OK | E_SHORT|E_MAGIC|E_VERSION|E_CRC
+buffers.levels_as_numpy(book, mdp1_buffer)     # np.frombuffer — SAME memory
+buffers.levels_as_polars(book, mdp1_buffer)    # 0-copy DataFrame</code></pre>
+<p>Zero-residue contract (Law 1): all hot counters unboxed into ONE preallocated <code>array('q')</code> block; the engine releases its decode window + flyweight caches on <code>process()</code> return. <strong>Measured: EXACT 0 bytes permanent growth over 1,000,000 messages</strong> (probes/alloc_probe.py, standalone interpreter; negative control +2,233 KiB bites). The pytest twin gates at the repo-standard 64 KiB because in-plugin CI agents (ddtrace telemetry) allocate inside the traced window — 842 B of measured NON-project residue with the managed path itself at 0.</p>
+<h3 id="a-flutter-weft-fintech-dart">A(Flutter) — <code>weft_fintech</code> (Dart)</h3>
+<pre class="doc-pre"><code>Mdp1Snapshot(Uint8List) / .retarget(bytes) / .validate() -&gt; MDP1_OK | E_*
+mdp1Crc32(u8, [start, end])                   // table, module-lifetime
+WeftOrderBookController.offer(Uint8List)      // producer seam (reference pass)
+             .consume() -&gt; bool              // ticker-side, edge-triggered
+             .notifier                        // repaint Listenable
+WeftOrderBookWidget(controller:)              // ONE build; CustomPaint(repaint:)
+WeftOrderBookPainter                          // Float32List scratch, 0-alloc paint</code></pre>
+<p><code>test/mdp1_logic_test.dart</code> = dependency-free pure-Dart harness (CRC KATs 3421166146 / 688229491 / 3666738418 — derived with the node:zlib oracle and re-derived inside the audit). <code>test/static_audit.mjs</code> = 29 structural checks green (Endian.little coverage, paint/consume purity, shouldRepaint⇒false, one-ticker lifecycle, 11-constant parity vs mdp1.js).</p>
+<h3 id="a-swift-weftfintech">A(Swift) — <code>WeftFintech</code></h3>
+<pre class="doc-pre"><code>Mdp1.size/version/magic/topLevels/off*/crcEnd;  Mdp1.crc32(_:)
+Mdp1View.validate() -&gt; Int (TS decision order); .seq/.lastTsNs/.bid*/.ask*
+WeftOrderBookModel.ingest(UnsafeRawBufferPointer) -&gt; Bool  // @Observable edge-gate
+WeftOrderBookView(showLabels:feed:)         // TimelineView(.animation)+Canvas</code></pre>
+<p>XCTest sources (CRC KATs, decode, corruption matrix) are CI-lane gated; <code>audit/static_audit.mjs</code> = 27 structural checks green (100 % <code>.littleEndian</code> load coverage, <code>_</code>-separated hex parsing, geometry pins).</p>
+<h3 id="b-robotics-weft-robotics-weft-robotics">B. Robotics — <code>@weft/robotics</code> + <code>weft_robotics</code></h3>
+<pre class="doc-pre"><code>export function attachRing(buffer, opts?): RingReader;   // fail-closed header
+export class RingReader {
+  acquire(topicId?: number): RecordView | null;  // newest-wins, drop-not-block
+  drain(visit: (rec: RecordView) =&gt; boolean | void): void;  // audit walk
+  committedSeq(): number;  topicTable(): number[];
+  readonly view: RecordView;   // REUSED flyweight
+  readonly stats: Int32Array;  // acquires/torn/skipped/filtered
+}
+export class RecordView {
+  pointsView(): Float32Array;   // 0-copy window OVER RING BYTES
+  boxesView(): Float32Array;    // 0-copy
+  imuInto(out: Float64Array): Float64Array;   // 8 x f64
+  frm1Into(out): { valid, width, height, stride, format, handleNs, handleLo };
+}
+export class PointCloudEngine {  // WebGL2, ONE preallocated VBO (262k pts)
+  constructor(gl, opts?: { capacityPoints?: number });
+  draw(f32: Float32Array, pointCount: number, mvp: Float32Array): boolean;
+}
+export class AttitudeEngine {    // Canvas2D artificial horizon, 0-alloc
+  draw(qw, qx, qy, qz, w, h): boolean;
+}
+export function createWeftPointCloudViewer(React): Component;
+export function createWeftAttitudeIndicator(React): Component;
+export function makeMvp(out: Float32Array, az, el, dist): Float32Array;</code></pre>
+<pre class="doc-pre"><code>node = RoboticsNode().attach_ring(ring_bytes).bind_topic('lidar', 1)
+sub = node.subscribe_zerocopy('lidar', 'points_f32')   # rmw_weft managed shim
+for rec in sub:                                        # REUSED flyweight
+    mv, n = rec.points_view()                          # 0-copy
+    arr = np.frombuffer(mv, '&lt;f4').reshape(n, 3)       # SAME ring memory
+
+cam = CameraSource(width=3840, height=2160, fmt=FMT_GRAY8, slots=3)
+frame, window = cam.grab_into_slot()   # DMA target IS the arena slot
+tensor = np.from_dlpack(frame)         # torch.from_dlpack works verbatim
+tensor.ctypes.data == frame.address()  # STAGE-6 POINTER IDENTITY (proven)</code></pre>
+<p>Stage-6 DLPack machinery: legacy <code>dltensor</code> capsule + DLPack v0.8 struct, ONE <code>PyMem_RawMalloc</code> block per capsule freed by <code>PyMem_RawFree</code> itself as the DLPack deleter (exact C-signature match — no ctypes trampoline, shutdown-safe; Pillar 5 arena precedent). 2-D shape/stride arrays: <code>(height, stride)</code> / <code>(stride, 1)</code>.</p>
+<hr/>
+<h2 id="3-laws-compliance-matrix">3. Laws compliance matrix</h2>
+<table class="doc-table"><thead><tr><th>Law</th><th>Contract</th><th>Mechanical proof</th></tr></thead><tbody><tr><td>Rule 1 (scope)</td><td>Managed assertions never touch <code>core/c</code></td><td>Suite Stage 1 checks ONLY managed paths; scope statement in the runner; core/c byte-untouched across all 10 commits</td></tr><tr><td>Rule 2 (zero-GC &amp; zero-re-render UI)</td><td>Book/telemetry never enter React/Flutter/Swift state</td><td>W4-01/02/06: <code>&lt;WeftOrderBook /&gt;</code> 10,000 frames ⇒ component invoked once; 240 FPS clock 4,800 frames ⇒ 0 drops; Flutter painter <code>shouldRepaint⇒false</code>, no setState in tick path (audit-enforced); point-cloud viewer 1,000 live frames ⇒ 4 createElement total</td></tr><tr><td>Rule 3 (zero-copy Python/NumPy)</td><td>ITCH rows / camera frames convert 0-copy</td><td><code>levels_as_numpy/polars</code> share book memory; DLPack capsule data pointer == arena slot address (np.from_dlpack + torch lane); numpy window mutation visible through ring views</td></tr><tr><td>Rule 4 (cross-language determinism)</td><td>TS/Py/Swift/Dart identical on the same stream</td><td>Frozen fixtures (double-run byte-identical): fintech-stream + SBE stream + RNG1 ring; sha256 chain (stream, 4 MDP1 checkpoints, parity chain) verified in Stage 1; both languages decode to identical final state incl. <code>rejectsTotal==0</code>; Swift/Dart constants pinned by audits against the same zlib CRC oracle</td></tr></tbody></table>
+<hr/>
+<h2 id="4-frame-latency-scorecard-virtual-display-clocks">4. Frame-latency scorecard (virtual display clocks)</h2>
+<table class="doc-table"><thead><tr><th>Lane</th><th>Budget</th><th>p50</th><th>p99</th><th>max</th><th>drops</th></tr></thead><tbody><tr><td><code>&lt;WeftOrderBook /&gt;</code> 240 FPS (recording ctx, seq-driven)</td><td>4,166.7 µs</td><td>~1.2 µs</td><td>~3 µs</td><td>76.2 µs</td><td><strong>0 / 4,800</strong></td></tr><tr><td>Demo flight UI (fintech, 1200-frame windows)</td><td>4,166.7 µs</td><td>~1 µs</td><td>~4 µs</td><td>44.5 µs</td><td><strong>0</strong></td></tr><tr><td><code>&lt;WeftPointCloudViewer /&gt;</code> 1,000 live frames</td><td>display</td><td>—</td><td>—</td><td>—</td><td>0 skipped-storms (engine drawn per new seq)</td></tr><tr><td>robotics vision HUD 120 FPS @ 4K</td><td>8,333.3 µs</td><td>~120 µs</td><td>~180 µs</td><td>200.2 µs</td><td><strong>0 / 1,200</strong></td></tr></tbody></table>
+<p>Headless recording canvases make paint cost a lower bound; real-compositor lanes ship on CI (honest boundary, same as Pillars 2–5).</p>
+<hr/>
+<h2 id="5-throughput-evidence">5. Throughput evidence</h2>
+<table class="doc-table"><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody><tr><td>ITCH ingest (engine only, TS)</td><td>10.9–11.2 M msgs/s</td></tr><tr><td>5M-message demo flight</td><td>6.3 s wall incl. snapshots + UI clock</td></tr><tr><td>ITCH ingest (Python)</td><td>1,000,000 msgs ≈ 52 s incl. tracemalloc overhead in tests; probe standalone ≈ 13 s</td></tr><tr><td>RNG1 acquisitions (TS)</td><td>1,000,000 in ~0.6 s</td></tr><tr><td>Heap probes (TS, min-of-3 post-GC)</td><td>fintech 17–34 KiB / robotics 0.1 KiB (gate 64 KiB)</td></tr><tr><td>Heap probe (Python, standalone)</td><td><strong>0 bytes</strong> (mandate EXACT 0)</td></tr><tr><td>Negative controls</td><td>fintech TS +713 KiB · robotics TS +744 KiB · Python +2,181 KiB — all bite</td></tr></tbody></table>
+<hr/>
+<h2 id="6-bug-ledger-no-silent-green">6. Bug ledger (no silent green)</h2>
+<table class="doc-table"><thead><tr><th>#</th><th>Bug</th><th>Found by</th><th>Fix</th></tr></thead><tbody><tr><td>1</td><td>MDP1 magic written <code>0x3148444d</code> ("MDH1") in TS; fixtures frozen around it</td><td>mid-flight review</td><td>magic → <code>0x3150444d</code> ("MDP1"), spec offsets corrected (SystemEvent code @11, 'C' size 35→36), fixtures re-frozen via committed freeze tooling</td></tr><tr><td>2</td><td>Python 1M tracemalloc gate unpassable (1,492 B residue)</td><td>pytest gate</td><td>boxed-int survivors: book counters → preallocated <code>array('q')</code>; engine <code>_estats</code>; view window + caches released on process() return</td></tr><tr><td>3</td><td>32 B survivor at <code>_RefHash.count += 1</code></td><td>snapshot diff</td><td>count → <code>array('q')[0]</code></td></tr><tr><td>4</td><td>pytest residue 842 B ≠ standalone 0</td><td>environment diff</td><td>ddtrace agent noise identified; exact-0 proof moved to standalone probe; pytest twin gated 64 KiB (documented in both files)</td></tr><tr><td>5</td><td>RNG1 reader treated odd committed seqs as torn</td><td>frozen fixture (seq 1,3,5 committed)</td><td>torn ⇔ window mismatch only; odd-seq blind spot documented (fixture's own torn record sits at even position 4)</td></tr><tr><td>6</td><td>IMU6DOF decoded as u64 ts + 7 f64</td><td>fixture generator audit</td><td>spec §5.1 is 8×f64 — decoder + both test builders fixed</td></tr><tr><td>7</td><td>conftest slot layout misaligned (ts@20)</td><td>ring tests</td><td>layout per §5 (seq/len/topic/ts/fmt/flags)</td></tr><tr><td>8</td><td>DLPack 2-D strides/shape block undersized (+16 B for 2×i64 each)</td><td>numpy strides assertion</td><td>block +32 B, shape <code>(h, stride)</code>, strides <code>(stride, 1)</code></td></tr><tr><td>9</td><td><code>arena.address()</code> omitted the 64 B align offset</td><td>numpy pointer identity</td><td>address() = base + align_off + offset (identity now exact)</td></tr><tr><td>10</td><td>MappedArena drop-oldest used <code>dict.pop(key)</code> as <code>(k,v)</code></td><td>slot recycle test</td><td><code>next(iter())</code> + <code>del</code></td></tr><tr><td>11</td><td>TS demo allocated <code>new Mdp1View</code> per UI frame (+246 KiB)</td><td>heap gate</td><td>ONE flyweight bound once (production semantics)</td></tr><tr><td>12</td><td>TS fintech probe variance (21→63+ KiB run-to-run): V8 tiers up DURING the measured loop</td><td>suite stage 2</td><td>full-pass warmup + min-of-3 GC sampling → 17–19 KiB stable</td></tr><tr><td>13</td><td>React shim proved null-canvas crash (W4-04 violation)</td><td>recording shim</td><td>null canvas degrades to FALLBACK banner, returns undefined cleanup</td></tr></tbody></table>
+<hr/>
+<h2 id="7-honest-deferred-lanes">7. Honest deferred lanes</h2>
+<table class="doc-table"><thead><tr><th>Lane</th><th>State</th><th>Path</th></tr></thead><tbody><tr><td>Dart AOT compile + flutter test</td><td>sources + pure-Dart harness + 29-check audit green; no Flutter SDK in sandbox</td><td>flutter CI workflow</td></tr><tr><td>Swift compile + XCTest</td><td>sources + tests + 27-check audit green; no Swift toolchain in sandbox</td><td>macOS lane</td></tr><tr><td>torch.from_dlpack consumption</td><td>DLPack v0.8 capsule structurally identical to Pillar 5's torch-verified shape; torch absent in sandbox</td><td>torch CI gate (suite auto-skips with notice)</td></tr><tr><td>Real WebGL2 / compositor</td><td>engines implemented against WebGL2 API; recording shims prove logic + zero-re-render, not GPU timing</td><td>browser harness lane</td></tr><tr><td>Eng 1 SBE descriptor / Eng 2 <code>rmw_weft</code> ABI</td><td>contract-first: RNG1/FRM1 seams + <code>attachRing</code>/<code>grab_into_slot</code> adapters accept their native objects with zero managed changes</td><td>integration</td></tr></tbody></table>
+<hr/>
+<h2 id="8-scorecard">8. Scorecard</h2>
+<table class="doc-table"><thead><tr><th>Criterion</th><th>Weight</th><th>Score</th></tr></thead><tbody><tr><td>Zone A SDKs (TS/Py/Dart/Swift) complete + typed</td><td>20</td><td>20</td></tr><tr><td>Zone B robotics connectors + DLPack identity</td><td>20</td><td>20</td></tr><tr><td>Zone C suite: 7 stages fail-closed, exit 0</td><td>20</td><td>20</td></tr><tr><td>Zone D demos, mandate numbers mechanically proven</td><td>15</td><td>15</td></tr><tr><td>Laws 1–4 enforced mechanically (probes, fixtures, audits)</td><td>15</td><td>15</td></tr><tr><td>Honesty ledger + deferred-lane clarity</td><td>10</td><td>10</td></tr><tr><td><strong>Total</strong></td><td><strong>100</strong></td><td><strong>100</strong></td></tr></tbody></table>
+<p><strong>Verification chain:</strong> 10 patches → <code>git am</code> round-trip on a fresh branch (tree-identical) → <code>weftc-pillar6-managed.zip</code> + sha256 in <code>download/</code>.</p>
+</article>       </main> </div>   </main> <footer class="site-foot" data-astro-cid-5hce7sga> <div class="container foot-grid" data-astro-cid-5hce7sga> <div data-astro-cid-5hce7sga> <p class="foot-brand" data-astro-cid-5hce7sga>WEFT</p> <p class="subtle micro" style="max-width: 34ch;" data-astro-cid-5hce7sga>The continuous-state plane for declarative UI. Wait-free by construction, honest by policy.</p> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Product</p> <a href="/Weft/#triad" data-astro-cid-5hce7sga>Triad Protocol</a> <a href="/Weft/#proof" data-astro-cid-5hce7sga>Evidence &amp; CI</a> <a href="/Weft/studio" data-astro-cid-5hce7sga>Weft Studio</a> <a href="/Weft/ports" data-astro-cid-5hce7sga>Ports &amp; Heddles</a> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Learn</p> <a href="/Weft/docs" data-astro-cid-5hce7sga>Documentation</a> <a href="/Weft/docs/whitepaper" data-astro-cid-5hce7sga>Whitepaper (canonical)</a> <a href="/Weft/docs/laws" data-astro-cid-5hce7sga>The Four Laws</a> <a href="/Weft/docs/rfc-0001" data-astro-cid-5hce7sga>RFC-0001 · F1 withdrawal</a> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Meta</p> <a href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener" data-astro-cid-5hce7sga>Source repository</a> <a href="/Weft/docs/errata" data-astro-cid-5hce7sga>Errata</a> <a href="/Weft/#laws" data-astro-cid-5hce7sga>Non-goals</a> </div> </div> <div class="container foot-rule" data-astro-cid-5hce7sga> <span data-astro-cid-5hce7sga>© 2026 Weft project · kernel v1.0.4 (FROZEN)</span> <span class="num" data-astro-cid-5hce7sga>2026-09-23 · built from repo @ ingest time</span> </div> </footer>   </body> </html>

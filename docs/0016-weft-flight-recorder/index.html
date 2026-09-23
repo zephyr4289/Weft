@@ -1,0 +1,135 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-5hce7sga> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>0016-WEFT-FLIGHT-RECORDER — Docs</title><meta name="description" content="Verbatim document 0016-weft-flight-recorder.md ingested from Weft repository source of truth"><link rel="icon" type="image/svg+xml" href="/Weft/favicon.svg"><meta property="og:title" content="0016-WEFT-FLIGHT-RECORDER — Docs"><meta property="og:description" content="Verbatim document 0016-weft-flight-recorder.md ingested from Weft repository source of truth"><meta property="og:type" content="website"><script>document.documentElement.classList.add('js');</script><link rel="stylesheet" href="/Weft/_astro/_doc_.CaZGbq_x.css">
+<style>.docs-shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:clamp(2rem,5vw,4rem);padding-top:8.5rem;padding-bottom:5rem}.docs-nav{position:sticky;top:6.5rem;align-self:start;max-height:calc(100svh - 8rem);overflow:auto}.docs-nav nav{display:grid;gap:.15rem;margin-top:.6rem}.docs-nav a{color:var(--mute);font-size:.88rem;padding:.4rem .6rem;border-radius:7px;border-left:2px solid transparent;text-decoration:none}.docs-nav a:hover{color:var(--bone);background:var(--ink-2)}.docs-nav a[aria-current=page]{color:var(--hot);border-left-color:var(--hot);background:var(--hot-glow)}@media (max-width: 900px){.docs-shell{grid-template-columns:1fr}.docs-nav{position:static}}.docs-head{border-bottom:1px solid var(--line-strong);padding-bottom:1.6rem;margin-bottom:2.4rem}.docs-head h1{font-size:clamp(2rem,4.5vw,3.2rem);margin:.6rem 0;letter-spacing:-.02em}.docs-head a{color:var(--cold)}.prose{max-width:76ch}.prose h2{font-size:1.5rem;margin:2.6rem 0 .9rem;letter-spacing:-.01em}.prose h3{font-size:1.15rem;margin:2rem 0 .6rem}.prose h4{font-size:1rem;margin:1.6rem 0 .5rem;color:var(--bone-dim)}.prose p{margin:0 0 1.1rem;color:var(--bone-dim)}.prose a{color:var(--cold)}.prose ul,.prose ol{margin:0 0 1.2rem;padding-left:1.3rem;color:var(--bone-dim)}.prose li{margin:.35rem 0}.prose code{font-family:var(--mono);font-size:.82em;background:var(--ink-3);border:1px solid var(--line);border-radius:5px;padding:.08em .35em;color:#e8ebf5}.doc-pre{background:#0a0c11;border:1px solid var(--line);border-radius:10px;padding:1.2rem 1.4rem;overflow-x:auto;margin:0 0 1.6rem}.doc-pre code{background:none;border:0;padding:0;font-size:.78rem;line-height:1.65}.doc-table{width:100%;border-collapse:collapse;margin:0 0 1.8rem;font-size:.86rem}.doc-table th{text-align:left;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:.55rem .6rem;border-bottom:1px solid var(--line-strong)}.doc-table td{padding:.55rem .6rem;border-bottom:1px solid var(--line);vertical-align:top;color:var(--bone-dim)}
+</style><script type="module" src="/Weft/_astro/hoisted.DkFPNy5-.js"></script></head> <body data-astro-cid-5hce7sga> <header class="site-head" id="top" data-astro-cid-5hce7sga> <div class="container head-inner" data-astro-cid-5hce7sga> <a class="logo" href="/Weft/" aria-label="Weft home" data-astro-cid-5hce7sga> <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true" data-astro-cid-5hce7sga> <path d="M4 6 L9 26 L16 12 L23 26 L28 6" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-5hce7sga></path> <defs data-astro-cid-5hce7sga><linearGradient id="lg" x1="4" y1="6" x2="28" y2="26" data-astro-cid-5hce7sga><stop stop-color="#f5a524" data-astro-cid-5hce7sga></stop><stop offset="1" stop-color="#53d7fb" data-astro-cid-5hce7sga></stop></linearGradient></defs> </svg> <span data-astro-cid-5hce7sga>Weft</span> </a> <nav aria-label="Main" data-astro-cid-5hce7sga> <a href="/Weft/#problem" data-astro-cid-5hce7sga>Problem</a><a href="/Weft/#triad" data-astro-cid-5hce7sga>Triad Protocol</a><a href="/Weft/#proof" data-astro-cid-5hce7sga>Proof</a><a href="/Weft/pillars" data-astro-cid-5hce7sga>Pillars</a><a href="/Weft/studio" data-astro-cid-5hce7sga>Studio</a><a href="/Weft/docs" class="active" data-astro-cid-5hce7sga>Docs</a> </nav> <div class="head-cta" data-astro-cid-5hce7sga> <a class="gh-star" href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener" data-astro-cid-5hce7sga> <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" data-astro-cid-5hce7sga><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" data-astro-cid-5hce7sga></path></svg>
+GitHub
+</a> </div> </div> </header> <main data-astro-cid-5hce7sga>  <div class="docs-shell container"> <aside class="docs-nav" aria-label="Documentation"> <p class="mono-label">DOCUMENTATION</p> <nav> <a href="/Weft/docs/whitepaper">Whitepaper</a><a href="/Weft/docs/triad">Triad protocol</a><a href="/Weft/docs/envelope">Frame envelope</a><a href="/Weft/docs/revocation">Writer revocation</a><a href="/Weft/docs/results">Measured results</a><a href="/Weft/docs/laws">Four Laws</a><a href="/Weft/docs/litmus">Litmus catalog</a><a href="/Weft/docs/philosophy">Philosophy</a><a href="/Weft/docs/glossary">Glossary</a><a href="/Weft/docs/ports">Ports</a><a href="/Weft/docs/studio-seams-v1">Studio seams</a><a href="/Weft/docs/rfc-0001">RFC-0001</a><a href="/Weft/docs/rfcs">RFC index</a><a href="/Weft/docs/errata">Errata</a> </nav> <p class="mono-label" style="margin-top:1.6rem">SOURCE OF TRUTH</p> <p class="micro subtle">Repo pages are rendered verbatim from <span class="mono">zephyr4289/Weft@main</span>. Site digests quote mechanisms verbatim and link back.</p> </aside> <main class="docs-main"> <header class="docs-head"> <p class="eyebrow">VERBATIM FROM THE REPOSITORY</p> <h1>0016-WEFT-FLIGHT-RECORDER</h1> <p class="subtle">Verbatim document 0016-weft-flight-recorder.md ingested from Weft repository source of truth</p> <a class="micro mono" href="https://github.com/zephyr4289/Weft/blob/main/0016-weft-flight-recorder.md" target="_blank" rel="noopener">view source on GitHub ↗</a> </header> <article class="prose"><hr/>
+<p>RFC: 0016 Title: weft_trace — Continuous Lock-Free Flight Recorder &amp; Perfetto Bridge Status: Draft Authors: Engineer 3 (Observability Fabric &amp; Reactive Dataflow) Created: 2026-09-20 Supersedes / Superseded-by: None Requires: 0014 (.weftrec v4 event standard — container stays byte-frozen), 0008 (freshness telemetry)</p>
+<hr/>
+<h1 id="rfc-0016-weft-trace-the-continuous-lock-free-flight-recorder-perfetto-bridge">RFC 0016 — weft_trace: the continuous lock-free flight recorder &amp; Perfetto bridge</h1>
+<h2 id="summary">Summary</h2>
+<p>RFC-0014 gave Weft a standardized <strong>event codec</strong>: a <code>.weftrec</code> v4 container is a pure function of a kernel run's decision stream, byte-identical across every port. But a codec is not a recorder. Recording today means <code>tools/weft-record</code> — a harness you attach, run, and stop. Production concurrency bugs do not schedule themselves around harnesses. The failure you need to explain happened ninety seconds ago, on a device you no longer control.</p>
+<p>This RFC specifies <strong><code>weft_trace</code></strong>, a continuous flight recorder that lives in-process for the entire lifetime of the application and answers, at any moment, "what did the kernel do in the last N events?" — with the same three properties the kernel itself has:</p>
+<ol>
+<li><strong>Wait-free emission.</strong> <code>weft_trace_emit</code> performs no CAS, no retry loop,</li>
+<p>no system call, no allocation (Law 1, Law 2). Worst-case cost is one cache line of stores. It is safe to call from the writer thread inside the publish path — the hottest path Weft has.</p>
+<li><strong>Zero lock contention — by construction, not by tuning.</strong> Every producer</li>
+<p>owns a private SPSC shard. Producers never touch shared mutable state; contention is structurally absent, not merely small.</p>
+<li><strong>Always the newest history.</strong> When a shard is full the recorder</li>
+<p>overwrites the OLDEST events (it is a flight recorder, not an audit log); the lap is counted, never hidden.</p>
+</ol>
+<p>Plus <strong>the bridge</strong>: a deterministic converter from (v4 container + sidecar) to Chrome/Perfetto JSON — the format <code>ui.perfetto.dev</code> renders as an interactive timeline of VSYNC alignment, claim latencies, governor decisions, and drop bursts.</p>
+<h2 id="non-goals">Non-goals</h2>
+<ul>
+<li><strong>The v4 container format does not change.</strong> Its kind registry (8 kernel</li>
+<p>kinds) is closed; its event stream must remain a pure function of the kernel scenario (that is what makes xlang-trace byte-identity possible). Every runtime-only fact lives in the sidecar (§4).</p>
+<li><strong>No daemon, no sockets, no background threads.</strong> The recorder is inert</li>
+<p>memory + arithmetic. Draining is the host's decision.</p>
+</ul>
+<h2 id="specification">Specification</h2>
+<h3 id="1-the-view-of-time-two-surfaces-one-trace">§1 The view of time: two surfaces, one trace</h3>
+<p>The recorder produces two artifacts, exactly per the RFC-0014 header's sidecar provision ("timestamps live in the container's sidecar or the replay tool, never in the event stream"):</p>
+<table class="doc-table"><thead><tr><th>Artifact</th><th>Contents</th><th>Determinism contract</th></tr></thead><tbody><tr><td><code>.weftrec</code> v4 container</td><td>kernel decision events (kinds 1–8), arrival order</td><td>pure function of the scenario — byte-identical across ports (RFC-0014 gate)</td></tr><tr><td><code>.wsid</code> sidecar v1</td><td>timeline records: wall/monotonic timestamps, producer ids, runtime kinds, back-references</td><td>pure function of (scenario, injected clock)</td></tr></tbody></table>
+<p>The sidecar is what makes the Perfetto view <em>temporal</em>; the container is what makes the trace <em>cross-port</em>. A replay tool needs only the container; a timeline view needs both.</p>
+<h3 id="2-producer-shards">§2 Producer shards</h3>
+<pre class="doc-pre"><code>weft_trace_t
+├── shard[0] — writer thread   (binds: PUBLISH / DROP / REVOKE events)
+├── shard[1] — reader thread   (binds: CLAIM / ACK / STALL / TEAR / CANARY)
+├── shard[2] — governor thread (binds: governor actions, trend verdicts)
+├── shard[3..N-1] — display / host / user lanes
+└── t_* global counters (Relaxed; advisory per AXIOM T)</code></pre>
+<ul>
+<li><code>WEFT_TRACE_SHARDS_MAX = 8</code>, capacity per shard is a power of two, set at</li>
+<p>init (64 ≤ cap ≤ 2^20). Slots are 32 bytes (two per cache line): <code>{u16 kind; u16 aux; u32 data; u32 producer; u64 t_ns; u32 stamp; u32 pad}</code> where <code>stamp</code> is the slot's sequence ticket (see §3).</p>
+<li><strong>Thread discipline:</strong> a shard is bound to exactly one producer thread.</li>
+<p>Emit only from the binding thread (same discipline as <code>w_work</code> / <code>r_work</code> — the kernel's existing thread-privacy rule). Cross-thread emission is a caller error, detectable in tests, defended by assertion in the debug build only (the hot path pays nothing).</p>
+</ul>
+<h3 id="3-wait-free-lossy-emission-the-heart">§3 Wait-free lossy emission (the heart)</h3>
+<p>Each slot carries a monotonically increasing <strong>ticket</strong>. Producer-private state: <code>head</code> (next ticket). No shared mutable state is written by the producer except the slot itself:</p>
+<pre class="doc-pre"><code>emit(kind, aux, data, t_ns):
+    slot   = &amp;shard-&gt;slots[head &amp; (cap-1)]
+    slot'  = {kind, aux, data, producer, t_ns, stamp: ++head}
+    // single u32 Release store publishes all prior stores (stamp is last)
+    // head full? the slot we just wrote WAS the oldest — the lap is
+    // accounted by the consumer on resync (§5), never by the producer
+    // (the producer performs NO reads of shared state — zero coherence
+    // traffic beyond the one dirty line it must write anyway)</code></pre>
+<p>Worst case: ~10 ns. No loop exists to bound (Law 1: there is nothing to spin on). No allocation exists to collect (Law 2). The kernel's forbidden patterns are all trivially absent — the recorder contains <strong>zero atomics that participate in any ownership decision</strong>; it is not a second kernel.</p>
+<h3 id="4-sidecar-record-wsid-v1">§4 Sidecar record (<code>.wsid</code> v1)</h3>
+<pre class="doc-pre"><code>HEADER (32 bytes)
+  0   u32 magic      "WSID" = 0x44495357 (LE)
+  4   u32 version    1
+  8   u32 flags      0
+  12  u32 reserved   0
+  16  u32 rec_count
+  20  u32 crc32      CRC-32/zlib over bytes 0..20 (RFC-0014 §1.4 polynomial)
+  24  u64 t_epoch_ns producer-agnostic clock epoch (0 in deterministic tests)
+
+RECORD (20 bytes, fixed)
+  0   u64  t_ns        injected monotonic timestamp
+  8   u32  back_ref    index into the paired v4 event stream, or 0xFFFFFFFF
+                       for runtime-only records
+  12  u16  producer    shard id
+  14  u16  kind_ext    runtime kind (registry below)
+  16  u32  data        kind-scoped
+  20  (records are NOT individually CRC'd — the header CRC covers the
+       structure; records are 20-byte fixed and validated by position.
+       Rationale: the sidecar is advisory context for humans and the
+       Perfetto bridge; the decision stream's integrity lives in the v4
+       container's per-record CRCs. One mechanism per guarantee.)</code></pre>
+<p><strong>Runtime kind registry (<code>kind_ext</code>, u16 — OPEN but declared here first):</strong></p>
+<p>Runtime kinds live in <code>[16, 0x8000)</code> — disjoint from the kernel kinds <code>1..8</code> (the u16 kind space carries both surfaces; a collision would make the v4 export filter misclassify, so the gap is a tested invariant).</p>
+<table class="doc-table"><thead><tr><th>kind</th><th>name</th><th>data semantics</th></tr></thead><tbody><tr><td>16</td><td><code>VSYNC_TICK</code></td><td>display frame counter</td></tr><tr><td>17</td><td><code>GOVERNOR_ACTION</code></td><td>bits 31..24 action kind, bits 23..0 skip_n/param</td></tr><tr><td>18</td><td><code>TREND_VERDICT</code></td><td>bits 31..24 verdict, bits 23..0 level q16</td></tr><tr><td>19</td><td><code>GC_PAUSE</code></td><td>pause duration in ns (capped u32)</td></tr><tr><td>20</td><td><code>RING_DEPTH</code></td><td>observed depth at sample time</td></tr><tr><td>21</td><td><code>FRESHNESS</code></td><td>framesBehind at sample time</td></tr><tr><td>22</td><td><code>CLAIM_LATENCY</code></td><td>publish→claim latency ns (capped u32; needs both endpoints — emitted by the reader on claim, using the writer's stamped t_ns of the claimed seq from the shard scan)</td></tr><tr><td>23</td><td><code>DROP_BURST</code></td><td>coalesced drop count</td></tr><tr><td>24</td><td><code>MARKER</code></td><td>user annotation (devtools)</td></tr></tbody></table>
+<h3 id="5-drain-the-k-way-merge-consumer-side">§5 Drain: the K-way merge (consumer side)</h3>
+<p><code>weft_trace_drain(r, out, out_cap, &amp;count)</code> reads all shards and merges by <code>t_ns</code>, tie-broken by (producer, arrival). Bounded: O(out_cap · log K), K ≤ 8, the merge heap lives in a caller-provided buffer (24 · K bytes). Zero allocation.</p>
+<p><strong>Resync rule (lossy read):</strong> the drainer tracks its last-read ticket per shard. If the writer lapped (a slot's stamp jumped more than <code>cap</code> ahead of the expected sequence), the drainer counts <code>t_lap_dropped += missed</code> for the shard, resyncs to <code>newest - cap</code>, and continues. A slot read with an in-flight stamp (torn by a racing emit) fails validation and retries ONCE; two consecutive failures resync. The drain is <em>eventually consistent per shard and merge-ordered across shards</em> — declared, not assumed: drain output is ordered by <code>t_ns</code>, but two events closer than the drain epoch may swap across shards (they are distinct only by producer tie-break). The Perfetto bridge tolerates this by construction (§7); deterministic tests never race (drained between steps).</p>
+<h3 id="6-export">§6 Export</h3>
+<ul>
+<li><code>weft_trace_export_v4(r, buf, cap)</code> — kernel kinds (1–8) in merged order →</li>
+<p>a valid <code>.weftrec</code> v4 container via the RFC-0014 codec (<code>weft_trace_writer_*</code>). Runtime records are OMITTED (the container stays a pure function of the kernel scenario).</p>
+<li><code>weft_trace_export_sidecar(r, buf, cap, t_epoch_ns)</code> — the <code>.wsid</code> v1</li>
+<p>file. Every v4 event emitted through the recorder gets a back-referenced sidecar record; runtime kinds get <code>back_ref = 0xFFFFFFFF</code>.</p>
+<li><code>weft_trace_shard_mmap_hint()</code> — shards are plain 64-byte-aligned memory;</li>
+<p>a host MAY back them with <code>mmap(MAP_SHARED)</code> and hand the region to <code>weft_trace_init_at</code> (the one init-time placement API). Crash-tolerant post-mortem = mmap a shard file, run the resync-drain over it. No daemon was harmed.</p>
+</ul>
+<h3 id="7-the-perfetto-bridge">§7 The Perfetto bridge</h3>
+<p><code>tools/perfetto/weftrec2perfetto.mjs</code> — zero-dependency Node 18+:</p>
+<pre class="doc-pre"><code>node weftrec2perfetto.mjs capture.weftrec [--sidecar capture.wsid] [--out trace.json]</code></pre>
+<p>Mapping (Chrome JSON / <code>traceEvents[]</code>, consumable verbatim by <code>ui.perfetto.dev</code>):</p>
+<table class="doc-table"><thead><tr><th>Source</th><th>Perfetto form</th></tr></thead><tbody><tr><td>v4 PUBLISH/CLAIM/DROP/REVOKE/ACK/STALL/TEAR/CANARY_FAIL</td><td>instants (<code>ph:"i"</code>) on <code>lane:writer</code> / <code>lane:reader</code> tracks + async flow links PUBLISH(seq)→CLAIM(seq) (<code>ph:"b"</code>/<code>ph:"e"</code>, cat "flow")</td></tr><tr><td>sidecar <code>VSYNC_TICK</code></td><td>instants on <code>lane:display</code></td></tr><tr><td>sidecar <code>GOVERNOR_ACTION</code></td><td>slices (<code>ph:"B"</code>/<code>ph:"E"</code>) colored by action on <code>lane:governor</code></td></tr><tr><td>sidecar <code>TREND_VERDICT</code></td><td>instants on <code>lane:governor</code></td></tr><tr><td>sidecar <code>GC_PAUSE</code></td><td>slices on <code>lane:host</code></td></tr><tr><td>sidecar <code>RING_DEPTH</code>, <code>FRESHNESS</code>, <code>CLAIM_LATENCY</code>, <code>DROP_BURST</code></td><td>counter tracks (<code>ph:"C"</code>)</td></tr><tr><td>sidecar <code>MARKER</code></td><td>instants on <code>lane:user</code></td></tr></tbody></table>
+<p><strong>Determinism (Law 4):</strong> identical inputs → byte-identical JSON. Events are sorted by <code>ts</code> with stable tie-break <code>(pid, tid, name)</code>; counters round-trip through fixed-point integers only; the JSON is emitted with a fixed key order. A golden-file test pins the exact output hash.</p>
+<h3 id="8-laws-compliance">§8 Laws compliance</h3>
+<ul>
+<li><strong>Law 1 (no unbounded spins):</strong> emit has no loop; drain is bounded by</li>
+<p><code>out_cap</code>; the single validation retry is a declared constant.</p>
+<li><strong>Law 2 (zero hot-path allocation):</strong> emit: none. Drain/export: caller</li>
+<p>buffers. <code>init</code>: the only allocator (kernel precedent).</p>
+<li><strong>Law 3 (mechanism, not policy):</strong> <code>weft.c</code> / <code>weft.h</code> untouched — the</li>
+<p>recorder observes through its public API and telemetry counters. All code lives in <code>core/c/weft_trace_*</code>, <code>tools/perfetto/</code>, and port mirrors.</p>
+<li><strong>Law 4 (deterministic testing):</strong> timestamps are injected; the fixture</li>
+<p>suite drives shards, laps, resyncs, and cross-port v4 parity (fixtures/xlang-trace gains a recorder path); the Perfetto bridge has a golden-hash test.</p>
+</ul>
+<h2 id="test-plan">Test plan</h2>
+<p><code>core/c/weft_trace_test.c</code> (T-series):</p>
+<ul>
+<li>T1 emit/ drain ordering, single + multi-shard merge order</li>
+<li>T2 lap/overwrite-oldest accounting (<code>t_lap_dropped</code> exactness)</li>
+<li>T3 torn-read resync (forced by draining mid-emit under an interleaving</li>
+<p>schedule) — no torn event ever exported</p>
+<li>T4 v4 export byte-identity vs direct RFC-0014 encoding of the same</li>
+<p>scenario</p>
+<li>T5 sidecar structure, back-references, header CRC</li>
+<li>T6 zero-allocation proof (emit/drain/export over a malloc-counting</li>
+<p>allocator shim)</p>
+<li>T7 shard-binding discipline (debug assertion trips on cross-thread emit)</li>
+<li>T8 wait-freedom probe: emit latency histogram under concurrent drain —</li>
+<p>p_max bounded by the single-store bound, no outlier tail</p>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li>RFC-0014 §1.4 (CRC), §kinds (closed registry), header sidecar provision</li>
+<li>RFC-0009 G5 (cross-language trace parity — the pattern the replay fold</li>
+<p>reuses), RFC-0012 (integer filtering precedent for the sidecar's fixed-point counters)</p>
+<li>Vyukov bounded MPMC (the shard is its SPSC, lossy, overwrite-oldest</li>
+<p>specialization — the producer never CASes the consumer cursor, which is the difference between "lock-free" and "wait-free with lossy backlog")</p>
+</ul>
+</article>       </main> </div>   </main> <footer class="site-foot" data-astro-cid-5hce7sga> <div class="container foot-grid" data-astro-cid-5hce7sga> <div data-astro-cid-5hce7sga> <p class="foot-brand" data-astro-cid-5hce7sga>WEFT</p> <p class="subtle micro" style="max-width: 34ch;" data-astro-cid-5hce7sga>The continuous-state plane for declarative UI. Wait-free by construction, honest by policy.</p> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Product</p> <a href="/Weft/#triad" data-astro-cid-5hce7sga>Triad Protocol</a> <a href="/Weft/#proof" data-astro-cid-5hce7sga>Evidence &amp; CI</a> <a href="/Weft/studio" data-astro-cid-5hce7sga>Weft Studio</a> <a href="/Weft/ports" data-astro-cid-5hce7sga>Ports &amp; Heddles</a> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Learn</p> <a href="/Weft/docs" data-astro-cid-5hce7sga>Documentation</a> <a href="/Weft/docs/whitepaper" data-astro-cid-5hce7sga>Whitepaper (canonical)</a> <a href="/Weft/docs/laws" data-astro-cid-5hce7sga>The Four Laws</a> <a href="/Weft/docs/rfc-0001" data-astro-cid-5hce7sga>RFC-0001 · F1 withdrawal</a> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Meta</p> <a href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener" data-astro-cid-5hce7sga>Source repository</a> <a href="/Weft/docs/errata" data-astro-cid-5hce7sga>Errata</a> <a href="/Weft/#laws" data-astro-cid-5hce7sga>Non-goals</a> </div> </div> <div class="container foot-rule" data-astro-cid-5hce7sga> <span data-astro-cid-5hce7sga>© 2026 Weft project · kernel v1.0.4 (FROZEN)</span> <span class="num" data-astro-cid-5hce7sga>2026-09-23 · built from repo @ ingest time</span> </div> </footer>   </body> </html>

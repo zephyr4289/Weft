@@ -1,0 +1,140 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-5hce7sga> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>0012-TAIL-LATENCY-TURBO — Docs</title><meta name="description" content="Verbatim document 0012-tail-latency-turbo.md ingested from Weft repository source of truth"><link rel="icon" type="image/svg+xml" href="/Weft/favicon.svg"><meta property="og:title" content="0012-TAIL-LATENCY-TURBO — Docs"><meta property="og:description" content="Verbatim document 0012-tail-latency-turbo.md ingested from Weft repository source of truth"><meta property="og:type" content="website"><script>document.documentElement.classList.add('js');</script><link rel="stylesheet" href="/Weft/_astro/_doc_.CaZGbq_x.css">
+<style>.docs-shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:clamp(2rem,5vw,4rem);padding-top:8.5rem;padding-bottom:5rem}.docs-nav{position:sticky;top:6.5rem;align-self:start;max-height:calc(100svh - 8rem);overflow:auto}.docs-nav nav{display:grid;gap:.15rem;margin-top:.6rem}.docs-nav a{color:var(--mute);font-size:.88rem;padding:.4rem .6rem;border-radius:7px;border-left:2px solid transparent;text-decoration:none}.docs-nav a:hover{color:var(--bone);background:var(--ink-2)}.docs-nav a[aria-current=page]{color:var(--hot);border-left-color:var(--hot);background:var(--hot-glow)}@media (max-width: 900px){.docs-shell{grid-template-columns:1fr}.docs-nav{position:static}}.docs-head{border-bottom:1px solid var(--line-strong);padding-bottom:1.6rem;margin-bottom:2.4rem}.docs-head h1{font-size:clamp(2rem,4.5vw,3.2rem);margin:.6rem 0;letter-spacing:-.02em}.docs-head a{color:var(--cold)}.prose{max-width:76ch}.prose h2{font-size:1.5rem;margin:2.6rem 0 .9rem;letter-spacing:-.01em}.prose h3{font-size:1.15rem;margin:2rem 0 .6rem}.prose h4{font-size:1rem;margin:1.6rem 0 .5rem;color:var(--bone-dim)}.prose p{margin:0 0 1.1rem;color:var(--bone-dim)}.prose a{color:var(--cold)}.prose ul,.prose ol{margin:0 0 1.2rem;padding-left:1.3rem;color:var(--bone-dim)}.prose li{margin:.35rem 0}.prose code{font-family:var(--mono);font-size:.82em;background:var(--ink-3);border:1px solid var(--line);border-radius:5px;padding:.08em .35em;color:#e8ebf5}.doc-pre{background:#0a0c11;border:1px solid var(--line);border-radius:10px;padding:1.2rem 1.4rem;overflow-x:auto;margin:0 0 1.6rem}.doc-pre code{background:none;border:0;padding:0;font-size:.78rem;line-height:1.65}.doc-table{width:100%;border-collapse:collapse;margin:0 0 1.8rem;font-size:.86rem}.doc-table th{text-align:left;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:.55rem .6rem;border-bottom:1px solid var(--line-strong)}.doc-table td{padding:.55rem .6rem;border-bottom:1px solid var(--line);vertical-align:top;color:var(--bone-dim)}
+</style><script type="module" src="/Weft/_astro/hoisted.DkFPNy5-.js"></script></head> <body data-astro-cid-5hce7sga> <header class="site-head" id="top" data-astro-cid-5hce7sga> <div class="container head-inner" data-astro-cid-5hce7sga> <a class="logo" href="/Weft/" aria-label="Weft home" data-astro-cid-5hce7sga> <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true" data-astro-cid-5hce7sga> <path d="M4 6 L9 26 L16 12 L23 26 L28 6" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-5hce7sga></path> <defs data-astro-cid-5hce7sga><linearGradient id="lg" x1="4" y1="6" x2="28" y2="26" data-astro-cid-5hce7sga><stop stop-color="#f5a524" data-astro-cid-5hce7sga></stop><stop offset="1" stop-color="#53d7fb" data-astro-cid-5hce7sga></stop></linearGradient></defs> </svg> <span data-astro-cid-5hce7sga>Weft</span> </a> <nav aria-label="Main" data-astro-cid-5hce7sga> <a href="/Weft/#problem" data-astro-cid-5hce7sga>Problem</a><a href="/Weft/#triad" data-astro-cid-5hce7sga>Triad Protocol</a><a href="/Weft/#proof" data-astro-cid-5hce7sga>Proof</a><a href="/Weft/pillars" data-astro-cid-5hce7sga>Pillars</a><a href="/Weft/studio" data-astro-cid-5hce7sga>Studio</a><a href="/Weft/docs" class="active" data-astro-cid-5hce7sga>Docs</a> </nav> <div class="head-cta" data-astro-cid-5hce7sga> <a class="gh-star" href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener" data-astro-cid-5hce7sga> <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" data-astro-cid-5hce7sga><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" data-astro-cid-5hce7sga></path></svg>
+GitHub
+</a> </div> </div> </header> <main data-astro-cid-5hce7sga>  <div class="docs-shell container"> <aside class="docs-nav" aria-label="Documentation"> <p class="mono-label">DOCUMENTATION</p> <nav> <a href="/Weft/docs/whitepaper">Whitepaper</a><a href="/Weft/docs/triad">Triad protocol</a><a href="/Weft/docs/envelope">Frame envelope</a><a href="/Weft/docs/revocation">Writer revocation</a><a href="/Weft/docs/results">Measured results</a><a href="/Weft/docs/laws">Four Laws</a><a href="/Weft/docs/litmus">Litmus catalog</a><a href="/Weft/docs/philosophy">Philosophy</a><a href="/Weft/docs/glossary">Glossary</a><a href="/Weft/docs/ports">Ports</a><a href="/Weft/docs/studio-seams-v1">Studio seams</a><a href="/Weft/docs/rfc-0001">RFC-0001</a><a href="/Weft/docs/rfcs">RFC index</a><a href="/Weft/docs/errata">Errata</a> </nav> <p class="mono-label" style="margin-top:1.6rem">SOURCE OF TRUTH</p> <p class="micro subtle">Repo pages are rendered verbatim from <span class="mono">zephyr4289/Weft@main</span>. Site digests quote mechanisms verbatim and link back.</p> </aside> <main class="docs-main"> <header class="docs-head"> <p class="eyebrow">VERBATIM FROM THE REPOSITORY</p> <h1>0012-TAIL-LATENCY-TURBO</h1> <p class="subtle">Verbatim document 0012-tail-latency-turbo.md ingested from Weft repository source of truth</p> <a class="micro mono" href="https://github.com/zephyr4289/Weft/blob/main/0012-tail-latency-turbo.md" target="_blank" rel="noopener">view source on GitHub ↗</a> </header> <article class="prose"><hr/>
+<p>RFC: 0012 Title: Tail-Latency Eradication Layer (TLEL) — placement, prefetch, pinning, kernel-bypass ingestion Status: Draft Authors: weft-contributor Created: 2026-09-18 Supersedes / Superseded-by: None</p>
+<hr/>
+<h1 id="rfc-0012-tail-latency-eradication-layer-tlel">RFC 0012 — Tail-Latency Eradication Layer (TLEL)</h1>
+<h2 id="summary">Summary</h2>
+<p>An additive C driver-layer module (<code>core/c/turbo.{h,c}</code> + <code>core/c/uring_rx.{h,c}</code>) that pushes the fan-out ring's P99/P999 toward its physical floor <strong>without touching a frozen byte</strong>: 2 MiB-aligned THP-mapped rings attached through the frozen <code>weft_fanout_attach_writer()</code> seam, reader/writer cache prefetch hints over the documented advisory ctrl reads, SSE2 non-temporal streaming fill with an explicit ordering fence, capability detected CPU pinning / NUMA first-touch / <code>mlock</code> / <code>SCHED_FIFO</code> services that degrade and <em>report</em> every refusal, and a kernel-bypass datagram ingestion path where the kernel itself is the bracket filler — probed live as io_uring RING mode on the dev sandbox's 5.10 kernel.</p>
+<h2 id="motivation">Motivation</h2>
+<p>The lead directive for this phase names the target: sub-microsecond P99 and tail-latency eradication at the architecture's physical limits, under the Kernel Freeze contract. Three measured facts motivate the design:</p>
+<ol>
+<li><strong>The frozen hot path is already fast and wait-free</strong> — B-suite C-leg</li>
+<p>baseline: publish p50 = 45 ns, p99 = 53 ns. What remains is not algorithmic cost but <em>placement</em> and <em>environment</em> jitter: page faults on first touch, TLB pressure on multi-MiB rings, scheduler migration, and — measured during this work and preserved in <code>litmus/evidence/turbo/aliasing-investigation.log</code> — an <strong>address-layout lottery</strong> where the identical instruction stream over a posix-heap ring measured 60 ns in one binary layout and ~450–590 ns in another (store→load 4K-aliasing class on the sandbox Xeon). A ring whose p50 depends on where the allocator happened to place it is a tail-latency defect no code change can fix — only placement determinism fixes it.</p>
+<li><strong>Ingestion pays a scratch copy and a syscall it does not need.</strong> The</li>
+<p>stock path (<code>recv</code> → scratch → memcpy → slot) copies every datagram twice. The FI1 bracket already defines exactly what a fill may look like; letting the kernel copy directly into the slot under the bracket removes the second copy with zero protocol change.</p>
+<li><strong>The capability ladder is the honest shape of the problem.</strong> THP,</li>
+<p><code>mlock</code>, <code>SCHED_FIFO</code>, io_uring registration/fixed-recv/multishot, and NUMA topology are all <em>host properties</em>, not code properties. A layer that assumed any of them would be wrong on the first container it met; a layer that probes, degrades, and reports is deployable everywhere and fast where the host allows (Law 4 / AXIOM T posture).</p>
+</ol>
+<h2 id="guide-level-explanation">Guide-level explanation</h2>
+<p>A user writes the frozen API they already know, wrapped in three optional calls:</p>
+<pre class="doc-pre"><code>// 1. Deterministic placement (instead of weft_fanout_init):
+weft_turbo_ring_opts_t o;   // THP advise + prefault + mlock-best-effort
+weft_turbo_ring_opts_default(&amp;o);
+o.payload_bytes = PB; o.slot_count = 8;
+weft_fanout_t f; weft_turbo_ring_t tr;
+weft_turbo_fanout_create(&amp;f, &amp;tr, &amp;o);      // attaches the frozen ring
+
+// 2. Prefetch-wrapped hot path (semantics byte-identical):
+uint8_t* c = weft_turbo_begin(&amp;f);          // warms the slot being filled
+weft_turbo_fill(&amp;f, src, len);              // NT stream + sfence (optional)
+weft_turbo_publish(&amp;f);                     // warms the NEXT slot
+weft_turbo_prefetch_next(&amp;r);               // EARLY: before render work
+const weft_fanout_claim_t* k = weft_turbo_claim(&amp;r);
+
+// 3. Thread services (every refusal is a return code):
+weft_turbo_pin_cpu(1);                      // writer CPU 0, reader CPU 1
+int rt = weft_turbo_rt(10);                 // -EPERM in containers: reported</code></pre>
+<p>For ingestion, one session call replaces the recv loop:</p>
+<pre class="doc-pre"><code>weft_uring_rx_t rx;
+weft_uring_attach(&amp;rx, &amp;f, datagram_fd);    // negotiates the ladder rung
+while (running) { weft_uring_next(&amp;rx); }   // begin -&gt; kernel fills slot
+                                            // -&gt; publish, under the bracket</code></pre>
+<p>Nothing user-visible changes: claim records, stats, ring bytes, and the T-series byte-equivalence gates prove the wrappers are semantics-neutral.</p>
+<h2 id="reference-level-specification">Reference-level specification</h2>
+<h3 id="capability-ladder-turbo">Capability ladder (turbo)</h3>
+<p><code>weft_turbo_caps()</code> probes once (pthread_once) and caches: page/hugepage sizes, NUMA node count + per-node cpulists, THP mode (<code>/sys/kernel/mm/transparent_hugepage/enabled</code>), affinity availability, an <code>mlock</code> page probe, and a <code>SCHED_FIFO</code> attempt that always restores the old policy. The report (<code>weft_turbo_caps_report</code>) is designed for evidence logs — the refusal lines are the point.</p>
+<table class="doc-table"><thead><tr><th>service</th><th>wants</th><th>this sandbox (measured)</th></tr></thead><tbody><tr><td>THP ring</td><td>THP = madvise or always</td><td><code>[always]</code>, kernel 5.10</td></tr><tr><td>prefault</td><td>MAP_POPULATE-equivalent explicit touch</td><td>available (T3: 0 min-fault delta)</td></tr><tr><td>core pinning</td><td><code>sched_setaffinity</code></td><td>available (2 CPUs)</td></tr><tr><td>NUMA first-touch</td><td>&gt; 1 node</td><td>1 node — ladder verified, cross-node deferred</td></tr><tr><td>mlock</td><td>RLIMIT_MEMLOCK ≥ ring</td><td>64 KiB cap — graduated: small rings lock, MiB rings refuse with errno</td></tr><tr><td>SCHED_FIFO</td><td>CAP_SYS_NICE</td><td>EPERM — refused, reported (T7)</td></tr></tbody></table>
+<h3 id="tail-latency-ring-allocator">Tail-latency ring allocator</h3>
+<p><code>weft_turbo_fanout_create</code>:</p>
+<ol>
+<li>optional NUMA bind scope <strong>before</strong> the mapping exists;</li>
+<li><code>mmap(PRIVATE|ANON)</code> of <code>ring_bytes + align</code>, trimmed at both edges to</li>
+<p>the hugepage boundary (the classic guaranteed-aligned mapping);</p>
+<li><code>madvise(MADV_HUGEPAGE)</code> before any touch (best-effort, errno recorded);</li>
+<li>the ctrl-zeroing <code>memset</code> doubles as first-touch + prefault (this is</li>
+<p>also the attach contract: ctrl reads as a fresh <code>weft_fanout_init</code> ring);</p>
+<li>optional <code>mlock</code> after touching (graduated refusal, recorded);</li>
+<li><code>weft_fanout_attach_writer()</code> — the frozen path validates geometry and</li>
+<p>adopts the mapping. <code>weft_turbo_fanout_destroy</code> munmaps.</p>
+</ol>
+<p>Byte-equivalence gate: T2 publishes 10,000 deterministic frames through a plain ring and a turbo ring and requires <strong>byte-identical ring contents</strong> — placement and policy change nothing observable.</p>
+<h3 id="prefetch-wrappers">Prefetch wrappers</h3>
+<ul>
+<li><code>weft_turbo_begin/publish</code>: writer-thread-only (reads of <code>w_seq</code>, <code>ring</code>,</li>
+<p><code>payload_bytes</code>, <code>slot_count</code> are the 02 §1 writer-private discipline); prefetch the slot being begun and the next slot respectively.</p>
+<li><code>weft_turbo_prefetch_next(r)</code> / <code>weft_turbo_claim(r)</code>: advisory Relaxed</li>
+<p>load of ctrl[0] (<code>latestSeq</code> — the AXIOM T surface fanout.h documents), prefetch of the likely target slot's leading region, then the frozen claim. A stale guess wastes a hint, never a result.</p>
+<li>Prefetch is capped to a leading region (<code>WEFT_TURBO_PREFETCH_MAX_BYTES</code>,</li>
+<p>default 4096): the claim's copy touches the head first and streams the tail under the hardware prefetcher; full-width prefetch at 64 KiB was measured as pure instruction overhead (evidence: <code>tl-writer.log</code> and the cap rationale in <code>turbo.h</code>).</p>
+</ul>
+<h3 id="non-temporal-streaming-fill">Non-temporal streaming fill</h3>
+<p><code>weft_turbo_fill</code>: SSE2 <code>_mm_stream_si128</code> body (baseline ISA — no -mavx flags, no runtime dispatch) with relaxed-atomic word prologue/epilogue for ragged edges, and a <strong>load-bearing <code>_mm_sfence()</code> before return</strong>: NT stores are weakly ordered, and the frozen publish's Release stamp must never retire ahead of a payload word. The begin invalidate (SeqCst store + fence) precedes the fill in program order; the bracket is preserved end-to-end (P1/P2 hold). T5 proves byte-identical output vs <code>weft_fanout_fill</code> on both aligned (M=8) and ragged (M=3) geometries — the ragged geometry exists because the first implementation had an 8-byte slot overrun at exactly that geometry, caught by this gate and fixed (the fix comment in <code>turbo.c</code> cites it).</p>
+<h3 id="kernel-bypass-ingestion-uring-rx">Kernel-bypass ingestion (uring_rx)</h3>
+<p>Ladder: <code>NONE → SYSCALL → RING → FIXED</code> (multishot + SQPOLL documented as the ≥ 5.19 deployment rung, labeled PREDICTED). The probe hand-rolls the five io_uring syscalls (no liburing dependency — rationale in <code>uring_rx.c</code>): setup, ring mmaps, a NOP submit+enter proving the plumbing, and a buffer registration attempt. <strong>Depth-1 protocol</strong> per <code>weft_uring_next</code>:</p>
+<pre class="doc-pre"><code>FIONREAD gate        (no bytes -&gt; return 0, no seq burned)
+cursor = begin()     (FI1: slotSeq[k] &lt;- 0, SeqCst store + fence)
+kernel fills slot    (RING: RECV SQE + one enter; SYSCALL: recv)
+  short  -&gt; tail zeroed, padded++
+  long   -&gt; head kept (MSG_TRUNC accounting), truncated++
+  fail   -&gt; aborted++ (burned seq counted; telescoping stays exact:
+            the next claim accounts it as a drop — I7 identity intact)
+publish()            (Release stamp + latestSeq)</code></pre>
+<p>Depth-1 is a <em>soundness</em> requirement, not a simplification: the frozen <code>weft_fanout_publish()</code> stamps slot <code>w_slot</code> with <code>w_seq</code> — only the most recent begin's pair — so out-of-order completion of multiple in-flight recvs cannot be expressed without breaking the frozen API. Datagram fds only (SO_TYPE enforced): FIONREAD counts datagrams, not bytes.</p>
+<p><strong>Invariants touched</strong> — none modified; all preserved by construction and pinned by the T/U-series gates: I1 (this layer never writes stamps), I2 (prefetch is architecturally a no-op; NT fill adds only the sfence <em>inside</em> the bracket), I3 (writer-side helpers are writer-thread-only; uring_rx is single-consumer by contract), I4 (telescoping checked exact in T8/U3, where the burned-seq accounting is exercised), I5 (hot paths allocation-free), I6 (untouched — kernel path only), I7 (drop accounting exact under torture), I8 (hints and alignment only add locality).</p>
+<p><strong>Litmus impact</strong> — no L-series change (the kernel surface is untouched). New conformance batteries: T1–T9 (turbo_test.c) and U1–U5 (uring_test.c), run under plain/ASAN/TSAN and the all-seq_cst A/B regime (ordering-neutral by requirement). Evidence: <code>litmus/evidence/turbo/</code>.</p>
+<p><strong>Envelope impact</strong> — none. The ring layout is the RFC-0004 byte contract, unchanged; T2 proves it byte-for-byte.</p>
+<h2 id="boundary-of-the-claim-law-4">Boundary of the claim (Law 4)</h2>
+<p>MEASURED on the dev sandbox (2-vCPU shared Xeon VM, kernel 5.10; logs under <code>litmus/evidence/turbo/</code>):</p>
+<ul>
+<li>Reader claim p50 at display cadence (500 µs, 1 MiB render-thrash between</li>
+<p>frames, background writer): <strong>plain 567 ns → early-hint 413 ns (−27%)</strong>; with pinning <strong>p99 3803 ns → 2098 ns (−45%)</strong>.</p>
+<li>Placement determinism: identical wrapper code measured **60–66 ns on the</li>
+<p>turbo mmap ring vs 60–590 ns on the posix-heap ring** across binary layouts — the mmap ring removes the address-layout lottery by construction. Root cause of the posix lottery is <em>not</em> fully isolated in-sandbox (no perf-counter access); the trail is committed, the claim is stated as "consistent with store→load 4K aliasing", not as fact.</p>
+<li>Prefault: zero minor-fault delta across a 1000-frame hot loop (T3).</li>
+<li>Ingestion: RING mode is <strong>live and correct</strong> (120k datagrams, zero torn</li>
+<p>frames, exact telescoping) but <strong>~33% slower than SYSCALL at depth-1 on this kernel</strong> — <code>enter()</code> is heavier than <code>recv()</code> here. The RING rung is a structural proof, not a throughput claim.</p>
+<li>NT streaming fill: byte-identical (T5) but **slower in the single-writer</li>
+<p>microbench** (sfence drain dominates with no concurrent reader pressure). Opt-in, measured, not recommended by default.</p>
+</ul>
+<p>PREDICTED (hardware-gated, not claimed as measured): THP/TLB p99 deltas on real hardware with deeper page-table walks (this VM's EPT makes TLB behavior unrepresentative — TL-ring in-sandbox shows ≤ 5% p50); cross-NUMA first-touch placement (single-node sandbox); FIXED/multishot/SQPOLL syscall-free steady state (kernel ≥ 5.19); SCHED_FIFO jitter elimination (EPERM in-sandbox, ladder verified).</p>
+<h2 id="alternatives-considered">Alternatives considered</h2>
+<ul>
+<li><strong>Modify the frozen kernels in place</strong> (prefetch inside <code>fanout.c</code>,</li>
+<p>NT fill inside <code>weft.c</code>): rejected — the Kernel Freeze contract is the assignment's guardrail; every technique here rides a seam the frozen layers already expose (<code>attach_writer</code>, advisory ctrl reads, writer-private field discipline). Byte-diff on frozen files is zero.</p>
+<li><strong>Link liburing</strong>: rejected — the repo builds with plain <code>gcc</code> and zero</li>
+<p>new link-time dependencies across its history (sha256_mb, shm_ring, gpu_ring all hand-roll their syscall surfaces); the ladder must degrade on partial kernels, and a library would launder the refusals our Law 4 posture requires verbatim.</p>
+<li><strong>Depth-N io_uring (multiple in-flight recvs)</strong>: rejected for soundness —</li>
+<p>out-of-order CQEs cannot be stamped through the frozen publish API (it stamps only the most recent begin's pair). Documented as the multishot design instead: kernel-chosen staging buffers + one copy, the throughput rung for ≥ 5.19 hosts.</p>
+<li><strong><code>mlockall</code> unconditionally at attach</strong>: rejected — 64 KiB</li>
+<p>RLIMIT_MEMLOCK in containers makes it a guaranteed refusal for real ring sizes; the graduated per-ring attempt + errno report is the honest shape.</p>
+<li><strong>Do nothing</strong>: rejected — the directive is explicit, and the</li>
+<p>measured address-layout lottery is a defect class the frozen code cannot self-heal.</p>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li>Every wrapper adds ~5–8 ns on a benign layout (phase-probe measured); a</li>
+<p>hot loop that would never fault, migrate, or alias pays it forever.</p>
+<li><code>weft_turbo_fill</code>'s sfence makes large-payload single-writer publishes</li>
+<p><em>slower</em> in-sandbox — it exists for cache-pollution-dominated shapes and carries a measured-regression label rather than a recommendation.</p>
+<li>The NT body is outside strict C11 (sanctioned raw-cursor production path</li>
+<p>per fanout.h; TSAN-invisible like the documented plain-store path).</p>
+<li>One more module to port if Rust/TS surfaces want the same services</li>
+<p>(deferred — the C layer serves JNI/FFI native surfaces first).</p>
+<li>The prefetch cap (4096 B) is a heuristic; the optimal leading region is</li>
+<p>payload- and host-dependent.</p>
+</ul>
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li>Root cause of the posix-ring aliasing lottery (needs perf counters /</li>
+<p>bare metal; the sandbox's virtualized MMU cannot answer it).</p>
+<li>Does the early-hint p50 win hold at 60 Hz (16.7 ms) cadence with real</li>
+<p>render workloads, or only at the 500 µs cadence measured?</p>
+<li>Depth-N/multishot ingestion on ≥ 5.19 kernels: does the one-extra-copy</li>
+<p>staging design beat depth-1 zero-copy at realistic feed rates?</p>
+<li>Should the capability probe gain a one-shot calibration (measure the</li>
+<p>aliasing penalty, auto-enable the mmap ring) instead of relying on the documented default?</p>
+</ul>
+</article>       </main> </div>   </main> <footer class="site-foot" data-astro-cid-5hce7sga> <div class="container foot-grid" data-astro-cid-5hce7sga> <div data-astro-cid-5hce7sga> <p class="foot-brand" data-astro-cid-5hce7sga>WEFT</p> <p class="subtle micro" style="max-width: 34ch;" data-astro-cid-5hce7sga>The continuous-state plane for declarative UI. Wait-free by construction, honest by policy.</p> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Product</p> <a href="/Weft/#triad" data-astro-cid-5hce7sga>Triad Protocol</a> <a href="/Weft/#proof" data-astro-cid-5hce7sga>Evidence &amp; CI</a> <a href="/Weft/studio" data-astro-cid-5hce7sga>Weft Studio</a> <a href="/Weft/ports" data-astro-cid-5hce7sga>Ports &amp; Heddles</a> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Learn</p> <a href="/Weft/docs" data-astro-cid-5hce7sga>Documentation</a> <a href="/Weft/docs/whitepaper" data-astro-cid-5hce7sga>Whitepaper (canonical)</a> <a href="/Weft/docs/laws" data-astro-cid-5hce7sga>The Four Laws</a> <a href="/Weft/docs/rfc-0001" data-astro-cid-5hce7sga>RFC-0001 · F1 withdrawal</a> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Meta</p> <a href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener" data-astro-cid-5hce7sga>Source repository</a> <a href="/Weft/docs/errata" data-astro-cid-5hce7sga>Errata</a> <a href="/Weft/#laws" data-astro-cid-5hce7sga>Non-goals</a> </div> </div> <div class="container foot-rule" data-astro-cid-5hce7sga> <span data-astro-cid-5hce7sga>© 2026 Weft project · kernel v1.0.4 (FROZEN)</span> <span class="num" data-astro-cid-5hce7sga>2026-09-23 · built from repo @ ingest time</span> </div> </footer>   </body> </html>

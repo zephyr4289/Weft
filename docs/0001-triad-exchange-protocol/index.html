@@ -1,0 +1,138 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-5hce7sga> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>0001-TRIAD-EXCHANGE-PROTOCOL — Docs</title><meta name="description" content="Verbatim document 0001-triad-exchange-protocol.md ingested from Weft repository source of truth"><link rel="icon" type="image/svg+xml" href="/Weft/favicon.svg"><meta property="og:title" content="0001-TRIAD-EXCHANGE-PROTOCOL — Docs"><meta property="og:description" content="Verbatim document 0001-triad-exchange-protocol.md ingested from Weft repository source of truth"><meta property="og:type" content="website"><script>document.documentElement.classList.add('js');</script><link rel="stylesheet" href="/Weft/_astro/_doc_.CaZGbq_x.css">
+<style>.docs-shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:clamp(2rem,5vw,4rem);padding-top:8.5rem;padding-bottom:5rem}.docs-nav{position:sticky;top:6.5rem;align-self:start;max-height:calc(100svh - 8rem);overflow:auto}.docs-nav nav{display:grid;gap:.15rem;margin-top:.6rem}.docs-nav a{color:var(--mute);font-size:.88rem;padding:.4rem .6rem;border-radius:7px;border-left:2px solid transparent;text-decoration:none}.docs-nav a:hover{color:var(--bone);background:var(--ink-2)}.docs-nav a[aria-current=page]{color:var(--hot);border-left-color:var(--hot);background:var(--hot-glow)}@media (max-width: 900px){.docs-shell{grid-template-columns:1fr}.docs-nav{position:static}}.docs-head{border-bottom:1px solid var(--line-strong);padding-bottom:1.6rem;margin-bottom:2.4rem}.docs-head h1{font-size:clamp(2rem,4.5vw,3.2rem);margin:.6rem 0;letter-spacing:-.02em}.docs-head a{color:var(--cold)}.prose{max-width:76ch}.prose h2{font-size:1.5rem;margin:2.6rem 0 .9rem;letter-spacing:-.01em}.prose h3{font-size:1.15rem;margin:2rem 0 .6rem}.prose h4{font-size:1rem;margin:1.6rem 0 .5rem;color:var(--bone-dim)}.prose p{margin:0 0 1.1rem;color:var(--bone-dim)}.prose a{color:var(--cold)}.prose ul,.prose ol{margin:0 0 1.2rem;padding-left:1.3rem;color:var(--bone-dim)}.prose li{margin:.35rem 0}.prose code{font-family:var(--mono);font-size:.82em;background:var(--ink-3);border:1px solid var(--line);border-radius:5px;padding:.08em .35em;color:#e8ebf5}.doc-pre{background:#0a0c11;border:1px solid var(--line);border-radius:10px;padding:1.2rem 1.4rem;overflow-x:auto;margin:0 0 1.6rem}.doc-pre code{background:none;border:0;padding:0;font-size:.78rem;line-height:1.65}.doc-table{width:100%;border-collapse:collapse;margin:0 0 1.8rem;font-size:.86rem}.doc-table th{text-align:left;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:.55rem .6rem;border-bottom:1px solid var(--line-strong)}.doc-table td{padding:.55rem .6rem;border-bottom:1px solid var(--line);vertical-align:top;color:var(--bone-dim)}
+</style><script type="module" src="/Weft/_astro/hoisted.DkFPNy5-.js"></script></head> <body data-astro-cid-5hce7sga> <header class="site-head" id="top" data-astro-cid-5hce7sga> <div class="container head-inner" data-astro-cid-5hce7sga> <a class="logo" href="/Weft/" aria-label="Weft home" data-astro-cid-5hce7sga> <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true" data-astro-cid-5hce7sga> <path d="M4 6 L9 26 L16 12 L23 26 L28 6" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-5hce7sga></path> <defs data-astro-cid-5hce7sga><linearGradient id="lg" x1="4" y1="6" x2="28" y2="26" data-astro-cid-5hce7sga><stop stop-color="#f5a524" data-astro-cid-5hce7sga></stop><stop offset="1" stop-color="#53d7fb" data-astro-cid-5hce7sga></stop></linearGradient></defs> </svg> <span data-astro-cid-5hce7sga>Weft</span> </a> <nav aria-label="Main" data-astro-cid-5hce7sga> <a href="/Weft/#problem" data-astro-cid-5hce7sga>Problem</a><a href="/Weft/#triad" data-astro-cid-5hce7sga>Triad Protocol</a><a href="/Weft/#proof" data-astro-cid-5hce7sga>Proof</a><a href="/Weft/pillars" data-astro-cid-5hce7sga>Pillars</a><a href="/Weft/studio" data-astro-cid-5hce7sga>Studio</a><a href="/Weft/docs" class="active" data-astro-cid-5hce7sga>Docs</a> </nav> <div class="head-cta" data-astro-cid-5hce7sga> <a class="gh-star" href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener" data-astro-cid-5hce7sga> <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" data-astro-cid-5hce7sga><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" data-astro-cid-5hce7sga></path></svg>
+GitHub
+</a> </div> </div> </header> <main data-astro-cid-5hce7sga>  <div class="docs-shell container"> <aside class="docs-nav" aria-label="Documentation"> <p class="mono-label">DOCUMENTATION</p> <nav> <a href="/Weft/docs/whitepaper">Whitepaper</a><a href="/Weft/docs/triad">Triad protocol</a><a href="/Weft/docs/envelope">Frame envelope</a><a href="/Weft/docs/revocation">Writer revocation</a><a href="/Weft/docs/results">Measured results</a><a href="/Weft/docs/laws">Four Laws</a><a href="/Weft/docs/litmus">Litmus catalog</a><a href="/Weft/docs/philosophy">Philosophy</a><a href="/Weft/docs/glossary">Glossary</a><a href="/Weft/docs/ports">Ports</a><a href="/Weft/docs/studio-seams-v1">Studio seams</a><a href="/Weft/docs/rfc-0001">RFC-0001</a><a href="/Weft/docs/rfcs">RFC index</a><a href="/Weft/docs/errata">Errata</a> </nav> <p class="mono-label" style="margin-top:1.6rem">SOURCE OF TRUTH</p> <p class="micro subtle">Repo pages are rendered verbatim from <span class="mono">zephyr4289/Weft@main</span>. Site digests quote mechanisms verbatim and link back.</p> </aside> <main class="docs-main"> <header class="docs-head"> <p class="eyebrow">VERBATIM FROM THE REPOSITORY</p> <h1>0001-TRIAD-EXCHANGE-PROTOCOL</h1> <p class="subtle">Verbatim document 0001-triad-exchange-protocol.md ingested from Weft repository source of truth</p> <a class="micro mono" href="https://github.com/zephyr4289/Weft/blob/main/0001-triad-exchange-protocol.md" target="_blank" rel="noopener">view source on GitHub ↗</a> </header> <article class="prose"><hr/>
+<p>RFC: 0001 Title: The Triad Protocol — ownership by atomic exchange Status: Draft (target: Accepted before Phase 0 spike) Authors: Zephyr (@zephyr4289) Created: 2026-09-11 Supersedes: the two-variable candidate protocol in the founding spec §5 (withdrawn — see §3)</p>
+<hr/>
+<h1 id="rfc-0001-the-triad-protocol">RFC 0001 — The Triad Protocol</h1>
+<h2 id="summary">Summary</h2>
+<p>Weft's writer–reader synchronization protocol: <strong>three off-heap buffers, one shared atomic, and ownership transfers by atomic exchange.</strong> The writer never blocks; the reader never blocks; no read is ever torn; the reader always has the freshest published frame; intermediate frames are dropped by design. The protocol is wait-free on both sides by construction, and this RFC replaces an earlier two-variable design that was formally unsound.</p>
+<h2 id="motivation">Motivation</h2>
+<p>Display state needs now, not history (see <a href="../docs/PHILOSOPHY">PHILOSOPHY.md §1</a>). A naive single shared buffer tears: a 60 Hz writer writing 4 KB while the draw thread reads produces half-old/half-new frames. A mutex fixes tearing but blocks — and an audio writer blocked on a UI thread mid-draw is priority inversion and audible clicks. Double buffering fixes tearing without locks but adds back-pressure: a slow reader stalls the writer.</p>
+<p>Triple buffering removes both problems — <em>if</em> the handoff is designed so that no party can ever observe a stale view of who owns which buffer. That is the entire content of this RFC.</p>
+<h2 id="2-guide-level-explanation">2. Guide-level explanation</h2>
+<p>Think of the three buffers as three cards on a table, and one shared index (<code>latest</code>) as a single pointer that both parties can atomically swap:</p>
+<ul>
+<li>The <strong>writer</strong> always owns exactly one card (its working card). To publish, it finishes writing</li>
+<p>its card, then atomically swaps its card with whatever the pointer indicates. The pointer now names the freshly published card; the writer walks away holding the previous published card as its next scratch space.</p>
+<li>The <strong>reader</strong> also owns exactly one card. To claim, it atomically swaps its card with the</li>
+<p>pointer. The pointer now names the reader's old card (recycled); the reader reads the returned card for as long as it likes — until its next claim, nobody else can touch it.</p>
+<li>Because every transfer is a single atomic read-modify-write on <strong>one</strong> variable, there is no</li>
+<p>pair of loads that can go stale relative to each other. Ownership is exclusive at every instant, by construction.</p>
+</ul>
+<h2 id="3-why-the-previous-design-was-withdrawn">3. Why the previous design was withdrawn</h2>
+<p>The founding spec §5 computed the writer's target buffer from two independent relaxed loads:</p>
+<pre class="doc-pre"><code>latest_now  = latest.load(Relaxed)
+claimed_now = claimed.load(Relaxed)
+next        = min({0,1,2} \ {latest_now, claimed_now})</code></pre>
+<p>The safety argument was: "the writer will not touch <code>buffers[idx]</code> because it is <code>latest</code> (so excluded) and it is <code>claimed</code> (so excluded)." The first exclusion is sound — the writer is the sole storer of <code>latest</code>, so its load is never stale. The second is not: the writer's load of <code>claimed</code> carries no cross-thread visibility guarantee, so the writer may legally fail to observe an in-progress claim.</p>
+<p>Failure timeline (all steps individually legal under relaxed ordering):</p>
+<ol>
+<li><code>latest=1</code>, <code>claimed=-1</code>. Reader claims buffer 0 (CAS −1→0), begins a slow draw (a heavy frame</li>
+<p>holds the buffer for milliseconds).</p>
+<li>Writer publish P1: <code>claimed</code> load misses the claim, excludes {1}, writes buffer 2, publishes</li>
+<p><code>latest=2</code>. Still harmless.</p>
+<li>Writer publish P2: loads <code>latest=2</code> (fresh), loads <code>claimed</code> — stale −1 again formally legal.</li>
+<p>Candidates = {0,1}, min = 0 — <strong>the buffer the reader is still drawing.</strong> Torn frame.</p>
+</ol>
+<p>Real hardware's cache coherence shrinks this window to nanoseconds, so naive benchmarks pass — until a thermal throttle, debugger attach, or scheduler hiccup stretches the reader's hold past the writer's propagation delay. A protocol whose safety depends on propagation latency is not a protocol; it is a timing bet. The lesson generalizes into project policy: <strong>never derive exclusivity from two loads when one atomic RMW will do.</strong></p>
+<h2 id="4-reference-level-specification">4. Reference-level specification</h2>
+<h3 id="4-1-state">4.1 State</h3>
+<pre class="doc-pre"><code>Shared:
+  latest   : AtomicInt                     // the ONLY shared mutable index
+
+Writer-private:
+  w_work   : Int                           // index the writer will fill next
+
+Reader-private:
+  r_work   : Int                           // index the reader holds / will hand back</code></pre>
+<p>Initialization: the Steward allocates three off-heap buffers, zero-fills the envelope (<code>seq = 0</code>), and sets <code>latest = 2</code>, <code>w_work = 0</code>, <code>r_work = 1</code>. Any permutation of {0,1,2} across the three slots is valid.</p>
+<p>Per-writer control (the I6 contract, §6): each writer also holds a <code>token</code>, whose <code>revoked : AtomicBool</code> is checked once per publish.</p>
+<h3 id="4-2-writer-protocol-wait-free">4.2 Writer protocol (wait-free)</h3>
+<pre class="doc-pre"><code>publish(token, data) -&gt; PUBLISHED | DROPPED_REVOKED:
+  1. if token.revoked.load(Relaxed):  return DROPPED_REVOKED     // one relaxed load
+  2. buffers[w_work].write(data)                                 // private, unsynchronized
+                                                                 // + envelope.seq += 1
+  3. old = latest.swap(w_work, AcqRelease)                       // publish + acquire old
+  4. w_work = old                                                // recycled via latest
+  return PUBLISHED</code></pre>
+<p>Bounded work: one relaxed load, one buffer write, one <code>swap</code>, one integer assignment. No spin, no allocation, no syscall. An audio-thread (SCHED_FIFO) writer can run this with zero risk of priority inversion.</p>
+<h3 id="4-3-reader-protocol-wait-free">4.3 Reader protocol (wait-free)</h3>
+<pre class="doc-pre"><code>claim():
+  1. mine   = latest.swap(r_work, AcqRelease)
+     // returns the newest published index; the reader's PREVIOUS buffer (r_work)
+     // is now named by `latest` — handed back and recyclable by the writer
+  2. r_work = mine                                   // the reader now owns `mine`
+  3. return BufferRef(buffers[mine], seq_of(mine))   // read in place; exclusive
+                                                     // until the next claim()</code></pre>
+<p>Readers may hold the returned buffer until their next <code>claim()</code> — typically one Draw-phase pass. Reading in place is safe for exactly that long, guaranteed by ownership (§5), not by timestamps. A reader that misses several publishes still claims successfully — it simply receives the newest frame. There is no error case; <code>claim()</code> cannot fail.</p>
+<h3 id="4-4-worked-trace">4.4 Worked trace</h3>
+<p>Init: <code>latest=2</code>, <code>w_work=0</code>, <code>r_work=1</code>. Every buffer is owned by exactly one of {<strong>writer</strong>, <strong>reader</strong>, <strong>available</strong> (named by <code>latest</code>)} at every instant.</p>
+<table class="doc-table"><thead><tr><th>Step</th><th>Action</th><th><code>latest</code></th><th><code>w_work</code></th><th><code>r_work</code></th><th>buf 0</th><th>buf 1</th><th>buf 2</th></tr></thead><tbody><tr><td>init</td><td>—</td><td>2</td><td>0</td><td>1</td><td>writer</td><td>reader</td><td>available</td></tr><tr><td>W publishes f1</td><td>write 0; swap → old=2</td><td>0</td><td>2</td><td>1</td><td>available</td><td>reader</td><td>writer</td></tr><tr><td>W publishes f2</td><td>write 2; swap → old=0</td><td>2</td><td>0</td><td>1</td><td>writer</td><td>reader</td><td>available</td></tr><tr><td>R claims</td><td>swap → mine=2</td><td>0</td><td>0</td><td>2</td><td>available</td><td>writer</td><td>reader</td></tr><tr><td>W publishes f3</td><td>write 0; swap → old=1</td><td>0</td><td>1</td><td>2</td><td>available</td><td>writer</td><td>reader</td></tr><tr><td>W publishes f4</td><td>write 1; swap → old=0</td><td>1</td><td>0</td><td>2</td><td>writer</td><td>available</td><td>reader</td></tr><tr><td>R claims</td><td>swap → mine=1</td><td>0</td><td>0</td><td>1</td><td>available</td><td>reader</td><td>writer</td></tr></tbody></table>
+<p>Note step "W publishes f3": the writer's new scratch (<code>w_work=1</code>) is the buffer the <em>reader just retired</em> — acquired through the exchange chain, never taken directly. This is the mechanism doing the heavy lifting, so it deserves its normative statement:</p>
+<ul>
+<li><strong>Ownership is exclusive at every instant.</strong> The only operations that change ownership are the</li>
+<p>two swaps, and an atomic exchange on a single location serializes every concurrent attempt: first swapper wins, second swapper operates on the result. No buffer is ever owned by two parties, even transiently.</p>
+<li><strong><code>latest</code> never names a buffer mid-write or mid-read.</strong> The writer writes <code>w_work</code> <em>before</em></li>
+<p>swapping it into <code>latest</code>; the reader reads <code>r_work</code> <em>after</em> swapping it out of <code>latest</code>. During any write or read, <code>latest</code> names a third buffer.</p>
+<li><strong>The writer can never reach the reader's current hold.</strong> The reader's held buffer is not named</li>
+<p>by <code>latest</code>; it re-enters circulation only when the reader itself swaps it away. The writer therefore cycles the two non-held buffers — visibly in the trace, where the writer alternates between 0 and 2 until the reader swaps and frees the other side.</p>
+<li><strong>Both parties swapping "simultaneously" is defined.</strong> The RMWs serialize on the one location;</li>
+<p>every serialization order yields a valid ownership permutation. This is the core advantage over the withdrawn two-variable design, where two loads could observe different epochs of two different variables.</p>
+</ul>
+<p>Implementations must assert the ownership invariant continuously in debug builds (litmus L6).</p>
+<h3 id="4-5-envelope-and-sequence-numbers">4.5 Envelope and sequence numbers</h3>
+<p>Each publish increments the buffer's envelope <code>seq</code> (u32, wrapping) <em>before</em> the swap. Readers use <code>seq</code> for freshness telemetry and for tear detection in litmus tests — a reader observing a half-updated payload will observe a <code>seq</code>/payload mismatch under litmus instrumentation.</p>
+<h2 id="5-invariants">5. Invariants</h2>
+<table class="doc-table"><thead><tr><th>#</th><th>Invariant</th><th>Mechanism</th></tr></thead><tbody><tr><td>I1</td><td><strong>No torn reads.</strong> A claimed buffer is fully written.</td><td>Payload written before the swap (AcqRelease orders it); reader reaches a buffer only via a swap that transferred exclusive ownership.</td></tr><tr><td>I2</td><td><strong>Wait-free writer.</strong> Bounded O(1) steps, no spin, no block.</td><td>§4.2 is a fixed instruction sequence; <code>latest.swap</code> is a single RMW.</td></tr><tr><td>I3</td><td><strong>Wait-free reader.</strong> Bounded O(1), no retry loop, cannot fail.</td><td>§4.3 is a single swap; there is no CAS-retry anywhere.</td></tr><tr><td>I4</td><td><strong>Latest-wins.</strong> Every successful claim returns the newest published frame at claim time.</td><td><code>latest</code> names the freshest publish by construction; claims take <code>latest</code>.</td></tr><tr><td>I5</td><td><strong>No back-pressure.</strong> Writer progress is independent of reader hold time.</td><td>Writer needs only its private <code>w_work</code>, refreshed by its own swap — the reader's hold duration never enters the writer's path.</td></tr><tr><td>I6</td><td><strong>No use-after-free across FFI.</strong> A released Weft is never written.</td><td><code>token.revoked</code> set (Release) <em>before</em> free; writer checks per publish (one relaxed load); free deferred until writer quiescence (§6).</td></tr></tbody></table>
+<h2 id="6-writer-revocation-and-the-release-sequence-i6">6. Writer revocation and the release sequence (I6)</h2>
+<p>Native writers hold raw pointers; no runtime can panic them out of a use-after-free. The contract:</p>
+<ol>
+<li><code>Steward.attachWriter</code> returns a <code>token</code> (control block: <code>revoked: AtomicBool</code>, <code>epoch: u32</code>).</li>
+<li><code>Steward.release(weft)</code>:</li>
+<p>a. <code>token.revoked.store(true, Release)</code> — happens <strong>before</strong> any deallocation; b. marks the Weft <code>RELEASED</code>; buffers become invisible to new readers; c. defers actual free until <strong>writer quiescence</strong>: either <code>detachWriter</code> is called, or the Steward's reaper observes <code>token</code> unclaimed across one full <code>FrameClock</code> tick after revocation (the writer checks <code>revoked</code> at the top of every publish, so a writer running at any rate goes quiescent within one tick).</p>
+<li>A revoked publish is a no-op returning <code>DROPPED_REVOKED</code>. Writers are expected to treat that as</li>
+<p>"stop" — the Steward logs it in debug.</p>
+</ol>
+<p>Worst-case in-flight writes at revocation: one. The reaper's one-tick wait covers it. This is the entire cost of I6: one relaxed load per publish and a deferred free.</p>
+<h2 id="7-edge-cases">7. Edge cases</h2>
+<ul>
+<li><strong>First frame.</strong> Before the writer's first publish, the reader's first <code>claim()</code> returns the</li>
+<p>zero-filled initial buffer (<code>seq=0</code>). Readers render zeros; no special casing.</p>
+<li><strong>Reader faster than writer.</strong> The reader re-claims the same published buffer back-to-back</li>
+<p>(its claim swaps <code>latest</code> out and its old buffer back in). Draw code may re-render or skip; default is re-render (the founding spec's choice — motion continuity over GPU cycles).</p>
+<li><strong>Writer faster than reader.</strong> Intermediate frames vanish. This is the semantics of display,</li>
+<p>not a failure mode. <code>seq</code> gaps are observable for telemetry.</p>
+<li><strong>Multi-reader.</strong> Out of scope for triad-1's kernel: each additional reader runs its own</li>
+<p>claim chain against its own Steward-registered cursor, or (v2) a fan-out Heddle snapshots once per VSYNC. Racing single-reader claims on a shared Weft is <em>not</em> supported by this protocol and must be rejected at the Heddle API layer.</p>
+<li><strong>Reader holds forever.</strong> Permitted. The writer cycles its other two buffers indefinitely</li>
+<p>(publish → swap → old becomes scratch). No progress coupling exists (I5).</p>
+</ul>
+<h2 id="8-litmus-test-mapping">8. Litmus test mapping</h2>
+<p>Every invariant is proven by a named test in <a href="../litmus/"><code>litmus/</code></a> — conformance means passing the suite:</p>
+<table class="doc-table"><thead><tr><th>Test</th><th>Proves</th><th>Adversarial condition</th></tr></thead><tbody><tr><td>L1-tear</td><td>I1</td><td>Reader hold stretched to 5/10/50 ms; writer at 2× display rate; <code>seq</code>/payload continuity asserted</td></tr><tr><td>L2-writer-steps</td><td>I2</td><td>Instruction-count instrumentation; hard bound asserted</td></tr><tr><td>L3-reader-steps</td><td>I3</td><td>Same, reader side</td></tr><tr><td>L4-freshness</td><td>I4</td><td>Writer at 4× reader; claimed <code>seq</code> must be ≥ newest at claim time</td></tr><tr><td>L5-progress</td><td>I5</td><td>Reader hold swept 0–100 ms; writer throughput must be flat</td></tr><tr><td>L6-ownership</td><td>I1, I5</td><td>Canary word per buffer; any canary mutation by a non-owner fails</td></tr><tr><td>L7-revocation</td><td>I6</td><td>Release under concurrent native writer; canary probes freed pages</td></tr><tr><td>L8-envelope</td><td>Tier 0</td><td>Header round-trip across versions; unknown-field tolerance</td></tr></tbody></table>
+<h2 id="9-alternatives-considered">9. Alternatives considered</h2>
+<ul>
+<li><strong>Two-variable candidate protocol (founding spec §5).</strong> Withdrawn — unsound under relaxed</li>
+<p>ordering (§3).</p>
+<li><strong>Seqlock (writer bumps a counter, reader retries).</strong> Readers may retry unboundedly — violates</li>
+<p>I3 and makes draw-time budgets impossible to state.</p>
+<li><strong>Mutex / rwlock.</strong> Priority inversion on real-time writers; violates I2/I5 outright.</li>
+<li><strong>Double buffering + back-pressure.</strong> Correct but the writer stalls behind a slow reader —</li>
+<p>unacceptable for audio-rate producers.</p>
+<li><strong>Single-atomic exchange (this RFC).</strong> Wait-free both sides, tearing impossible by ownership,</li>
+<p>one word of shared state. The graphics industry has shipped this pattern for decades; Weft's contribution is specifying it — envelope, lifecycle, revocation, and conformance suite — for UI state.</p>
+</ul>
+<h2 id="10-open-questions">10. Open questions</h2>
+<ul>
+<li>Multi-reader fan-out snapshot policy (ARCHITECTURE.md Q2) — per-reader buffers cost an</li>
+<p>allocation; shared snapshot + epochs costs complexity.</p>
+<li><code>epoch</code> semantics for re-attach after <code>detachWriter</code> on the same Weft (needed for writer</li>
+<p>restart patterns in audio engines).</p>
+<li>Whether <code>claim()</code> should expose <code>seq</code> staleness (<code>framesBehind</code>) to draw code for adaptive</li>
+<p>detail-level — telemetry first, API later.</p>
+</ul>
+<h2 id="11-implementation-plan">11. Implementation plan</h2>
+<p>Phase 0 (weeks 1–2, pre-v0.1): Kotlin reference implementation (~500 lines, zero dependencies) + litmus runners for L1–L8, run against a fake 120 Hz writer on a Pixel 7a. Success criteria: L1 tears = 0 under adversarial holds; steady-state alloc/frame = 0; writer instruction bound holds on release builds. This spike is the acceptance test for this RFC; <code>Status: Accepted</code> follows it.</p>
+</article>       </main> </div>   </main> <footer class="site-foot" data-astro-cid-5hce7sga> <div class="container foot-grid" data-astro-cid-5hce7sga> <div data-astro-cid-5hce7sga> <p class="foot-brand" data-astro-cid-5hce7sga>WEFT</p> <p class="subtle micro" style="max-width: 34ch;" data-astro-cid-5hce7sga>The continuous-state plane for declarative UI. Wait-free by construction, honest by policy.</p> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Product</p> <a href="/Weft/#triad" data-astro-cid-5hce7sga>Triad Protocol</a> <a href="/Weft/#proof" data-astro-cid-5hce7sga>Evidence &amp; CI</a> <a href="/Weft/studio" data-astro-cid-5hce7sga>Weft Studio</a> <a href="/Weft/ports" data-astro-cid-5hce7sga>Ports &amp; Heddles</a> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Learn</p> <a href="/Weft/docs" data-astro-cid-5hce7sga>Documentation</a> <a href="/Weft/docs/whitepaper" data-astro-cid-5hce7sga>Whitepaper (canonical)</a> <a href="/Weft/docs/laws" data-astro-cid-5hce7sga>The Four Laws</a> <a href="/Weft/docs/rfc-0001" data-astro-cid-5hce7sga>RFC-0001 · F1 withdrawal</a> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Meta</p> <a href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener" data-astro-cid-5hce7sga>Source repository</a> <a href="/Weft/docs/errata" data-astro-cid-5hce7sga>Errata</a> <a href="/Weft/#laws" data-astro-cid-5hce7sga>Non-goals</a> </div> </div> <div class="container foot-rule" data-astro-cid-5hce7sga> <span data-astro-cid-5hce7sga>© 2026 Weft project · kernel v1.0.4 (FROZEN)</span> <span class="num" data-astro-cid-5hce7sga>2026-09-23 · built from repo @ ingest time</span> </div> </footer>   </body> </html>

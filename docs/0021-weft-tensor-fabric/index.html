@@ -1,0 +1,204 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-5hce7sga> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>0021-WEFT-TENSOR-FABRIC — Docs</title><meta name="description" content="Verbatim document 0021-weft-tensor-fabric.md ingested from Weft repository source of truth"><link rel="icon" type="image/svg+xml" href="/Weft/favicon.svg"><meta property="og:title" content="0021-WEFT-TENSOR-FABRIC — Docs"><meta property="og:description" content="Verbatim document 0021-weft-tensor-fabric.md ingested from Weft repository source of truth"><meta property="og:type" content="website"><script>document.documentElement.classList.add('js');</script><link rel="stylesheet" href="/Weft/_astro/_doc_.CaZGbq_x.css">
+<style>.docs-shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:clamp(2rem,5vw,4rem);padding-top:8.5rem;padding-bottom:5rem}.docs-nav{position:sticky;top:6.5rem;align-self:start;max-height:calc(100svh - 8rem);overflow:auto}.docs-nav nav{display:grid;gap:.15rem;margin-top:.6rem}.docs-nav a{color:var(--mute);font-size:.88rem;padding:.4rem .6rem;border-radius:7px;border-left:2px solid transparent;text-decoration:none}.docs-nav a:hover{color:var(--bone);background:var(--ink-2)}.docs-nav a[aria-current=page]{color:var(--hot);border-left-color:var(--hot);background:var(--hot-glow)}@media (max-width: 900px){.docs-shell{grid-template-columns:1fr}.docs-nav{position:static}}.docs-head{border-bottom:1px solid var(--line-strong);padding-bottom:1.6rem;margin-bottom:2.4rem}.docs-head h1{font-size:clamp(2rem,4.5vw,3.2rem);margin:.6rem 0;letter-spacing:-.02em}.docs-head a{color:var(--cold)}.prose{max-width:76ch}.prose h2{font-size:1.5rem;margin:2.6rem 0 .9rem;letter-spacing:-.01em}.prose h3{font-size:1.15rem;margin:2rem 0 .6rem}.prose h4{font-size:1rem;margin:1.6rem 0 .5rem;color:var(--bone-dim)}.prose p{margin:0 0 1.1rem;color:var(--bone-dim)}.prose a{color:var(--cold)}.prose ul,.prose ol{margin:0 0 1.2rem;padding-left:1.3rem;color:var(--bone-dim)}.prose li{margin:.35rem 0}.prose code{font-family:var(--mono);font-size:.82em;background:var(--ink-3);border:1px solid var(--line);border-radius:5px;padding:.08em .35em;color:#e8ebf5}.doc-pre{background:#0a0c11;border:1px solid var(--line);border-radius:10px;padding:1.2rem 1.4rem;overflow-x:auto;margin:0 0 1.6rem}.doc-pre code{background:none;border:0;padding:0;font-size:.78rem;line-height:1.65}.doc-table{width:100%;border-collapse:collapse;margin:0 0 1.8rem;font-size:.86rem}.doc-table th{text-align:left;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:.55rem .6rem;border-bottom:1px solid var(--line-strong)}.doc-table td{padding:.55rem .6rem;border-bottom:1px solid var(--line);vertical-align:top;color:var(--bone-dim)}
+</style><script type="module" src="/Weft/_astro/hoisted.DkFPNy5-.js"></script></head> <body data-astro-cid-5hce7sga> <header class="site-head" id="top" data-astro-cid-5hce7sga> <div class="container head-inner" data-astro-cid-5hce7sga> <a class="logo" href="/Weft/" aria-label="Weft home" data-astro-cid-5hce7sga> <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true" data-astro-cid-5hce7sga> <path d="M4 6 L9 26 L16 12 L23 26 L28 6" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-5hce7sga></path> <defs data-astro-cid-5hce7sga><linearGradient id="lg" x1="4" y1="6" x2="28" y2="26" data-astro-cid-5hce7sga><stop stop-color="#f5a524" data-astro-cid-5hce7sga></stop><stop offset="1" stop-color="#53d7fb" data-astro-cid-5hce7sga></stop></linearGradient></defs> </svg> <span data-astro-cid-5hce7sga>Weft</span> </a> <nav aria-label="Main" data-astro-cid-5hce7sga> <a href="/Weft/#problem" data-astro-cid-5hce7sga>Problem</a><a href="/Weft/#triad" data-astro-cid-5hce7sga>Triad Protocol</a><a href="/Weft/#proof" data-astro-cid-5hce7sga>Proof</a><a href="/Weft/pillars" data-astro-cid-5hce7sga>Pillars</a><a href="/Weft/studio" data-astro-cid-5hce7sga>Studio</a><a href="/Weft/docs" class="active" data-astro-cid-5hce7sga>Docs</a> </nav> <div class="head-cta" data-astro-cid-5hce7sga> <a class="gh-star" href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener" data-astro-cid-5hce7sga> <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" data-astro-cid-5hce7sga><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" data-astro-cid-5hce7sga></path></svg>
+GitHub
+</a> </div> </div> </header> <main data-astro-cid-5hce7sga>  <div class="docs-shell container"> <aside class="docs-nav" aria-label="Documentation"> <p class="mono-label">DOCUMENTATION</p> <nav> <a href="/Weft/docs/whitepaper">Whitepaper</a><a href="/Weft/docs/triad">Triad protocol</a><a href="/Weft/docs/envelope">Frame envelope</a><a href="/Weft/docs/revocation">Writer revocation</a><a href="/Weft/docs/results">Measured results</a><a href="/Weft/docs/laws">Four Laws</a><a href="/Weft/docs/litmus">Litmus catalog</a><a href="/Weft/docs/philosophy">Philosophy</a><a href="/Weft/docs/glossary">Glossary</a><a href="/Weft/docs/ports">Ports</a><a href="/Weft/docs/studio-seams-v1">Studio seams</a><a href="/Weft/docs/rfc-0001">RFC-0001</a><a href="/Weft/docs/rfcs">RFC index</a><a href="/Weft/docs/errata">Errata</a> </nav> <p class="mono-label" style="margin-top:1.6rem">SOURCE OF TRUTH</p> <p class="micro subtle">Repo pages are rendered verbatim from <span class="mono">zephyr4289/Weft@main</span>. Site digests quote mechanisms verbatim and link back.</p> </aside> <main class="docs-main"> <header class="docs-head"> <p class="eyebrow">VERBATIM FROM THE REPOSITORY</p> <h1>0021-WEFT-TENSOR-FABRIC</h1> <p class="subtle">Verbatim document 0021-weft-tensor-fabric.md ingested from Weft repository source of truth</p> <a class="micro mono" href="https://github.com/zephyr4289/Weft/blob/main/0021-weft-tensor-fabric.md" target="_blank" rel="noopener">view source on GitHub ↗</a> </header> <article class="prose"><hr/>
+<p>RFC: 0021 Title: weft-tensor — Realtime Edge-AI Zero-Copy Tensor Fabric (strided views, paged arenas, lock-free DMA tensor rings) Status: Draft Authors: systems-engineer-1 (Core DMA, Hardware Memory &amp; Tensor Geometry Lead) Created: 2026-09-20 Supersedes / Supersedes-by: none</p>
+<hr/>
+<h1 id="rfc-0021-weft-tensor-realtime-edge-ai-zero-copy-tensor-fabric">RFC 0021 — weft-tensor: Realtime Edge-AI Zero-Copy Tensor Fabric</h1>
+<h2 id="summary">Summary</h2>
+<p>A new driver-layer module, <code>core/c/tensor/</code>, that makes tensors first-class Weft citizens with zero serialization and zero copies from sensor DMA to consumer decode. Three engines:</p>
+<ol>
+<li><strong><code>weft_tensor_view_t</code></strong> — a frozen 176-byte strided tensor descriptor</li>
+<p>(dtype, rank-8 shape, signed byte strides, byte window, backing address) whose decode is one pointer add: <code>addr(i) = base + byte_offset + Σ iₖ·strides[k]</code>. Slicing, cropping, transposing, and reshaping are zero-allocation view algebra.</p>
+<li><strong><code>weft_tensor_arena_t</code></strong> — page-aligned, mlock-able, optionally</li>
+<p>THP-hinted regions with an O(1) bump sub-allocator (measured 2.3-2.8 ns/alloc on the 2-CPU sandbox) and an <code>attach</code> seam for unified-memory media (dma-buf mmap, Vulkan HOST_VISIBLE, Apple UMA).</p>
+<li><strong><code>weft_tensor_ring_t</code></strong> — a lock-free circular DMA tensor ring</li>
+<p>(MAP_SHARED, cacheline-aligned slots) with MPSC/SPMC/MMPC claim/commit/acquire/release semantics over bounded sequence cursors. Every commit publishes a full <code>weft_tensor_view_t</code> inside the slot: the consumer's decode is a pointer cast, and the release/acquire regime makes torn observation structurally impossible (50,000-message MPSC stress with 25.6M per-ticket word checks: zero tears; fork() torture with cross-process producers: zero tears).</p>
+</ol>
+<p>The module is additive (no kernel file touched — Law 3), compiles with plain C11 + POSIX (<code>-std=c11 -pthread</code>, zero dependencies), and is gated by the WT-series battery (view WT1-16, arena WT17-24, ring WT25-40) in a new <code>tensor-fabric</code> CI shard running plain + ASAN + TSAN legs.</p>
+<h2 id="motivation">Motivation</h2>
+<p>The realtime edge-AI staging pipeline copies sensor data four to five times before inference: kernel DMA buffer → user-space heap array → framework tensor struct → accelerator VRAM → output marshalling back to the UI model. On a 120 FPS control loop the copies alone burn 15-50ms — the entire latency budget — and every copy is also an allocation (Law 1 violation) with unbounded tail latency (Law 2 violation) on a path that should be a pointer handoff.</p>
+<p>Weft already owns the primitives that make the copies unnecessary: shared memory across processes (RFC-0011 sessions), zero-copy fan-out rings (RFC-0004), GPU-resident mappings (RFC-0003/0013), and frozen byte layouts with ABI fingerprints (RFC-0017 weftc). What is missing is the TENSOR geometry layer that lets those primitives carry NPU/LLM-grade payloads: a descriptor that GPU uniform buffers, NPU command streams, and UI hot-planes all decode identically; an allocator that never mallocs on the inference path; and a ring whose slots carry whole tensors, not opaque frames.</p>
+<p>This RFC pins exactly that layer. Every claim below is executable: the WT-series gates in <code>ci/scripts/run_tensor_shard.sh</code>.</p>
+<h2 id="guide-level-explanation">Guide-level explanation</h2>
+<p>A camera driver (or Engineer 3's ingestion layer) creates a ring sized for its frame geometry, then claims a slot per frame, writes sensor bytes directly into the slot payload, and commits a view describing the geometry:</p>
+<pre class="doc-pre"><code>weft_tensor_ring_t ring;
+weft_tensor_ring_create(&amp;ring, /*slots*/ 64, /*payload*/ 150528,
+                        WEFT_TENSOR_RING_MODE_MPSC,
+                        WEFT_TENSOR_RING_F_MLOCK | WEFT_TENSOR_RING_F_PREFAULT);
+
+uint64_t ticket; uint8_t* payload; uint32_t cap;
+weft_tensor_ring_claim(&amp;ring, /*deadline*/ 2000000ull /*2ms*/,
+                       &amp;ticket, &amp;payload, &amp;cap);
+// DMA/audio/callback writes the frame bytes at `payload` (64B-aligned)...
+
+uint64_t nchw[4] = {1, 3, 224, 224};
+weft_tensor_view_t view;
+weft_tensor_view_init(&amp;view, frame_id, WEFT_DTYPE_U8, 4, nchw,
+                      (uintptr_t)payload, 0);
+weft_tensor_ring_commit(&amp;ring, ticket, &amp;view, 150528);</code></pre>
+<p>The consumer (Engineer 2's NPU preproc, or the UI hot-plane) acquires and decodes with a pointer cast — no parse, no copy, no allocation:</p>
+<pre class="doc-pre"><code>const weft_tensor_view_t* v; const uint8_t* bytes; uint32_t used; uint64_t t;
+weft_tensor_ring_acquire(&amp;ring, 2000000ull, &amp;t, &amp;v, &amp;bytes, &amp;used);
+// Zero-copy view algebra over the SAME memory:
+weft_tensor_view_t roi, nhwc;
+weft_tensor_view_subwindow(&amp;roi, v, (uint64_t[4]){0,0,32,64},
+                                   (uint64_t[4]){1,3,64,64});
+weft_tensor_view_permute(&amp;nhwc, &amp;roi, (uint8_t[4]){0,2,3,1});  // NCHW-&gt;NHWC
+float* px = weft_tensor_view_element_addr_at(&amp;nhwc, idx, bytes);
+weft_tensor_ring_release(&amp;ring, t);</code></pre>
+<p>Arenas serve the compute side: activations, tiles, and logits live in one pre-reserved region; <code>weft_tensor_arena_alloc</code> is a cursor bump (measured 2.3-2.8 ns/alloc, 1M-alloc legs), <code>mark/rewind</code> recycles frames in O(1), and nothing between create and destroy ever calls malloc (the ASAN legs prove the zero-allocation data path).</p>
+<p>Errors are explicit, named, and never silently downgraded: an unaligned view is <code>WEFT_TENSOR_EMISALIGN</code> (Law 4), an out-of-bounds stride is <code>WEFT_TENSOR_ERANGE</code>, a full ring under a deadline is <code>WEFT_TENSOR_ETIMEOUT</code> — there is no unbounded-wait API anywhere.</p>
+<h2 id="reference-level-specification">Reference-level specification</h2>
+<h3 id="1-element-dtype-registry-frozen-wire-numbers">§1 Element dtype registry (frozen wire numbers)</h3>
+<table class="doc-table"><thead><tr><th>dtype</th><th>value</th><th>size/align</th><th>role</th></tr></thead><tbody><tr><td><code>WEFT_DTYPE_U8</code></td><td>1</td><td>1</td><td>camera planes, u8 logits</td></tr><tr><td><code>WEFT_DTYPE_I8</code></td><td>2</td><td>1</td><td>quantized NPU activations</td></tr><tr><td><code>WEFT_DTYPE_I16</code></td><td>3</td><td>2</td><td>audio PCM</td></tr><tr><td><code>WEFT_DTYPE_F16</code></td><td>4</td><td>2</td><td>GPU/Vulkan native</td></tr><tr><td><code>WEFT_DTYPE_BF16</code></td><td>5</td><td>2</td><td>TPU/ANE-class accelerators</td></tr><tr><td><code>WEFT_DTYPE_F32</code></td><td>6</td><td>4</td><td>canonical host interchange</td></tr><tr><td><code>WEFT_DTYPE_F64</code></td><td>7</td><td>8</td><td>physics/solver tensors</td></tr></tbody></table>
+<p>Values appear in committed slot views; gaps are reserved — renumbering is a protocol break. Natural alignment == element size for every dtype.</p>
+<h3 id="2-weft-tensor-view-t-the-frozen-abi-176-bytes-8-aligned">§2 <code>weft_tensor_view_t</code> — the frozen ABI (176 bytes, 8-aligned)</h3>
+<table class="doc-table"><thead><tr><th>offset</th><th>field</th><th>type</th><th>notes</th></tr></thead><tbody><tr><td>0</td><td><code>tensor_id</code></td><td>u64</td><td>producer identity; never interpreted by the fabric</td></tr><tr><td>8</td><td><code>dtype</code></td><td>enum(4)</td><td>§1 registry</td></tr><tr><td>12</td><td><code>ndim</code></td><td>u8</td><td>1..8</td></tr><tr><td>13</td><td><code>_reserved[5]</code></td><td>u8[5]</td><td>zero on the wire; dirty tails are rejected (EDIM)</td></tr><tr><td>24</td><td><code>shape[8]</code></td><td>u64[8]</td><td>element counts; canonical zero beyond ndim</td></tr><tr><td>88</td><td><code>strides[8]</code></td><td>i64[8]</td><td>BYTE deltas (signed — negative = flipped windows)</td></tr><tr><td>152</td><td><code>byte_offset</code></td><td>u64</td><td>displacement of element (0,…,0) from payload base</td></tr><tr><td>160</td><td><code>byte_length</code></td><td>u64</td><td>declared touchable span (see §3)</td></tr><tr><td>168</td><td><code>physical_or_shm_addr</code></td><td>uintptr</td><td>payload base — see §3 cross-process note</td></tr></tbody></table>
+<p><code>sizeof == 176</code> and every offset above are pinned by <code>_Static_assert</code> in <code>weft_tensor.h</code> AND by runtime mirrors (WT2). Changing any of this is a WTR1 version bump, not an edit.</p>
+<h3 id="3-the-walking-extent-wall-validate">§3 The walking-extent wall (validate)</h3>
+<p>For a view with axes k:</p>
+<pre class="doc-pre"><code>U    = Σ_{strides[k]&gt;0}  strides[k]·(shape[k]−1)
+L    = −Σ_{strides[k]&lt;0} |strides[k]|·(shape[k]−1)
+span = |L| + U + dtype_size</code></pre>
+<p><code>weft_tensor_view_validate(v, align_req)</code> proves, in order:</p>
+<ol>
+<li>dtype ∈ §1 (EDTYPE); ndim ∈ 1..8 and shape/stride tails canonical</li>
+<p>zero (EDIM); shape[k] ≥ 1 (ERANGE); align_req ∈ {0,16,32,64,128} (EINVAL — the class registry is closed);</p>
+<li><code>byte_offset ≥ |L|</code> — a negative-stride window may never dip below</li>
+<p>the payload base (ERANGE). The canonical flipped-plane view (byte_offset = (H−1)·row_stride, first-row stride negative) lands exactly at zero and is accepted;</p>
+<li><code>byte_length ≥ span</code> — THE out-of-bounds-stride wall (ERANGE);</li>
+<li><code>byte_offset + U + dtype_size</code> must not wrap 2^64 (EOVERFLOW); every</li>
+<p>product/sum inside U, L, span is overflow-checked;</p>
+<li>Law 4 alignment: <code>(base + byte_offset)</code> must satisfy dtype-natural</li>
+<p>alignment AND the requested class — violations are EMISALIGN, never rounded.</p>
+</ol>
+<p><code>physical_or_shm_addr</code> is the payload base in the WRITER's address space: same-process or unified-memory consumers may use it directly; cross-process consumers MUST pair the view with the payload pointer their own mapping produced (<code>weft_tensor_ring_acquire</code> returns it — the ring is fully relocatable). <code>validate()</code> never dereferences it.</p>
+<p><code>weft_tensor_view_element_offset</code> recomputes <code>byte_offset + Σ iₖ·sₖ</code> with unsigned arithmetic and per-axis index bounds checks (ERANGE), refusing any below-base underflow; multiplication overflow is EOVERFLOW.</p>
+<h3 id="4-view-algebra-zero-allocation-dst-is-caller-stack-storage">§4 View algebra (zero allocation: dst is caller stack storage)</h3>
+<table class="doc-table"><thead><tr><th>op</th><th>semantics</th><th>invariants</th></tr></thead><tbody><tr><td><code>init</code></td><td>row-major contiguous strides; <code>byte_length = nelem·size</code></td><td>INT64_MAX stride wall (EOVERFLOW beyond)</td></tr><tr><td><code>init_strided</code></td><td>explicit byte strides + declared span</td><td>§3 applies</td></tr><tr><td><code>slice(axis, start, count)</code></td><td><code>byte_offset += start·s[axis]</code>; <code>shape[axis] = count</code></td><td>tight span recomputed; window ⊂ parent's (walls hold by construction)</td></tr><tr><td><code>subwindow(off[], cnt[])</code></td><td>per-axis simultaneous slice</td><td>same</td></tr><tr><td><code>permute(perm[])</code></td><td>shape/strides permuted; bijection enforced (EINVAL)</td><td>byte_offset/byte_length/element set UNCHANGED</td></tr><tr><td><code>reshape(new_shape)</code></td><td>requires C-contiguity (ERESHAPE otherwise) and element-count preservation (ERESHAPE)</td><td>byte_offset passes through; byte_length preserved (monotone)</td></tr><tr><td><code>is_contiguous</code></td><td>trailing-product check; size-1 axes unconstrained</td><td>0/1</td></tr></tbody></table>
+<p>There is deliberately NO −1 reshape wildcard and NO silent materializing copy: a copy is Engineer 3's UI-plane decision, made explicitly.</p>
+<h3 id="5-paged-arenas">§5 Paged arenas</h3>
+<p><code>weft_tensor_arena_create(capacity, flags)</code> mmaps page-aligned anonymous memory (MAP_SHARED with <code>_F_SHARED</code> for fork sharing), rounds capacity up to whole pages, and reports — never claims — placement outcomes: <code>locked</code> (mlock applied/refused), <code>hugepage_hint</code> (MADV_HUGEPAGE accepted/refused). <code>_F_PREFAULT</code> touches every page once. Law 2 note: create/attach may allocate (one mmap); the data path never does.</p>
+<p><code>weft_tensor_arena_alloc(size, align, &amp;off)</code> is a cursor bump: align up (power-of-two class 1..4096, EINVAL otherwise), bounds-check, advance. Exhaustion returns NULL + ENOMEM with the cursor unmoved and highwater recorded — never a silent shrink. <code>mark/rewind/reset</code> are O(1). The bump is SINGLE-THREAD by design (the sensor/inference thread owns its arena — the kernel's writer-private discipline); no locks exist to contend. <code>attach(memory, capacity)</code> adopts caller regions (dma-buf mmap, Vulkan HOST_VISIBLE, SHM) with a 16B-minimum base and never frees them.</p>
+<h3 id="6-ring-wire-format-wtr1-little-endian">§6 Ring wire format (WTR1, little-endian)</h3>
+<pre class="doc-pre"><code>offset 0    control header (128 bytes — two cachelines)
+offset 128  slot[0] .. slot[N-1],  slot_stride = 256 + payload_bytes</code></pre>
+<p>Control header (validated EXACTLY on attach; unknown bits rejected):</p>
+<table class="doc-table"><thead><tr><th>off</th><th>field</th><th>notes</th></tr></thead><tbody><tr><td>0</td><td>magic <code>WTR1</code> (u32)</td><td>0x31525457</td></tr><tr><td>4</td><td>version (u16)</td><td>1</td></tr><tr><td>6</td><td>mode (u16)</td><td>1 MPSC / 2 SPMC / 3 MPMC</td></tr><tr><td>8</td><td>slot_count (u32)</td><td>power of two, ≤ 2^20</td></tr><tr><td>12</td><td>payload_bytes (u32)</td><td>multiple of 64 (≤ 1 GiB)</td></tr><tr><td>16</td><td>slot_stride (u32)</td><td>must equal 256 + payload_bytes</td></tr><tr><td>20</td><td>flags (u32)</td><td>creator flags (advisory)</td></tr><tr><td>24</td><td>ring_bytes (u64)</td><td>must equal 128 + N·slot_stride</td></tr><tr><td>32</td><td>creator_pid / reserved0</td><td>diagnostics / zero</td></tr><tr><td>40</td><td>created_unix_ns (u64)</td><td>diagnostics</td></tr><tr><td>48</td><td><code>head</code> (atomic u64)</td><td>next ticket to CLAIM</td></tr><tr><td>56</td><td><code>tail</code> (atomic u64)</td><td>next ticket to ACQUIRE</td></tr><tr><td>64..88</td><td>stat_committed/acquired/released/full_hits</td><td>relaxed counters</td></tr><tr><td>96</td><td>reserved[4]</td><td>zero; non-zero = EGEOMETRY</td></tr></tbody></table>
+<p>Slot header (256 bytes = four cachelines, <code>_Static_assert</code>-pinned):</p>
+<table class="doc-table"><thead><tr><th>off</th><th>field</th><th>notes</th></tr></thead><tbody><tr><td>0</td><td><code>seq</code> (atomic u64)</td><td>the protocol word (§7)</td></tr><tr><td>8</td><td><code>weft_tensor_view_t</code> (176B)</td><td>published by commit</td></tr><tr><td>184</td><td><code>payload_used</code> (u32)</td><td>bytes committed</td></tr><tr><td>188</td><td><code>flags</code> (u32)</td><td>zero on wire</td></tr><tr><td>192</td><td>pad (64B)</td><td>keeps payloads cacheline-aligned</td></tr></tbody></table>
+<p><code>slot_stride = 256 + payload_bytes</code> with payload_bytes a 64 multiple makes every slot payload 64B-aligned by construction (128B whenever payload_bytes is a 128 multiple — Law 4). <code>weft_tensor_ring_create</code> maps MAP_SHARED|MAP_ANONYMOUS (fork children and any process handed the mapping share the ring — the DMA posture), zero-fills, writes identity fields, and initializes <code>slot[i].seq = i</code> (the fresh-ring invariant).</p>
+<h3 id="7-claim-commit-protocol-vyukov-style-bounded-sequence-cursors">§7 Claim/commit protocol (Vyukov-style bounded sequence cursors)</h3>
+<p>Invariant — for slot index i ≡ t (mod N), over generations:</p>
+<pre class="doc-pre"><code>seq == t      slot is free for producer ticket t
+seq == t+1    ticket t is COMMITTED (awaiting acquire)
+seq == t+N    ticket t was acquired AND released (free for ticket t+N)</code></pre>
+<ul>
+<li><strong>claim</strong> (<code>try_claim</code>): load <code>head</code> (acquire); gate on</li>
+<p><code>slot[head].seq == head</code> (acquire) — the authoritative fullness and generation check; CAS <code>head → head+1</code> (acq_rel) for a unique ticket. Losing the race is EAGAIN; a busy slot is EAGAIN (<code>stat_full_hits</code>). The winner owns the slot's payload exclusively until commit.</p>
+<li><strong>commit</strong>: write payload (caller), copy + normalize the view</li>
+<p>(<code>physical_or_shm_addr := slot payload</code>, <code>byte_length := payload_used</code>), run the §3 wall against the slot's real payload address (view escapes and dtype-natural misalignment are rejected with the §9 codes), then ONE release-store <code>seq := t+1</code>. Every payload byte written before the release is visible to the consumer that acquire-loads <code>seq == t+1</code>: a committed tensor is never observed torn.</p>
+<li><strong>acquire</strong> (<code>try_acquire</code>): load <code>tail</code> (acquire); gate on</li>
+<p><code>slot[tail].seq == tail+1</code>; then advance <code>tail</code> FIRST — store for MPSC (single consumer owns the cursor), CAS for SPMC/MMPC (the loser saw the same ticket, lost the advance, returns EAGAIN without reading). Advance-before-read makes every ticket acquired by EXACTLY one consumer, structurally.</p>
+<li><strong>release</strong>: ONE release-store <code>seq := t+N</code>. The consumer's reads</li>
+<p>happen-before the next producer's writes for that slot (the producer's claim acquire-loads <code>seq == its ticket</code>). Bidirectional hygiene with no fences beyond the release/acquire pairs the protocol already needs — x86 pays nothing extra, ARMv8/RISC-V get the ordering for free.</p>
+</ul>
+<p>The cursors are 64-bit monotonic ("bounded"): the modulo arithmetic never reuses a sequence number within the lifetime of a mapping (2^64 messages at 1M msg/s ≈ 585,000 years). Misuse detection is best-effort and documented, not defended: commit of an unowned ticket or double release returns EAGAIN when the seq word disagrees; a release without acquire is indistinguishable at the slot level (it simply drops the message and stalls the tail — the next acquire times out; see Boundary §).</p>
+<p>Blocking forms (<code>claim</code>/<code>acquire</code> with an explicit <code>timeout_ns</code>) retry the try-forms through the wait ladder. <code>timeout_ns == 0</code> is a pure try. There is no infinite-wait entry point.</p>
+<h3 id="8-the-wait-ladder-law-2">§8 The wait ladder (Law 2)</h3>
+<pre class="doc-pre"><code>rung 1: 64 × cpu_relax (pause/yield)      — fixed CPU cycles
+rung 2: one sched_yield()                 — one syscall
+rung 3: one 50 µs nanosleep               — one syscall
+(the caller's deadline is checked between EVERY rung)</code></pre>
+<p>Steady-state claim/commit/acquire/release is pure shared-memory atomics — zero syscalls (the S-series strace evidence class already established this for the RFC-0004 ring the protocol mirrors). Under contention the ladder runs bounded rungs; every blocking call carries the caller's deadline. Measured (WT36): a full-ring claim with a 60 ms budget returns ETIMEOUT after 60.0-60.1 ms.</p>
+<h3 id="9-error-registry">§9 Error registry</h3>
+<p><code>WEFT_TENSOR_OK 0</code>, <code>EINVAL -1</code>, <code>ENOMEM -2</code>, <code>EAGAIN -3</code>, <code>ETIMEOUT -4</code>, <code>ERANGE -5</code>, <code>EOVERFLOW -6</code>, <code>EMISALIGN -7</code>, <code>ERESHAPE -8</code>, <code>EDIM -9</code>, <code>EDTYPE -10</code>, <code>EMAGIC -11</code>, <code>EGEOMETRY -12</code> — named by <code>weft_tensor_status_name</code>, stable, and the ONLY values the API returns.</p>
+<h3 id="invariants-touched">Invariants touched</h3>
+<p>None of the kernel invariants I1-I6 change: this is a new driver-layer subsystem riding the same memory-model posture (fenced acq/rel over shared pages) the RFC-0004/0011 layers established. New module-local invariants: the §3 walking-extent wall, the §6 wire tables, the §7 sequence-word invariant, and the exactly-once tail advance.</p>
+<h3 id="litmus-impact">Litmus impact</h3>
+<p>Additive: the WT-series (view WT1-16, arena WT17-24, ring WT25-40) plus the Python-oracle golden fixture and its freshness gate. No existing L/F/V/T/U/S test changes. The <code>tensor-fabric</code> CI shard (plain + ASAN + TSAN; fork torture declared-skip under TSAN) is registered in the extreme matrix under <code>any_code</code> (core/** already routes there) and in the ci/README ownership table.</p>
+<h3 id="envelope-impact">Envelope impact</h3>
+<p>None. No kernel bytes, no fan-out wire format, no .weftrec, no schema. <code>weft_tensor_ring_slot_t</code> embeds the RFC-0017-era tensor view layout — Engineers 2/3 compile against this header unchanged.</p>
+<h2 id="boundary-of-the-claim-law-4">Boundary of the claim (Law 4)</h2>
+<p>What this enables, with its limits:</p>
+<ul>
+<li><strong>Zero-copy decode</strong>, stated as: claim→commit→acquire→release moves</li>
+<p>zero payload bytes; decode is one pointer add. It does NOT remove copies a vendor driver itself insists on (TensorRT/ANE input heaps) — those ride the attach seams and remain Engineer 2's integration work.</p>
+<li><strong>Zero tearing</strong>, stated as: the release/acquire regime makes every</li>
+<p>committed message observation atomic-by-construction; proven by 50K MPSC messages (25.6M per-ticket word checks), 50K SPMC, 20K MPMC, and 10K fork-torture cross-process tensors — all zero tears, TSAN clean. It does NOT claim a torn-word-free hardware DMA engine writing the payload concurrently with the producer — the sensor side must use the claim/commit bracket (that is the contract; a DMA engine writing into an unclaimed slot is out of contract and undetectable here).</p>
+<li><strong>Bounded latency</strong>, stated as: no unbounded waits exist; ladder rungs</li>
+<p>are fixed-size; deadlines honored (measured). The claim is NOT hard-real-time WCET certification — wcet-audit territory, not this module's.</p>
+<li><strong>Sub-microsecond arena sub-allocation</strong>: measured 2.3-2.8 ns/alloc</li>
+<p>(1M-alloc legs, 3 reps, 2-CPU sandbox). Sandbox-class hardware, not silicon marketing.</p>
+<li><strong>Throughput</strong>: 440K-560K verified msgs/s and 7.2-8.2 GB/s payload</li>
+<p>movement on the 2-CPU sandbox (16 KiB payloads, every word verified) — an honesty floor, not a peak: the verification pass IS the workload.</p>
+<li><strong>MPMC/MPSC strict FIFO</strong>: tickets are consumed in ticket order; a</li>
+<p>slow producer stalls later tickets (head-of-line blocking) — Vyukov semantics, deliberate, documented. Latency-critical deployments should size N ≥ producers × in-flight depth.</p>
+<li><strong>Release without acquire</strong> is not detectable at the slot level (the</li>
+<p>states coincide); it drops the message and stalls the tail — the next acquire hits its deadline and reports ETIMEOUT. Detection, not prevention.</p>
+<li><strong>Arena single-thread discipline</strong>: the bump cursor has no locks by</li>
+<p>design; cross-thread use requires caller-owned handoff.</p>
+<li><strong><code>physical_or_shm_addr</code></strong> is advisory cross-process (the writer's</li>
+<p>address space); consumers must use their own mapping's payload pointer. The API hands them exactly that.</p>
+<li>dma-buf/memfd fd import, ANE/TensorRT registration, WGSL-side decode</li>
+<p>(uniform layout), and sensor capture drivers are OTHER pillars' work — this RFC freezes the geometry + protocol they build on.</p>
+</ul>
+<h2 id="alternatives-considered">Alternatives considered</h2>
+<ol>
+<li><strong>Do nothing</strong> (ship views atop the RFC-0004 frame ring): loses typed</li>
+<p>geometry, dtype/alignment law enforcement, and per-slot descriptors; every consumer re-implements stride math badly. Rejected — the copy storm is the exact problem this project exists to kill.</p>
+<li><strong>Disruptor-style commit watermark</strong> (producers publish, a gating</li>
+<p>sequence advances over contiguous commits): decouples slow producers from FIFO stalls, but requires a second shared word and an advancement owner; on 2-CPU edge parts the extra cacheline ping outweighs the benefit at our depths. Rejected for v1; revisit if head-of-line blocking shows up in the field (Open Questions).</p>
+<li><strong>Futex-based bounded waits</strong>: fewer wakeups under heavy contention,</li>
+<p>but a syscall per wait on the uncontended path's tail and nontrivial cross-process futex semantics on non-Linux targets. The pause→yield→ sleep ladder is portable and measurably honors deadlines (WT36); futex stays a documented follow-up, not v1.</p>
+<li><strong>Per-slot variable sizes (span/offset allocation)</strong>: would let one</li>
+<p>ring carry mixed geometries, at the cost of a second sub-allocator and fragmentation on the DMA path. Rejected — one ring per geometry class is the honest edge-AI pattern (camera ring, audio ring, logits ring); span rings are an Open Question.</p>
+<li><strong>Element-unit strides (NumPy's older convention)</strong>: rejected — byte</li>
+<p>strides are the zero-copy lingua franca (every DMA descriptor, WGSL <code>array&lt;T&gt;</code> layout, and Vulkan row pitch speaks bytes); element strides force a multiply into every decode.</p>
+<li><strong>malloc-backed pools</strong> for the arena: rejected — Law 1; also loses</li>
+<p>page alignment, mlock, and THP hints, and reintroduces allocator jitter the governor layer already fights.</p>
+</ol>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li>Every slot pays a 256-byte header (6.25% at 4 KiB payloads, 1.5% at</li>
+<p>16 KiB). Cacheline isolation was judged worth it; tiny-payload rings should use the frame ring (RFC-0004) instead.</p>
+<li>Strict FIFO (head-of-line blocking) — see Boundary.</li>
+<li>Single-thread arena bump limits naive sharing patterns.</li>
+<li>Fixed payload capacity per ring wastes memory for bursty mixed loads</li>
+<p>(alternative 4).</p>
+<li>The TSAN leg cannot run the fork torture (declared skip, not a silent</li>
+<p>pass) — fork+TSAN is unsupported in this tree; the plain and ASAN legs carry it.</p>
+<li>128-byte control header reserves fields we do not use yet — the</li>
+<p>version gate rejects unknown bits rather than guessing, so growth costs a bump.</p>
+</ul>
+<h2 id="open-questions">Open questions</h2>
+<ol>
+<li>Should a future WTR2 add a producer-side "commit watermark" to</li>
+<p>decouple FIFO stalls (alternative 2), and at what depth does head-of-line blocking actually bite on silicon?</p>
+<li>Span-based rings (alternative 4) for mixed-geometry ingestion —</li>
+<p>Engineer 3's audio+video mux may force the question.</p>
+<li>Futex (Linux) / <code>os_sync_wait_on_address</code> (Darwin) wakeups for</li>
+<p>power-constrained waits — keep the ladder as fallback?</p>
+<li>dma-buf/memfd fd-passing attach helpers: own them here or in the</li>
+<p>E2 GPU layer? (The attach seam exists; the fd plumbing is unowned.)</p>
+<li>WGSL-side decode: does the view struct land in uniform buffers</li>
+<p>verbatim (E2's Pillar-2 codegen consumes the frozen table §2)?</p>
+<li>Does the ANE path need a <code>payload_used</code>-independent alignment class</li>
+<p>(128B enforced at commit rather than by construction)?</p>
+</ol>
+<h2 id="implementation-plan">Implementation plan</h2>
+<p>Engineer 1 (this author), Pillar 2, on <code>feat/weft-tensor-core</code>:</p>
+<ul>
+<li><code>core/c/tensor/</code> — <code>weft_tensor.h</code> (frozen contract), view/arena/ring</li>
+<p>engines, module Makefile (plain/ASAN/TSAN legs);</p>
+<li><code>core/c/tensor/tests/</code> — WT1-40, the Python-oracle golden fixture +</li>
+<p>freshness gate, <code>run.sh</code>;</p>
+<li><code>ci/scripts/run_tensor_shard.sh</code> + extreme-matrix registration +</li>
+<p>ci/README routing row; evidence under <code>litmus/evidence/tensor/</code>.</p>
+</ul>
+<p>Acceptance criterion flipping Status to Implemented: the <code>tensor-fabric</code> shard green on merged main (plain + ASAN + TSAN legs, all WT checks), which this branch's local transcript already shows.</p>
+<hr/>
+<p><em>Process notes: lazy consensus, 7 days — silence is consent; a substantiated objection cites a Law, an invariant, or a litmus test. Kernel RFCs additionally require both kernel-maintainer approvals. See <a href="../CONTRIBUTING">CONTRIBUTING.md</a> §3 and <a href="../GOVERNANCE">GOVERNANCE.md</a>.</em></p>
+</article>       </main> </div>   </main> <footer class="site-foot" data-astro-cid-5hce7sga> <div class="container foot-grid" data-astro-cid-5hce7sga> <div data-astro-cid-5hce7sga> <p class="foot-brand" data-astro-cid-5hce7sga>WEFT</p> <p class="subtle micro" style="max-width: 34ch;" data-astro-cid-5hce7sga>The continuous-state plane for declarative UI. Wait-free by construction, honest by policy.</p> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Product</p> <a href="/Weft/#triad" data-astro-cid-5hce7sga>Triad Protocol</a> <a href="/Weft/#proof" data-astro-cid-5hce7sga>Evidence &amp; CI</a> <a href="/Weft/studio" data-astro-cid-5hce7sga>Weft Studio</a> <a href="/Weft/ports" data-astro-cid-5hce7sga>Ports &amp; Heddles</a> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Learn</p> <a href="/Weft/docs" data-astro-cid-5hce7sga>Documentation</a> <a href="/Weft/docs/whitepaper" data-astro-cid-5hce7sga>Whitepaper (canonical)</a> <a href="/Weft/docs/laws" data-astro-cid-5hce7sga>The Four Laws</a> <a href="/Weft/docs/rfc-0001" data-astro-cid-5hce7sga>RFC-0001 · F1 withdrawal</a> </div> <div data-astro-cid-5hce7sga> <p class="mono-label" data-astro-cid-5hce7sga>Meta</p> <a href="https://github.com/zephyr4289/Weft" target="_blank" rel="noopener" data-astro-cid-5hce7sga>Source repository</a> <a href="/Weft/docs/errata" data-astro-cid-5hce7sga>Errata</a> <a href="/Weft/#laws" data-astro-cid-5hce7sga>Non-goals</a> </div> </div> <div class="container foot-rule" data-astro-cid-5hce7sga> <span data-astro-cid-5hce7sga>© 2026 Weft project · kernel v1.0.4 (FROZEN)</span> <span class="num" data-astro-cid-5hce7sga>2026-09-23 · built from repo @ ingest time</span> </div> </footer>   </body> </html>

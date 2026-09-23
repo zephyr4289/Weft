@@ -24,6 +24,9 @@ echo "[2/8] TypeScript suite"
 node --test packages/weft-tensor/test/*.test.mjs
 
 echo "[3/8] Python suite"
+if ! python3 -c "import pytest" >/dev/null 2>&1; then
+  python3 -m pip install --quiet pytest numpy
+fi
 python3 -m pytest python/tests -q
 
 echo "[4/8] TS producer -> Python consumer"

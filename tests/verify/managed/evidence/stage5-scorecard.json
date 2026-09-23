@@ -4,8 +4,8 @@
     "name": "@weft/verify",
     "version": "1.0.0"
   },
-  "node": "v24.21.0",
-  "platform": "linux x64",
+  "node": "v22.23.2",
+  "platform": "linux arm64",
   "verdict": "PASS",
   "formal": {
     "schema": "weft-verify-formal/1",

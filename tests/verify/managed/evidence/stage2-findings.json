@@ -2,12 +2,12 @@
   "schema": "weft-verify-lint/1",
   "files": [
     {
-      "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
+      "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
       "lang": "c",
       "hotFunctions": 1,
       "findings": [
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
           "line": 7,
           "col": 15,
           "ruleId": "WV-C-001",
@@ -17,7 +17,7 @@
           "snippet": "    void *p = malloc(64);                        /* expect: WV-C-001 */"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
           "line": 8,
           "col": 21,
           "ruleId": "WV-C-002",
@@ -27,7 +27,7 @@
           "snippet": "    struct hdr *q = calloc(1, 128);              /* expect: WV-C-002 */"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
           "line": 9,
           "col": 20,
           "ruleId": "WV-C-003",
@@ -37,7 +37,7 @@
           "snippet": "    ctx->scratch = realloc(ctx->scratch, 256);   /* expect: WV-C-003 */"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.c",
           "line": 10,
           "col": 17,
           "ruleId": "WV-C-005",
@@ -49,12 +49,12 @@
       ]
     },
     {
-      "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.cpp",
+      "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.cpp",
       "lang": "cpp",
       "hotFunctions": 1,
       "findings": [
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.cpp",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.cpp",
           "line": 7,
           "col": 18,
           "ruleId": "WV-CPP-001",
@@ -64,7 +64,7 @@
           "snippet": "    auto *sink = new Sink(o);                    // expect: WV-CPP-001"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.cpp",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.cpp",
           "line": 8,
           "col": 20,
           "ruleId": "WV-CPP-002",
@@ -74,7 +74,7 @@
           "snippet": "    auto sp = std::make_shared<Legs>(o.legs);    // expect: WV-CPP-002"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.cpp",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.cpp",
           "line": 9,
           "col": 20,
           "ruleId": "WV-CPP-003",
@@ -86,12 +86,12 @@
       ]
     },
     {
-      "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+      "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
       "lang": "dart",
       "hotFunctions": 1,
       "findings": [
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
           "line": 5,
           "col": 19,
           "ruleId": "WV-DT-002",
@@ -101,7 +101,7 @@
           "snippet": "  final scratch = List<double>.filled(64, 0.0); // expect: WV-DT-002"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
           "line": 6,
           "col": 15,
           "ruleId": "WV-DT-003",
@@ -111,7 +111,7 @@
           "snippet": "  final box = Map<String, double>();            // expect: WV-DT-003"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
           "line": 7,
           "col": 13,
           "ruleId": "WV-DT-006",
@@ -121,7 +121,7 @@
           "snippet": "  final p = calloc<Float>(64);                  // expect: WV-DT-006"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
           "line": 8,
           "col": 14,
           "ruleId": "WV-DT-005",
@@ -131,7 +131,7 @@
           "snippet": "  final sb = StringBuffer();                    // expect: WV-DT-005"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
           "line": 9,
           "col": 15,
           "ruleId": "WV-DT-008",
@@ -141,7 +141,7 @@
           "snippet": "  final cb = () => out[0] + x;                  // expect: WV-DT-008"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.dart",
           "line": 10,
           "col": 13,
           "ruleId": "WV-DT-004",
@@ -153,12 +153,12 @@
       ]
     },
     {
-      "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+      "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
       "lang": "rust",
       "hotFunctions": 1,
       "findings": [
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
           "line": 5,
           "col": 17,
           "ruleId": "WV-RS-001",
@@ -168,7 +168,7 @@
           "snippet": "    let boxed = Box::new(q.px);              // expect: WV-RS-001"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
           "line": 6,
           "col": 22,
           "ruleId": "WV-RS-003",
@@ -178,7 +178,7 @@
           "snippet": "    let v: Vec<u8> = vec![0u8; 64];          // expect: WV-RS-003"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
           "line": 7,
           "col": 13,
           "ruleId": "WV-RS-009",
@@ -188,7 +188,7 @@
           "snippet": "    let s = format!(\"{:?}\", q.px);           // expect: WV-RS-009"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
           "line": 8,
           "col": 25,
           "ruleId": "WV-RS-006",
@@ -198,7 +198,7 @@
           "snippet": "    let owned = q.symbol.to_string();        // expect: WV-RS-006"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
           "line": 9,
           "col": 29,
           "ruleId": "WV-RS-008",
@@ -208,7 +208,7 @@
           "snippet": "    let cloned = out.scratch.clone();        // expect: WV-RS-008"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.rs",
           "line": 10,
           "col": 27,
           "ruleId": "WV-RS-010",
@@ -220,12 +220,12 @@
       ]
     },
     {
-      "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
+      "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
       "lang": "swift",
       "hotFunctions": 1,
       "findings": [
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
           "line": 7,
           "col": 42,
           "ruleId": "WV-SW-001",
@@ -235,7 +235,7 @@
           "snippet": "    let scratch = UnsafeMutableRawPointer.allocate(byteCount: 64, alignment: 16) // expect: WV-SW-001"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
           "line": 8,
           "col": 17,
           "ruleId": "WV-SW-002",
@@ -245,7 +245,7 @@
           "snippet": "    let label = String(pkt.count)            // expect: WV-SW-002"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
           "line": 9,
           "col": 16,
           "ruleId": "WV-SW-002",
@@ -255,7 +255,7 @@
           "snippet": "    let copy = Array(pkt)                    // expect: WV-SW-002"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.swift",
           "line": 10,
           "col": 14,
           "ruleId": "WV-SW-003",
@@ -267,12 +267,12 @@
       ]
     },
     {
-      "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+      "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
       "lang": "ts",
       "hotFunctions": 1,
       "findings": [
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
           "line": 10,
           "col": 19,
           "ruleId": "WV-TS-001",
@@ -282,7 +282,7 @@
           "snippet": "  const scratch = new Float64Array(64); // expect: WV-TS-001"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
           "line": 11,
           "col": 31,
           "ruleId": "WV-TS-005",
@@ -292,7 +292,7 @@
           "snippet": "  const closure = (x: number) => x + tick; // expect: WV-TS-005"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
           "line": 12,
           "col": 18,
           "ruleId": "WV-TS-002",
@@ -302,7 +302,7 @@
           "snippet": "  const snapshot = { bid: tick, ask: tick }; // expect: WV-TS-002"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
           "line": 13,
           "col": 13,
           "ruleId": "WV-TS-003",
@@ -312,7 +312,7 @@
           "snippet": "  const row = [tick, tick, tick]; // expect: WV-TS-003"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
           "line": 14,
           "col": 16,
           "ruleId": "WV-TS-002",
@@ -322,7 +322,7 @@
           "snippet": "  const merged = { ...snapshot }; // expect: WV-TS-002 + WV-TS-004"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
           "line": 14,
           "col": 20,
           "ruleId": "WV-TS-004",
@@ -332,7 +332,7 @@
           "snippet": "  const merged = { ...snapshot }; // expect: WV-TS-002 + WV-TS-004"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
           "line": 15,
           "col": 18,
           "ruleId": "WV-TS-007",
@@ -342,7 +342,7 @@
           "snippet": "  const parsed = JSON.parse(RAW); // expect: WV-TS-007"
         },
         {
-          "file": "/home/z/my-project/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
+          "file": "/data/data/com.termux/files/home/Weft/tests/verify/managed/fixtures/poisoned/poison.ts",
           "line": 16,
           "col": 20,
           "ruleId": "WV-TS-009",

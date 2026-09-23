@@ -103,7 +103,7 @@
     "truncated": true,
     "deadlineHit": false,
     "exhaustive": false,
-    "seconds": 2.9,
+    "seconds": 7.3,
     "capacity": 16777216,
     "loadFactor": 0.596
   },

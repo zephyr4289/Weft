@@ -1,11 +1,11 @@
 {
   "iterations": 1000000,
   "rounds": 3,
-  "growthKiB": -0.4,
+  "growthKiB": 0,
   "perRoundKiB": [
-    -0.4,
-    -0.4,
-    0.1
+    0,
+    7.3,
+    0
   ],
   "commits": 3200000,
   "reads": 3200000,

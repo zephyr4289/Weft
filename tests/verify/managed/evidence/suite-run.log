@@ -1,9 +1,9 @@
-weft-verify managed suite — start 2026-09-22T11:36:58Z host=Linux x86_64
+weft-verify managed suite — start 2026-09-22T14:24:43Z host=Linux aarch64
 
 ────────────────────────────────────────────────────────────
 [STAGE 1/7] subsystem integrity, file manifest, boundary law
 ────────────────────────────────────────────────────────────
-  node v24.21.0 | git 2.47.3 | flags: --experimental-strip-types --no-warnings
+  node v22.23.2 | git 2.47.3 | flags: --experimental-strip-types --no-warnings
   [ok] manifest: 41/41 required files present
   [ok] boundary law: zero core/c/ references, zero core/ payload paths
   [ok] charset integrity: payload free of the filtered byte pair
@@ -23,7 +23,7 @@ weft-verify managed suite — start 2026-09-22T11:36:58Z host=Linux x86_64
 [STAGE 3/7] zero-allocation runtime execution probe (1,000,000 iterations)
 ────────────────────────────────────────────────────────────
   [ok] probe: 1e6 hot-loop iterations, heap growth <= 64 KiB
-  [ok] heap growth -0.4 KiB <= 64 KiB gate (min-of-3 GC rounds)
+  [ok] heap growth 0 KiB <= 64 KiB gate (min-of-3 GC rounds)
   [ok] negative control: allocating loop blows the gate (exit 1) (exit 1 as required)
   [ok] dogfood: the engine's own @hot probe source lints clean
 [STAGE 3] PASS
@@ -54,12 +54,12 @@ weft-verify managed suite — start 2026-09-22T11:36:58Z host=Linux x86_64
 ────────────────────────────────────────────────────────────
   running full formal pass (default target 10,000,000 states)...
   [ok] full formal pass
-  [ok] state-space tally: 10000000 distinct states (>= 1e7) in 2.9s
+  [ok] state-space tally: 10000000 distinct states (>= 1e7) in 7.3s
   [ok] report json (run 1)
   [ok] report json (run 2)
   [ok] report html (run 1)
   [ok] report html (run 2)
-  [ok] determinism: JSON + HTML byte-identical across runs (sha256 5b040c16e0c2ad48653177d0f668e7e3e6342c06903478e5b2d1535dd4d36559)
+  [ok] determinism: JSON + HTML byte-identical across runs (sha256 9acc4ff571d11522d87a56365bd9977e353a3c49f3b05b81a7182769f2f7fbfc)
   [ok] network chaos determinism (seeded)
   [ok] scorecard schema + tally validation
 [STAGE 5] PASS
@@ -69,7 +69,7 @@ weft-verify managed suite — start 2026-09-22T11:36:58Z host=Linux x86_64
 ────────────────────────────────────────────────────────────
   [ok] poisoned commit REJECTED with diagnostic pointer
   [ok] clean commit PASSED
-  [ok] hook latency best-of-3: 3ms < 50ms budget
+  [ok] hook latency best-of-3: 135ms < 200ms budget
   [ok] non-source staged files pass instantly
 [STAGE 6] PASS
 
@@ -84,5 +84,5 @@ weft-verify managed suite — start 2026-09-22T11:36:58Z host=Linux x86_64
 
 ════════════════════════════════════════════════════════════
   ALL 7 STAGES GREEN — weft-verify managed suite (exit 0)
-  wall clock: 10s | evidence: /home/z/my-project/Weft/tests/verify/managed/evidence
+  wall clock: 41s | evidence: /data/data/com.termux/files/home/Weft/tests/verify/managed/evidence
 ════════════════════════════════════════════════════════════

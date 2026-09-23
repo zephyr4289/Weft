@@ -1,0 +1,1 @@
+{"shard":"revoke-stress","status":"PASSED","gates":"100K handshakes + ceiling leg + ASAN + TSAN(reduced, declared) — zero timeouts/ack-failures/poison-failures"}

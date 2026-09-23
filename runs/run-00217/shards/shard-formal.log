@@ -1,0 +1,12 @@
+==================================================
+SHARD: formal
+DESCRIPTION: TLA+ proofs — FanoutSeqlock + ReattachPolicy (TLC, pinned jar)
+STATUS: FAILED ❌
+COMMIT: d6fd5009c183f76d2fee629a0c59c745e9415e28
+RUN: 217
+==================================================
+
+
+=== TLC toolchain (pinned sha256) ===
+fetching tla2tools 1.8.0...
+tla2tools sha256 MISMATCH: pinned 9d36716ffb5e49d1ba8fae4651eba59f3189887e12eb90e204a42d2e6e993fef, got 9732eea90bdc7432e618184e4bee78700460e83e988238a80151dfd6507cfa0c

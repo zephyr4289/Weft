@@ -190,6 +190,7 @@ jobs:
               {"shard": "weftc-codegen", "description": "Project weftc Pillar 1: Native (C11/Rust/WGSL/GLSL) & Managed (TS/Python/Swift/Dart/React/Flutter) codegen suites + parity matrix + E2E kernel roundtrip", "script": "ci/scripts/run_weftc_codegen_shard.sh", "args": "", "needs_rust": True, "filter": "any_code"},
               {"shard": "weft-tensor-managed", "description": "Project weft-tensor Pillar 2: WTR1 layout, TS/Python ingestion engines, DLPack/NumPy bridge, cross-language parity, React/Flutter AI hooks/widgets, 120 FPS flight demo, alloc probes", "script": "ci/scripts/run_weft_tensor_managed_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "weft-cluster", "description": "RFC-0018 WCR1: CL-ring/CL-consensus x sanitizers + split-brain torture + bench scoreboard", "script": "ci/scripts/run_weft_cluster_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "weft-cluster-bypass", "description": "RFC-0019 Pillar 3: kernel-bypass cluster mesh — RoCEv2/IB one-sided RDMA (dlopen'd verbs + WRH1 golden handshake + deadline poll), eBPF/XDP line-rate steering (assembled bytecode + UMEM over WCR1), io_uring batched fallback (registered buffers + sticky ZC downgrade + kernel-UDP ping-pong), fabric refusal cascade, latency bench", "script": "ci/scripts/run_weft_cluster_bypass_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)

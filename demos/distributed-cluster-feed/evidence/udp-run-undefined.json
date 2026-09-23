@@ -1,0 +1,99 @@
+{
+  "kind": "weft-cluster-demo-run",
+  "transport": "udp",
+  "nodes": [
+    {
+      "id": 1,
+      "role": "producer",
+      "fps": 5135,
+      "total": 36400,
+      "gaps": 0,
+      "stale": 0,
+      "p50": 0,
+      "p99": 0,
+      "members": 4,
+      "routes": {
+        "market.trades": 4,
+        "market.quotes": 3
+      },
+      "metricsPort": 42413,
+      "node": 1,
+      "decodeErrors": 0,
+      "topics": [
+        "market.trades",
+        "market.quotes"
+      ]
+    },
+    {
+      "id": 2,
+      "role": "consumer",
+      "fps": 0,
+      "total": 38800,
+      "gaps": 0,
+      "stale": 0,
+      "p50": 1572864,
+      "p99": 8388608,
+      "members": 3,
+      "routes": {
+        "market.trades": 4,
+        "market.quotes": 3
+      },
+      "metricsPort": 44373,
+      "node": 2,
+      "decodeErrors": 0,
+      "topics": [
+        "market.trades",
+        "market.quotes"
+      ]
+    },
+    {
+      "id": 3,
+      "role": "consumer",
+      "fps": 0,
+      "total": 38800,
+      "gaps": 0,
+      "stale": 0,
+      "p50": 1572864,
+      "p99": 12582912,
+      "members": 3,
+      "routes": {
+        "market.trades": 4,
+        "market.quotes": 3
+      },
+      "metricsPort": 34425,
+      "node": 3,
+      "decodeErrors": 0,
+      "topics": [
+        "market.trades",
+        "market.quotes"
+      ]
+    },
+    {
+      "id": 4,
+      "role": "consumer",
+      "fps": 0,
+      "total": 39000,
+      "gaps": 0,
+      "stale": 0,
+      "p50": 1572864,
+      "p99": 8388608,
+      "members": 4,
+      "routes": {
+        "market.trades": 4,
+        "market.quotes": 3
+      },
+      "metricsPort": 38705,
+      "node": 4,
+      "decodeErrors": 0,
+      "topics": [
+        "market.trades",
+        "market.quotes"
+      ]
+    }
+  ],
+  "fpsTargetPerTopic": 5000,
+  "seconds": 4,
+  "convergedMs": 695,
+  "at": "2026-09-20T07:28:47.745Z",
+  "monotonicity": true
+}

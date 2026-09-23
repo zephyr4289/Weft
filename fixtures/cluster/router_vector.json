@@ -1,0 +1,76 @@
+{
+  "algorithm": "rendezvous-fnv1a64",
+  "spec": "docs/weft-cluster/WIRE-V1.md#4-hashing",
+  "nodes": [
+    11,
+    22,
+    33,
+    44
+  ],
+  "topics": [
+    {
+      "topic": "telemetry",
+      "topicHash": {
+        "lo": 4135454656,
+        "hi": 2688723795
+      },
+      "owner": 11
+    },
+    {
+      "topic": "trades",
+      "topicHash": {
+        "lo": 2376449246,
+        "hi": 1534177120
+      },
+      "owner": 33
+    },
+    {
+      "topic": "ticks",
+      "topicHash": {
+        "lo": 1782457781,
+        "hi": 2144937580
+      },
+      "owner": 11
+    },
+    {
+      "topic": "video.frames",
+      "topicHash": {
+        "lo": 2959273420,
+        "hi": 4199723754
+      },
+      "owner": 44
+    },
+    {
+      "topic": "audio.pcm",
+      "topicHash": {
+        "lo": 1367229659,
+        "hi": 517898772
+      },
+      "owner": 22
+    },
+    {
+      "topic": "metrics",
+      "topicHash": {
+        "lo": 3041816790,
+        "hi": 374125476
+      },
+      "owner": 11
+    },
+    {
+      "topic": "logs",
+      "topicHash": {
+        "lo": 1894525990,
+        "hi": 3456619949
+      },
+      "owner": 44
+    },
+    {
+      "topic": "control",
+      "topicHash": {
+        "lo": 2528634174,
+        "hi": 139336885
+      },
+      "owner": 44
+    }
+  ]
+}

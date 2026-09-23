@@ -149,6 +149,24 @@ importers:
         specifier: '>=18'
         version: 18.3.1
 
+  packages/react-tensor:
+    dependencies:
+      react:
+        specifier: '>=18'
+        version: 18.3.1
+
+  packages/weft-tensor: {}
+
+  packages/weft-cluster: {}
+
+  packages/heddle-core: {}
+
+  packages/react-heddle:
+    dependencies:
+      '@weft/heddle-core':
+        specifier: 0.1.0
+        version: link:../heddle-core
+
   packages/react-native:
     dependencies:
       '@weft/core':

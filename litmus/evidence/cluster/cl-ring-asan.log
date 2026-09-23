@@ -1,0 +1,14 @@
+R1   crc32/LE/two-store encoding                          PASS
+R2   region create golden bytes                           PASS
+R3   attach validation ladder (12 refusals)               PASS
+R4   100k publish/acquire/consume, zero alloc             PASS
+R5   two-store tear detection (bounded -> E_SEQ_TORN)     PASS
+R6   in-band backpressure + ring-full refusal             PASS
+R7   overrun + message_seq alias guards                   PASS
+R8   slot header golden layout + opt-in CRC               PASS
+R9   consumer watermark two-store protocol                PASS
+R10  zero-roundtrip remote slot addressing                PASS
+     (fork ipc: 0 torn backoffs survived)
+R11  fork cross-process 100k msgs, zero tears             PASS
+
+cluster_ring_test: ALL PASS (0 failures)

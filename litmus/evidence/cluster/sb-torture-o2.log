@@ -1,0 +1,7 @@
+SB1  dueling candidates resolve, never two leaders        PASS
+SB2  byzantine same-term view: E_SPLIT_BRAIN + tie-break  PASS
+     sb3: 3000 rounds, 44071 ops, 1708 published, 1701 delivered, 0 fenced, 24 elections (18 won), 13 quorum-losses, 172 dropped, 0 bp, 1591 flips, 375 heals, 1 evicted
+SB3  7-node random-partition torture, all invariants      PASS
+SB4  leader crash -> re-election -> fenced recovery       PASS
+
+split_brain_torture: ALL PASS (0 failures)

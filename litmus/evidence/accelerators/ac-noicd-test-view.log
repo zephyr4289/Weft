@@ -1,0 +1,31 @@
+AC-V1 sizeof/align ABI v1: PASS
+AC-V2 init builds a PACKED view: PASS
+AC-V3 canonical strides are row-major: PASS
+AC-V4 bad magic refuses: PASS
+AC-V5 future ABI refuses: PASS
+AC-V6 dtype outside the dialect refuses: PASS
+AC-V7 rank 0 refuses: PASS
+AC-V8 elem_count != prod(dims) refuses: PASS
+AC-V9 NULL data refuses: PASS
+AC-V10 unknown flag bits refuse: PASS
+AC-V11 big-endian refuses gpu_ready: PASS
+AC-V12 geometry beyond byte_len refuses: PASS
+AC-V13 capacity gate refuses over-run: PASS
+AC-V14 full capacity passes: PASS
+AC-V15 PACKED flag with non-canonical strides refuses: PASS
+AC-V16 honest strided view passes (byte_len = strided reach): PASS
+AC-V17 rank-4 canonical strides: PASS
+AC-V18 offset math (strided multiply-add): PASS
+AC-V19 byte stride derivation: PASS
+AC-V20 misaligned f32 pointer refuses gpu_ready: PASS
+AC-V21 16-byte-aligned f32 passes gpu_ready: PASS
+AC-V22 u8 rides the raw-byte road (alignment floor only): PASS
+AC-V23 dialect codes are the frozen WTS1 space: PASS
+AC-V24 WTS1 frame -> view (zero transforms): PASS
+AC-V25 corrupt WTS1 refuses (never a guess): PASS
+AC-V26 stats percentiles (p50/p95/p99): PASS
+AC-V27 frozen id is deterministic FNV-1a 64: PASS
+AC-V28 SIMD normalize bit-exact vs scalar oracle: PASS
+AC-V29 SIMD copy round-trips: PASS
+  (simd-isa=neon)
+AC-V (tensor view ABI): 29 passed, 0 failed, 0 skipped

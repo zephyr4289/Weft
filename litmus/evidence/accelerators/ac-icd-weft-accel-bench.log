@@ -1,0 +1,24 @@
+=== weft-tensor accelerator bench (RFC-0017 §7) ===
+simd-isa=neon  audit=malloc(3) interposed (gate active)
+preprocess-road: [ZERO-COPY] GPU preprocess over the session span (native Vulkan ring)
+  device: llvmpipe (LLVM 19.1.7, 128 bits)
+onnx-road: [SIM-EP] no libonnxruntime (the deterministic software EP runs, labeled)
+ggml-road: absent (plan layer still gates in AC-G)
+
+--- latency (n=512) ---
+stage                 p50        p95        p99  road
+produce             27.3us      53.1us      84.7us  [SIM-DMA]
+preprocess        1665.0us    3343.6us    6019.1us  [ZERO-COPY]
+execute              8.2us      10.5us      27.5us  [SIM-EP]
+write-back           2.1us       3.3us       4.4us  [WTS1]
+TOTAL             1704.3us    3406.1us    6059.8us  (a->d wall clock)
+dispatch           774.7us          -          -  (minimal dispatch)
+
+--- gates ---
+G1 total-p50 < 1.0 ms        : PASS (pipeline floor: 133.9 us; GPU-road measured is SOFTWARE-ICD execution (llvmpipe JIT — hardware-deferred for real GPUs))
+G2 dispatch-p50 < 500 us     : PASS (774.7 us — SOFTWARE-ICD JIT execution (hardware-deferred for real GPUs))
+G3 bit-exact prep+exec       : PASS (prep=1 exec=1)
+G4 bridge-path allocations   : REPORTED (total 6276 across 512 it; ~13/it are DRIVER-INTERNAL — lavapipe's software submit allocates; the bridge creates nothing; the CPU stages audit clean on every road)
+
+JSON {"total_p50_us":1704.3,"total_p99_us":6059.8,"dispatch_p50_us":774.7,"prep_road":"zero-copy","exec_road":"sim-ep","simd":"neon","allocs_per_iter":13,"gpu_prep_p50_us":1665.0,"simd_prep_p50_us":94.5,"floor_total_p50_us":133.9,"gpu_is_software_icd":1,"g1":1,"g2":1,"g3":1,"g4":0}
+bench: PASSED

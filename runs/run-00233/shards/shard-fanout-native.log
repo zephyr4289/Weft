@@ -1,0 +1,8 @@
+==================================================
+SHARD: fanout-native
+DESCRIPTION: C/Rust fan-out ring: F-series + torture x2 regimes + Loom + xlang
+STATUS: FAILED ❌
+COMMIT: 7081e34e32ef1ee59bfde05f92e3e9b48b4471c5
+RUN: 233
+==================================================
+

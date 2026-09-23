@@ -1,0 +1,8 @@
+==================================================
+SHARD: ffi-fuzz
+DESCRIPTION: Issue #16 Tier 1 Task 4 — FFI-boundary structured fuzz: C kernel API 200K ops + ASAN + C<->TS boundary
+STATUS: FAILED ❌
+COMMIT: 7ae2be27071764355d82fd755c825d2cca033f50
+RUN: 211
+==================================================
+

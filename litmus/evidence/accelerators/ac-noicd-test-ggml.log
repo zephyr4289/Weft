@@ -1,0 +1,24 @@
+AC-G1 WTS1 -> ggml dtype map: PASS
+AC-G2 unsigned dtypes refuse (ggml has none): PASS
+AC-G3 view dims map to ggml ne[] REVERSED: PASS
+AC-G4 nb strides follow the ggml recurrence: PASS
+AC-G5 nbytes == nb[3] * ne[3] == view byte_len: PASS
+AC-G6 f16 audio bank maps (ne[0]=1024, ne[1]=2): PASS
+AC-G7 strided view refuses (the caller's view road): PASS
+AC-G8 planner alignment is the 64-byte law: PASS
+AC-G9 span registration: PASS
+AC-G10 misaligned span registration refuses: PASS
+AC-G11 first placement lands at offset 0: PASS
+AC-G12 second placement 64-aligns: PASS
+AC-G13 explicit placement enforces the alignment law: PASS
+AC-G14 out-of-bounds placement refuses: PASS
+AC-G15 full-span refusal is counted, never silent: PASS
+AC-G16 epoch reset rewinds the cursor: PASS
+AC-G17 windowing drops the partial tail by policy: PASS
+AC-G18 allow_partial keeps the tail, labeled: PASS
+AC-G19 hop > window refuses: PASS
+AC-G20 exact multiples produce clean windows: PASS
+AC-G21 no-libggml refusal is named: PASS
+  (no-libggml — the plan layer is the gated contract)
+AC-G22: SKIP (no libggml (runtime leg declared))
+AC-G (ggml bridge): 21 passed, 0 failed, 1 skipped

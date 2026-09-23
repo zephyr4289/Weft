@@ -6,5 +6,7 @@
 // allocator — an instrument that cannot fail proves nothing (the house
 // "must-bite" discipline, cf. tools/guardian).
 export function plantedAllocator(sink: unknown[]): void {
-  sink.push({ planted: true, stamp: performance.now() });
+  for (let i = 0; i < 5; i++) {
+    sink.push({ planted: true, stamp: performance.now(), payload: [i, i + 1, i + 2, i + 3] });
+  }
 }

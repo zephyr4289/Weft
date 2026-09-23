@@ -1,0 +1,8 @@
+==================================================
+SHARD: weftc-codegen
+DESCRIPTION: Project weftc Pillar 1: Native (C11/Rust/WGSL/GLSL) & Managed (TS/Python/Swift/Dart/React/Flutter) codegen suites + parity matrix + E2E kernel roundtrip
+STATUS: FAILED ❌
+COMMIT: d361e60518bded3edfc9873cb192fa7f36eba074
+RUN: 243
+==================================================
+

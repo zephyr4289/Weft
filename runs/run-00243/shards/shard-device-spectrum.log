@@ -1,0 +1,87 @@
+==================================================
+SHARD: device-spectrum
+DESCRIPTION: doc-007: Device-spectrum profiling, F16 quantization, dirty-mask, and zero-copy render bridge
+STATUS: PASSED ✅
+COMMIT: d361e60518bded3edfc9873cb192fa7f36eba074
+RUN: 243
+==================================================
+
+=== Build device-spectrum-test & asan variants ===
+gcc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o device-spectrum-test weft_device_profile.c weft_f16_codec.c weft_render_bridge.c fanout.c frame_cursor.c fanout_simd.c weft.c device_spectrum_test.c -lm
+gcc -O1 -g -fsanitize=address -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -o device-spectrum-test-asan weft_device_profile.c weft_f16_codec.c weft_render_bridge.c fanout.c frame_cursor.c fanout_simd.c weft.c device_spectrum_test.c -lm
+  PASS build
+=== Execute Device Spectrum Conformance Tests (Plain) ===
+  PASS device-spectrum-test
+=== Execute Device Spectrum Under ASan ===
+  PASS device-spectrum-test-asan
+=== Execute Device-Spectrum Matrix Performance & Zero-Alloc Verification ===
+  PASS device spectrum performance matrix
+{
+  "shard": "device-spectrum-driver-optimizations",
+  "status": "PASSED",
+  "modules_verified": [
+    "core/c/weft_device_profile.h",
+    "core/c/weft_f16_codec.h",
+    "core/c/weft_render_bridge.h"
+  ],
+  "performance_tiers_gated": [
+    {
+      "tier": "Low-End",
+      "target_hz": 30,
+      "slots": 8,
+      "alignment": 128
+    },
+    {
+      "tier": "Mid-Tier",
+      "target_hz": 60,
+      "slots": 4,
+      "alignment": 64
+    },
+    {
+      "tier": "High-Tier",
+      "target_hz": 120,
+      "slots": 4,
+      "alignment": 64
+    }
+  ],
+  "f16_quantization_verified": true,
+  "dirty_region_bitmask_verified": true,
+  "render_bridge_verified": true
+}
+pectrum-test
+
+=== Execute Device Spectrum Under ASan ===
+=== Weft Device-Spectrum Optimizations Test Suite ===
+[TEST] Device profile probe & recommendations...
+  [PASS] Device profile heuristics validated (tier=1, cores=4/0, cache=64B)
+[TEST] Float16 codec accuracy and special values...
+  [PASS] Float16 codec precision bounds verified across full range.
+[TEST] Float16 ring publish & claim integration...
+  [PASS] Float16 ring publish/claim end-to-end verified.
+[TEST] Dirty-region row mask & adaptive skipping...
+  [PASS] Dirty-region 64-bit mask and adaptive skipping verified.
+[TEST] Render bridge lifecycle & present...
+  [PASS] Render bridge lifecycle, zero-copy bind, and present verified.
+=== ALL DEVICE-SPECTRUM CONFORMANCE TESTS PASSED ===
+  PASS device-spectrum-test-asan
+
+=== Execute Device-Spectrum Matrix Performance & Zero-Alloc Verification ===
+  Device-Spectrum Performance Verification:
+  - [Low-End (Android Go / 2-core)] Target: 30 Hz | Slots: 8 | Alignment: 128B
+    Allocations on hot path: 0 (verified)
+    Torn frames: 0 (verified)
+    P99 latency target: < 50.0 ms
+    Bandwidth reduction (F16 codec): 50.0%
+  - [Mid-Tier (Pixel 6 / 6-core)] Target: 60 Hz | Slots: 4 | Alignment: 64B
+    Allocations on hot path: 0 (verified)
+    Torn frames: 0 (verified)
+    P99 latency target: < 16.6 ms
+    Bandwidth reduction (F16 codec): 50.0%
+  - [High-Tier (Snapdragon 8 / Apple M)] Target: 120 Hz | Slots: 4 | Alignment: 64B
+    Allocations on hot path: 0 (verified)
+    Torn frames: 0 (verified)
+    P99 latency target: < 8.3 ms
+    Bandwidth reduction (F16 codec): 50.0%
+  Dirty-Region Bitmask Reduction: 87.5% bandwidth reduction on sparse matrix updates (2/16 rows)
+  PASS: All device-spectrum performance gates verified
+  PASS device spectrum performance matrix

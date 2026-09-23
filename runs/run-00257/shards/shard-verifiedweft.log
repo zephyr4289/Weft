@@ -1,0 +1,8 @@
+==================================================
+SHARD: verifiedweft
+DESCRIPTION: RFC 0005: V-series x3 kernels + C<->TS interop + tamper rejection
+STATUS: FAILED ❌
+COMMIT: 412f8748025b1514df5fc7404d568a36502cd160
+RUN: 257
+==================================================
+

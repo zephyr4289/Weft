@@ -1,0 +1,13 @@
+==================================================
+SHARD: trace-standard
+DESCRIPTION: RFC 0014 .weftrec v4: codec conformance + cross-port trace byte-identity (C==TS, VM legs via toolchain workflows) + JSON schema shape
+STATUS: FAILED ❌
+COMMIT: 412f8748025b1514df5fc7404d568a36502cd160
+RUN: 257
+==================================================
+
+=== Build: trace_rec-test + trace-dump (C) ===
+  PASS build
+=== Codec conformance (T-series) ===
+  PASS trace_rec-test
+=== Cross-port byte-identity (xlang-trace) ===

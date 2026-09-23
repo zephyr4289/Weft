@@ -1,0 +1,9 @@
+workflow: npm-packages
+job:      Node 24 Matrix
+node:     24
+status:   success
+sha:      d47d3372554c366e115d90f2719f42eed9e77f34
+event:    push
+run:      212
+date:     Wed Sep 23 13:46:47 UTC 2026
+ref:      refs/heads/main

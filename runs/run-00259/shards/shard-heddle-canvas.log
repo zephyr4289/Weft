@@ -1,0 +1,33 @@
+==================================================
+SHARD: heddle-canvas
+DESCRIPTION: Project heddle-2.0 Pillar 4: WHP1 plane contract + Law-1 60k-frame zero-alloc gate + 240 FPS budget bench + native Vulkan SSBO probe (lavapipe) + Chromium COOP/COEP rig with cross-tier bit-exact oracle
+STATUS: FAILED ❌
+COMMIT: bd7b7b05853361dd358040582c5b364ee5f669a4
+RUN: 259
+==================================================
+
+=== 1/5 unit battery (vitest) ===
+[2m      Tests [22m [1m[32m65 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (66)[39m
+[2m   Start at [22m 14:00:22
+[2m   Duration [22m 1.39s[2m (transform 390ms, setup 0ms, collect 665ms, tests 816ms, environment 2ms, prepare 712ms)[22m
+
+=== 2/5 Law-1: instrument calibration + 60,000-frame gate ===
+calibrate-clean:   PASS — 8272 B attributed to engine modules over 4000 frames
+calibrate-planted: PASS — 3019424 B caught across 1 samples
+law1-instrument:   BROKEN
+90m 278[2mms[22m[39m
+ [32m✓[39m test/dirty_mask.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 75[2mms[22m[39m
+ [32m✓[39m test/shaders.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 67[2mms[22m[39m
+ [32m✓[39m test/oracle.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 86[2mms[22m[39m
+ [32m✓[39m test/law1.test.ts [2m([22m[2m6 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m test/budget.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m65 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (66)[39m
+[2m   Start at [22m 14:00:22
+[2m   Duration [22m 1.39s[2m (transform 390ms, setup 0ms, collect 665ms, tests 816ms, environment 2ms, prepare 712ms)[22m
+
+=== 2/5 Law-1: instrument calibration + 60,000-frame gate ===
+calibrate-clean:   PASS — 8272 B attributed to engine modules over 4000 frames
+calibrate-planted: PASS — 3019424 B caught across 1 samples
+law1-instrument:   BROKEN

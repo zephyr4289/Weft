@@ -1,0 +1,32 @@
+{
+  "shard": "device-spectrum-driver-optimizations",
+  "status": "PASSED",
+  "modules_verified": [
+    "core/c/weft_device_profile.h",
+    "core/c/weft_f16_codec.h",
+    "core/c/weft_render_bridge.h"
+  ],
+  "performance_tiers_gated": [
+    {
+      "tier": "Low-End",
+      "target_hz": 30,
+      "slots": 8,
+      "alignment": 128
+    },
+    {
+      "tier": "Mid-Tier",
+      "target_hz": 60,
+      "slots": 4,
+      "alignment": 64
+    },
+    {
+      "tier": "High-Tier",
+      "target_hz": 120,
+      "slots": 4,
+      "alignment": 64
+    }
+  ],
+  "f16_quantization_verified": true,
+  "dirty_region_bitmask_verified": true,
+  "render_bridge_verified": true
+}

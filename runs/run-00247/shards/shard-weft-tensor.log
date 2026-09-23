@@ -1,0 +1,95 @@
+==================================================
+SHARD: weft-tensor
+DESCRIPTION: RFC-0017 Pillar 2: NPU/GPU accelerator adapters — tensor view ABI, Vulkan dma-buf bridge (alias canary + bit-exact frozen kernel), Metal wraps, zero-copy ONNX bridge (verified table mirror + pooled no-alloc run), ggml buffer-type + windowing, E2E latency bench (lavapipe ICD)
+STATUS: PASSED ✅
+COMMIT: 49858b4feb75e9fb3b47a250ebdc32cb196bb178
+RUN: 247
+==================================================
+
+
+=== environment ===
+Linux runnervmtr4k5 6.17.0-1022-azure #22-Ubuntu SMP Mon Jul 27 17:24:03 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+
+=== build (O2 + audit interposer + asan legs) ===
+$ make -C tools/weft-tensor all
+  ok
+$ make -C tools/weft-tensor test-view-asan
+  ok
+$ make -C tools/weft-tensor test-cross-asan
+  ok
+
+=== no-ICD leg (refusal honesty as a gate) ===
+test-view: ok
+test-vk: ok
+test-metal: ok
+test-ort: ok
+test-ggml: ok
+test-cross: ok
+weft-accel-bench: ok
+
+=== ICD leg (lavapipe) ===
+  SKIP: no Vulkan ICD on this runner (the no-ICD leg gates the refusals)
+
+=== spv determinism (kernel freeze) ===
+  SKIP: glslangValidator absent on this runner
+
+=== kernel freeze: core/c zero diffs vs branch base ===
+  core/c/weft.{c,h}: zero diffs (Law 3 holds)
+
+=== verdict ===
+SHARD: GREEN
+lude -I../../core/c -Ibackends/onnx -Ibackends/onnx/tests -o test-vk tests/test_vk.c backends/vulkan/weft_vk_bridge.c backends/vulkan/weft_vk_compute.c src/weft_tensor_view.c src/weft_accel_common.c src/weft_simd.c ../../core/c/fanout.c ../../core/c/fanout_simd.c ../../core/c/weft_f16_codec.c ../../core/c/weft_tensor.c \
+../../core/c/gpu_ring.c ../../core/c/shm_ring.c -ldl -lpthread -lm
+tests/test_vk.c: In function ‘main’:
+tests/test_vk.c:27:25: warning: unused variable ‘fake’ [-Wunused-variable]
+   27 |         static uint32_t fake[64];
+      |                         ^~~~
+cc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_ACCEL_ALLOC_AUDIT=1 -I. -Iinclude -I../../core/c -Ibackends/onnx -Ibackends/onnx/tests -o test-metal tests/test_metal.c backends/metal/weft_metal_core.c src/weft_tensor_view.c src/weft_accel_common.c src/weft_simd.c ../../core/c/fanout.c ../../core/c/fanout_simd.c ../../core/c/weft_f16_codec.c ../../core/c/weft_tensor.c -ldl -lpthread -lm
+cc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_ACCEL_ALLOC_AUDIT=1 -I. -Iinclude -I../../core/c -Ibackends/onnx -Ibackends/onnx/tests -o test-ort tests/test_ort.c backends/onnx/weft_ort_bridge.c backends/onnx/tests/mock_ort.c \
+src/weft_tensor_view.c src/weft_accel_common.c src/weft_simd.c ../../core/c/fanout.c ../../core/c/fanout_simd.c ../../core/c/weft_f16_codec.c ../../core/c/weft_tensor.c -ldl -lpthread -lm
+cc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_ACCEL_ALLOC_AUDIT=1 -I. -Iinclude -I../../core/c -Ibackends/onnx -Ibackends/onnx/tests -o test-ggml tests/test_ggml.c backends/ggml/weft_ggml_bridge.c backends/ggml/weft_ggml_plan.c src/weft_tensor_view.c src/weft_accel_common.c src/weft_simd.c ../../core/c/fanout.c ../../core/c/fanout_simd.c ../../core/c/weft_f16_codec.c ../../core/c/weft_tensor.c -ldl -lpthread -lm
+cc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_ACCEL_ALLOC_AUDIT=1 -I. -Iinclude -I../../core/c -Ibackends/onnx -Ibackends/onnx/tests -o test-cross tests/test_cross.c backends/vulkan/weft_vk_bridge.c backends/vulkan/weft_vk_compute.c backends/onnx/weft_ort_bridge.c backends/ggml/weft_ggml_bridge.c backends/ggml/weft_ggml_plan.c backends/metal/weft_metal_core.c backends/onnx/tests/mock_ort.c \
+src/weft_tensor_view.c src/weft_accel_common.c src/weft_simd.c ../../core/c/fanout.c ../../core/c/fanout_simd.c ../../core/c/weft_f16_codec.c ../../core/c/weft_tensor.c ../../core/c/gpu_ring.c ../../core/c/shm_ring.c -ldl -lpthread -lm
+tests/test_cross.c:31:29: warning: ‘g_vk_out’ defined but not used [-Wunused-variable]
+   31 | static alignas(64) float    g_vk_out[N];
+      |                             ^~~~~~~~
+cc -O2 -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -DWEFT_ACCEL_ALLOC_AUDIT=1 -I. -Iinclude -I../../core/c -Ibackends/onnx -Ibackends/onnx/tests -o weft-accel-bench bench/weft_accel_bench.c \
+bench/weft_sim_ep.c backends/vulkan/weft_vk_bridge.c backends/vulkan/weft_vk_compute.c backends/onnx/weft_ort_bridge.c backends/ggml/weft_ggml_bridge.c backends/ggml/weft_ggml_plan.c backends/metal/weft_metal_core.c backends/onnx/tests/mock_ort.c src/weft_tensor_view.c src/weft_accel_common.c src/weft_simd.c ../../core/c/fanout.c ../../core/c/fanout_simd.c ../../core/c/weft_f16_codec.c ../../core/c/weft_tensor.c ../../core/c/gpu_ring.c ../../core/c/shm_ring.c -ldl -lpthread -lm
+make: Leaving directory '/home/runner/work/Weft/Weft/tools/weft-tensor'
+  ok
+$ make -C tools/weft-tensor test-view-asan
+make: Entering directory '/home/runner/work/Weft/Weft/tools/weft-tensor'
+cc -O1 -g -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -fsanitize=address -I. -Iinclude -I../../core/c -Ibackends/onnx -Ibackends/onnx/tests -o test-view-asan tests/test_view.c src/weft_tensor_view.c src/weft_accel_common.c src/weft_simd.c ../../core/c/fanout.c ../../core/c/fanout_simd.c ../../core/c/weft_f16_codec.c ../../core/c/weft_tensor.c ../../core/c/gpu_ring.c ../../core/c/shm_ring.c -ldl -lpthread -lm
+make: Leaving directory '/home/runner/work/Weft/Weft/tools/weft-tensor'
+  ok
+$ make -C tools/weft-tensor test-cross-asan
+make: Entering directory '/home/runner/work/Weft/Weft/tools/weft-tensor'
+cc -O1 -g -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE -fsanitize=address -I. -Iinclude -I../../core/c -Ibackends/onnx -Ibackends/onnx/tests -o test-cross-asan tests/test_cross.c backends/vulkan/weft_vk_bridge.c backends/vulkan/weft_vk_compute.c backends/onnx/weft_ort_bridge.c backends/ggml/weft_ggml_bridge.c backends/ggml/weft_ggml_plan.c backends/metal/weft_metal_core.c backends/onnx/tests/mock_ort.c \
+src/weft_tensor_view.c src/weft_accel_common.c src/weft_simd.c ../../core/c/fanout.c ../../core/c/fanout_simd.c ../../core/c/weft_f16_codec.c ../../core/c/weft_tensor.c ../../core/c/gpu_ring.c ../../core/c/shm_ring.c -ldl -lpthread -lm
+tests/test_cross.c:31:29: warning: ‘g_vk_out’ defined but not used [-Wunused-variable]
+   31 | static alignas(64) float    g_vk_out[N];
+      |                             ^~~~~~~~
+make: Leaving directory '/home/runner/work/Weft/Weft/tools/weft-tensor'
+  ok
+
+=== no-ICD leg (refusal honesty as a gate) ===
+test-view: ok
+test-vk: ok
+test-metal: ok
+test-ort: ok
+test-ggml: ok
+test-cross: ok
+weft-accel-bench: ok
+
+=== ICD leg (lavapipe) ===
+  SKIP: no Vulkan ICD on this runner (the no-ICD leg gates the refusals)
+
+=== spv determinism (kernel freeze) ===
+  SKIP: glslangValidator absent on this runner
+
+=== kernel freeze: core/c zero diffs vs branch base ===
+  core/c/weft.{c,h}: zero diffs (Law 3 holds)
+
+=== verdict ===
+SHARD: GREEN

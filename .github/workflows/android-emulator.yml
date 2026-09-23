@@ -18,13 +18,6 @@ on:
       - 'core/c/**'
       - 'core/kotlin/**'
       - '.github/workflows/android-emulator.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'android/**'
-      - 'core/c/**'
-      - 'core/kotlin/**'
-      - '.github/workflows/android-emulator.yml'
   workflow_dispatch:
 
 concurrency:

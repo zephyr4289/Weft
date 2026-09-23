@@ -112,9 +112,10 @@ final class SpectrumWireTests: XCTestCase {
 }
 
 final class SpectrumGovernorTests: XCTestCase {
-    private func tick(_ st: CadenceState, _ inp: GovernorInput,
+    private func tick(_ st: CadenceState, _ input: GovernorInput,
                       _ thermal: UInt32, _ batt: Int, _ charging: UInt32,
                       _ visibility: UInt32, _ heap: Int = 0) {
+        var inp = input
         inp.thermalState = thermal
         inp.batteryPermille = batt
         inp.batteryCharging = charging
@@ -126,7 +127,7 @@ final class SpectrumGovernorTests: XCTestCase {
     func testFrozenVectorCheckpoints() {
         // Checkpoints from tests/spectrum/managed/fixtures/governor_vector.json
         let st = CadenceState()
-        let inp = GovernorInput()
+        var inp = GovernorInput()
         inp.tierMaxHzCap = 240
 
         for _ in 0..<9 { tick(st, inp, 3, 900, chargingYes, visVisible) }
@@ -157,7 +158,7 @@ final class SpectrumGovernorTests: XCTestCase {
 
     func testTierStagingHold() {
         let st = CadenceState()
-        let inp = GovernorInput()
+        var inp = GovernorInput()
         inp.profileBudgetBytes = 8_589_934_592
         tierTick(st, inp) // stage 1
         tierTick(st, inp) // stage 2

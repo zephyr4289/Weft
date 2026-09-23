@@ -1,0 +1,14 @@
+{
+  "shard": "bench-b-rust",
+  "status": "PASSED",
+  "cells_pass": 5,
+  "cells_total": 5,
+  "cells": {
+    "rust/B1-pub-throughput": true,
+    "rust/B2-contended": true,
+    "rust/B3-scaling-fingerprint": true,
+    "rust/B4-display-adversarial": true,
+    "rust/B5-memory-contract": true
+  },
+  "canonical_sha256_prefix": "16b5c663"
+}

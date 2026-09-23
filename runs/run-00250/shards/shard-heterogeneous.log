@@ -1,0 +1,8 @@
+==================================================
+SHARD: heterogeneous
+DESCRIPTION: RFC-0016 Series 10: DMA-BUF rings, GPU external-memory wraps (fd-road zero-copy), AF_XDP state machine + uring delegation, WTS1 tensor bridge, camera seams, hetero capstone (lavapipe ICD)
+STATUS: FAILED ❌
+COMMIT: 4bed4eeabecae140ad800c2efb51f1124e39b13d
+RUN: 250
+==================================================
+

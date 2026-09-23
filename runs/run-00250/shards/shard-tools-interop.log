@@ -1,0 +1,42 @@
+==================================================
+SHARD: tools-interop
+DESCRIPTION: C→C, C→Rust, Rust→Rust, Rust→C record/replay
+STATUS: FAILED ❌
+COMMIT: 4bed4eeabecae140ad800c2efb51f1124e39b13d
+RUN: 250
+==================================================
+
+→ building C record tool
+weft_record.c:5: warning: "_GNU_SOURCE" redefined
+    5 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+weft_record.c: In function ‘rec_writer’:
+weft_record.c:100:52: warning: unused variable ‘t0’ [-Wunused-variable]
+  100 |     uint64_t next = now_ns() + period_ns; uint64_t t0 = now_ns();
+      |                                                    ^~
+weft_record.c: In function ‘cmd_capture’:
+weft_record.c:234:5: warning: ignoring return value of ‘fread’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  234 |     fread(header, 1, 20, f);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+../../core/c/weft.c:15: warning: "_GNU_SOURCE" redefined
+   15 | #define _GNU_SOURCE  // for posix_memalign
+      | 
+<command-line>: note: this is the location of the previous definition
+→ building Rust record tool
+[1m[92m    Updating[0m crates.io index
+[1m[92m   Compiling[0m weft-core v0.1.0 (/home/runner/work/Weft/Weft/core/rust)
+[1m[33mwarning[0m[1m: unused imports: `Duration` and `Instant`[0m
+ [1m[94m--> [0msrc/bin/probe.rs:3:17
+  [1m[94m|[0m
+[1m[94m3[0m [1m[94m|[0m use std::time::{Duration, Instant};
+  [1m[94m|[0m                 [1m[33m^^^^^^^^[0m  [1m[33m^^^^^^^[0m
+  [1m[94m|[0m
+  [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unused import: `PubResult`[0m
+ [1m[94m--> [0msrc/bin/probe.rs:4:22
+  [1m[94m|[0m
+[1m[94m4[0m [1m[94m|[0m use weft_core::{pat, PubResult, Weft, WeftDebugView};
+  [1m[94m|[0m                      [1m[33m^^^^^^^^^[0m
+

@@ -1,0 +1,12 @@
+==================================================
+SHARD: browser-sab
+DESCRIPTION: chromium: crossOriginIsolated + SAB kernel roundtrip + 1W/2R fanout
+STATUS: FAILED ❌
+COMMIT: 4bed4eeabecae140ad800c2efb51f1124e39b13d
+RUN: 250
+==================================================
+
+=== ensure @weft/core dist ===
+=== provision playwright (scratch project, git-ignored) ===
+
+added 1 package in 1s

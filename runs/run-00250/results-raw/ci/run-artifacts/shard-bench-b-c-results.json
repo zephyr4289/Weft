@@ -1,0 +1,14 @@
+{
+  "shard": "bench-b-c",
+  "status": "PASSED",
+  "cells_pass": 5,
+  "cells_total": 5,
+  "cells": {
+    "c/B1-pub-throughput": true,
+    "c/B2-contended": true,
+    "c/B3-scaling-fingerprint": true,
+    "c/B4-display-adversarial": true,
+    "c/B5-memory-contract": true
+  },
+  "canonical_sha256_prefix": "16b5c663"
+}

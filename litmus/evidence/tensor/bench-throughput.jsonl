@@ -1,0 +1,6 @@
+{"test":"WT23","variant":"1M","allocs":1000000,"ns_per_alloc":2.5,"bytes":256000000}
+{"test":"WT40","variant":"bench-16k","producers":4,"slots":64,"payload":16384,"msgs":50000,"secs":0.1038,"msgs_s":481802,"gb_s":7.89,"verified_words":102400000}
+{"test":"WT23","variant":"1M","allocs":1000000,"ns_per_alloc":2.8,"bytes":256000000}
+{"test":"WT40","variant":"bench-16k","producers":4,"slots":64,"payload":16384,"msgs":50000,"secs":0.1134,"msgs_s":440942,"gb_s":7.22,"verified_words":102400000}
+{"test":"WT23","variant":"1M","allocs":1000000,"ns_per_alloc":2.3,"bytes":256000000}
+{"test":"WT40","variant":"bench-16k","producers":4,"slots":64,"payload":16384,"msgs":50000,"secs":0.0994,"msgs_s":503185,"gb_s":8.24,"verified_words":102400000}

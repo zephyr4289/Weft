@@ -1,0 +1,47 @@
+[malloc-audit] CL-R8 rdma post+poll x32: 0 allocs while armed
+[PASS] CL-R1 absent library -> DRIVER refusal
+[PASS] CL-R1 refusal names the library
+[PASS] CL-R2 mock init: QP in INIT after init+connect path
+[PASS] CL-R2 state ladder: exactly 3 modify_qp calls
+[PASS] CL-R2 no out-of-order transitions
+[PASS] CL-R5 double connect refused by state
+[PASS] CL-R4 mock reg_mr mirrored lkey
+[PASS] CL-R4 mock reg_mr mirrored rkey
+[PASS] CL-R4 registered chunk0 address
+[PASS] CL-R3 non-64 chunk refused
+[PASS] CL-R3 good region accepted
+[PASS] CL-R7 write_sync OK
+[PASS] CL-R7 wr opcode is one-sided RDMA_WRITE
+[PASS] CL-R7 sge lkey from registration
+[PASS] CL-R7 remote_addr = peer chunk0 + dst*chunk
+[PASS] CL-R7 sge addr = local chunk0 + src*chunk
+[PASS] CL-R7 completion byte_len
+[PASS] CL-R7 poll OK
+[PASS] CL-R7 poll returns user_id
+[PASS] CL-R7 poll returns byte_len
+[PASS] CL-R7 stats: posts counted
+[PASS] CL-R7 stats: completions counted
+[PASS] CL-R6 stalled CQ -> TIMEOUT
+[PASS] CL-R6 deadline honored (>= 18 ms, < 5 s)
+[PASS] CL-R6 timeout counted
+[PASS] CL-R8 zero heap allocations on the hot path
+[PASS] CL-R9 pool exhaustion -> BUSY
+[PASS] CL-R9 drained: post accepted again
+[PASS] CL-R10 error WC -> IO refusal
+[PASS] CL-R10 error names the wc status
+[PASS] CL-R10 wc_errors counted
+[PASS] CL-R11 magic WRH1
+[PASS] CL-R11 version
+[PASS] CL-R11 hdr_len
+[PASS] CL-R11 rkey little-endian
+[PASS] CL-R11 decode ok
+[PASS] CL-R11 decode qpn mirror
+[PASS] CL-R11 decode addr mirror
+[PASS] CL-R11 decode node mirror
+[PASS] CL-R11 version refused
+[PASS] CL-R11 reserved-nonzero refused
+[PASS] CL-R12 bad src chunk refused
+[PASS] CL-R12 bad dst chunk refused
+[PASS] CL-R12 oversize len refused
+[PASS] CL-R12 zero len refused
+--- 45 pass / 0 fail / 0 skip

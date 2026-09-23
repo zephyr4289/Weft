@@ -90,6 +90,14 @@ int weft_gpu_create_ex(weft_gpu_ring_t** out, size_t payload_bytes,
 /// created exportable, or the ICD refused the handle type.
 int weft_gpu_export_fd(weft_gpu_ring_t* g, int* out_fd);
 
+/// Export the session allocation as a DMA-BUF fd (VK_EXT_external_memory_dma_buf
+/// handle type — the fd is a REAL dma-buf: importable by weft_gpu_wrap_dmabuf,
+/// shareable with camera/NIC/codec pipes and other processes). Returns 0 on
+/// success; -1 when the backend is not Vulkan, the allocation was not created
+/// exportable, or the ICD refuses the dma-buf handle type (recorded, never
+/// silent). Caller owns the fd.
+int weft_gpu_export_dmabuf_fd(weft_gpu_ring_t* g, int* out_fd);
+
 /// Import a session exported by another process (the fd bridge's far side).
 /// The allocation is imported (VkImportMemoryFdInfoKHR — the fd is consumed
 /// on success), a session-span buffer is bound over it, the WFSH header is
@@ -103,6 +111,66 @@ int weft_gpu_import_fd(weft_gpu_ring_t** out, size_t payload_bytes,
 /// at create time ("opaque-fd", "opaque-fd+dmabuf", or "" when not
 /// exportable). Logging/evidence only — never a correctness input (AXIOM T).
 const char* weft_gpu_external_info(const weft_gpu_ring_t* g);
+
+// ---------------------------------------------------------------------------
+// RFC-0016 §2: wrap constructors — EXISTING memory becomes GPU-consumable
+// ---------------------------------------------------------------------------
+// The Series-8 bridge made Vulkan-ALLOCATED sessions shareable (export fd
+// / import fd). The heterogeneous mandate inverts it: rings that ALREADY
+// exist — a WFSH shm session (RFC-0011), a DMA-BUF heap allocation
+// (weft_dmabuf), any page-aligned shared mapping — become GPU-consumable
+// WITHOUT re-allocation and WITHOUT a staging copy:
+//
+//   wrap_host:   VK_EXT_external_memory_host imports the application's own
+//                pointer; the device aliases the SAME physical pages, so
+//                the CPU publishes through its pointer and the shader reads
+//                live words through the imported allocation.
+//   wrap_dmabuf: VK_KHR_external_memory_fd + VK_EXT_external_memory_dma_buf
+//                import a dma-buf fd (weft_dmabuf_ring_alloc's storage, a
+//                V4L2 EXPBUF, an AHardwareBuffer's handle) the same way.
+//
+// Both return a full VULKAN-backend session (gpu_stream/gpu_probe work over
+// it unchanged). The wrapped session NEVER writes the WFSH header — the
+// memory must already be a valid session (validated; mismatched geometry is
+// a hard error, not a guess).
+//
+// Fallback discipline (Law 4): a device without the extension, a host
+// pointer below minImportedHostPointerAlignment (malloc'd fanout rings are
+// NOT importable — shm/dmabuf/mmap backing is the documented road), a
+// non-dma-buf fd — every refusal is a -1 with the reason recorded in
+// weft_gpu_external_info; the caller routes to weft_gpu_create (the
+// HOST_VISIBLE road) or the CPU backend, exactly as before.
+
+/// How a session came to exist (evidence only — AXIOM T):
+///   "native"     — weft_gpu_create/_ex (Vulkan-allocated)
+///   "host-pointer" — weft_gpu_wrap_host (imported application memory)
+///   "dmabuf-fd"  — weft_gpu_wrap_dmabuf (imported dma-buf fd)
+///   ""           — CPU/Metal backends
+const char* weft_gpu_import_kind(const weft_gpu_ring_t* g);
+
+/// Wrap an EXISTING page-aligned WFSH session (weft_shm_create_anon /
+/// create_named map, memfd/dmabuf mapping — base must satisfy the device's
+/// minImportedHostPointerAlignment, in practice the page size). The caller
+/// owns `session_mem` and MUST keep it mapped for the session's lifetime;
+/// weft_gpu_destroy frees only the Vulkan objects (never the pointer).
+/// map_bytes is the mapping's byte extent (page-rounded mappings of a
+/// page-larger session are fine — the span identity is validated, not the
+/// mapping size).
+/// ALIAS-VERIFIED (Law 4): after the import, a canary round-trip proves the
+/// device carries the CPU's OWN bytes; a device that accepts the import but
+/// backs it with fresh memory (llvmpipe 25.0.7 does — see the heterogeneous
+/// evidence log) is REFUSED, never silently consumed. Returns 0; -1 on every
+/// refusal above.
+int weft_gpu_wrap_host(weft_gpu_ring_t** out, size_t payload_bytes,
+                       unsigned slot_count, void* session_mem, size_t map_bytes);
+
+/// Wrap an EXISTING dma-buf fd carrying a WFSH session (weft_dmabuf's
+/// storage). The fd is BORROWED (never closed by the session — a dup is
+/// imported); the session mmaps its own CPU view and unmaps it at destroy.
+/// Returns 0; -1 on every refusal (no dma-buf extension, non-dma-buf fd,
+/// allocation too small for the device's requirements, bad session).
+int weft_gpu_wrap_dmabuf(weft_gpu_ring_t** out, size_t payload_bytes,
+                         unsigned slot_count, int fd);
 
 /// Creation flags (weft_gpu_create_ex, Series 8 — RFC-0013).
 typedef enum {

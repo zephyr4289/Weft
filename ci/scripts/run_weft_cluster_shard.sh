@@ -1,99 +1,65 @@
 #!/usr/bin/env bash
-# run_weft_cluster_shard.sh — Pillar 3 (weft-cluster) CI shard.
+# run_weft_cluster_shard.sh — RFC 0018 weft-cluster shard (Pillar 3).
 #
-# 8 fail-closed stages. set -euo pipefail everywhere (silent-green contract).
-#   1. Kernel-core integrity — core/c/weft.{c,h} untouched by this pillar
-#   2. TS wire + cross-language vector guards (WCN1/malformed/FNV/CRC)
-#   3. Python wire + router vector parity (byte-exact vs TS fixtures)
-#   4. TypeScript suite (node --test: wire/client/topology/router/metrics)
-#   5. Python suite (pytest: client/ring/udp/shm/streams + DLPack surface)
-#   6. Live cross-language UDP cluster (TS->Py and Py->TS, both directions)
-#   7. Zero-allocation probes (node --expose-gc, 5 modes x 100k ops)
-#   8. Performance gates: 4-node demo monotonicity + 1M fps mesh burst +
-#      membership lookup < 25 ns + CLI bench
+# Gates (any failure exits non-zero):
+#   1. CL-ring conformance: plain / ASAN / TSAN
+#      (two-store seqlock, tear detection, backpressure, validation ladder,
+#       fork cross-process IPC, 100k zero-alloc steady state)
+#   2. CL-consensus conformance: plain / ASAN
+#      (ring-embedded election, lease stability, quorum loss, fencing,
+#       partition healing, vote uniqueness, clock-skew gate, eviction,
+#       consensus seqlock pairing, 100k cluster sync ops zero-alloc)
+#   3. Split-brain torture: plain / ASAN
+#      (dueling candidates, byzantine block injection, 7-node random
+#       partition chaos w/ single-leader invariant + refusal whitelist,
+#       leader crash recovery)
+#   4. Benchmark scoreboard (informational; committed full evidence lives
+#      in litmus/evidence/cluster/)
+#
+# Output: ci/run-artifacts/shard-weft-cluster.log
 set -euo pipefail
 
-REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-cd "$REPO"
-PKG="$REPO/packages/weft-cluster"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+mkdir -p ci/run-artifacts
+LOG=ci/run-artifacts/shard-weft-cluster.log
+: > "$LOG"
 
-echo "[1/8] kernel-core integrity (Law 3: core/c/weft.{c,h} byte-frozen)"
-if git diff --stat HEAD -- core/c/weft.c core/c/weft.h | grep -q .; then
-  echo "LAW 3 VIOLATION: core kernel files modified in this branch" >&2
+fail=0
+step() { echo "" | tee -a "$LOG"; echo "=== $1 ===" | tee -a "$LOG"; }
+
+# --- 1: ring engine, all regimes ---
+step "build cluster targets"
+make -C core/c cluster-ring-test cluster-ring-test-asan cluster-ring-test-tsan \
+     cluster-consensus-test cluster-consensus-test-asan \
+     split-brain-torture split-brain-torture-asan cluster-bench 2>&1 | tee -a "$LOG"
+
+step "CL-ring conformance (plain)"
+./core/c/cluster-ring-test 2>&1 | tee -a "$LOG" || fail=1
+step "CL-ring conformance (ASAN)"
+./core/c/cluster-ring-test-asan 2>&1 | tee -a "$LOG" || fail=1
+step "CL-ring conformance (TSAN)"
+./core/c/cluster-ring-test-tsan 2>&1 | tee -a "$LOG" || fail=1
+
+# --- 2: consensus engine ---
+step "CL-consensus conformance (plain)"
+./core/c/cluster-consensus-test 2>&1 | tee -a "$LOG" || fail=1
+step "CL-consensus conformance (ASAN)"
+./core/c/cluster-consensus-test-asan 2>&1 | tee -a "$LOG" || fail=1
+
+# --- 3: split-brain torture ---
+step "split-brain torture (plain)"
+./core/c/split-brain-torture 2>&1 | tee -a "$LOG" || fail=1
+step "split-brain torture (ASAN)"
+./core/c/split-brain-torture-asan 2>&1 | tee -a "$LOG" || fail=1
+
+# --- 4: benchmark scoreboard (informational) ---
+step "cluster-bench scoreboard (protocol-engine overhead, local transport)"
+timeout 300 ./core/c/cluster-bench 2>&1 | tee -a "$LOG" || fail=1
+
+echo "" | tee -a "$LOG"
+if [ "$fail" -ne 0 ]; then
+  echo "WEFT-CLUSTER SHARD: FAIL" | tee -a "$LOG"
   exit 1
 fi
-BASE="$(git merge-base HEAD origin/main 2>/dev/null || git merge-base HEAD main 2>/dev/null || true)"
-if [ -n "$BASE" ] && git diff --stat "$BASE" HEAD -- core/c/weft.c core/c/weft.h | grep -q .; then
-  echo "LAW 3 VIOLATION: core kernel files modified since main" >&2
-  exit 1
-fi
-echo "    core/c/weft.{c,h} untouched"
-
-echo "[2/8] TS wire vectors + cross-language guard"
-node --test "$PKG/test/wire.test.mjs" "$PKG/test/crosslang.test.mjs" --test-reporter=dot 2>/dev/null \
-  || node --test "$PKG/test/wire.test.mjs" "$PKG/test/crosslang.test.mjs"
-
-echo "[3/8] Python wire + router vector parity"
-python3 -m pytest python/tests/test_cluster_wire.py python/tests/test_cluster_router.py -q
-
-echo "[4/8] TypeScript suite"
-node --test "$PKG/test/"*.test.mjs
-
-echo "[5/8] Python suite"
-python3 -m pytest python/tests -q
-
-echo "[6/8] live cross-language UDP cluster (both directions)"
-python3 -m pytest python/tests/test_cluster_udp.py -q
-
-echo "[7/8] zero-allocation probes (100k ops each, post-warmup, --expose-gc)"
-for mode in publish subscribe metrics router; do
-  line="$(node --expose-gc "$PKG/test/helpers/alloc_probe.mjs" --mode "$mode" --iters 100000)"
-  echo "    $line"
-  delta="$(node -e 'process.stdout.write(String(JSON.parse(process.argv[1]).deltaBytes))' "$line")"
-  if [ "$delta" -ge 65536 ]; then
-    echo "LAW 1 VIOLATION: mode $mode grew heap by ${delta}B (limit 65536B)" >&2
-    exit 1
-  fi
-done
-
-echo "[8/8] performance gates"
-
-echo "    [8a] 4-node demo smoke (monotonicity must PASS)"
-node demos/distributed-cluster-feed/run.mjs --seconds 4 --fps 5000 \
-  --run-id "ci-${CI_JOB_ID:-local}" >/dev/null 2>&1 || {
-  echo "DEMO GATE FAILED: sequence violations or non-zero exit" >&2
-  exit 1
-}
-echo "    demo PASS (monotonic, 0 gaps, 0 stale)"
-
-echo "    [8b] mesh burst >= 1,000,000 fps (mandate D)"
-burst="$(node demos/distributed-cluster-feed/mesh_burst.mjs --fps 1000000 --seconds 2)"
-echo "    $burst"
-ok="$(node -e '
-const r = JSON.parse(process.argv[1]);
-const minFps = (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") ? 1000000 : 150000;
-process.stdout.write(String(r.achievedFps >= minFps && r.sequenceGaps === 0 &&
-  r.ingestedFrames === r.expectedIngest));
-' "$burst")"
-if [ "$ok" != "true" ]; then
-  echo "MESH BURST GATE FAILED: below 1M fps or imperfect ingestion" >&2
-  exit 1
-fi
-
-echo "    [8c] membership lookup latency (mandate B1)"
-lat="$(node "$PKG/bench/router.bench.mjs")"
-echo "    $lat"
-mkdir -p "$PKG/bench/evidence"
-echo "$lat" > "$PKG/bench/evidence/router.json"
-p50="$(node -e 'process.stdout.write(String(JSON.parse(process.argv[1]).membershipLookupNs.p50))' "$lat")"
-node -e '
-const p50 = Number(process.argv[1]);
-const maxNs = (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") ? 25 : 80;
-process.exit(p50 < maxNs ? 0 : 1);
-' "$p50" || {
-  echo "LOOKUP GATE FAILED: membership lookup p50 ${p50}ns >= regression guard" >&2
-  exit 1
-}
-echo "    lookup p50 ${p50}ns (gate 25ns; mandate 10ns is bare-metal — delta recorded in D-33)"
-
-echo "weft-cluster shard: ALL 8 STAGES GREEN"
+echo "WEFT-CLUSTER SHARD: PASS" | tee -a "$LOG"

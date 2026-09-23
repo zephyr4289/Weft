@@ -264,6 +264,9 @@ export interface GovernorConfig {
 }
 
 // @public (undocumented)
+export function hashHex(h: bigint): string;
+
+// @public (undocumented)
 export const HMAC_TAG_LEN = 32;
 
 // @public
@@ -299,7 +302,89 @@ export const PubResult: {
 export type PubResult = (typeof PubResult)[keyof typeof PubResult];
 
 // @public (undocumented)
+export interface ReplayBuf {
+    // (undocumented)
+    len: number;
+    // (undocumented)
+    seq: number;
+    // (undocumented)
+    ver: number;
+}
+
+// @public (undocumented)
+export function replayFnv1a(data: Uint8Array): bigint;
+
+// @public (undocumented)
+export function replayFold(s: ReplayState, evs: TraceEvent[], hashes?: bigint[]): ReplayResult;
+
+// @public (undocumented)
+export function replayInit(s: ReplayState): void;
+
+// @public (undocumented)
+export function replayNew(): ReplayState;
+
+// @public (undocumented)
+export enum ReplayResult {
+    // (undocumented)
+    BadKind = -2,
+    // (undocumented)
+    Disagree = -1,
+    // (undocumented)
+    Ok = 0
+}
+
+// @public (undocumented)
+export function replaySerialize(s: ReplayState): Uint8Array;
+
+// @public (undocumented)
+export interface ReplayState {
+    // (undocumented)
+    buf: [ReplayBuf, ReplayBuf, ReplayBuf];
+    // (undocumented)
+    epoch: number;
+    // (undocumented)
+    hash: bigint;
+    // (undocumented)
+    latest: number;
+    // (undocumented)
+    r_work: number;
+    // (undocumented)
+    revoked: number;
+    // (undocumented)
+    step: number;
+    // (undocumented)
+    t_canary: number;
+    // (undocumented)
+    t_claim: number;
+    // (undocumented)
+    t_drop: number;
+    // (undocumented)
+    t_invalid: number;
+    // (undocumented)
+    t_publish: number;
+    // (undocumented)
+    t_rsteps: number;
+    // (undocumented)
+    t_stall: number;
+    // (undocumented)
+    t_tear: number;
+    // (undocumented)
+    t_wsteps: number;
+    // (undocumented)
+    w_work: number;
+}
+
+// @public (undocumented)
+export function replayStep(s: ReplayState, e: TraceEvent): ReplayResult;
+
+// @public (undocumented)
 export function runSteppedChaos(cfg: ChaosConfig): ChaosVerdict;
+
+// @public (undocumented)
+export const SCENARIO_PAYLOAD_MAX = 64;
+
+// @public (undocumented)
+export const SCENARIO_REVOKE_DIVISOR = 2;
 
 // @public (undocumented)
 export function selftest(): boolean;
@@ -321,6 +406,85 @@ export const SHA256_BLOCK_LEN = 64;
 
 // @public (undocumented)
 export const SHA256_DIGEST_LEN = 32;
+
+// @public (undocumented)
+export function toHex(bytes: Uint8Array): string;
+
+// @public (undocumented)
+export interface TraceEvent {
+    // (undocumented)
+    aux: number;
+    // (undocumented)
+    data: number;
+    // (undocumented)
+    kind: number;
+}
+
+// @public (undocumented)
+export function traceEventPack(e: TraceEvent): Uint8Array;
+
+// @public (undocumented)
+export const TraceKind: {
+    readonly Publish: 1;
+    readonly Claim: 2;
+    readonly Drop: 3;
+    readonly Revoke: 4;
+    readonly Ack: 5;
+    readonly Stall: 6;
+    readonly Tear: 7;
+    readonly CanaryFail: 8;
+};
+
+// @public (undocumented)
+export function traceScenario(n: number, seed: number): Uint8Array;
+
+// @public (undocumented)
+export const TREND_ALPHA_Q8_DEFAULT = 48;
+
+// @public (undocumented)
+export const TREND_BETA_Q8_DEFAULT = 96;
+
+// @public (undocumented)
+export const TREND_BURST_DEFAULT = 32;
+
+// @public (undocumented)
+export const TREND_FALLING_DEFAULT = 1;
+
+// @public (undocumented)
+export const TREND_RISING_DEFAULT = 4;
+
+// @public (undocumented)
+export function trendConfigure(t: WeftTrend, alphaQ8: number, betaQ8: number, burstDelta: number, risingBehind: number, fallingBehind: number): void;
+
+// @public (undocumented)
+export function trendInit(t?: Partial<WeftTrend>): WeftTrend;
+
+// @public (undocumented)
+export function trendObserve(t: WeftTrend, behind: number, out?: TrendOut): TrendVerdict;
+
+// @public (undocumented)
+export interface TrendOut {
+    // (undocumented)
+    pred_raw: number;
+    // (undocumented)
+    skip_n: number;
+    // (undocumented)
+    verdict: TrendVerdict;
+}
+
+// @public (undocumented)
+export function trendPack(out: TrendOut): number;
+
+// @public (undocumented)
+export const TrendVerdict: {
+    readonly Stable: 0;
+    readonly Rising: 1;
+    readonly Falling: 2;
+    readonly Burst: 3;
+};
+
+// @public (undocumented)
+export type TrendVerdict = (typeof TrendVerdict)[keyof typeof TrendVerdict];
 
 // @public
 export function verifiedWeftBatchDecodeVerify(authKey: Uint8Array, src: Uint8Array, maxViews?: number): VerifiedWeftBatchResult;
@@ -513,6 +677,15 @@ export const WEFT_MAGIC = 1413891415;
 export const WEFT_PAYLOAD_MAX_LIMIT: number;
 
 // @public (undocumented)
+export const WEFT_REPLAY_CHECKPOINT = 64;
+
+// @public (undocumented)
+export const WEFT_TREND_HORIZON = 8;
+
+// @public (undocumented)
+export const WEFT_TREND_SKIP_MAX = 63;
+
+// @public (undocumented)
 export const WEFT_VERSION_1 = 1;
 
 // @public (undocumented)
@@ -596,6 +769,32 @@ export class WeftFanoutReader {
     stats(): FanoutReaderStats;
     // (undocumented)
     view(): Float32Array;
+}
+
+// @public (undocumented)
+export interface WeftTrend {
+    // (undocumented)
+    alpha_q8: number;
+    // (undocumented)
+    beta_q8: number;
+    // (undocumented)
+    burst_delta: number;
+    // (undocumented)
+    falling_behind: number;
+    // (undocumented)
+    has_last: boolean;
+    // (undocumented)
+    last_raw: number;
+    // (undocumented)
+    level_q16: number;
+    // (undocumented)
+    rising_behind: number;
+    // (undocumented)
+    slope_q16: number;
+    // (undocumented)
+    t_samples: number;
+    // (undocumented)
+    t_verdict: [number, number, number, number];
 }
 
 // @public (undocumented)

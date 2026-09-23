@@ -1,0 +1,133 @@
+#version 450
+// tensor_reduce.comp — RFC-0016 §5.2: the fused AI/tensor compute pass.
+//
+// Consumes the LATEST WTS1 F16 embedding frame DIRECTLY from the live ring
+// (binding 0 = the session span — the imported dma-buf / host memory the
+// CPU publishes to, zero staging copies) and reduces it GPU-side:
+// argmax, max, and the element sum. The "AI output -> real-time
+// visualization" pass of the mandate: the shader IS the downstream
+// pipeline stage.
+//
+// DETERMINISM CONTRACT (the blend_q12 discipline): the reduction is
+// ADD-ONLY f32 math (no muls -> no FMA contraction ambiguity) in a FIXED
+// lane partition + FIXED combine tree, so the CPU reference that mirrors
+// the partition produces BIT-IDENTICAL sums. The f16->f32 conversion is
+// unpackHalf2x16 — IEEE-exact (every f16 is exactly representable in
+// f32), bit-identical to weft_f16_codec's weft_f16_to_f32 by construction.
+//
+// BOUND AT descriptor set 0 (the gpu_stream kit):
+//   binding 0 (storage, readonly):  the session span as u32 words
+//   binding 1 (storage, writeonly): result[8] u32 words
+// PUSH CONSTANTS: slots (u32), words (u32)
+//
+// REPORTS:
+//   o[0] = header mismatch flag (0 = the frame is a valid WTS1 F16 tensor)
+//   o[1] = argmax index (GLOBAL element index; ties keep the earliest)
+//   o[2] = floatBits(sum)      — deterministic partition+tree, adds only
+//   o[3] = floatBits(max)
+//   o[4] = 0x54464557 ("WEFT" LE) — the "GPU ran this" magic
+//   o[5] = elem_count
+//   o[6] = latestSeq the reduction consumed
+//   o[7] = payload_words of the consumed frame
+
+layout(local_size_x = 64) in;
+
+layout(std430, binding = 0) readonly buffer RingBuf { uint r[]; };
+layout(std430, binding = 1) writeonly buffer OutBuf { uint o[]; };
+
+layout(push_constant) uniform Params {
+    uint slots;
+    uint words;
+} p;
+
+#define WTS1_MAGIC   0x31535457u
+#define WTS1_HDR     8u   // header words (32 B)
+#define DTYPE_F16    8u
+
+shared uint sh_sum[64];
+shared uint sh_max[64];
+shared uint sh_arg[64];
+
+void main() {
+    uint li = gl_LocalInvocationID.x;
+
+    // ring words: ctrl [0, 20+2M), slot k payload at 20+2M+k*W
+    uint seq = r[16u];                       // latestSeq lo (32-bit window)
+    uint k = (seq == 0u ? 0u : (seq - 1u)) % p.slots;
+    uint base = 20u + 2u * p.slots + k * p.words;
+
+    // WTS1 header parse (GPU-side, the same validation weft_tensor runs)
+    uint mismatch = 0u;
+    uint elems = 0u;
+    if (r[base + 0u] != WTS1_MAGIC) mismatch += 1u;
+    uint w1 = r[base + 1u];
+    uint version = w1 & 0xFFu;
+    uint dtype = (w1 >> 8u) & 0xFFu;
+    uint rank = (w1 >> 16u) & 0xFFu;
+    uint flags = (w1 >> 24u) & 0xFFu;
+    if (version != 1u) mismatch += 1u;
+    if (dtype != DTYPE_F16) mismatch += 1u;
+    if (rank < 1u || rank > 4u) mismatch += 1u;
+    if (flags != 0u) mismatch += 1u;
+    uint count = r[base + 2u];
+    uint pwords = r[base + 3u];
+    if (count > 0u && pwords != ((count * 2u + 3u) / 4u)) mismatch += 1u;
+    if (pwords + WTS1_HDR > p.words) mismatch += 1u;   // frame beyond slot
+    elems = count;
+
+    // the lane partition (deterministic): chunk = ceil(elems/64), lane li
+    // owns [li*chunk, min((li+1)*chunk, elems)) — adds only, in order
+    float lane_sum = 0.0;
+    float lane_max = 0.0;
+    uint lane_arg = 0u;
+    uint chunk = (elems + 63u) / 64u;
+    uint lo = li * chunk;
+    uint hi = lo + chunk;
+    if (hi > elems) hi = elems;
+    bool first = true;
+    for (uint i = lo; i < hi; i++) {
+        uint w = r[base + WTS1_HDR + i / 2u];
+        uint h = ((i & 1u) == 0u) ? (w & 0xFFFFu) : (w >> 16u);
+        float v = unpackHalf2x16(h).x;       // IEEE-exact f16 -> f32
+        lane_sum += v;                       // adds only: FMA-proof
+        if (first || v > lane_max) {         // strict: ties keep earliest
+            lane_max = v;
+            lane_arg = i;
+        }
+        first = false;
+    }
+    if (lo >= hi) { lane_sum = 0.0; lane_max = 0.0; lane_arg = 0u; }
+
+    sh_sum[li] = floatBitsToUint(lane_sum);
+    sh_max[li] = floatBitsToUint(lane_max);
+    sh_arg[li] = lane_arg;
+    barrier();
+
+    // the FIXED combine tree (stride doubling; deterministic on every
+    // platform, mirrored by the CPU reference in hetero_probe.c)
+    for (uint s = 1u; s < 64u; s <<= 1u) {
+        if ((li % (2u * s)) == 0u && li + s < 64u) {
+            float a = uintBitsToFloat(sh_sum[li]);
+            float b = uintBitsToFloat(sh_sum[li + s]);
+            sh_sum[li] = floatBitsToUint(a + b);
+            float ma = uintBitsToFloat(sh_max[li]);
+            float mb = uintBitsToFloat(sh_max[li + s]);
+            if (mb > ma) {                   // strict: ties keep the lower lane
+                sh_max[li] = sh_max[li + s];
+                sh_arg[li] = sh_arg[li + s];
+            }
+        }
+        barrier();
+    }
+
+    if (li == 0u) {
+        o[0] = mismatch;
+        o[1] = sh_arg[0];
+        o[2] = sh_sum[0];
+        o[3] = sh_max[0];
+        o[4] = 0x54464557u;
+        o[5] = elems;
+        o[6] = seq;
+        o[7] = pwords;
+    }
+}

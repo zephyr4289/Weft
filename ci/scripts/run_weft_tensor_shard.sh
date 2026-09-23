@@ -1,77 +1,107 @@
 #!/usr/bin/env bash
-# run_weft_tensor_shard.sh — Pillar 2 (weft-tensor) CI shard.
+# run_weft_tensor_shard.sh — RFC-0017: the accelerator pillar shard
+# (Pillar 2 / weft-tensor).
 #
-# 8 fail-closed stages. set -euo pipefail everywhere (silent-green contract).
-#   1. Fixture determinism   — make_ring_fixture.py double-run byte parity
-#   2. TypeScript suite      — node --test (layout/ring/fixture/ingest/render/runtime)
-#   3. Python suite          — pytest (layout/ring/fixture/dlpack/alloc/ingest)
-#   4. TS producer -> Py consumer (cross-language wire parity)
-#   5. Py producer -> TS consumer (cross-language wire parity, reverse)
-#   6. DLPack alias proof over the TS-produced ring (zero-copy, pointer-checked)
-#   7. Zero-allocation probes (node --expose-gc, 5 modes x 100k ops)
-#   8. Latency gates (commit p99 < 50us video+audio — the directive's number)
+# Gates (any failure exits non-zero):
+#   1. BUILD: every AC-series gate binary + bench in -O2 (with the
+#      Law-1 malloc-audit interposer) and the ASAN legs.
+#   2. NO-ICD LEG: the full gate set with NO Vulkan ICD — every
+#      Vulkan-dependent leg must refuse/declare honestly (Law 4 as a
+#      CI gate, the heterogeneous shard's precedent).
+#   3. ICD LEG: with the software ICD installed (mesa-vulkan-drivers /
+#      lavapipe), the positive proofs run — the fd-road dma-buf import,
+#      the bit-exact GPU preprocess, the alias canary, and the bench's
+#      GPU road (with the software-ICD labels).
+#   4. SPV DETERMINISM: the committed .spv stays byte-identical when
+#      glslangValidator rebuilds it (kernel freeze as a gate).
+#   5. KERNEL FREEZE: core/c has ZERO diffs against the branch base
+#      (Law 3 — the adapters are tools-layer; the core is untouched).
+#
+# Output: ci/run-artifacts/shard-weft-tensor.log
+#         litmus/evidence/accelerators/*.log (the evidence pack)
 set -euo pipefail
 
-REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-cd "$REPO"
-TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+mkdir -p ci/run-artifacts litmus/evidence/accelerators
+LOG=ci/run-artifacts/shard-weft-tensor.log
+: > "$LOG"
+EV=litmus/evidence/accelerators
 
-echo "[1/8] fixture determinism"
-python3 scripts/make_ring_fixture.py --verify
+fail=0
+step() { echo "" | tee -a "$LOG"; echo "=== $1 ===" | tee -a "$LOG"; }
+run()  { echo "\$ $*" | tee -a "$LOG"; if "$@" >>"$LOG" 2>&1; then
+             echo "  ok" | tee -a "$LOG"
+         else
+             echo "  FAILED (rc=$?)" | tee -a "$LOG"; fail=1
+         fi }
 
-echo "[2/8] TypeScript suite"
-node --test packages/weft-tensor/test/*.test.mjs
+# --- 0. environment ---------------------------------------------------------
+step "environment"
+{ uname -a; gcc --version | head -1; } | tee -a "$LOG"
 
-echo "[3/8] Python suite"
-python3 -m pytest python/tests -q
+# --- 1. build ---------------------------------------------------------------
+step "build (O2 + audit interposer + asan legs)"
+run make -C tools/weft-tensor all
+run make -C tools/weft-tensor test-view-asan
+run make -C tools/weft-tensor test-cross-asan
 
-echo "[4/8] TS producer -> Python consumer"
-node packages/weft-tensor/test/crosslang_produce.mjs "$TMP/ts_ring.bin"
-python3 python/tests/crosslang_consume.py "$TMP/ts_ring.bin"
-
-echo "[5/8] Python producer -> TS consumer"
-python3 python/tests/crosslang_produce.py "$TMP/py_ring.bin"
-node packages/weft-tensor/test/crosslang_consume.mjs "$TMP/py_ring.bin"
-
-echo "[6/8] DLPack alias proof (consumed the TS-produced ring, pointer-checked)"
-python3 - "$TMP/ts_ring.bin" <<'PY'
-import sys, numpy as np
-sys.path.insert(0, "python")
-from weft_tensor import WeftRing
-data = open(sys.argv[1], "rb").read()   # ONE bytes object — attach AND compare
-ring = WeftRing.attach(data)
-v = ring.acquire_latest()
-t = np.from_dlpack(v)
-assert np.shares_memory(t, v.as_numpy()), "DLPack tensor does not alias ring memory"
-buf = np.frombuffer(data, dtype=np.uint8)
-t_addr = t.__array_interface__["data"][0]
-b_addr = buf.__array_interface__["data"][0]
-assert 0 <= t_addr - b_addr < len(buf), "tensor pointer outside ring buffer"
-print(f"    dlpack alias OK (slot ptr {t_addr:#x} inside ring {b_addr:#x}..{b_addr + len(buf):#x})")
-PY
-
-echo "[7/8] zero-allocation probes (100k ops each, post-warmup, --expose-gc)"
-for mode in ring ingest audio render overlay; do
-  line="$(node --expose-gc packages/weft-tensor/test/helpers/alloc_probe.mjs --mode "$mode" --iters 100000)"
-  echo "    $line"
-  delta="$(node -e 'process.stdout.write(String(JSON.parse(process.argv[1]).deltaBytes))' "$line")"
-  if [ "$delta" -ge 65536 ]; then
-    echo "LAW 1 VIOLATION: mode $mode grew heap by ${delta}B (limit 65536B)" >&2
-    exit 1
-  fi
+# --- 2. no-ICD leg -----------------------------------------------------------
+step "no-ICD leg (refusal honesty as a gate)"
+cd tools/weft-tensor
+for t in test-view test-vk test-metal test-ort test-ggml test-cross \
+         weft-accel-bench; do
+    if ./$t > "$ROOT/$EV/ac-noicd-$t.log" 2>&1; then
+        echo "$t: ok" | tee -a "$ROOT/$LOG"
+    else
+        echo "$t: FAILED" | tee -a "$ROOT/$LOG"; fail=1
+    fi
 done
+cd "$ROOT"
 
-echo "[8/8] latency gates (directive: commit < 50us)"
-line="$(node packages/weft-tensor/bench/commit.bench.mjs)"
-echo "    $line"
-ok="$(node -e '
-const r = JSON.parse(process.argv[1]);
-process.stdout.write(String(r.video.commit_under_50us && r.audio.commit_under_50us));
-' "$line")"
-if [ "$ok" != "true" ]; then
-  echo "LATENCY GATE FAILED: p99 commit >= 50us" >&2
-  exit 1
+# --- 3. ICD leg (software ICD; skips honestly when absent) -------------------
+step "ICD leg (lavapipe)"
+# The gpu-native shard's installer already provisioned the ICD; if the
+# loader finds none, this leg self-skips with the reason (the no-ICD leg
+# above already gated the refusals).
+if command -v vulkaninfo >/dev/null 2>&1 || ls /usr/share/vulkan/icd.d/*.json >/dev/null 2>&1; then
+    cd tools/weft-tensor
+    for t in test-vk test-cross weft-accel-bench; do
+        if ./$t > "$ROOT/$EV/ac-icd-$t.log" 2>&1; then
+            echo "$t (ICD): ok" | tee -a "$ROOT/$LOG"
+        else
+            echo "$t (ICD): FAILED" | tee -a "$ROOT/$LOG"; fail=1
+        fi
+    done
+    cd "$ROOT"
+else
+    echo "  SKIP: no Vulkan ICD on this runner (the no-ICD leg gates the refusals)" \
+        | tee -a "$LOG"
 fi
 
-echo "weft-tensor shard: ALL 8 STAGES GREEN"
+# --- 4. spv determinism -------------------------------------------------------
+step "spv determinism (kernel freeze)"
+if command -v glslangValidator >/dev/null 2>&1; then
+    run make -C tools/weft-tensor spv-check
+else
+    echo "  SKIP: glslangValidator absent on this runner" | tee -a "$LOG"
+fi
+
+# --- 5. kernel freeze (core untouched) ----------------------------------------
+step "kernel freeze: core/c zero diffs vs branch base"
+BASE="$(git merge-base HEAD origin/main 2>/dev/null || git rev-list --max-parents=0 HEAD)"
+if git diff --quiet "$BASE" -- core/c/weft.c core/c/weft.h; then
+    echo "  core/c/weft.{c,h}: zero diffs (Law 3 holds)" | tee -a "$LOG"
+else
+    echo "  FAILED: core/c changed — the adapters must stay tools-layer" \
+        | tee -a "$LOG"; fail=1
+fi
+
+# --- verdict -------------------------------------------------------------------
+step "verdict"
+if [ "$fail" -eq 0 ]; then
+    echo "SHARD: GREEN" | tee -a "$LOG"
+    exit 0
+fi
+echo "SHARD: RED" | tee -a "$LOG"
+exit 1

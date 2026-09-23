@@ -1,0 +1,8 @@
+WT25 placement report: mlock=1 hugepage_hint=1
+WT36 measured: full-ring claim ETIMEOUT after 60.1 ms budget
+WT32 MPSC stress: 50000 messages, 25600000 word checks, 0 tears, 0 FIFO violations
+WT33 SPMC stress: 50000 messages, 4 racing consumers, 0 tears, exactly-once proven
+WT39 MPMC stress: 20000 messages, 2x2 sides, 0 tears
+WT34 fork torture: SKIPPED (declared: WT_SKIP_FORK=1 — TSAN leg)
+{"test":"WT40","variant":"smoke-4k","producers":4,"slots":64,"payload":4096,"msgs":10000,"secs":0.2013,"msgs_s":49677,"gb_s":0.20,"verified_words":5120000}
+tensor-ring: 503 checks, 0 failures

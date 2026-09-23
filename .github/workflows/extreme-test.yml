@@ -175,15 +175,20 @@ jobs:
               {"shard": "guardian", "description": "Telemetry Guardian — must-bite selftest + wire probe + 3% throughput + crash audit", "script": "ci/scripts/run_guardian_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "sanitizers", "description": "TIER4 memory-safety audit: ASan+UBSan + TSan, zero findings", "script": "ci/scripts/run_sanitizers_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "trace-standard", "description": "RFC 0014 .weftrec v4: codec conformance + cross-port trace byte-identity (C==TS, VM legs via toolchain workflows) + JSON schema shape", "script": "ci/scripts/run_trace_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "ipc-mesh", "description": "RFC-0016 zero-copy IPC mesh: sealed memfd + SCM_RIGHTS + lock-free registry + crash healing + 100k cross-process torture x sanitizers", "script": "ci/scripts/run_ipc_mesh_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "revoke-stress", "description": "Issue #16 Tier 1 Task 5 — revocation handshake stress: 100K handshakes + measured ceiling + ASAN + TSAN", "script": "ci/scripts/run_revoke_stress_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "ffi-fuzz", "description": "Issue #16 Tier 1 Task 4 — FFI-boundary structured fuzz: C kernel API 200K ops + ASAN + C<->TS boundary", "script": "ci/scripts/run_ffi_fuzz_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+            {"shard": "heterogeneous", "description": "RFC-0016 Series 10: DMA-BUF rings, GPU external-memory wraps (fd-road zero-copy), AF_XDP state machine + uring delegation, WTS1 tensor bridge, camera seams, hetero capstone (lavapipe ICD)", "script": "ci/scripts/run_heterogeneous_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "memory-model-formal", "description": "Axis 1: herd7 ARMv8 + RISC-V RVWMO CAT formal models + litmus7 ARM execution proofs", "script": "ci/scripts/run_memory_model_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "wcet-audit", "description": "Axis 2: Static instruction disassembly audit + WCET certificates + SCHED_DEADLINE TLA+ model", "script": "ci/scripts/run_wcet_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "recovery-self-stabilizing", "description": "Axis 3: Self-stabilizing ring recovery + health check + 10k fault injection cycles + TLA+ recovery proof", "script": "ci/scripts/run_recovery_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "device-spectrum", "description": "doc-007: Device-spectrum profiling, F16 quantization, dirty-mask, and zero-copy render bridge", "script": "ci/scripts/run_device_spectrum_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "tensor-fabric", "description": "RFC-0021 weft-tensor: WT view/arena/ring suites + golden bit-exactness + MPSC/SPMC/MMPC tearing stress + fork torture (plain + ASAN + TSAN)", "script": "ci/scripts/run_tensor_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "weft-tensor", "description": "RFC-0017 Pillar 2: NPU/GPU accelerator adapters — tensor view ABI, Vulkan dma-buf bridge (alias canary + bit-exact frozen kernel), Metal wraps, zero-copy ONNX bridge (verified table mirror + pooled no-alloc run), ggml buffer-type + windowing, E2E latency bench (lavapipe ICD)", "script": "ci/scripts/run_weft_tensor_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "series10", "description": "Series 10 Observability Fabric: RFC 0016 flight recorder, RFC 0017 flow operators, RFC 0018 sensor fusion, RFC 0019 replay, RFC 0020 trend", "script": "ci/scripts/run_series10_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "weftc", "description": "RFC-0017 schema compiler: WL/WH/WD suites + goldens + verify-header drift gate (plain + ASAN)", "script": "ci/scripts/run_weftc_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
               {"shard": "weftc-codegen", "description": "Project weftc Pillar 1: Native (C11/Rust/WGSL/GLSL) & Managed (TS/Python/Swift/Dart/React/Flutter) codegen suites + parity matrix + E2E kernel roundtrip", "script": "ci/scripts/run_weftc_codegen_shard.sh", "args": "", "needs_rust": True, "filter": "any_code"},
-              {"shard": "weft-tensor", "description": "Project weft-tensor Pillar 2: WTR1 layout, TS/Python ingestion engines, DLPack/NumPy bridge, cross-language parity, React/Flutter AI hooks/widgets, 120 FPS flight demo, alloc probes", "script": "ci/scripts/run_weft_tensor_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
+              {"shard": "weft-tensor-managed", "description": "Project weft-tensor Pillar 2: WTR1 layout, TS/Python ingestion engines, DLPack/NumPy bridge, cross-language parity, React/Flutter AI hooks/widgets, 120 FPS flight demo, alloc probes", "script": "ci/scripts/run_weft_tensor_managed_shard.sh", "args": "", "needs_rust": False, "filter": "any_code"},
           ]
           active = [s for s in all_shards if routes.get(s["filter"], False)]
           any_gate = bool(active)
@@ -364,27 +369,20 @@ jobs:
         if: matrix.needs_rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache pnpm store (fanout-native, browser-sab, simd-blend, verifiedweft, ffi-fuzz, litmus-c)
-        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'verifiedweft' || matrix.shard == 'ffi-fuzz' || matrix.shard == 'litmus-c'
+      - name: Cache pnpm store (fanout-native, browser-sab, simd-blend, verifiedweft, ffi-fuzz, litmus-c, series10)
+        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'verifiedweft' || matrix.shard == 'ffi-fuzz' || matrix.shard == 'litmus-c' || matrix.shard == 'series10'
         uses: actions/cache@v4
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-store-${{ runner.os }}-
 
-      - name: Set up pnpm + build @weft/core dist (fanout-native, browser-sab, simd-blend, ffi-fuzz, litmus-c)
-        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'ffi-fuzz' || matrix.shard == 'litmus-c'
+      - name: Set up pnpm + build @weft/core dist (fanout-native, browser-sab, simd-blend, verifiedweft, ffi-fuzz, litmus-c, series10)
+        if: matrix.shard == 'fanout-native' || matrix.shard == 'browser-sab' || matrix.shard == 'simd-blend' || matrix.shard == 'verifiedweft' || matrix.shard == 'ffi-fuzz' || matrix.shard == 'litmus-c' || matrix.shard == 'series10'
         run: |
           npm i -g pnpm@9
           pnpm install --frozen-lockfile
           pnpm --filter @weft/core build
-
-
-      - name: Set up pnpm (verifiedweft TS + xlang legs)
-        if: matrix.shard == 'verifiedweft'
-        run: |
-          npm i -g pnpm@9
-          pnpm install --frozen-lockfile
 
       - name: Cache Rust build
         if: matrix.needs_rust
@@ -407,8 +405,8 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
 
-      - name: Install Vulkan ICD + tools (gpu-native shard)
-        if: matrix.shard == 'gpu-native'
+      - name: Install Vulkan ICD + tools (gpu-native, heterogeneous, weftc-codegen shards)
+        if: matrix.shard == 'gpu-native' || matrix.shard == 'heterogeneous' || matrix.shard == 'weftc-codegen'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq libvulkan1 libvulkan-dev mesa-vulkan-drivers glslang-tools spirv-tools vulkan-tools

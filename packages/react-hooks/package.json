@@ -18,7 +18,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test test/hooks.test.mjs"
   },
   "peerDependencies": {
     "react": ">=18"

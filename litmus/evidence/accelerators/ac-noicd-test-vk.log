@@ -1,0 +1,14 @@
+AC-K1 committed SPIR-V present + frozen ID self-consistent: PASS
+AC-K2 NULL dev refuses BAD_ARG: PASS
+AC-K3 ctx boots with the import extensions: PASS
+  (device: llvmpipe (LLVM 19.1.7, 128 bits), host-ext=1, min-align=4096)
+AC-K4 foreign dma-buf import over the fd road: PASS
+AC-K5 preprocess kit builds (frozen ID verified): PASS
+AC-K6 output allocation maps host-visible: PASS
+AC-K7 GPU preprocess BIT-EXACT vs the oracle: PASS
+AC-K8 alias canary proves the fd road: PASS
+AC-K9 below-alignment host import refuses: PASS
+  (host-road alias verdict: REFUSED (fresh-memory backing — the documented llvmpipe behavior))
+AC-K9b host road gives a DEFINITE alias verdict: PASS
+AC-K10 non-session memory refuses Road A: PASS
+AC-K (vulkan bridge): 11 passed, 0 failed, 0 skipped

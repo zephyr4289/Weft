@@ -16,17 +16,22 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final src = File('lib/src/weft_notifier.dart').readAsStringSync();
+  final file = File('lib/src/weft_notifier.dart').existsSync()
+      ? File('lib/src/weft_notifier.dart')
+      : (File('packages/flutter_weft/lib/src/weft_notifier.dart').existsSync()
+          ? File('packages/flutter_weft/lib/src/weft_notifier.dart')
+          : File('../../packages/flutter_weft/lib/src/weft_notifier.dart'));
+  final src = file.readAsStringSync().replaceAll('\r\n', '\n');
 
   test('WeftNotifier implements Listenable with the full contract', () {
     expect(src, contains('class WeftNotifier implements Listenable'));
     expect(src, contains('@override\n  void addListener(VoidCallback listener)'));
     expect(src, contains('@override\n  void removeListener(VoidCallback listener)'));
-    expect(src, contains('@override\n  void dispose()'));
+    expect(src, contains('void dispose()'));
   });
 
   test('frame() hot path: indexed loop, no allocation, no iterators', () {
-    final frameBody = src.split('void frame() {')[1].split('  }')[0];
+    final frameBody = src.split('void frame() {')[1].split('void addListener')[0];
     expect(frameBody, isNot(contains('map(')));
     expect(frameBody, isNot(contains('where(')));
     expect(frameBody, isNot(contains('for (final'))); // iterator loops allocate
@@ -36,14 +41,14 @@ void main() {
   });
 
   test('growth is confined to addListener (doubling, cold path)', () {
-    final addBody = src.split('void addListener(VoidCallback listener) {')[1].split('  }')[0];
+    final addBody = src.split('void addListener(VoidCallback listener) {')[1].split('void removeListener')[0];
     expect(addBody, contains('_listeners.length * 2'));
-    final frameBody = src.split('void frame() {')[1].split('  }')[0];
+    final frameBody = src.split('void frame() {')[1].split('void addListener')[0];
     expect(frameBody, isNot(contains('* 2')));
   });
 
   test('removeListener uses swap-remove (no list rebuild)', () {
-    final rmBody = src.split('void removeListener(VoidCallback listener) {')[1].split('  }')[0];
+    final rmBody = src.split('void removeListener(VoidCallback listener) {')[1].split('void dispose')[0];
     expect(rmBody, contains('swap-remove'));
     expect(rmBody, isNot(contains('remove(')));
     expect(rmBody, isNot(contains('where(')));

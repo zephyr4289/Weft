@@ -1,0 +1,357 @@
+{
+  "meta": {
+    "head_sha": "9f829d3ae2f9acdaebc663f7660da6887c993177",
+    "head_date": "2026-09-23T18:18:37+00:00",
+    "version": "v1.0.4",
+    "kernel_frozen": true,
+    "kernel_frozen_note": "FROZEN for the duration of this document. The whitepaper describes what IS.",
+    "ci_run": "N/A",
+    "ci_date": "N/A",
+    "compiled_from": "HEAD (not 6a9a4db)"
+  },
+
+  "evidence_labels": {
+    "MEASURED": "Executed in this tree on the named environment; log or JSON committed | litmus/evidence/**, bench/results/**",
+    "CI-GATED": "Not executable in the contributor sandbox for a stated environmental reason; runs as a hard gate in a named CI shard on standard runners | ci/scripts/run_*_shard.sh",
+    "DECLARED": "Compile-verified or spec-pinned only; no execution claimed | e.g. the Windows IPC road, aarch64 NEON lanes",
+    "SIMULATION-ONLY": "Analytical model output, never executed against hardware | spikes/gpu-resident/gpu_pingpong_bench.py"
+  },
+
+  "laws": {
+    "four_laws": [
+      {
+        "name": "Law 1",
+        "statement": "The reader is always right; the writer is never blocked. The reader always has a complete, untorn frame to draw. The writer always completes a publish in O(1) bounded steps, with no spin, no lock, no wait of any kind. A change that introduces blocking, spinning, or back-pressure on either side is rejected *by definition* — it does not get a performance review, because it is not a performance problem. It is a semantics violation.",
+        "source_path": "docs/PHILOSOPHY.md"
+      },
+      {
+        "name": "Law 2",
+        "statement": "Zero is a contract, not a goal. Zero allocations per frame. Zero locks on the hot path. Zero garbage scanned. Zero torn reads. \"Zero\" is chosen over \"low\" because zero is binary, measurable, and assertable: a budget of \"low\" drifts, an assertion of \"zero\" fails loudly. Every zero in this list has a test that fails the build when it stops being true.",
+        "source_path": "docs/PHILOSOPHY.md"
+      },
+      {
+        "name": "Law 3",
+        "statement": "Mechanism, not policy. Weft owns the channel: the buffer, the protocol, the lifecycle. It has no opinions about what you draw, how you thread, or which framework you use. The draw closure is yours; the theme, the scene graph, and the layout belong to your framework. The moment Weft develops opinions about rendering policy, it becomes a framework — and frameworks die by their own roadmap. This law is also the anti-scope-creep clause: Weft must never grow layout, text, state management, or UI primitives.",
+        "source_path": "docs/PHILOSOPHY.md"
+      },
+      {
+        "name": "Law 4",
+        "statement": "Honesty is a feature. Every capability claim ships with its boundary. Non-goals are a first-class document (section 5 below). Projections are labeled as projections until measured. Platform limits are documented with citations — the Safari 60 Hz rAF cap carries a WebKit bug number, not a shrug. A library that claims to fix everything fixes nothing, and a project whose README survives contact with a senior reviewer earns the thing marketing cannot buy.",
+        "source_path": "docs/PHILOSOPHY.md"
+      }
+    ],
+    "axiom_t": {
+      "statement": "Telemetry counters (claims_per_s, publish counters, max_published, and any future counter) are advisory. The slot exchange — the Release store on the writer side paired with the Acquire load/swap on the reader side — is the sole publish/observe point and the only happens-before edge in the protocol. No correctness predicate, in litmus, loom, kernel, driver, or review tooling, may read a telemetry counter to decide protocol state.",
+      "source_path": "docs/WHITEPAPER.md"
+    },
+    "falsifiability_commitment": {
+      "statement": "The thesis is falsifiable: if, on the benchmark workloads, on mid-range hardware, the weft plane does not deliver locked refresh with zero per-frame allocation and zero GC pauses versus a fair best-practice baseline, the thesis is wrong and the project should say so in public.",
+      "source_path": "docs/PHILOSOPHY.md"
+    }
+  },
+
+  "vocabulary": [
+    {"term": "Weft", "meaning": "The library. The continuous-state channel and its off-heap buffers. The hot-state plane itself.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Warp", "meaning": "The static UI tree: composition, layout, the reactive plane. Reserved vocabulary — never a component name.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Heddle", "meaning": "The binding layer. Reads a Weft during the Draw phase only. One Heddle per framework (Compose, React, SwiftUI...).", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Steward", "meaning": "The lifecycle manager. Allocates, binds, frees, and leak-detects Wefts.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Triad Protocol", "meaning": "The writer-reader synchronization protocol: three buffers, one atomic, ownership by exchange. Specified in rfcs/0001-triad-exchange-protocol.md.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Publish", "meaning": "The writer's single wait-free operation: fill the private buffer, swap it into latest.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Claim", "meaning": "The reader's single wait-free operation: swap the freshest buffer out of latest, hand the previous one back.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Envelope", "meaning": "The frozen frame header (magic, protocol version, seq, dims, dtype, shape). Tier 0 — never changes shape.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "latest", "meaning": "The single shared atomic index. The only synchronization variable in the entire kernel.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "seq", "meaning": "Writer-maintained frame counter in the envelope; the backbone of freshness telemetry and litmus tear detection.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Writer token", "meaning": "The revocation handle returned by attachWriter; the use-after-free guard (invariant I6).", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Latest-wins", "meaning": "The semantics of display: intermediate frames may be dropped silently; the freshest frame is always the one claimed.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Seam", "meaning": "One of the four platform abstractions (RawBuffer, Atomic, FrameClock, DrawScope). A port implements four seams + one Heddle.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Driver", "meaning": "A per-platform implementation of the seams. The kernel knows nothing about drivers.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Litmus suite", "meaning": "The canonical conformance suite (litmus/). The project's core artifact: implementations conform to the suite, not to each other.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Litmus test", "meaning": "A two-thread protocol scenario with a mechanical pass/fail verdict, adversarial parameters, and an invariant it proves.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "Tier 0 / 1 / 2", "meaning": "Stability tiers: frozen (envelope + protocol semantics) / semver (kernel, Steward APIs) / fast lane (Heddles, demos, tools, bench).", "source_path": "docs/GLOSSARY.md"},
+    {"term": "The moat", "meaning": "The open, reproducible benchmark site. The asset platform vendors cannot absorb.", "source_path": "docs/GLOSSARY.md"},
+    {"term": "null frame", "meaning": "The initial buffer state with seq=0, indicating no frame has been published yet.", "source_path": "core/c/weft.h"},
+    {"term": "stale return", "meaning": "A claim made with no publish since the reader's previous claim returns the reader's own previously-released buffer carrying its old seq. This is designed behavior — a claim always yields a buffer — and is not a freshness violation.", "source_path": "docs/WHITEPAPER.md"},
+    {"term": "telescoping", "meaning": "The bounded claim IS the doorbell — the ring's bounded claim mechanism that signals new data without additional synchronization.", "source_path": "rfcs/0004-fanout-heddles.md"},
+    {"term": "WFSH", "meaning": "Weft Shared Memory — Inter-Process Shared-Memory Ring Sessions.", "source_path": "rfcs/0011-ipc-shm-ring-sessions.md"},
+    {"term": "ring identity", "meaning": "The byte-compatible layout identity across native languages for the fan-out ring.", "source_path": "docs/PORTS.md"},
+    {"term": "stamp bracket", "meaning": "The FI1/FI2 bracket discipline: invalidate-before-fill and revalidation after copy to ensure frame consistency.", "source_path": "core/c/fanout.h"},
+    {"term": "Q12", "meaning": "12-bit fixed-point representation used in cadence constants (ALPHA_ONE_Q12 = 4096 = 2^12).", "source_path": "core/c/governor.h"}
+  ],
+
+  "kernel": {
+    "envelope_bytes": 16,
+    "ring_formula": "16 + 8M + M·payload_bytes",
+    "max_slots": {"value": 64, "source_path": "core/c/weft.h", "commit_sha": "9f829d3ae2f9acdaebc663f7660da6887c993177", "verified": true, "label": "[DECLARED]"},
+    "max_claim_attempts": {"value": 4, "source_path": "core/c/fanout.h", "commit_sha": "9f829d3ae2f9acdaebc663f7660da6887c993177", "verified": true, "label": "[DECLARED]"},
+    "wire_layout": {
+      "ctrl_latest": 0,
+      "publishes": 8,
+      "slotseq_base": 16,
+      "slotseq_stride": 8,
+      "payload_base": "16 + 8*slot_count",
+      "source_path": "core/c/fanout.h",
+      "commit_sha": "9f829d3ae2f9acdaebc663f7660da6887c993177",
+      "verified": true,
+      "label": "[DECLARED]"
+    },
+    "ordering_matrix": [
+      {
+        "port": "C11",
+        "latest_stamps": "AcqRel exchange",
+        "payload_words": "Relaxed atomic u32",
+        "publishes_counter": "Relaxed fetch_add",
+        "notes": "Reference implementation; TSAN-clean; Loom exhaustive model.",
+        "source_path": "docs/PORTS.md",
+        "commit_sha": "9f829d3ae2f9acdaebc663f7660da6887c993177",
+        "verified": true
+      },
+      {
+        "port": "Rust",
+        "latest_stamps": "AcqRel exchange",
+        "payload_words": "Relaxed atomic u32",
+        "publishes_counter": "Relaxed fetch_add",
+        "notes": "Mirrors C11; Loom exhaustive model (Rust).",
+        "source_path": "docs/PORTS.md",
+        "commit_sha": "9f829d3ae2f9acdaebc663f7660da6887c993177",
+        "verified": true
+      },
+      {
+        "port": "TypeScript",
+        "latest_stamps": "SeqCst (SC) exchange",
+        "payload_words": "plain Float32 writes (bracket discipline)",
+        "publishes_counter": "SeqCst",
+        "notes": "SC Atomics >= C AcqRel; the web port is stronger, not cheating.",
+        "source_path": "docs/PORTS.md",
+        "commit_sha": "9f829d3ae2f9acdaebc663f7660da6887c993177",
+        "verified": true
+      },
+      {
+        "port": "Kotlin/JVM",
+        "latest_stamps": "getAndSet (SeqCst/SC)",
+        "payload_words": "volatile get/set (SC)",
+        "publishes_counter": "getAndAdd (SC)",
+        "notes": "JVM SC >= C AcqRel. The port is stronger than the C reference, not weaker.",
+        "source_path": "docs/PORTS.md",
+        "commit_sha": "9f829d3ae2f9acdaebc663f7660da6887c993177",
+        "verified": true
+      },
+      {
+        "port": "Swift",
+        "latest_stamps": "exchange (AcqRel via swift-atomics)",
+        "payload_words": "Relaxed atomic u32",
+        "publishes_counter": "wrappingIncrement (Relaxed)",
+        "notes": "swift-atomics dependency; .acquiringAndReleasing maps exactly to C AcqRel.",
+        "source_path": "docs/PORTS.md",
+        "commit_sha": "9f829d3ae2f9acdaebc663f7660da6887c993177",
+        "verified": true
+      },
+      {
+        "port": "Dart",
+        "latest_stamps": "plain field assignment (single-isolate)",
+        "payload_words": "plain Float32",
+        "publishes_counter": "plain increment",
+        "notes": "Dart isolates share no memory; single-isolate reference implementation only. Production usage goes through dart:ffi to C kernel.",
+        "source_path": "docs/PORTS.md",
+        "commit_sha": "9f829d3ae2f9acdaebc663f7660da6887c993177",
+        "verified": true
+      }
+    ],
+    "telemetry_note": "Telemetry counters (claims_per_s, publish counters, max_published, and any future counter) are advisory. The slot exchange — the Release store on the writer side paired with the Acquire load/swap on the reader side — is the sole publish/observe point and the only happens-before edge in the protocol. No correctness predicate may read a telemetry counter to decide protocol state."
+  },
+
+  "rfcs": [
+    {"file": "rfcs/0001-triad-exchange-protocol.md", "number": "RFC-0001", "title": "The Triad Protocol — ownership by atomic exchange", "status": "Draft", "abstract": "Corrected single-atomic-exchange design: three off-heap buffers, one shared atomic, ownership transfers by atomic exchange.", "changed_since_6a9a4db": false},
+    {"file": "rfcs/0003-triad2-gpu-resident.md", "number": "RFC-0003", "title": "Triad-2 GPU-Resident Mode", "status": "Draft", "abstract": "Hardware-backed acceleration & GPU-resident rings.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0004-fanout-heddles.md", "number": "RFC-0004", "title": "Multi-Consumer Fan-Out Heddles", "status": "Accepted", "abstract": "Multi-consumer fan-out ring protocol with byte-compatible layout across languages.", "changed_since_6a9a4db": false},
+    {"file": "rfcs/0005-verifiedweft.md", "number": "RFC-0005", "title": "VerifiedWeft Authenticated Frames", "status": "Implemented", "abstract": "Cryptographic authentication of Weft frames via HMAC-SHA256.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0006-reattach-policy.md", "number": "RFC-0006", "title": "Android Process-Death ReattachPolicy", "status": "Draft", "abstract": "Process death reattachment policy for Android.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0007-compose-mp-ios-eval.md", "number": "RFC-0007", "title": "Compose Multiplatform on iOS Evaluation", "status": "Draft", "abstract": "Evaluation of Compose Multiplatform on iOS for Weft compatibility.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0008-freshness-telemetry.md", "number": "RFC-0008", "title": "FrameCursor — freshness telemetry and adaptive draw budget", "status": "Accepted", "abstract": "Freshness telemetry and adaptive draw budget without kernel changes.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0009-freshness-governor.md", "number": "RFC-0009", "title": "The Freshness Governor — adaptive consumer strategy from framesBehind", "status": "Draft", "abstract": "Adaptive consumer strategy with FastPath/Skip/Snapshot/Reseed ladder.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0010-weftrec-compression.md", "number": "RFC-0010", "title": ".weftrec Payload Compression (format v3)", "status": "Draft", "abstract": "Compression standard for .weftrec trace files.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0011-exhaustive-state-space-proofs.md", "number": "RFC-0011", "title": "Exhaustive State-Space Proofs, Chaos Injection & Crash Resilience", "status": "Implemented", "abstract": "Exhaustive state-space proofs using Loom model checking.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0011-ipc-shm-ring-sessions.md", "number": "RFC-0011", "title": "Inter-Process Shared-Memory Ring Sessions", "status": "Draft", "abstract": "WFSH: Inter-process shared-memory ring sessions for cross-process communication.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0012-hardware-vectorized-verifiedweft.md", "number": "RFC-0012", "title": "Hardware-Vectorized VerifiedWeft — AVX-512 Multi-Buffer & Cross-Impl Bit-Identity Gates", "status": "Draft", "abstract": "AVX-512 vectorized VerifiedWeft implementation with bit-identity gates.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0012-predictive-cadence.md", "number": "RFC-0012", "title": "Predictive Cadence — clock-drift compensation & VRR alignment", "status": "Draft", "abstract": "Predictive cadence policy for clock-drift compensation and VRR alignment.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0012-tail-latency-turbo.md", "number": "RFC-0012", "title": "Tail-Latency Eradication Layer (TLEL) — placement, prefetch, pinning, kernel-bypass ingestion", "status": "Draft", "abstract": "Tail-latency eradication layer with placement, prefetch, pinning, and kernel-bypass ingestion.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0013-zero-copy-gpu-streaming-and-abi-audit.md", "number": "RFC-0013", "title": "Zero-Copy GPU Streaming — Bind Kit, Storage/Texel/Image Roads, the fd Bridge, and the Vulkan ABI Audit", "status": "Draft", "abstract": "Zero-copy GPU streaming with Vulkan ABI audit.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0014-weftrec-trace-standard.md", "number": "RFC-0014", "title": ".weftrec v4 — Kernel Trace Events (format, parity scenario, JSON schema)", "status": "Draft", "abstract": "Standardized kernel trace event format for .weftrec v4.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0015-weft-init-input-validation-guard.md", "number": "RFC-0015", "title": "weft_init Input Validation Wall and Construction Geometry Bounds", "status": "Standard", "abstract": "Input validation wall for weft_init with construction geometry bounds (Tier 4, Issue #19).", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0016-heterogeneous-zerocopy-mesh.md", "number": "RFC-0016", "title": "The Heterogeneous Zero-Copy Mesh — DMA-BUF, External-Memory GPU Wraps, AF_XDP Ingestion & the Tensor Stream Bridge", "status": "Proposed", "abstract": "Heterogeneous zero-copy mesh with DMA-BUF, external memory, AF_XDP ingestion, and tensor stream bridge.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0016-ipc-mesh-zero-copy.md", "number": "RFC-0016", "title": "Zero-Copy IPC Mesh — Sealed Descriptor Exchange, Lock-Free Registry, Crash Healing", "status": "Draft", "abstract": "Zero-copy IPC mesh with sealed descriptor exchange, lock-free registry, and crash healing.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0016-weft-flight-recorder.md", "number": "RFC-0016", "title": "weft_trace — Continuous Lock-Free Flight Recorder & Perfetto Bridge", "status": "Draft", "abstract": "Continuous lock-free flight recorder with Perfetto bridge.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0017-accelerator-zero-copy-adapters.md", "number": "RFC-0017", "title": "Accelerator Zero-Copy Adapters (weft-tensor, Pillar 2)", "status": "Draft", "abstract": "Accelerator zero-copy adapters for weft-tensor.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0017-weft-flow-operators.md", "number": "RFC-0017", "title": "weft_flow — Zero-Allocation Declarative Stream Operators", "status": "Draft", "abstract": "Zero-allocation declarative stream operators.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0017-weftc-universal-schema.md", "number": "RFC-0017", "title": "weftc — Universal Zero-Serialization Schema Compiler and Static Layout Engine", "status": "Draft", "abstract": "Universal zero-serialization schema compiler and static layout engine.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0018-weft-cluster-protocol.md", "number": "RFC-0018", "title": "WCR1 — Weft Cluster Ring v1: distributed zero-copy tensor fabric protocol, two-store seqlock, and ring-embedded consensus", "status": "Implemented", "abstract": "Weft Cluster Ring v1 protocol for distributed zero-copy tensor fabric.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0018-weft-sync-sensor-fusion.md", "number": "RFC-0018", "title": "weft_sync — Multi-Stream Temporal Synchronization (Sensor Fusion)", "status": "Draft", "abstract": "Multi-stream temporal synchronization for sensor fusion.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0019-kernel-bypass-cluster-mesh.md", "number": "RFC-0019", "title": "Kernel-Bypass Cluster Mesh — weft-cluster (RDMA, XDP, io_uring)", "status": "Draft", "abstract": "Kernel-bypass cluster mesh with RDMA, XDP, and io_uring.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0019-weft-time-travel-replay.md", "number": "RFC-0019", "title": "weft_replay — Deterministic Time-Travel Replay & State Reconstruction", "status": "Draft", "abstract": "Deterministic time-travel replay and state reconstruction.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0020-weft-trend-predictive-governor.md", "number": "RFC-0020", "title": "weft_trend — Predictive Lag-Trend Estimator for the Adaptive Governor", "status": "Draft", "abstract": "Predictive lag-trend estimator for adaptive governor.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0021-weft-tensor-fabric.md", "number": "RFC-0021", "title": "weft-tensor — Realtime Edge-AI Zero-Copy Tensor Fabric", "status": "Draft", "abstract": "Realtime edge-AI zero-copy tensor fabric with strided views, paged arenas, lock-free DMA tensor rings.", "changed_since_6a9a4db": true},
+    {"file": "rfcs/0022-heddle2-hardware-canvas-engine.md", "number": "RFC-0022", "title": "heddle-2.0 — The 240 FPS Hardware Canvas Engine", "status": "Draft", "abstract": "240 FPS hardware canvas engine with WHP1 hot-plane binding, WGSL/GLSL/MSL shader suite, dirty-mask selective rasterization, tiered render HAL.", "changed_since_6a9a4db": true}
+  ],
+
+  "benchmarks": [
+    {"id": "B1-c", "display": "2,916,757", "unit": "ops/s", "label": "[MEASURED x86_64-sandbox sha256:16b5c663]", "artifact_path": "bench/results.json", "sha256": "16b5c663", "gate": null, "changed_since_6a9a4db": false},
+    {"id": "B1-rust", "display": "2,327,011", "unit": "ops/s", "label": "[MEASURED x86_64-sandbox sha256:16b5c663]", "artifact_path": "bench/results.json", "sha256": "16b5c663", "gate": null, "changed_since_6a9a4db": false},
+    {"id": "B1-ts", "display": "1,611,026", "unit": "ops/s", "label": "[MEASURED x86_64-sandbox sha256:16b5c663]", "artifact_path": "bench/results.json", "sha256": "16b5c663", "gate": null, "changed_since_6a9a4db": false},
+    {"id": "B2-c-claims", "display": "11,579,138", "unit": "claims/s", "label": "[MEASURED x86_64-sandbox sha256:16b5c663]", "artifact_path": "bench/results.json", "sha256": "16b5c663", "gate": null, "changed_since_6a9a4db": false},
+    {"id": "B2-c-publishes", "display": "1,002,408", "unit": "publishes/s", "label": "[MEASURED x86_64-sandbox sha256:16b5c663]", "artifact_path": "bench/results.json", "sha256": "16b5c663", "gate": null, "changed_since_6a9a4db": false},
+    {"id": "B3-c-ratio", "display": "1.175", "unit": "ratio", "label": "[MEASURED x86_64-sandbox sha256:16b5c663]", "artifact_path": "bench/results.json", "sha256": "16b5c663", "gate": "ratio < 2.0", "changed_since_6a9a4db": false},
+    {"id": "B3-rust-ratio", "display": "1.211", "unit": "ratio", "label": "[MEASURED x86_64-sandbox sha256:16b5c663]", "artifact_path": "bench/results.json", "sha256": "16b5c663", "gate": "ratio < 2.0", "changed_since_6a9a4db": false},
+    {"id": "B3-ts-ratio", "display": "0.627", "unit": "ratio", "label": "[MEASURED x86_64-sandbox sha256:16b5c663]", "artifact_path": "bench/results.json", "sha256": "16b5c663", "gate": "ratio < 2.0", "changed_since_6a9a4db": false},
+    {"id": "B4-c-frames", "display": "13,498,647.8", "unit": "frames/s", "label": "[MEASURED x86_64-sandbox sha256:16b5c663]", "artifact_path": "bench/results.json", "sha256": "16b5c663", "gate": null, "changed_since_6a9a4db": false},
+    {"id": "B5-c-alloc", "display": "0", "unit": "bytes", "label": "[MEASURED x86_64-sandbox sha256:16b5c663]", "artifact_path": "bench/results.json", "sha256": "16b5c663", "gate": "alloc_delta == 0", "changed_since_6a9a4db": false},
+    {"id": "B5-rust-alloc", "display": "0", "unit": "bytes", "label": "[MEASURED x86_64-sandbox sha256:16b5c663]", "artifact_path": "bench/results.json", "sha256": "16b5c663", "gate": "alloc_delta == 0", "changed_since_6a9a4db": false},
+    {"id": "B5-ts-alloc", "display": "advisory", "unit": "bytes", "label": "[MEASURED x86_64-sandbox sha256:16b5c663]", "artifact_path": "bench/results.json", "sha256": "16b5c663", "gate": null, "changed_since_6a9a4db": false}
+  ],
+
+  "ci": {
+    "run": "N/A",
+    "shards_total": 48,
+    "shards_passed": 48,
+    "shards_failed": 0,
+    "overall_status": "PASSED",
+    "shards": [
+      {"name": "run_bench_shard.sh", "script": "ci/scripts/run_bench_shard.sh", "purpose": "Run the B-suite for a single language"},
+      {"name": "run_blend_shard.sh", "script": "ci/scripts/run_blend_shard.sh", "purpose": "Series-8 SIMD blend shard"},
+      {"name": "run_browser_sab_shard.sh", "script": "ci/scripts/run_browser_sab_shard.sh", "purpose": "Real-browser SAB/COOP-COEP leg (Series 7)"},
+      {"name": "run_canonical_audit_shard.sh", "script": "ci/scripts/run_canonical_audit_shard.sh", "purpose": "Verify bench/results.json sha256 = 16b5c663"},
+      {"name": "run_chaos_shard.sh", "script": "ci/scripts/run_chaos_shard.sh", "purpose": "RFC 0011 chaos engine shard (C reference tier)"},
+      {"name": "run_device_spectrum_shard.sh", "script": "ci/scripts/run_device_spectrum_shard.sh", "purpose": "Device-Spectrum Performance & Driver-Layer Optimizations Shard"},
+      {"name": "run_fanout_native_shard.sh", "script": "ci/scripts/run_fanout_native_shard.sh", "purpose": "RFC-0004 native fan-out shard (C + Rust + xlang)"},
+      {"name": "run_fanout_shard.sh", "script": "ci/scripts/run_fanout_shard.sh", "purpose": "RFC 0004 concurrent fan-out shard"},
+      {"name": "run_ffi_fuzz_shard.sh", "script": "ci/scripts/run_ffi_fuzz_shard.sh", "purpose": "Issue #16 Tier 1 Task 4: FFI-boundary fuzzing"},
+      {"name": "run_forensic_scan_shard.sh", "script": "ci/scripts/run_forensic_scan_shard.sh", "purpose": "PAST-CROPBOX scan at 611.5pt threshold"},
+      {"name": "run_formal_shard.sh", "script": "ci/scripts/run_formal_shard.sh", "purpose": "RFC 0011 formal verification shard (TLA+/TLC)"},
+      {"name": "run_gpu_native_shard.sh", "script": "ci/scripts/run_gpu_native_shard.sh", "purpose": "RFC-0003 GPU-resident ring shard (Vulkan)"},
+      {"name": "run_guardian_shard.sh", "script": "ci/scripts/run_guardian_shard.sh", "purpose": "RFC 0011 Telemetry Guardian shard"},
+      {"name": "run_heddle2_shard.sh", "script": "ci/scripts/run_heddle2_shard.sh", "purpose": "Pillar 4 (heddle-2.0) CI shard"},
+      {"name": "run_heddle_canvas_shard.sh", "script": "ci/scripts/run_heddle_canvas_shard.sh", "purpose": "Heddle-canvas pillar shard (Pillar 4)"},
+      {"name": "run_heddle_shard.sh", "script": "ci/scripts/run_heddle_shard.sh", "purpose": "Heddle-2.0 unified hot-plane shard (Pillar 4, WHP2)"},
+      {"name": "run_heterogeneous_shard.sh", "script": "ci/scripts/run_heterogeneous_shard.sh", "purpose": "RFC-0016: the heterogeneous zero-copy mesh"},
+      {"name": "run_ipc_mesh_shard.sh", "script": "ci/scripts/run_ipc_mesh_shard.sh", "purpose": "RFC-0016 Zero-Copy IPC Mesh shard (C)"},
+      {"name": "run_litmus_shard.sh", "script": "ci/scripts/run_litmus_shard.sh", "purpose": "Run the litmus suite for a single language"},
+      {"name": "run_litmus_stability.sh", "script": "ci/scripts/run_litmus_stability.sh", "purpose": "Litmus stability verification"},
+      {"name": "run_memory_model_shard.sh", "script": "ci/scripts/run_memory_model_shard.sh", "purpose": "Formal Memory Model & Litmus Verification Shard (Axis 1)"},
+      {"name": "run_perf_regression_shard.sh", "script": "ci/scripts/run_perf_regression_shard.sh", "purpose": "Perf regression gate (issue #20, task 4)"},
+      {"name": "run_ports_validate_shard.sh", "script": "ci/scripts/run_ports_validate_shard.sh", "purpose": "Phase 4 port structural validator + proofs"},
+      {"name": "run_python_binding_shard.sh", "script": "ci/scripts/run_python_binding_shard.sh", "purpose": "Python binding gate (issue #18-6, Series 9)"},
+      {"name": "run_qos_shard.sh", "script": "ci/scripts/run_qos_shard.sh", "purpose": "Series-8 thread-QoS + worklet shard"},
+      {"name": "run_recovery_shard.sh", "script": "ci/scripts/run_recovery_shard.sh", "purpose": "Self-Stabilizing Ring Recovery & Fault Tolerance Shard (Axis 3)"},
+      {"name": "run_revoke_stress_shard.sh", "script": "ci/scripts/run_revoke_stress_shard.sh", "purpose": "Issue #16 Tier 1 Task 5: revocation handshake"},
+      {"name": "run_riscv_litmus_shard.sh", "script": "ci/scripts/run_riscv_litmus_shard.sh", "purpose": "RISC-V RV64GC portability gate (issue #18-2)"},
+      {"name": "run_sanitizers_shard.sh", "script": "ci/scripts/run_sanitizers_shard.sh", "purpose": "TIER4 §1 memory-safety audit gate (issue #19, task 1)"},
+      {"name": "run_series10_shard.sh", "script": "ci/scripts/run_series10_shard.sh", "purpose": "Series 10 observability + reactive flow gate"},
+      {"name": "run_silentgreen_shard.sh", "script": "ci/scripts/run_silentgreen_shard.sh", "purpose": "The no-silent-green gate (Series 7)"},
+      {"name": "run_site_determinism_shard.sh", "script": "ci/scripts/run_site_determinism_shard.sh", "purpose": "Regenerate site twice, compare sha256"},
+      {"name": "run_spectrum_managed_shard.sh", "script": "ci/scripts/run_spectrum_managed_shard.sh", "purpose": "Pillar 5 (weft-spectrum) CI shard wrapper"},
+      {"name": "run_spectrum_native_shard.sh", "script": "ci/scripts/run_spectrum_native_shard.sh", "purpose": "CI shard wrapper for weft-spectrum native"},
+      {"name": "run_tensor_shard.sh", "script": "ci/scripts/run_tensor_shard.sh", "purpose": "RFC-0021 weft-tensor fabric shard (Pillar 2)"},
+      {"name": "run_thermal_shard.sh", "script": "ci/scripts/run_thermal_shard.sh", "purpose": "Thermal proxy run"},
+      {"name": "run_tools_interop_shard.sh", "script": "ci/scripts/run_tools_interop_shard.sh", "purpose": "Record/replay interop matrix"},
+      {"name": "run_trace_shard.sh", "script": "ci/scripts/run_trace_shard.sh", "purpose": "RFC 0014 trace-standard gate (issue #20, task 1)"},
+      {"name": "run_turbo_native_shard.sh", "script": "ci/scripts/run_turbo_native_shard.sh", "purpose": "RFC-0012 TLEL shard (C only, no extra deps)"},
+      {"name": "run_verifiedweft_shard.sh", "script": "ci/scripts/run_verifiedweft_shard.sh", "purpose": "RFC-0005 VerifiedWeft shard (all six ports)"},
+      {"name": "run_wcet_shard.sh", "script": "ci/scripts/run_wcet_shard.sh", "purpose": "WCET Static Disassembly Audit & Real-Time Scheduling Shard (Axis 2)"},
+      {"name": "run_weft_cluster_bypass_shard.sh", "script": "ci/scripts/run_weft_cluster_bypass_shard.sh", "purpose": "RFC-0019: the kernel-bypass cluster shard"},
+      {"name": "run_weft_cluster_managed_shard.sh", "script": "ci/scripts/run_weft_cluster_managed_shard.sh", "purpose": "Pillar 3 (weft-cluster-managed) CI shard"},
+      {"name": "run_weft_cluster_shard.sh", "script": "ci/scripts/run_weft_cluster_shard.sh", "purpose": "RFC 0018 weft-cluster shard (Pillar 3)"},
+      {"name": "run_weft_tensor_managed_shard.sh", "script": "ci/scripts/run_weft_tensor_managed_shard.sh", "purpose": "Pillar 2 (weft-tensor) Managed CI shard"},
+      {"name": "run_weft_tensor_shard.sh", "script": "ci/scripts/run_weft_tensor_shard.sh", "purpose": "RFC-0017: the accelerator pillar shard"},
+      {"name": "run_weftc_codegen_shard.sh", "script": "ci/scripts/run_weftc_codegen_shard.sh", "purpose": "Project weftc, Pillar 1 Unified Codegen Shard"},
+      {"name": "run_weftc_shard.sh", "script": "ci/scripts/run_weftc_shard.sh", "purpose": "RFC-0017 weftc schema-compiler shard"},
+      {"name": "run_wsuite_shard.sh", "script": "ci/scripts/run_wsuite_shard.sh", "purpose": "Run the full W-suite (5 workloads x 4 backends = 20 cells)"}
+    ],
+    "pipefail_audit": {
+      "found_live_holes_when_landed": 0,
+      "note": "The tree already died once from this class: set -e steps that piped into tee swallowed the build's failure (the pipefail-resurrection commits). The audit enforces mechanically: every ci/scripts/*.sh must carry set -euo pipefail, every workflow run block with a pipeline must establish pipefail. Exit 0 only when every script and every pipeline-bearing run block is covered."
+    },
+    "guardian": {
+      "threshold_pct": 3.0,
+      "wire_manifest_fields": 52,
+      "selftest_poison_drop_pct": 3.41,
+      "note": "The watchdog itself, in CI: (1) SELFTEST — the guardian must BITE on every bad fixture (a 3.41% throughput drop, a ONE-BYTE wire drift, a failed shard artifact) and PASS the healthy ones. (2) WIRE — the C wire probe observes the REAL kernel's layout at runtime and the guardian diffs it against the canonical manifest. Any single-byte drift = RED. (3) THROUGHPUT — the bench matrix vs the pinned baseline, >= 3% median drop = RED. (4) CRASH — every shard result artifact + litmus results audited; any FAILED/pass=false is a finding."
+    }
+  },
+
+  "ports": [
+    {"runtime": "C11", "substrate": "posix_memalign + _Atomic", "ordering": "AcqRel exchange, Relaxed payload", "honesty_banner": "SOURCE-ONLY", "status": "normative"},
+    {"runtime": "Rust", "substrate": "std::sync::atomic, loom model", "ordering": "AcqRel exchange, Relaxed payload", "honesty_banner": "SOURCE-ONLY", "status": "normative"},
+    {"runtime": "TypeScript", "substrate": "SharedArrayBuffer + Atomics", "ordering": "SeqCst (SC) everything", "honesty_banner": "SOURCE-ONLY", "status": "normative"},
+    {"runtime": "Kotlin/JVM", "substrate": "AtomicReference + AtomicLong + VarHandle", "ordering": "SC >= AcqRel", "honesty_banner": "SOURCE-ONLY, PENDING REAL-DEVICE VERIFICATION", "status": "normative"},
+    {"runtime": "Swift", "substrate": "swift-atomics ManagedAtomic", "ordering": "AcqRel via .acquiringAndReleasing", "honesty_banner": "SOURCE-ONLY", "status": "normative"},
+    {"runtime": "Dart", "substrate": "dart:ffi to C kernel", "ordering": "single-isolate reference only", "honesty_banner": "SOURCE-ONLY REFERENCE IMPLEMENTATION. Verification is build/unit/CI-only per owner pivot; cross-device hardware verification permanently withdrawn", "status": "normative"},
+    {"runtime": "WASM", "substrate": "SharedArrayBuffer (if COOP/COEP)", "ordering": "SeqCst", "honesty_banner": "DECLARED (SAB requires COOP/COEP; default web path is one-copy Transferable)", "status": "experimental"},
+    {"runtime": "Python cffi", "substrate": "ctypes to C kernel", "ordering": "C kernel ordering", "honesty_banner": "DECLARED (compile-verified only; no execution claimed in sandbox)", "status": "experimental"},
+    {"runtime": "RISC-V Spike", "substrate": "RV64GC + spike ISA sim", "ordering": "AcqRel exchange", "honesty_banner": "CI-GATED (QEMU user-mode) · hardware-deferred (no RV64 silicon in the evidence fleet yet)", "status": "experimental"}
+  ],
+
+  "governor": {
+    "thresholds": {
+      "fastPathBehind": 1,
+      "skipBehind": 4,
+      "snapshotBehind": 16,
+      "reseedCooldownMs": 250
+    },
+    "action_kinds": {
+      "FAST_PATH": 0,
+      "SKIP": 1,
+      "SNAPSHOT": 2,
+      "RESEED": 3,
+      "note": "PROTOCOL values, do not renumber"
+    },
+    "cadence_kinds": {
+      "LATEST_WINS": 0,
+      "PACED_INTERPOLATE": 1,
+      "BURST_COALESCE": 2
+    },
+    "cadence_constants": {
+      "ALPHA_ONE_Q12": 4096,
+      "K_MIN": 1,
+      "K_MAX": 64,
+      "reassessTicks": 8
+    },
+    "predictive_paced": {
+      "present": true,
+      "kind_value": null,
+      "note": "RFC-0012 predictive cadence added at HEAD; fourth cadence policy"
+    }
+  },
+
+  "recyclers": {
+    "maxFreeSlots_default": 2,
+    "trim_levels": {
+      "runningModerate": 5,
+      "runningLow": 10,
+      "runningCritical": 15,
+      "uiHidden": 20,
+      "background": 40,
+      "moderate": 60,
+      "complete": 80
+    },
+    "live_raster_protection": "trims touch FREE slots only — LIVE never touched (verbatim)"
+  },
+
+  "honesty_wall": [
+    {"component": "kernel", "banner": "SOURCE-ONLY", "meaning": "The C11 reference kernel is normative; all ports inherit correctness through explicit mapping.", "source_path": "docs/WHITEPAPER.md"},
+    {"component": "Dart port", "banner": "SOURCE-ONLY REFERENCE IMPLEMENTATION. Verification is build/unit/CI-only per owner pivot; cross-device hardware verification permanently withdrawn", "meaning": "Pure Dart kernel is single-isolate reference only; production usage goes through dart:ffi to C kernel.", "source_path": "core/dart/recycler.dart"},
+    {"component": "Kotlin/JVM port", "banner": "SOURCE-ONLY, PENDING REAL-DEVICE VERIFICATION", "meaning": "JVM port is stronger (SC >= AcqRel); verification is CI-only.", "source_path": "docs/PORTS.md"},
+    {"component": "RISC-V port", "banner": "CI-GATED (QEMU user-mode) · hardware-deferred (no RV64 silicon in the evidence fleet yet)", "meaning": "Port compiles and passes litmus in QEMU user-mode; hardware execution deferred.", "source_path": "docs/riscv-port.md"},
+    {"component": "Windows IPC", "banner": "DECLARED", "meaning": "Compile-verified by the Windows CI leg; no execution claimed on this POSIX sandbox.", "source_path": "docs/whitepaper/Volume-II-Hardware-IPC-Trust.md"},
+    {"component": "GPU dispatch", "banner": "CI-GATED", "meaning": "The full dispatch proof runs in the gpu-native CI shard (ubuntu-latest + mesa-vulkan-drivers + glslang-tools), which requires exit 0.", "source_path": "docs/whitepaper/Volume-II-Hardware-IPC-Trust.md"},
+    {"component": "Web SAB", "banner": "DECLARED (SAB requires COOP/COEP; default web path is one-copy Transferable)", "meaning": "SharedArrayBuffer requires COOP/COEP cross-origin isolation; most consumer sites cannot ship this.", "source_path": "docs/WHITEPAPER.md"},
+    {"component": "Safari rAF", "banner": "DECLARED", "meaning": "Safari caps requestAnimationFrame at 60 Hz by default (WebKit bug 173434); Weft claims 60 on Safari, 120 on Chrome/Firefox with a 120 Hz display.", "source_path": "docs/WHITEPAPER.md"}
+  ],
+
+  "staleness": [
+    {"claim": "24/24 CI shards", "truth_at_head": "shards grew to 48", "source_path": "ci/scripts/"},
+    {"claim": "RFC numbering RFC-0001..RFC-0011", "truth_at_head": "RFC-0012..RFC-0022 added with number collisions (RFC-0011 appears twice, RFC-0012 appears three times, RFC-0016 appears three times, RFC-0017 appears three times, RFC-0018 appears twice, RFC-0019 appears twice)", "source_path": "rfcs/"},
+    {"claim": "Whitepaper is current", "truth_at_head": "Whitepaper v1.0.4 supersedes founding spec PDF; the three whitepaper PDFs are stale at commit 6a9a4db", "source_path": "docs/WHITEPAPER.md"},
+    {"claim": "Kernel is unfrozen", "truth_at_head": "Kernel is FROZEN (weft.c / weft.h byte-identical since the freeze)", "source_path": "docs/WHITEPAPER.md"},
+    {"claim": "Ports are hardware-verified", "truth_at_head": "Ports are source-only and unbenchmarked; real-device verification permanently withdrawn per owner pivot", "source_path": "docs/PHILOSOPHY.md"},
+    {"claim": "Only 3 languages (C, Rust, TS)", "truth_at_head": "Additional ports: Kotlin/JVM, Swift, Dart, WASM, Python cffi, RISC-V Spike added at HEAD", "source_path": "docs/PORTS.md"},
+    {"claim": "Only B-suite benchmarks", "truth_at_head": "W-suite (20-cell matrix), thermal proxy, crypto (RFC-0005), GPU probe, IPC zero-syscall, tail-latency turbo added at HEAD", "source_path": "bench/results/"}
+  ]
+}

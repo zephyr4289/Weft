@@ -89,15 +89,15 @@ if [ -f "$CANON_FILE" ]; then
 fi
 
 # Strip trailing comma, close JSON
-RESULTS_JSON=${RESULTS_JSON%,}']}
+RESULTS_JSON=${RESULTS_JSON%,}']'
 RESULTS_JSON+=',"status":"'$( [ $OVERALL_PASS -eq 1 ] && echo PASSED || echo FAILED )'"}'
 
-python3 -c "
-import json
-data = json.loads('''$RESULTS_JSON''')
+python3 - "$RESULTS_JSON" << 'PYEOF'
+import json, sys
+data = json.loads(sys.argv[1])
 json.dump(data, open('ci/run-artifacts/shard-clean-tree-results.json', 'w'), indent=2)
 print(json.dumps(data, indent=2))
-"
+PYEOF
 
 echo ""
 echo "=== Clean-tree validation: $( [ $OVERALL_PASS -eq 1 ] && echo 'ALL PASS ✅' || echo 'HAS FAILURES ❌' ) ==="

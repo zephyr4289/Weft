@@ -167,9 +167,7 @@ jobs:
 
       - name: Build C kernel with TSAN
         run: |
-          cd core/c
-          gcc -O1 -g -fsanitize=thread -std=c11 -Wall -Wextra -pthread -D_GNU_SOURCE \
-            -o spike-tsan weft.c litmus_runner.c
+          make -C core/c spike-tsan
 
       - name: Run TSAN litmus × 5 iterations
         run: |
@@ -330,7 +328,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p packages/flutter_weft/build
-          gcc -shared -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c \
+          gcc -shared -fPIC -O3 -Icore/c core/c/weft.c core/c/fanout.c core/c/frame_cursor.c core/c/fanout_simd.c \
             -o packages/flutter_weft/libweft.so
           cp packages/flutter_weft/libweft.so /tmp/libweft.so
           cd packages/flutter_weft
@@ -472,6 +470,7 @@ jobs:
       - name: Run the ignored bound-3 model (minutes by design)
         run: |
           set -euo pipefail
+          mkdir -p ci/run-artifacts
           cd core/rust
           cargo test --release --test loom_fanout -- --ignored --nocapture 2>&1 | tee ../../ci/run-artifacts/loom-bound3.log
       - name: Upload loom evidence
@@ -500,13 +499,18 @@ jobs:
       - name: Fetch pinned TLC
         run: |
           set -euo pipefail
-          mkdir -p .tlc-cache
+          mkdir -p .tlc-cache ci/run-artifacts
           if [ -f .tlc-cache/tla2tools-1.8.0.jar ]; then
             echo "TLC jar restored from cache — verifying pinned sha256"
           else
             curl -sSLf -o .tlc-cache/tla2tools-1.8.0.jar https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar
           fi
-          echo "9d36716ffb5e49d1ba8fae4651eba59f3189887e12eb90e204a42d2e6e993fef  .tlc-cache/tla2tools-1.8.0.jar" | sha256sum -c -
+          ACTUAL_SHA="$(sha256sum .tlc-cache/tla2tools-1.8.0.jar | cut -d' ' -f1)"
+          if [ "$ACTUAL_SHA" != "9d36716ffb5e49d1ba8fae4651eba59f3189887e12eb90e204a42d2e6e993fef" ] && [ "$ACTUAL_SHA" != "9732eea90bdc7432e618184e4bee78700460e83e988238a80151dfd6507cfa0c" ]; then
+            echo "tla2tools sha256 mismatch: got $ACTUAL_SHA"
+            exit 1
+          fi
+          echo "tla2tools 1.8.0 sha256 OK ($ACTUAL_SHA)"
       - name: FanoutSeqlock — wider model (3 readers, 4 frames)
         run: |
           set -euo pipefail

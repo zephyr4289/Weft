@@ -1,0 +1,1 @@
+{"shard":"chaos-parity","status":"PASSED","gates":"C==TS(+JVM+Dart when present) byte-identical on 2 configs + golden fixture"}
